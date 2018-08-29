@@ -46,6 +46,6 @@ class TestYamlConfig:
         conf = YamlConfig(yaml_config_url)
         fn = tmpdir.join('myconfig.yml')
 
-        conf.save(fn)
+        conf.save(str(fn))
 
         assert 'PEQ_Hupsel.dat' in fn.read()
