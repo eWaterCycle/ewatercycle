@@ -10,6 +10,7 @@ Welcome to ewatercycle-parametersetdb's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+.. include:: ../README.rst
 
 API Reference
 =============
