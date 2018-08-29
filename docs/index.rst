@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to ewatercycle_parametersetdb's documentation!
+Welcome to ewatercycle-parametersetdb's documentation!
 ==========================================================
 
 .. toctree::
@@ -17,7 +17,7 @@ API Reference
 .. toctree::
   :maxdepth: 2
 
-  ewatercycle_parametersetdb <apidocs/ewatercycle_parametersetdb.rst>
+  ewatercycle-parametersetdb <apidocs/ewatercycle.parametersetdb.rst>
 
 
 Indices and tables

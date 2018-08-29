@@ -1,0 +1,22 @@
+*.py[cod]
+*.egg-info
+*.eggs
+
+dist
+.cache
+
+htmlcov
+.coverage
+xunit-result.xml
+.pytest_cache/
+coverage.xml
+
+docs/_build
+docs/apidocs/
+
+# ide
+.idea
+.eclipse
+.vscode
+
+.scannerwork/
