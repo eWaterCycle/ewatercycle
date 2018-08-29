@@ -22,7 +22,7 @@ Install
 
 .. code-block:: bash
 
-    pip install ewatercycle-parametersetdb
+    pip install git+https://github.com/eWaterCycle/parametersetdb.git#egg=ewatercycle-parametersetdb
 
 
 CITATION.cff
