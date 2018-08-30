@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from unittest import mock
 
-from ewatercycle.parametersetdb import build_from_urls, SubversionCopier, ParameterSet
+from ewatercycle.parametersetdb import build_from_urls, ParameterSet
+from ewatercycle.parametersetdb.datafiles import SubversionCopier
 
 
 def test_build_from_urls(yaml_config_url, yaml_config):
