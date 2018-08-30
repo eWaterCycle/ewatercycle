@@ -30,3 +30,8 @@ class SubversionCopier(AbstractCopier):
     """
     def save(self, target):
         subprocess.check_call(['svn', 'export', self.source, target])
+
+
+DATAFILES_FORMATS = {
+    'svn': SubversionCopier
+}

@@ -1,17 +1,8 @@
 # -*- coding: utf-8 -*-
 """Documentation about ewatercycle_parametersetdb"""
-from ewatercycle.parametersetdb.config import IniConfig, YamlConfig, AbstractConfig
-from ewatercycle.parametersetdb.datafiles import SubversionCopier, AbstractCopier
+from ewatercycle.parametersetdb.config import AbstractConfig, CONFIG_FORMATS
+from ewatercycle.parametersetdb.datafiles import AbstractCopier, DATAFILES_FORMATS
 from ewatercycle.parametersetdb.version import __version__
-
-CONFIG_FORMATS = {
-    'ini': IniConfig,
-    'yaml': YamlConfig,
-}
-
-DATAFILES_FORMATS = {
-    'svn': SubversionCopier
-}
 
 
 class ParameterSet:

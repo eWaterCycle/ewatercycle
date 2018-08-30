@@ -21,14 +21,20 @@ def fetch(url):
 
 
 class AbstractConfig(ABC):
+    """
+
+    Attributes:
+        config (dict): Content of config as Python dictionary
+
+    """
     @abstractmethod
     def __init__(self, source: str):
-        """
+        """Fetches and parses config file
 
         Args:
             source:  Source url of config file
         """
-        self.config = None
+        self.source = source
 
     @abstractmethod
     def save(self, target: str):
@@ -70,3 +76,9 @@ class YamlConfig(AbstractConfig):
     def save(self, target):
         with open(target, 'w') as f:
             self.yaml.dump(self.config, f)
+
+
+CONFIG_FORMATS = {
+    'ini': IniConfig,
+    'yaml': YamlConfig,
+}
