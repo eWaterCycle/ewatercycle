@@ -30,10 +30,10 @@ Usage
 
 .. code-block:: python
 
-    from ewatercycle.parametersetdb import ParameterSet, DATAFILES_FORMATS, CONFIG_FORMATS
-    parameter_set = ParameterSet(
-                DATAFILES_FORMATS['svn']('https://github.com/ClaudiaBrauer/WALRUS/trunk/demo/data'),
-                CONFIG_FORMATS['yaml']("data:text/plain,data: data/PEQ_Hupsel.dat\nparameters:\n  cW: 200\n  cV: 4\n  cG: 5.0e+6\n  cQ: 10\n  cS: 4\n  dG0: 1250\n  cD: 1500\n  aS: 0.01\n  st: loamy_sand\nstart: 367416 # 2011120000\nend: 368904 # 2012020000\nstep: 1\n")
+    from ewatercycle.parametersetdb import build_from_urls
+    parameter_set = build_from_urls(
+        config_format='svn', config_url='https://github.com/ClaudiaBrauer/WALRUS/trunk/demo/data',
+        datafiles_format='yaml', datafiles_url="data:text/plain,data: data/PEQ_Hupsel.dat\nparameters:\n  cW: 200\n  cV: 4\n  cG: 5.0e+6\n  cQ: 10\n  cS: 4\n  dG0: 1250\n  cD: 1500\n  aS: 0.01\n  st: loamy_sand\nstart: 367416 # 2011120000\nend: 368904 # 2012020000\nstep: 1\n",
     )
     # Overwrite items in config file
     # parameter_set.config['...']['...'] = '...'
