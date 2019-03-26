@@ -12,3 +12,4 @@ Added
 -----
 
 * Empty Python project directory structure
+* Added symlink based data files copier
