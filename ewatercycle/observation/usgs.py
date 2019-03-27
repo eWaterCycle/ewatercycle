@@ -3,14 +3,17 @@ from datetime import datetime
 
 import xarray as xr
 import numpy as np
-from osgeo import osr
 from pyoos.collectors.usgs.usgs_rest import UsgsRest
 from pyoos.parsers.waterml import WaterML11ToPaegan
 
 
-def download_usgs_data(station_id, start_date, end_date, parameter='00060', cache_dir=None):
+def get_usgs_data(station_id,
+                  start_date,
+                  end_date,
+                  parameter='00060',
+                  cache_dir=None):
     """
-    Download data from the USGS
+    Get data from the USGS
 
     Parameters
     ----------
@@ -21,36 +24,39 @@ def download_usgs_data(station_id, start_date, end_date, parameter='00060', cach
     end_date : str
         String for start date in the format: 'YYYY-MM-dd', e.g. '2018-12-31'
     parameter : str
-        The parameter code to download, e.g. ('00060') discharge, cubic feet per second
+        The parameter code to get, e.g. ('00060') discharge, cubic feet per second
 
     Examples
     --------
-    >>> from ewatercycle.observation.usgs import download_usgs_data
-    >>> data = download_usgs_data('03109500', '2000-01-01', '2000-12-31', cache_dir='.')
+    >>> from ewatercycle.observation.usgs import get_usgs_data
+    >>> data = get_usgs_data('03109500', '2000-01-01', '2000-12-31', cache_dir='.')
     >>> data
         <xarray.Dataset>
         Dimensions:     (time: 8032)
         Coordinates:
-        * time        (time) datetime64[ns] 2000-01-04T05:00:00 ... 2000-12-23T04:00:00
+          * time        (time) datetime64[ns] 2000-01-04T05:00:00 ... 2000-12-23T04:00:00
         Data variables:
             Streamflow  (time) float32 8.296758 10.420501 ... 10.647034 11.694747
         Attributes:
             title:      USGS Data from streamflow data
-            crs:        GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,29...
             station:    Little Beaver Creek near East Liverpool OH
             stationid:  03109500
-        location:   (40.6758974, -80.5406244)
+            location:   (40.6758974, -80.5406244)
     """
     if cache_dir is None:
         cache_dir = os.environ['USGS_DATA_HOME']
 
     # Check if we have the netcdf data
-    netcdf = os.path.join(cache_dir, station_id + ".nc")
+    netcdf = os.path.join(
+        cache_dir, "USGS_" + station_id + "_" + parameter + "_" + start_date +
+        "_" + end_date + ".nc")
     if os.path.exists(netcdf):
         return xr.open_dataset(netcdf)
 
     # Download the data if needed
-    out = os.path.join(cache_dir, station_id + ".wml")
+    out = os.path.join(
+        cache_dir, "USGS_" + station_id + "_" + parameter + "_" + start_date +
+        "_" + end_date + ".wml")
     if not os.path.exists(out):
         collector = UsgsRest()
         collector.filter(
@@ -82,25 +88,20 @@ def download_usgs_data(station_id, start_date, end_date, parameter='00060', cach
                           dtype=np.float32)
         times = [point.time for point in station.elements]
 
-        # I'm assuming it always has EPSG:4326
-        p1 = osr.SpatialReference()
-        p1.ImportFromEPSG(4326)
-
         attrs = {
             'units': 'cubic meters per second',
         }
 
         # Create the xarray dataset
-        ds = xr.Dataset({'Streamflow': (['time'], values, attrs)},
+        ds = xr.Dataset({'streamflow': (['time'], values, attrs)},
                         coords={'time': times})
 
         # Set some nice attributes
         ds.attrs['title'] = 'USGS Data from streamflow data'
-        ds.attrs['crs'] = p1.ExportToWkt()
         ds.attrs['station'] = station.name
         ds.attrs['stationid'] = station.get_uid()
         ds.attrs['location'] = (station.location.y, station.location.x)
 
-        ds.to_netcdf(os.path.join(cache_dir, station.get_uid() + '.nc'))
+        ds.to_netcdf(netcdf)
 
         return ds
