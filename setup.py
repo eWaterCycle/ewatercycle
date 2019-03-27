@@ -22,6 +22,7 @@ setup(
         'ruamel.yaml',
         'xarray',
         'numpy',
+        'pandas',
         'pyoos',
     ],
     packages=['ewatercycle'],
