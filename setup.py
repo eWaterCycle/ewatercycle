@@ -7,19 +7,25 @@ with open('README.rst') as readme_file:
     readme = readme_file.read()
 
 version = {}
-with open("ewatercycle/parametersetdb/version.py") as fp:
+with open("ewatercycle/version.py") as fp:
     exec(fp.read(), version)
 
 setup(
-    name='ewatercycle-parametersetdb',
+    name='ewatercycle',
     version=version['__version__'],
-    description="Python utilities to gather input files for running a hydrology model",
+    description="Python utilities to gather input files for running and validating a hydrology model",
     long_description=readme + '\n\n',
     author="Stefan Verhoeven",
     author_email='s.verhoeven@esciencecenter.nl',
     url='https://github.com/eWaterCycle/ewatercycle_parametersetdb',
-    install_requires=['ruamel.yaml'],
-    packages=['ewatercycle.parametersetdb'],
+    install_requires=[
+        'ruamel.yaml',
+        'xarray',
+        'numpy',
+        'gdal',
+        'pyoos',
+    ],
+    packages=['ewatercycle'],
     include_package_data=True,
     license="Apache Software License 2.0",
     zip_safe=False,

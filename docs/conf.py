@@ -56,7 +56,7 @@ author = u'Stefan Verhoeven'
 # built documents.
 #
 # The short X.Y version.
-from ewatercycle.parametersetdb.version import __version__ as version
+from ewatercycle.version import __version__ as version
 # The full version, including alpha/beta/rc tags.
 release = version
 
