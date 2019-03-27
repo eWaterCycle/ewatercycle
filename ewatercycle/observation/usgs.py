@@ -60,8 +60,8 @@ def get_usgs_data(station_id,
     if not os.path.exists(out):
         collector = UsgsRest()
         collector.filter(
-            start=datetime.fromisoformat(start_date),
-            end=datetime.fromisoformat(end_date),
+            start=datetime.strptime(start_date, "%Y-%m-%d"),
+            end=datetime.strptime(end_date, "%Y-%m-%d"),
             variables=[parameter],
             features=[station_id])
         data = collector.raw()

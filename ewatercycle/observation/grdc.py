@@ -70,8 +70,8 @@ def get_grdc_data(station_id,
     # Convert the raw data to an xarray
     metadata, df = _grdc_read(
         cmd,
-        start=datetime.fromisoformat(start_date),
-        end=datetime.fromisoformat(end_date))
+        start=datetime.strptime(start_date, "%Y-%m-%d"),
+        end=datetime.strptime(end_date, "%Y-%m-%d"))
 
     # Create the xarray dataset
     ds = df.to_xarray()
