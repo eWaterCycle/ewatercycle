@@ -66,7 +66,7 @@ def get_grdc_data(station_id,
         return xr.open_dataset(netcdf)
 
     # Download the data if needed
-    cmd = os.path.join(cache_dir, station_id + "_" + parameter + "_Day.Cmd")
+    cmd = os.path.join(cache_dir, station_id + "_" + parameter + "_Day.Cmd.txt")
     # Convert the raw data to an xarray
     metadata, df = _grdc_read(
         cmd,
@@ -77,7 +77,11 @@ def get_grdc_data(station_id,
     ds = df.to_xarray()
     ds.attrs = metadata
 
-    ds.to_netcdf(netcdf)
+    try:
+        ds.to_netcdf(netcdf)
+    except PermissionError:
+        # GRDC files are in a read-only directory, unable to store netcdf cache file
+        pass
 
     return ds
 
