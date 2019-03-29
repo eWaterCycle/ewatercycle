@@ -3,14 +3,18 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to ewatercycle-parametersetdb's documentation!
+Welcome to the eWaterCycle documentation!
 ==========================================================
+
+.. include:: ../README.rst
+
+User's Guide
+============
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
-.. include:: ../README.rst
+   observations
 
 API Reference
 =============
