@@ -13,7 +13,8 @@ def get_usgs_data(station_id,
                   parameter='00060',
                   cache_dir=None):
     """
-    Get data from the USGS
+    Get river discharge data from the
+    `U.S. Geological Survey Water Services <https://waterservices.usgs.gov/>`_ (USGS) rest web service.
 
     Parameters
     ----------
@@ -25,6 +26,9 @@ def get_usgs_data(station_id,
         String for start date in the format: 'YYYY-MM-dd', e.g. '2018-12-31'
     parameter : str
         The parameter code to get, e.g. ('00060') discharge, cubic feet per second
+    cache_dir : str
+        Directory where files retrieved from the web service are cached.
+        If set to None then USGS_DATA_HOME env var will be used as cache directory.
 
     Examples
     --------
