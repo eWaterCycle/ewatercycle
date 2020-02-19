@@ -1,37 +1,39 @@
 import os
 from datetime import datetime
 
-import numpy as np
 import pandas as pd
-import xarray as xr
 
 
 def get_grdc_data(station_id,
                   start_date,
                   end_date,
                   parameter='Q',
-                  cache_dir=None):
+                  data_home=None):
     """
-    Get data from GRDC
+    Get river discharge data from Global Runoff Data Centre (GRDC).
+
+    Requires the GRDC daily data files in a local directory.
+    The GRDC daily data files can be ordered at https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/riverdischarge_node.html
 
     Parameters
     ----------
     station_id : str
-        The station id to get
+        The station id to get.
+        The station id can be found in the catalogues at https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/212_prjctlgs/project_catalogue_node.html
     start_date : str
         String for start date in the format: 'YYYY-MM-dd', e.g. '1980-01-01'
     end_date : str
         String for start date in the format: 'YYYY-MM-dd', e.g. '2018-12-31'
     parameter : str, optional
         The parameter code to get, e.g. ('Q') discharge, cubic meters per second
-    cache_dir : str, optional
+    data_home : str, optional
         The directory where the daily grdc data is located.
         If left out will use the environment variable GRDC_DATA_HOME
 
     Examples
     --------
     >>> from ewatercycle.observation.grdc import get_grdc_data
-    >>> data = get_grdc_data('6335020', '2000-01-01', '2001-01-01', cache_dir='.')
+    >>> data = get_grdc_data('6335020', '2000-01-01', '2001-01-01', data_home='.')
     >>> data
         <xarray.Dataset>
         Dimensions:     (time: 367)
@@ -57,31 +59,22 @@ def get_grdc_data(station_id,
             last_update:                   2018-05-24
             nrMeasurements:                NA
     """
-    if cache_dir is None:
-        cache_dir = os.environ['GRDC_DATA_HOME']
+    if data_home is None:
+        data_home = os.environ.get('GRDC_DATA_HOME', None)
+    if data_home is None:
+        raise ValueError('Missing data_home argument or GRDC_DATA_HOME env var to find GRDC data files')
 
-    # Check if we have the netcdf data
-    netcdf = os.path.join(cache_dir, station_id + "_" + parameter + "_Day.nc")
-    if os.path.exists(netcdf):
-        return xr.open_dataset(netcdf)
-
-    # Download the data if needed
-    cmd = os.path.join(cache_dir, station_id + "_" + parameter + "_Day.Cmd.txt")
+    # Read the raw data
+    raw_file = os.path.join(data_home, station_id + "_" + parameter + "_Day.Cmd.txt")
     # Convert the raw data to an xarray
     metadata, df = _grdc_read(
-        cmd,
+        raw_file,
         start=datetime.strptime(start_date, "%Y-%m-%d"),
         end=datetime.strptime(end_date, "%Y-%m-%d"))
 
     # Create the xarray dataset
     ds = df.to_xarray()
     ds.attrs = metadata
-
-    try:
-        ds.to_netcdf(netcdf)
-    except PermissionError:
-        # GRDC files are in a read-only directory, unable to store netcdf cache file
-        pass
 
     return ds
 
