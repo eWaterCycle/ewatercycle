@@ -2,8 +2,6 @@
 """Documentation about ewatercycle_parametersetdb"""
 from ewatercycle.parametersetdb.config import AbstractConfig, CONFIG_FORMATS
 from ewatercycle.parametersetdb.datafiles import AbstractCopier, DATAFILES_FORMATS
-from ewatercycle.parametersetdb.version import __version__
-
 
 class ParameterSet:
     def __init__(self, df: AbstractCopier, cfg: AbstractConfig):
