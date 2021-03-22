@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 import pandas as pd
+import numpy as np
 
 
 def get_grdc_data(station_id,
@@ -112,6 +113,14 @@ def _grdc_read(grdc_station_path, start, end):
 
     # Select GRDC station data that matches the forecast results Date
     grdc_station_select = grdc_station_df.loc[start:end]
+
+    # Fix missing values
+    if not grdc_station_select['streamflow'].dtypes == np.float:
+        raise TypeError("Data has non-float values!")
+    else:
+        grdc_station_select['streamflow'].replace(
+            -999.0, np.NaN, inplace=True
+            )
 
     return metadata, grdc_station_select
 
