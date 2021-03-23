@@ -60,7 +60,7 @@ def test_get_grdc_data(tmp_path, sample_grdc_file):
     result = get_grdc_data('42424242', '2000-01-01', '2000-02-01', data_home=tmp_path)
 
     expected = xa.Dataset(
-        {'streamflow': ('time', [123., 456., np.nan])},
+        {'streamflow': ('time', [123., 456., np.NaN])},
         coords={'time': [datetime(2000, 1, 1), datetime(2000, 1, 2), datetime(2000, 1, 3)]},
         attrs={
             'altitude_masl': 8.0,
