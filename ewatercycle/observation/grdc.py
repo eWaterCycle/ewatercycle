@@ -102,7 +102,8 @@ def _grdc_read(grdc_station_path, start, end):
         grdc_station_path,
         skiprows=header,
         delimiter=';',
-        parse_dates=['YYYY-MM-DD'])
+        parse_dates=['YYYY-MM-DD'],
+        na_values='-999')
     grdc_station_df = grdc_station_df.rename(columns={
         'YYYY-MM-DD': 'time',
         ' Value': 'streamflow'
@@ -114,11 +115,7 @@ def _grdc_read(grdc_station_path, start, end):
     # Select GRDC station data that matches the forecast results Date
     grdc_station_select = grdc_station_df.loc[start:end]
 
-    # Fix missing values
-    grdc_station_fix = grdc_station_select.copy()
-    grdc_station_fix['streamflow'].replace(-999.0, np.NaN, inplace=True)
-
-    return metadata, grdc_station_fix
+    return metadata, grdc_station_select
 
 
 def _grdc_metadata_reader(grdc_station_path, allLines):
