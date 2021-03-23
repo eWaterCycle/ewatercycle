@@ -116,10 +116,7 @@ def _grdc_read(grdc_station_path, start, end):
 
     # Fix missing values
     grdc_station_fix = grdc_station_select.copy()
-    if not grdc_station_fix['streamflow'].dtypes == np.float:
-        raise TypeError("Data has non-float values!")
-    else:
-        grdc_station_fix['streamflow'].replace(-999.0, np.NaN, inplace=True)
+    grdc_station_fix['streamflow'].replace(-999.0, np.NaN, inplace=True)
 
     return metadata, grdc_station_fix
 
