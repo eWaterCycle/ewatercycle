@@ -4,8 +4,8 @@ ewatercycle.parametersetdb
 
 Python utilities to gather input files for running a hydrology model
 
-.. image:: https://travis-ci.org/eWaterCycle/parametersetdb.svg?branch=master
-    :target: https://travis-ci.org/eWaterCycle/parametersetdb
+.. image:: https://github.com/eWaterCycle/parametersetdb/actions/workflows/ci.yml/badge.svg
+    :target: https://github.com/eWaterCycle/parametersetdb/actions/workflows/ci.yml
 
 .. image:: https://sonarcloud.io/api/project_badges/measure?project=ewatercycle-parametersetdb&metric=alert_status
     :target: https://sonarcloud.io/dashboard?id=ewatercycle-parametersetdb
