@@ -2,6 +2,7 @@ from datetime import datetime
 
 import pytest
 import xarray as xa
+import numpy as np
 from xarray.testing import assert_equal
 
 from ewatercycle.observation.grdc import get_grdc_data
@@ -49,7 +50,7 @@ def sample_grdc_file(tmp_path):
 YYYY-MM-DD;hh:mm; Value
 2000-01-01;--:--;    123.000
 2000-01-02;--:--;    456.000
-2000-01-03;--:--;    789.000'''
+2000-01-03;--:--;    -999.000'''
     with open(fn, 'w') as f:
         f.write(s)
     return fn
@@ -59,7 +60,7 @@ def test_get_grdc_data(tmp_path, sample_grdc_file):
     result = get_grdc_data('42424242', '2000-01-01', '2000-02-01', data_home=tmp_path)
 
     expected = xa.Dataset(
-        {'streamflow': ('time', [123., 456., 789.])},
+        {'streamflow': ('time', [123., 456., np.nan])},
         coords={'time': [datetime(2000, 1, 1), datetime(2000, 1, 2), datetime(2000, 1, 3)]},
         attrs={
             'altitude_masl': 8.0,
