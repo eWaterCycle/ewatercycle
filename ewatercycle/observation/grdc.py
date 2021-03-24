@@ -101,7 +101,8 @@ def _grdc_read(grdc_station_path, start, end):
         grdc_station_path,
         skiprows=header,
         delimiter=';',
-        parse_dates=['YYYY-MM-DD'])
+        parse_dates=['YYYY-MM-DD'],
+        na_values='-999')
     grdc_station_df = grdc_station_df.rename(columns={
         'YYYY-MM-DD': 'time',
         ' Value': 'streamflow'
