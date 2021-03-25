@@ -1,0 +1,12 @@
+---
+name: ewatercycle
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.6
+  - numpy
+  - pandas
+  - pyoos
+  - ruamel.yaml
+  - xarray
