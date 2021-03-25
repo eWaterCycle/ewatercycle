@@ -1,20 +1,17 @@
 ################################################################################
-ewatercycle.parametersetdb
+ewatercycle
 ################################################################################
 
 Python utilities to gather input files for running a hydrology model
 
-.. image:: https://travis-ci.org/eWaterCycle/parametersetdb.svg?branch=master
-    :target: https://travis-ci.org/eWaterCycle/parametersetdb
+.. image:: https://sonarcloud.io/api/project_badges/measure?project=ewatercycle&metric=alert_status
+    :target: https://sonarcloud.io/dashboard?id=ewatercycle
 
-.. image:: https://sonarcloud.io/api/project_badges/measure?project=ewatercycle-parametersetdb&metric=alert_status
-    :target: https://sonarcloud.io/dashboard?id=ewatercycle-parametersetdb
+.. image:: https://sonarcloud.io/api/project_badges/measure?project=ewatercycle&metric=coverage
+    :target: https://sonarcloud.io/component_measures?id=ewatercycle&metric=coverage
 
-.. image:: https://sonarcloud.io/api/project_badges/measure?project=ewatercycle-parametersetdb&metric=coverage
-    :target: https://sonarcloud.io/component_measures?id=ewatercycle-parametersetdb&metric=coverage
-
-.. image:: https://readthedocs.org/projects/ewatercycle-parametersetdb/badge/?version=latest
-    :target: https://ewatercycle-parametersetdb.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/ewatercycle/badge/?version=latest
+    :target: https://ewatercycle.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
 Install
@@ -22,7 +19,7 @@ Install
 
 .. code-block:: bash
 
-    pip install git+https://github.com/eWaterCycle/parametersetdb.git#egg=ewatercycle-parametersetdb
+    pip install git+https://github.com/eWaterCycle/ewatercycle.git#egg=ewatercycle
 
 
 Usage
@@ -51,7 +48,7 @@ CITATION.cff
 Contributing
 ************
 
-If you want to contribute to the development of ewatercycle_parametersetdb,
+If you want to contribute to the development of ewatercycle package,
 have a look at the `contribution guidelines <CONTRIBUTING.rst>`_.
 
 License
