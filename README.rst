@@ -2,7 +2,7 @@
 ewatercycle
 ################################################################################
 
-Python utilities to gather input files for running a hydrology model
+A Python package for running hydrological models.
 
 .. image:: https://sonarcloud.io/api/project_badges/measure?project=ewatercycle&metric=alert_status
     :target: https://sonarcloud.io/dashboard?id=ewatercycle
