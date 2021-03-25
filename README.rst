@@ -7,11 +7,11 @@ Python utilities to gather input files for running a hydrology model
 .. image:: https://github.com/eWaterCycle/parametersetdb/actions/workflows/ci.yml/badge.svg
     :target: https://github.com/eWaterCycle/parametersetdb/actions/workflows/ci.yml
 
-.. image:: https://sonarcloud.io/api/project_badges/measure?project=ewatercycle-parametersetdb&metric=alert_status
-    :target: https://sonarcloud.io/dashboard?id=ewatercycle-parametersetdb
+.. image:: https://sonarcloud.io/api/project_badges/measure?project=eWaterCycle_ewatercycle&metric=alert_status
+    :target: https://sonarcloud.io/dashboard?id=eWaterCycle_ewatercycle
 
-.. image:: https://sonarcloud.io/api/project_badges/measure?project=ewatercycle-parametersetdb&metric=coverage
-    :target: https://sonarcloud.io/component_measures?id=ewatercycle-parametersetdb&metric=coverage
+.. image:: https://sonarcloud.io/api/project_badges/measure?project=eWaterCycle_ewatercycle&metric=coverage
+    :target: https://sonarcloud.io/component_measures?id=eWaterCycle_ewatercycle&metric=coverage
 
 .. image:: https://readthedocs.org/projects/ewatercycle-parametersetdb/badge/?version=latest
     :target: https://ewatercycle-parametersetdb.readthedocs.io/en/latest/?badge=latest
