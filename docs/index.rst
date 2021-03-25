@@ -18,7 +18,7 @@ API Reference
 .. toctree::
   :maxdepth: 2
 
-  ewatercycle-parametersetdb <apidocs/ewatercycle.parametersetdb.rst>
+  ewatercycle <apidocs/ewatercycle.rst>
 
 
 Indices and tables
