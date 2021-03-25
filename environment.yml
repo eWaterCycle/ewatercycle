@@ -2,8 +2,10 @@
 name: ewatercycle
 channels:
   - conda-forge
+  - esmvalgroup
   - defaults
 dependencies:
+  - esmvaltool-python
   - python>=3.6
   - numpy
   - pandas
