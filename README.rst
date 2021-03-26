@@ -1,8 +1,8 @@
 ################################################################################
-ewatercycle.parametersetdb
+ewatercycle
 ################################################################################
 
-Python utilities to gather input files for running a hydrology model
+A Python package for running hydrological models.
 
 .. image:: https://github.com/eWaterCycle/parametersetdb/actions/workflows/ci.yml/badge.svg
     :target: https://github.com/eWaterCycle/parametersetdb/actions/workflows/ci.yml
@@ -22,7 +22,7 @@ Install
 
 .. code-block:: bash
 
-    pip install git+https://github.com/eWaterCycle/parametersetdb.git#egg=ewatercycle-parametersetdb
+    pip install git+https://github.com/eWaterCycle/ewatercycle.git#egg=ewatercycle
 
 
 Usage
@@ -51,7 +51,7 @@ CITATION.cff
 Contributing
 ************
 
-If you want to contribute to the development of ewatercycle_parametersetdb,
+If you want to contribute to the development of ewatercycle package,
 have a look at the `contribution guidelines <CONTRIBUTING.rst>`_.
 
 License
