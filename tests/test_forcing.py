@@ -936,10 +936,10 @@ TEST_CASES_PCRGLOBWB = list(zip(TEST_INPUT_PCRGLOBWB, EXPECTED_DIFF_PCRGLOBWB))
 
 
 def _test_forcing(recipe, update_func, params, expected_diff):
-    expected_data = recipe.data
-    data = copy.deepcopy(expected_data)
-    update_func(data, **params)
-    diff = deepdiff.DeepDiff(recipe.data, data)
+    expected_recipe_dict = recipe.data
+    recipe_dict = copy.deepcopy(expected_recipe_dict)
+    update_func(recipe_dict, **params)
+    diff = deepdiff.DeepDiff(expected_recipe_dict, recipe_dict)
 
     if not diff == expected_diff:
         raise AssertionError(
@@ -1021,5 +1021,3 @@ if __name__ == '__main__':
         NEW_TEST_CASES.append(diff)
 
     NEW_TEST_CASES = tuple(NEW_TEST_CASES)
-
-    breakpoint()

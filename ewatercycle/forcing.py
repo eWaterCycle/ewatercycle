@@ -1,7 +1,7 @@
 from esmvalcore.experimental import get_recipe
 from pathlib import Path
 
-FORCINGS = {
+DATASETS = {
     'ERA5': {
         'dataset': 'ERA5',
         'project': 'OBS6',
@@ -20,7 +20,7 @@ FORCINGS = {
 
 
 def update_hype(
-    data: dict,
+    recipe_dict: dict,
     *,
     forcings: list = None,
     startyear: int = None,
@@ -29,9 +29,11 @@ def update_hype(
 ):
     """
     Update hype recipe data in-place.
-    
+
     Parameters
     ----------
+    recipe_dict : dict
+        Dictionary with the recipe data
     forcings : list
         List of forcings to use
     startyear : int
@@ -45,14 +47,14 @@ def update_hype(
 
     if shapefile is not None:
         for preproc_name in preproc_names:
-            data['preprocessors'][preproc_name]['extract_shape'][
+            recipe_dict['preprocessors'][preproc_name]['extract_shape'][
                 'shapefile'] = shapefile
 
     if forcings is not None:
-        datasets = [FORCINGS[forcing] for forcing in forcings]
-        data['datasets'] = datasets
+        datasets = [DATASETS[forcing] for forcing in forcings]
+        recipe_dict['datasets'] = datasets
 
-    variables = data['diagnostics']['hype']['variables']
+    variables = recipe_dict['diagnostics']['hype']['variables']
     var_names = 'tas', 'tasmin', 'tasmax', 'pr'
 
     if startyear is not None:
@@ -63,11 +65,11 @@ def update_hype(
         for var_name in var_names:
             variables[var_name]['end_year'] = endyear
 
-    return data
+    return recipe_dict
 
 
 def update_lisflood(
-    data: dict,
+    recipe_dict: dict,
     *,
     forcings: list = None,
     startyear: int = None,
@@ -80,6 +82,8 @@ def update_lisflood(
 
     Parameters
     ----------
+    recipe_dict : dict
+        Dictionary with the recipe data
     forcings : list
         List of forcings to use
     startyear : int
@@ -89,7 +93,7 @@ def update_lisflood(
     basin : str
         Name of the basin to use. Defines the shapefile.
     extract_region : dict
-        Region specification, must contain `start_longitude`, 
+        Region specification, must contain `start_longitude`,
         `end_longitude`, `start_latitude`, `end_latitude`
     """
     preproc_names = ('general', 'daily_water', 'daily_temperature',
@@ -98,21 +102,21 @@ def update_lisflood(
     if shapefile is not None:
         basin = Path(shapefile).stem
         for preproc_name in preproc_names:
-            data['preprocessors'][preproc_name]['extract_shape'][
+            recipe_dict['preprocessors'][preproc_name]['extract_shape'][
                 'shapefile'] = shapefile
-        data['diagnostics']['diagnostic_daily']['scripts']['script'][
+        recipe_dict['diagnostics']['diagnostic_daily']['scripts']['script'][
             'catchment'] = basin
 
     if extract_region is not None:
         for preproc_name in preproc_names:
-            data['preprocessors'][preproc_name][
+            recipe_dict['preprocessors'][preproc_name][
                 'extract_region'] = extract_region
 
     if forcings is not None:
-        datasets = [FORCINGS[forcing] for forcing in forcings]
-        data['datasets'] = datasets
+        datasets = [DATASETS[forcing] for forcing in forcings]
+        recipe_dict['datasets'] = datasets
 
-    variables = data['diagnostics']['diagnostic_daily']['variables']
+    variables = recipe_dict['diagnostics']['diagnostic_daily']['variables']
     var_names = 'pr', 'tas', 'tasmax', 'tasmin', 'tdps', 'uas', 'vas', 'rsds'
 
     if startyear is not None:
@@ -123,11 +127,11 @@ def update_lisflood(
         for var_name in var_names:
             variables[var_name]['end_year'] = endyear
 
-    return data
+    return recipe_dict
 
 
 def update_marrmot(
-    data: dict,
+    recipe_dict: dict,
     *,
     forcings: list = None,
     startyear: int = None,
@@ -139,6 +143,8 @@ def update_marrmot(
 
     Parameters
     ----------
+    recipe_dict : dict
+        Dictionary with the recipe data
     forcings : list
         List of forcings to use
     startyear : int
@@ -151,17 +157,17 @@ def update_marrmot(
 
     if shapefile is not None:
         basin = Path(shapefile).stem
-        data['preprocessors']['daily']['extract_shape'][
+        recipe_dict['preprocessors']['daily']['extract_shape'][
             'shapefile'] = shapefile
-        data['diagnostics']['diagnostic_daily']['scripts']['script'][
+        recipe_dict['diagnostics']['diagnostic_daily']['scripts']['script'][
             'basin'] = basin
 
     if forcings is not None:
-        datasets = [FORCINGS[forcing] for forcing in forcings]
-        data['diagnostics']['diagnostic_daily'][
+        datasets = [DATASETS[forcing] for forcing in forcings]
+        recipe_dict['diagnostics']['diagnostic_daily'][
             'additional_datasets'] = datasets
 
-    variables = data['diagnostics']['diagnostic_daily']['variables']
+    variables = recipe_dict['diagnostics']['diagnostic_daily']['variables']
     var_names = 'tas', 'pr', 'psl', 'rsds', 'rsdt'
 
     if startyear is not None:
@@ -172,10 +178,10 @@ def update_marrmot(
         for var_name in var_names:
             variables[var_name]['end_year'] = endyear
 
-    return data
+    return recipe_dict
 
 
-def update_pcrglobwb(data: dict,
+def update_pcrglobwb(recipe_dict: dict,
                      *,
                      forcings: list = None,
                      basin: str = None,
@@ -186,9 +192,11 @@ def update_pcrglobwb(data: dict,
                      extract_region: dict = None):
     """
     Update pcrglobwb recipe data in-place.
-    
+
     Parameters
     ----------
+    recipe_dict : dict
+        Dictionary with the recipe data
     forcings : list
         List of forcings to use
     basin : str
@@ -202,27 +210,27 @@ def update_pcrglobwb(data: dict,
     endyear_climatology : int
         End year for the climatology data
     extract_region : dict
-        Region specification, must contain `start_longitude`, 
+        Region specification, must contain `start_longitude`,
         `end_longitude`, `start_latitude`, `end_latitude`
     """
     preproc_names = ('crop_basin', 'preproc_pr', 'preproc_tas',
                      'preproc_pr_clim', 'preproc_tas_clim')
 
     if forcings is not None:
-        datasets = [FORCINGS[forcing] for forcing in forcings]
-        data['diagnostics']['diagnostic_daily'][
+        datasets = [DATASETS[forcing] for forcing in forcings]
+        recipe_dict['diagnostics']['diagnostic_daily'][
             'additional_datasets'] = datasets
 
     if basin is not None:
-        data['diagnostics']['diagnostic_daily']['scripts']['script'][
+        recipe_dict['diagnostics']['diagnostic_daily']['scripts']['script'][
             'basin'] = basin
 
     if extract_region is not None:
         for preproc_name in preproc_names:
-            data['preprocessors'][preproc_name][
+            recipe_dict['preprocessors'][preproc_name][
                 'extract_region'] = extract_region
 
-    variables = data['diagnostics']['diagnostic_daily']['variables']
+    variables = recipe_dict['diagnostics']['diagnostic_daily']['variables']
     var_names = 'tas', 'pr'
 
     if startyear is not None:
@@ -243,11 +251,11 @@ def update_pcrglobwb(data: dict,
         for var_name in var_names_climatology:
             variables[var_name]['end_year'] = endyear_climatology
 
-    return data
+    return recipe_dict
 
 
 def update_wflow(
-    data: dict,
+    recipe_dict: dict,
     *,
     forcings: list = None,
     startyear: int = None,
@@ -260,6 +268,8 @@ def update_wflow(
 
     Parameters
     ----------
+    recipe_dict : dict
+        Dictionary with the recipe data
     forcings : list
         List of forcings to use
     startyear : int
@@ -267,25 +277,25 @@ def update_wflow(
     endyear : int
         End year for the observation data
     extract_region : dict
-        Region specification, must contain `start_longitude`, 
+        Region specification, must contain `start_longitude`,
         `end_longitude`, `start_latitude`, `end_latitude`
     dem_file : str
         Name of the dem_file to use. Also defines the basin param.
     """
     if dem_file is not None:
-        script = data['diagnostics']['wflow_daily']['scripts']['script']
+        script = recipe_dict['diagnostics']['wflow_daily']['scripts']['script']
         script['dem_file'] = dem_file
         script['basin'] = Path(dem_file).stem
 
     if extract_region is not None:
-        data['preprocessors']['rough_cutout'][
+        recipe_dict['preprocessors']['rough_cutout'][
             'extract_region'] = extract_region
 
     if forcings is not None:
-        datasets = [FORCINGS[forcing] for forcing in forcings]
-        data['diagnostics']['wflow_daily']['additional_datasets'] = datasets
+        datasets = [DATASETS[forcing] for forcing in forcings]
+        recipe_dict['diagnostics']['wflow_daily']['additional_datasets'] = datasets
 
-    variables = data['diagnostics']['wflow_daily']['variables']
+    variables = recipe_dict['diagnostics']['wflow_daily']['variables']
     var_names = 'tas', 'pr', 'psl', 'rsds', 'rsdt'
 
     if startyear is not None:
@@ -296,7 +306,7 @@ def update_wflow(
         for var_name in var_names:
             variables[var_name]['end_year'] = endyear
 
-    return data
+    return recipe_dict
 
 
 MODEL_DATA = {
