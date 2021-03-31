@@ -35,7 +35,7 @@ def update_hype(
     forcings : list
         List of forcings to use
     startyear : int
-        Start year for the observation data
+        Start year for the forcing data
     endyear : int
         End year for the observation data
     shapefile : str
