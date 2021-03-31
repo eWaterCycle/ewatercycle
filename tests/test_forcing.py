@@ -65,8 +65,8 @@ TEST_INPUT_LISFLOOD = (
 TEST_INPUT_HYPE = (
     {},
     {
-        'startyear': 1979,
-        'endyear': 1979,
+        'startyear': 1990,
+        'endyear': 2001,
         'forcings': ['ERA-Interim', 'ERA5'],
         'shapefile': 'Meuse_HYPE.shp',
     },
@@ -513,21 +513,21 @@ EXPECTED_DIFF_HYPE = (
         'values_changed': {
             "root['diagnostics']['hype']['variables']['tas']['start_year']": {
                 'new_value': 1234,
-                'old_value': 1979
+                'old_value': 1990
             },
             "root['diagnostics']['hype']['variables']['tasmin']['start_year']":
             {
                 'new_value': 1234,
-                'old_value': 1979
+                'old_value': 1990
             },
             "root['diagnostics']['hype']['variables']['tasmax']['start_year']":
             {
                 'new_value': 1234,
-                'old_value': 1979
+                'old_value': 1990
             },
             "root['diagnostics']['hype']['variables']['pr']['start_year']": {
                 'new_value': 1234,
-                'old_value': 1979
+                'old_value': 1990
             }
         }
     },
@@ -535,19 +535,19 @@ EXPECTED_DIFF_HYPE = (
         'values_changed': {
             "root['diagnostics']['hype']['variables']['tas']['end_year']": {
                 'new_value': 4321,
-                'old_value': 1979
+                'old_value': 2001
             },
             "root['diagnostics']['hype']['variables']['tasmin']['end_year']": {
                 'new_value': 4321,
-                'old_value': 1979
+                'old_value': 2001
             },
             "root['diagnostics']['hype']['variables']['tasmax']['end_year']": {
                 'new_value': 4321,
-                'old_value': 1979
+                'old_value': 2001
             },
             "root['diagnostics']['hype']['variables']['pr']['end_year']": {
                 'new_value': 4321,
-                'old_value': 1979
+                'old_value': 2001
             }
         }
     },
