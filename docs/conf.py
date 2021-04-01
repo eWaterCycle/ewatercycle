@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# ewatercycle_parametersetdb documentation build configuration file, created by
+# ewatercycle documentation build configuration file, created by
 # sphinx-quickstart on Wed Aug 29 15:40:09 2018.
 #
 # This file is execfile()d with the current directory set to its
@@ -47,7 +47,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'ewatercycle-parametersetdb'
+project = u'ewatercycle'
 copyright = u'2018, Netherlands eScience Center & Delft University of Technology'
 author = u'Stefan Verhoeven'
 
@@ -148,7 +148,7 @@ html_sidebars = {
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'ewatercycle_parametersetdb_doc'
+htmlhelp_basename = 'ewatercycle_doc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -175,7 +175,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'ewatercycle_parametersetdb.tex', u'ewatercycle_parametersetdb Documentation',
+    (master_doc, 'ewatercycle.tex', u'ewatercycle Documentation',
      u'Stefan Verhoeven', 'manual'),
 ]
 
@@ -185,7 +185,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'ewatercycle_parametersetdb', u'ewatercycle_parametersetdb Documentation',
+    (master_doc, 'ewatercycle', u'ewatercycle Documentation',
      [author], 1)
 ]
 
@@ -196,7 +196,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'ewatercycle_parametersetdb', u'ewatercycle_parametersetdb Documentation',
-     author, 'ewatercycle_parametersetdb', 'Python utilities to gather input files for running a hydrology model',
+    (master_doc, 'ewatercycle', u'ewatercycle Documentation',
+     author, 'ewatercycle', 'Python utilities to gather input files for running a hydrology model',
      'Miscellaneous'),
 ]
