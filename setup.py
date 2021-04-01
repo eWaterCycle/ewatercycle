@@ -50,6 +50,7 @@ setup(
         'sphinx_rtd_theme',
     ],
     tests_require=[
+        'deepdiff',
         'pytest',
         'pytest-cov',
         'pycodestyle',
