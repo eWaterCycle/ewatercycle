@@ -20,6 +20,18 @@ A Python package for running hydrological models.
 Install
 -------
 
+The ewatercycle package needs some geospatial non-python packages to generate
+forcing data. It is preferred to create a Conda environment to install those
+dependencies:
+
+.. code-block:: bash
+
+    wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/master/environment.yml
+    conda env create --file environment.yml
+    conda activate ewatercycle
+
+The ewatercycle package is installed with
+
 .. code-block:: bash
 
     pip install git+https://github.com/eWaterCycle/ewatercycle.git#egg=ewatercycle
