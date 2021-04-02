@@ -16,7 +16,7 @@ jobs:
       matrix:
         python-version: [3.6, 3.7, 3.8]
       fail-fast: false
-    name: Linux ewatercycle conda environment ${{ matrix.python-version }}
+    name: Create conda environment ${{ matrix.python-version }}
     steps:
     - uses: actions/checkout@v2
     - uses: conda-incubator/setup-miniconda@v2
