@@ -4,8 +4,8 @@ ewatercycle
 
 A Python package for running hydrological models.
 
-.. image:: https://github.com/eWaterCycle/parametersetdb/actions/workflows/ci.yml/badge.svg
-    :target: https://github.com/eWaterCycle/parametersetdb/actions/workflows/ci.yml
+.. image:: https://github.com/eWaterCycle/ewatercycle/actions/workflows/ci.yml/badge.svg
+    :target: https://github.com/eWaterCycle/ewatercycle/actions/workflows/ci.yml
 
 .. image:: https://sonarcloud.io/api/project_badges/measure?project=eWaterCycle_ewatercycle&metric=alert_status
     :target: https://sonarcloud.io/dashboard?id=eWaterCycle_ewatercycle
