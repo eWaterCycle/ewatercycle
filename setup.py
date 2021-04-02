@@ -51,9 +51,9 @@ setup(
             'prospector[with_pyroma]',
             'yapf',
             'isort',
-            # dependency for `python setup.py test`
+            # dependency for `pytest`
             'pytest-runner',
-            # dependencies for `python setup.py build_sphinx`
+            # dependencies for `cd docs && make html`
             'sphinx',
             'recommonmark',
             'sphinx_rtd_theme',
