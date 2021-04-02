@@ -1,5 +1,6 @@
 from esmvalcore.experimental import get_recipe
 from pathlib import Path
+from .forcing_data import ForcingData
 
 DATASETS = {
     'ERA5': {
@@ -338,6 +339,10 @@ def generate(model: str, **kwargs):
         Name of the model
     **kwargs :
         Model specific parameters
+
+    Returns
+    -------
+    forcing_data : :obj:`ForcingData`
     """
     model_data = MODEL_DATA[model]
     recipe_name = model_data['recipe_name']
@@ -345,4 +350,6 @@ def generate(model: str, **kwargs):
 
     update_func = model_data['update_func']
     update_func(recipe.data, **kwargs)
-    recipe.run()
+    recipe_output = recipe.run()
+
+    return ForcingData(recipe_output)
