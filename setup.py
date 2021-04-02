@@ -13,11 +13,11 @@ with open("ewatercycle/version.py") as fp:
 setup(
     name='ewatercycle',
     version=version['__version__'],
-    description="Python utilities to gather input files for running and validating a hydrology model",
+    description="A Python package for running and validating a hydrology model",
     long_description=readme + '\n\n',
     author="Stefan Verhoeven",
     author_email='s.verhoeven@esciencecenter.nl',
-    url='https://github.com/eWaterCycle/ewatercycle_parametersetdb',
+    url='https://github.com/eWaterCycle/ewatercycle',
     install_requires=[
         'esmvaltool',
         'ruamel.yaml',
@@ -40,6 +40,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
     test_suite='tests',
     setup_requires=[
