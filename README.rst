@@ -13,8 +13,8 @@ A Python package for running hydrological models.
 .. image:: https://sonarcloud.io/api/project_badges/measure?project=eWaterCycle_ewatercycle&metric=coverage
     :target: https://sonarcloud.io/component_measures?id=eWaterCycle_ewatercycle&metric=coverage
 
-.. image:: https://readthedocs.org/projects/ewatercycle-parametersetdb/badge/?version=latest
-    :target: https://ewatercycle-parametersetdb.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/ewatercycle/badge/?version=latest
+    :target: https://ewatercycle.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
 Install
