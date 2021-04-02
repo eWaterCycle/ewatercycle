@@ -14,9 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9]
       fail-fast: false
-    name: Create conda environment ${{ matrix.python-version }}
+    name: Run tests in conda environment ${{ matrix.python-version }}
     steps:
     - uses: actions/checkout@v2
     - uses: conda-incubator/setup-miniconda@v2
