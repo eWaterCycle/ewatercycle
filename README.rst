@@ -17,6 +17,9 @@ A Python package for running hydrological models.
     :target: https://ewatercycle-parametersetdb.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
+.. image:: https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B%20%20%E2%97%8F%20%20%E2%97%8B-orange
+    :target: https://fair-software.eu
+
 Install
 -------
 
