@@ -1,0 +1,42 @@
+{
+    "creators": [
+        {
+            "affiliation": "Netherlands eScience Center",
+            "name": "Verhoeven, Stefan",
+            "orcid": "0000-0002-5821-2060"
+        },
+        {
+            "affiliation": "Netherlands eScience Center",
+            "name": "Drost, Niels",
+            "orcid": "0000-0001-9795-7981"
+        },
+        {
+            "affiliation": "Netherlands eScience Center",
+            "name": "Weel, Berend"
+        },
+        {
+            "affiliation": "Netherlands eScience Center",
+            "name": "Smeets, Stef",
+            "orcid": "0000-0002-5413-9038"
+        },
+        {
+            "affiliation": "Netherlands eScience Center",
+            "name": "Kalverla, Peter",
+            "orcid": "0000-0002-5025-7862"
+        },
+        {
+            "affiliation": "Netherlands eScience Center",
+            "name": "Alidoost, Sarah",
+            "orcid": "0000-0001-8407-6472"
+        }
+    ],
+    "description": "Python package to generate forcing, run hydrological models, compare with observations and visualize results",
+    "keywords": [
+        "hydrology",
+        "gis"
+    ],
+    "license": {
+        "id": "Apache-2.0"
+    },
+    "title": "ewaterycle"
+}

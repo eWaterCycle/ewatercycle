@@ -1,0 +1,42 @@
+# YAML 1.2
+---
+abstract: "Python package to generate forcing, run hydrological models, compare with observations and visualize results"
+authors:
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: Verhoeven
+    given-names: Stefan
+    orcid: "https://orcid.org/https://orcid.org/0000-0002-5821-2060"
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: Drost
+    given-names: Niels
+    orcid: "https://orcid.org/https://orcid.org/0000-0001-9795-7981"
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: Weel
+    given-names: Berend
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: Smeets
+    given-names: Stef
+    orcid: "https://orcid.org/https://orcid.org/0000-0002-5413-9038"
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: Kalverla
+    given-names: Peter
+    orcid: "https://orcid.org/https://orcid.org/0000-0002-5025-7862"
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: Alidoost
+    given-names: Sarah
+    orcid: "https://orcid.org/https://orcid.org/0000-0001-8407-6472"
+cff-version: "1.1.0"
+keywords:
+  - hydrology
+  - gis
+license: "Apache-2.0"
+message: "If you use this software, please cite it using these metadata."
+repository-code: "https://github.com/eWaterCycle/ewatercycle"
+title: ewaterycle
+...
