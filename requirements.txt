@@ -1,3 +1,4 @@
+deepdiff
 pytest
 pytest-cov
 sphinx
