@@ -19,6 +19,7 @@ setup(
     author_email='s.verhoeven@esciencecenter.nl',
     url='https://github.com/eWaterCycle/ewatercycle_parametersetdb',
     install_requires=[
+        'esmvaltool',
         'ruamel.yaml',
         'xarray',
         'numpy',
