@@ -22,7 +22,7 @@ DATASETS = {
 def update_hype(
     recipe_dict: dict,
     *,
-    datasets: list = None,
+    dataset: str = None,
     startyear: int = None,
     endyear: int = None,
     shapefile: str = None,
@@ -34,8 +34,8 @@ def update_hype(
     ----------
     recipe_dict : dict
         Dictionary with the recipe data
-    datasets : list
-        List of datasets to use
+    dataset : str
+        Name of the dataset to use
     startyear : int
         Start year for the forcing data
     endyear : int
@@ -50,9 +50,8 @@ def update_hype(
             recipe_dict['preprocessors'][preproc_name]['extract_shape'][
                 'shapefile'] = shapefile
 
-    if datasets is not None:
-        datasets_list = [DATASETS[dataset_name] for dataset_name in datasets]
-        recipe_dict['datasets'] = datasets_list
+    if dataset is not None:
+        recipe_dict['datasets'] = [DATASETS[dataset]]
 
     variables = recipe_dict['diagnostics']['hype']['variables']
     var_names = 'tas', 'tasmin', 'tasmax', 'pr'
@@ -71,7 +70,7 @@ def update_hype(
 def update_lisflood(
     recipe_dict: dict,
     *,
-    datasets: list = None,
+    dataset: str = None,
     startyear: int = None,
     endyear: int = None,
     shapefile: str = None,
@@ -84,8 +83,8 @@ def update_lisflood(
     ----------
     recipe_dict : dict
         Dictionary with the recipe data
-    datasets : list
-        List of datasets to use
+    dataset : str
+        Name of the dataset to use
     startyear : int
         Start year for the observation data
     endyear : int
@@ -112,9 +111,8 @@ def update_lisflood(
             recipe_dict['preprocessors'][preproc_name][
                 'extract_region'] = extract_region
 
-    if datasets is not None:
-        datasets_list = [DATASETS[dataset_name] for dataset_name in datasets]
-        recipe_dict['datasets'] = datasets_list
+    if dataset is not None:
+        recipe_dict['datasets'] = [DATASETS[dataset]]
 
     variables = recipe_dict['diagnostics']['diagnostic_daily']['variables']
     var_names = 'pr', 'tas', 'tasmax', 'tasmin', 'tdps', 'uas', 'vas', 'rsds'
@@ -133,7 +131,7 @@ def update_lisflood(
 def update_marrmot(
     recipe_dict: dict,
     *,
-    datasets: list = None,
+    dataset: str = None,
     startyear: int = None,
     endyear: int = None,
     shapefile: str = None,
@@ -145,8 +143,8 @@ def update_marrmot(
     ----------
     recipe_dict : dict
         Dictionary with the recipe data
-    datasets : list
-        List of datasets to use
+    dataset : str
+        Name of the dataset to use
     startyear : int
         Start year for the observation data
     endyear : int
@@ -162,10 +160,9 @@ def update_marrmot(
         recipe_dict['diagnostics']['diagnostic_daily']['scripts']['script'][
             'basin'] = basin
 
-    if datasets is not None:
-        datasets_list = [DATASETS[dataset_name] for dataset_name in datasets]
+    if dataset is not None:
         recipe_dict['diagnostics']['diagnostic_daily'][
-            'additional_datasets'] = datasets_list
+            'additional_datasets'] = [DATASETS[dataset]]
 
     variables = recipe_dict['diagnostics']['diagnostic_daily']['variables']
     var_names = 'tas', 'pr', 'psl', 'rsds', 'rsdt'
@@ -183,7 +180,7 @@ def update_marrmot(
 
 def update_pcrglobwb(recipe_dict: dict,
                      *,
-                     datasets: list = None,
+                     dataset: str = None,
                      basin: str = None,
                      startyear: int = None,
                      endyear: int = None,
@@ -197,8 +194,8 @@ def update_pcrglobwb(recipe_dict: dict,
     ----------
     recipe_dict : dict
         Dictionary with the recipe data
-    datasets : list
-        List of datasets to use
+    dataset : str
+        Name of the dataset to use
     basin : str
         Name of the basin (used for data output filename only)
     startyear : int
@@ -216,10 +213,9 @@ def update_pcrglobwb(recipe_dict: dict,
     preproc_names = ('crop_basin', 'preproc_pr', 'preproc_tas',
                      'preproc_pr_clim', 'preproc_tas_clim')
 
-    if datasets is not None:
-        datasets_list = [DATASETS[dataset_name] for dataset_name in datasets]
+    if dataset is not None:
         recipe_dict['diagnostics']['diagnostic_daily'][
-            'additional_datasets'] = datasets_list
+            'additional_datasets'] = [DATASETS[dataset]]
 
     if basin is not None:
         recipe_dict['diagnostics']['diagnostic_daily']['scripts']['script'][
@@ -257,7 +253,7 @@ def update_pcrglobwb(recipe_dict: dict,
 def update_wflow(
     recipe_dict: dict,
     *,
-    datasets: list = None,
+    dataset: str = None,
     startyear: int = None,
     endyear: int = None,
     extract_region: dict = None,
@@ -270,8 +266,8 @@ def update_wflow(
     ----------
     recipe_dict : dict
         Dictionary with the recipe data
-    datasets : list
-        List of datasets to use
+    dataset : str
+        Name of the dataset to use
     startyear : int
         Start year for the observation data
     endyear : int
@@ -291,9 +287,8 @@ def update_wflow(
         recipe_dict['preprocessors']['rough_cutout'][
             'extract_region'] = extract_region
 
-    if datasets is not None:
-        datasets_list = [DATASETS[dataset_name] for dataset_name in datasets]
-        recipe_dict['diagnostics']['wflow_daily']['additional_datasets'] = datasets_list
+    if dataset is not None:
+        recipe_dict['diagnostics']['wflow_daily']['additional_datasets'] = [DATASETS[dataset]]
 
     variables = recipe_dict['diagnostics']['wflow_daily']['variables']
     var_names = 'tas', 'pr', 'psl', 'rsds', 'rsdt'
