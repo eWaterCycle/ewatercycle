@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import configparser
-from abc import ABC, abstractmethod
+from abc import ABC
 from urllib.request import urlopen
+from typing import Any
 
 from ruamel.yaml import YAML
 
@@ -27,7 +28,8 @@ class AbstractConfig(ABC):
         config (dict): Content of config as Python dictionary
 
     """
-    @abstractmethod
+    config: Any = None
+
     def __init__(self, source: str):
         """Fetches and parses config file
 
@@ -36,7 +38,6 @@ class AbstractConfig(ABC):
         """
         self.source = source
 
-    @abstractmethod
     def save(self, target: str):
         """
 
