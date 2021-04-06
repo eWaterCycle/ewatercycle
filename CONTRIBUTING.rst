@@ -40,7 +40,7 @@ You want to make some kind of change to the code base
 1. (**important**) announce your plan to the rest of the community *before you start working*. This announcement should be in the form of a (new) issue;
 2. (**important**) wait until some kind of consensus is reached about your idea being a good idea;
 3. if needed, fork the repository to your own Github profile and create your own feature branch off of the latest master commit. While working on your feature branch, make sure to stay up to date with the master branch by pulling in changes, possibly from the 'upstream' repository (follow the instructions `here <https://help.github.com/articles/configuring-a-remote-for-a-fork/>`_ and `here <https://help.github.com/articles/syncing-a-fork/>`_);
-4. Install package in editiable mode and its dependencies with ``pip3 install -e .[dev]``;
+4. install the package in editable mode and its dependencies with ``pip3 install -e .[dev]``;
 5. make sure the existing tests still work by running ``pytest``;
 6. add your own tests (if necessary);
 7. update or expand the documentation;
