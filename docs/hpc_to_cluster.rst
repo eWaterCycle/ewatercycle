@@ -122,7 +122,7 @@ Code should be adjusted to run Singularity instead of Docker following:
 
     from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
-    model = BmiClientSingularity(image='ewatercycle-wflow-grpc4bmi.sif', input_dir=input_dir, output_dir=output_dir)
+    model = BmiClientSingularity(image='ewatercycle-wflow-grpc4bmi.sif', input_dirs=[input_dir], work_dir=work_dir)
     ...
 
 **6. Adjust code to use Scratch directory**
