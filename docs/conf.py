@@ -200,3 +200,9 @@ texinfo_documents = [
      author, 'ewatercycle', 'Python utilities to gather input files for running a hydrology model',
      'Miscellaneous'),
 ]
+
+autodoc_mock_imports = [
+    'esmvalcore',
+    'dask',
+    'xarray',
+]
