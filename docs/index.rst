@@ -12,13 +12,14 @@ Welcome to ewatercycle's documentation!
 
 .. include:: ../README.rst
 
-API Reference
+Content
 =============
 
 .. toctree::
   :maxdepth: 2
 
-  ewatercycle <apidocs/ewatercycle.rst>
+  hpc_to_cluster
+  API Reference <apidocs/ewatercycle.rst>
 
 
 Indices and tables
