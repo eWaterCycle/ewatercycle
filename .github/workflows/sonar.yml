@@ -23,7 +23,7 @@ jobs:
     - name: Install dependencies
       shell: bash -l {0}
       run: |
-        pip install -e .[dev]
+        pip3 install -e .[dev]
     - name: Tests with coverage
       run: pytest --cov --cov-report term --cov-report xml --junitxml=xunit-result.xml
       shell: bash -l {0}
