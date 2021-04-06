@@ -205,4 +205,8 @@ autodoc_mock_imports = [
     'esmvalcore',
     'dask',
     'xarray',
+    'numpy',
+    'scipy',
+    'pandas',
+    'ruamel',
 ]
