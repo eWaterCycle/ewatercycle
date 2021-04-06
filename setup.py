@@ -54,7 +54,7 @@ setup(
             'isort',
             # dependency for `pytest`
             'pytest-runner',
-            # dependencies for `cd docs && make html`
+            # dependencies for documentation generation
             'sphinx',
             'recommonmark',
             'sphinx_rtd_theme',
