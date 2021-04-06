@@ -7,7 +7,7 @@ Familiarize yourself with Linux by reading this simple guide:
 - https://maker.pro/linux/tutorial/basic-linux-commands-for-beginners
 
 *************************
-Migratation Preparation
+Migration Preparation
 *************************
 
 **1. Create Github repository**
