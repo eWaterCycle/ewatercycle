@@ -249,7 +249,7 @@ Launching Jupyter Lab on Cluster Node
 
 **1. Open Slurm output log file**
 
-- Open slurm output log file by double clicking in the file browser or by using a text editor (``vim``) and read the output carefully.
+- Open slurm output log file by double clicking in the file browser or by using a text editor (``nano``) and read the output carefully.
 
 **2. Create ssh tunnel between local machine and cluster**
 
