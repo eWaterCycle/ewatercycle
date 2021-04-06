@@ -1,6 +1,7 @@
-from esmvalcore.experimental import get_recipe
 from pathlib import Path
-from .forcing_data import ForcingData
+from typing import Callable
+from esmvalcore.experimental import get_recipe
+
 
 DATASETS = {
     'ERA5': {
@@ -289,7 +290,8 @@ def update_wflow(
             'extract_region'] = extract_region
 
     if dataset is not None:
-        recipe_dict['diagnostics']['wflow_daily']['additional_datasets'] = [DATASETS[dataset]]
+        recipe_dict['diagnostics']['wflow_daily']['additional_datasets'] = [
+            DATASETS[dataset]]
 
     variables = recipe_dict['diagnostics']['wflow_daily']['variables']
     var_names = 'tas', 'pr', 'psl', 'rsds', 'rsdt'
@@ -305,51 +307,30 @@ def update_wflow(
     return recipe_dict
 
 
-MODEL_DATA = {
-    'hype': {
-        'recipe_name': 'hydrology/recipe_hype.yml',
-        'update_func': update_hype,
-    },
-    'lisflood': {
-        'recipe_name': 'hydrology/recipe_lisflood.yml',
-        'update_func': update_lisflood,
-    },
-    'marrmot': {
-        'recipe_name': 'hydrology/recipe_marrmot.yml',
-        'update_func': update_marrmot,
-    },
-    'pcrglobwb': {
-        'recipe_name': 'hydrology/recipe_pcrglobwb.yml',
-        'update_func': update_pcrglobwb,
-    },
-    'wflow': {
-        'recipe_name': 'hydrology/recipe_wflow.yml',
-        'update_func': update_wflow,
-    },
+class RecipeGenerator:
+    def __init__(self, model: str, update_func: Callable, recipe_name: str):
+        self.recipe_name = recipe_name
+        self.update_func = update_func
+        self.model = model
+        self.recipe = get_recipe(recipe_name)
+
+    def __call__(self, **kwargs):
+        """Return recipe updated with new keyword arguments."""
+        # update recipe in-place
+        self.update_func(self.recipe.data, **kwargs)
+        return self.recipe
+
+    def __repr__(self):
+        """Return canonical class representation."""
+        return (f'{self.__class__.__name__}(model={self.model!r}, '
+                f'update_func={self.update_func!r}, '
+                f'recipe_name={self.recipe_name!r})')
+
+
+MODELS = {
+    'hype': RecipeGenerator(model='hype', update_func=update_hype, recipe_name='hydrology/recipe_hype.yml'),
+    'lisflood': RecipeGenerator(model='lisflood', update_func=update_lisflood, recipe_name='hydrology/recipe_lisflood.yml'),
+    'marrmot': RecipeGenerator(model='marrmot', update_func=update_marrmot, recipe_name='hydrology/recipe_marrmot.yml'),
+    'pcrglobwb': RecipeGenerator(model='pcrglobwb', update_func=update_pcrglobwb, recipe_name='hydrology/recipe_pcrglobwb.yml'),
+    'wflow': RecipeGenerator(model='wflow', update_func=update_wflow, recipe_name='hydrology/recipe_wflow.yml')
 }
-
-
-def generate(model: str, **kwargs):
-    """
-    Generate forcing data for model evaluation.
-
-    Parameters
-    ----------
-    model : str
-        Name of the model
-    **kwargs :
-        Model specific parameters
-
-    Returns
-    -------
-    forcing_data : :obj:`ForcingData`
-    """
-    model_data = MODEL_DATA[model]
-    recipe_name = model_data['recipe_name']
-    recipe = get_recipe(recipe_name)
-
-    update_func = model_data['update_func']
-    update_func(recipe.data, **kwargs)
-    recipe_output = recipe.run()
-
-    return ForcingData(recipe_output)

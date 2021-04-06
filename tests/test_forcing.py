@@ -2,7 +2,7 @@ from esmvalcore.experimental import get_recipe
 import deepdiff
 import copy
 import pytest
-from ewatercycle.forcing import update_marrmot, update_lisflood, update_hype, update_wflow, update_pcrglobwb
+from ewatercycle.forcing.preprocessors import update_marrmot, update_lisflood, update_hype, update_wflow, update_pcrglobwb
 
 TEST_INPUT_MARRMOT = (
     {},
