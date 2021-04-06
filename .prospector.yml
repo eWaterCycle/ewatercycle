@@ -15,6 +15,9 @@ pyroma:
 pep8:
     full: true
 
+mypy:
+  run: true
+
 pep257:
     disable: [
         # Disable because not part of PEP257 official convention:

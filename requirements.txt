@@ -1,6 +1,7 @@
 deepdiff
 pytest
 pytest-cov
+pytest-mypy
 sphinx
 recommonmark
 sphinx_rtd_theme

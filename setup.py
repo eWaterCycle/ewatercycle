@@ -54,9 +54,10 @@ setup(
         'deepdiff',
         'pytest',
         'pytest-cov',
+        'pytest-mypy',
         'pycodestyle',
     ],
     extras_require={
-        'dev':  ['prospector[with_pyroma]', 'yapf', 'isort'],
+        'dev':  ['prospector[with_pyroma,with_mypy]', 'yapf', 'isort'],
     }
 )
