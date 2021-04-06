@@ -4,7 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = ewatercycle_parametersetdb
+SPHINXPROJ    = ewatercycle
 SOURCEDIR     = .
 BUILDDIR      = _build
 
