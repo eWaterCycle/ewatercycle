@@ -209,4 +209,5 @@ autodoc_mock_imports = [
     'scipy',
     'pandas',
     'ruamel',
+    'pyoos',
 ]
