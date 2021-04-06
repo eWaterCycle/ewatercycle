@@ -143,7 +143,7 @@ Cleanup files in the scratch directory.
 **************************************
 Submitting Jupyter Job on Cluster node
 **************************************
-Here we briefly explain general SBATCH parameters and how to launch a Jupyter Lab environment on Cartesius. Start by opening a text editor on Cartesius (e.g. ``vim``) or (easier) your local machine (e.g. notepad). Copy the following text inside your text editor, edit the Conda environment name, and save as **run_jupyter_on_cartesius.sh** (make sure the extension is ``.sh``):
+Here we briefly explain general SBATCH parameters and how to launch a Jupyter Lab environment on Cartesius. Start by opening a text editor on Cartesius (e.g. ``nano``) or (easier) your local machine (e.g. notepad). Copy the following text inside your text editor, edit the Conda environment name, and save as **run_jupyter_on_cartesius.sh** (make sure the extension is ``.sh``):
 ::
 
     #!/bin/bash
