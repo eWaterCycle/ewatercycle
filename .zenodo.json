@@ -28,12 +28,32 @@
             "affiliation": "Netherlands eScience Center",
             "name": "Alidoost, Fakhereh",
             "orcid": "0000-0001-8407-6472"
+        },
+        {
+            "affiliation": "Netherlands eScience Center",
+            "name": "Vreede, Barbara",
+            "orcid": "0000-0002-5023-4601"
+        },
+        {
+            "affiliation": "Netherlands eScience Center",
+            "name": "Vreede, Barbara",
+            "orcid": "0000-0002-5023-4601"
+        },
+        {
+            "affiliation": "Delft University of Technology",
+            "name": "Rolf, Hut",
+            "orcid": "0000-0002-5697-5697"
+        },
+        {
+            "affiliation": "Delft University of Technology",
+            "name": "Aerts, Jerom",
+            "orcid": "0000-0003-0157-4818"
         }
     ],
     "description": "Python package to generate forcing, run hydrological models, compare with observations and visualize results",
     "keywords": [
         "hydrology",
-        "gis"
+        "bmi"
     ],
     "license": {
         "id": "Apache-2.0"
