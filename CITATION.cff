@@ -34,7 +34,7 @@ authors:
 cff-version: "1.1.0"
 keywords:
   - hydrology
-  - gis
+  - bmi
 license: "Apache-2.0"
 message: "If you use this software, please cite it using these metadata."
 repository-code: "https://github.com/eWaterCycle/ewatercycle"
