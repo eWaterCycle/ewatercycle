@@ -1,5 +1,7 @@
 from esmvalcore.experimental import get_recipe
 from pathlib import Path
+from typing import Dict, Any
+
 
 DATASETS = {
     'ERA5': {
@@ -309,7 +311,7 @@ def update_wflow(
     return recipe_dict
 
 
-MODEL_DATA = {
+MODEL_DATA: Dict[str, Dict[str, Any]] = {
     'hype': {
         'recipe_name': 'hydrology/recipe_hype.yml',
         'update_func': update_hype,
