@@ -166,7 +166,18 @@ TEST_INPUT_PCRGLOBWB = (
 
 EXPECTED_DIFF_MARRMOT = (
     {},
-    {},
+    {
+        'iterable_item_removed': {
+            "root['diagnostics']['diagnostic_daily']['additional_datasets'][1]":
+            {
+                'dataset': 'ERA5',
+                'project': 'OBS6',
+                'tier': 3,
+                'type': 'reanaly',
+                'version': 1
+            }
+        }
+    },
     {
         'values_changed': {
             "root['diagnostics']['diagnostic_daily']['variables']['tas']['start_year']":
@@ -261,7 +272,17 @@ EXPECTED_DIFF_MARRMOT = (
 
 EXPECTED_DIFF_LISFLOOD = (
     {},
-    {},
+    {
+        'iterable_item_removed': {
+            "root['datasets'][1]": {
+                'dataset': 'ERA5',
+                'project': 'OBS6',
+                'tier': 3,
+                'type': 'reanaly',
+                'version': 1
+            }
+        }
+    },
     {
         'values_changed': {
             "root['diagnostics']['diagnostic_daily']['variables']['pr']['start_year']":
@@ -508,7 +529,17 @@ EXPECTED_DIFF_LISFLOOD = (
 
 EXPECTED_DIFF_HYPE = (
     {},
-    {},
+    {
+        'iterable_item_removed': {
+            "root['datasets'][1]": {
+                'dataset': 'ERA5',
+                'project': 'OBS6',
+                'tier': 3,
+                'type': 'reanaly',
+                'version': 1
+            }
+        }
+    },
     {
         'values_changed': {
             "root['diagnostics']['hype']['variables']['tas']['start_year']": {
@@ -592,10 +623,41 @@ EXPECTED_DIFF_WFLOW = (
     {},
     {
         'values_changed': {
+            "root['diagnostics']['wflow_daily']['variables']['tas']['end_year']":
+            {
+                'new_value': 2001,
+                'old_value': 1990
+            },
+            "root['diagnostics']['wflow_daily']['variables']['pr']['end_year']":
+            {
+                'new_value': 2001,
+                'old_value': 1990
+            },
+            "root['diagnostics']['wflow_daily']['variables']['psl']['end_year']":
+            {
+                'new_value': 2001,
+                'old_value': 1990
+            },
+            "root['diagnostics']['wflow_daily']['variables']['rsds']['end_year']":
+            {
+                'new_value': 2001,
+                'old_value': 1990
+            },
+            "root['diagnostics']['wflow_daily']['variables']['rsdt']['end_year']":
+            {
+                'new_value': 2001,
+                'old_value': 1990
+            },
             "root['diagnostics']['wflow_daily']['scripts']['script']['basin']":
             {
                 'new_value': 'wflow_dem',
                 'old_value': 'Meuse'
+            },
+            "root['diagnostics']['wflow_daily']['scripts']['script']['dem_file']":
+            {
+                'new_value':
+                'wflow_parameterset/meuse/staticmaps/wflow_dem.map',
+                'old_value': 'wflow/wflow_dem_Meuse.nc'
             }
         },
         'iterable_item_removed': {
@@ -642,27 +704,27 @@ EXPECTED_DIFF_WFLOW = (
             "root['diagnostics']['wflow_daily']['variables']['tas']['end_year']":
             {
                 'new_value': 4321,
-                'old_value': 2001
+                'old_value': 1990
             },
             "root['diagnostics']['wflow_daily']['variables']['pr']['end_year']":
             {
                 'new_value': 4321,
-                'old_value': 2001
+                'old_value': 1990
             },
             "root['diagnostics']['wflow_daily']['variables']['psl']['end_year']":
             {
                 'new_value': 4321,
-                'old_value': 2001
+                'old_value': 1990
             },
             "root['diagnostics']['wflow_daily']['variables']['rsds']['end_year']":
             {
                 'new_value': 4321,
-                'old_value': 2001
+                'old_value': 1990
             },
             "root['diagnostics']['wflow_daily']['variables']['rsdt']['end_year']":
             {
                 'new_value': 4321,
-                'old_value': 2001
+                'old_value': 1990
             }
         }
     },
@@ -694,8 +756,7 @@ EXPECTED_DIFF_WFLOW = (
             "root['diagnostics']['wflow_daily']['scripts']['script']['dem_file']":
             {
                 'new_value': 'wflow/wflow_dem_Rhine.nc',
-                'old_value':
-                'wflow_parameterset/meuse/staticmaps/wflow_dem.map'
+                'old_value': 'wflow/wflow_dem_Meuse.nc'
             }
         }
     },
@@ -735,7 +796,18 @@ EXPECTED_DIFF_WFLOW = (
 
 EXPECTED_DIFF_PCRGLOBWB = (
     {},
-    {},
+    {
+        'iterable_item_removed': {
+            "root['diagnostics']['diagnostic_daily']['additional_datasets'][1]":
+            {
+                'dataset': 'ERA5',
+                'project': 'OBS6',
+                'tier': 3,
+                'type': 'reanaly',
+                'version': 1
+            }
+        }
+    },
     {
         'values_changed': {
             "root['diagnostics']['diagnostic_daily']['variables']['pr']['start_year']":
