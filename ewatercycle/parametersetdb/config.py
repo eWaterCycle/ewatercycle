@@ -29,6 +29,8 @@ class AbstractConfig(ABC):
 
     """
     config: Any = None
+    config: Any = None
+    """Content of config as Python dictionary"""
 
     def __init__(self, source: str):
         """Fetches and parses config file
