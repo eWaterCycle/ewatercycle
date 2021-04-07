@@ -1,12 +1,13 @@
 from os import PathLike
 from pathlib import Path
-from typing import Iterable, Tuple, Any
+from typing import Any, Iterable, Tuple
 from unittest.mock import patch
 
-import pytest
-from basic_modeling_interface import Bmi
 import numpy as np
-from numpy.testing import assert_almost_equal
+import pytest
+import xarray as xr
+from basic_modeling_interface import Bmi
+from numpy.testing import assert_array_equal
 
 from ewatercycle.models.abstract import AbstractModel
 
@@ -18,6 +19,14 @@ class MockedModel(AbstractModel):
             # using grpc4bmi Docker or Singularity client
             self.bmi = kwargs['bmi']
         return Path('foobar.cfg'), Path('.')
+
+    def get_value_as_xarray(self, name: str) -> xr.DataArray:
+        return xr.DataArray(
+            data=[[1.0, 2.0]],
+            dims=["time", "x"],
+            name='Temperature',
+            attrs=dict(units="degC"),
+        )
 
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
@@ -69,7 +78,7 @@ def test_get_value(bmi, model: MockedModel):
 
     value = model.get_value('discharge')
 
-    assert_almost_equal(value, expected)
+    assert_array_equal(value, expected)
 
 
 def test_set_value(model: MockedModel, bmi):
@@ -120,8 +129,19 @@ def test_time_step(bmi, model: MockedModel):
 
 
 def test_output_var_names(bmi, model: MockedModel):
-    bmi.get_output_var_names.return_value = ('discharge',)
+    bmi.get_output_var_names.return_value = ('discharge', )
 
     names = model.output_var_names
 
-    assert names == ('discharge',)
+    assert names == ('discharge', )
+
+
+def test_get_value_as_xarray(model: MockedModel):
+    expected = np.array([[1.0, 2.0]])
+
+    dataarray = model.get_value_as_xarray("Temperature")
+
+    assert_array_equal(dataarray.values, expected)
+    assert dataarray.name == "Temperature"
+    assert dataarray.units == "degC"
+    assert isinstance(dataarray, xr.DataArray)
