@@ -5,7 +5,7 @@ import warnings
 from collections.abc import MutableMapping
 from typing import Callable, Dict, Tuple
 
-from ._config_validators import ValidationError
+from ._validators import ValidationError
 
 
 class InvalidConfigParameter(BaseException):
