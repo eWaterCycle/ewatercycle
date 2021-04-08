@@ -36,6 +36,14 @@ def model(bmi: Bmi):
     m.setup(bmi=bmi)
     return m
 
+def test_construct():
+    with pytest.raises(TypeError) as excinfo:
+        AbstractModel()
+    msg = str(excinfo.value)
+    assert "Can't instantiate abstract class" in msg
+    assert 'setup' in msg
+    assert 'parameters' in msg
+
 
 def test_setup(model):
     result = model.setup()
