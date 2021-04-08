@@ -122,4 +122,6 @@ def validate_path(value, allow_none=False):
         return path
 
 
-_validators = dict()
+_validators = {
+    'test': validate_path,
+}

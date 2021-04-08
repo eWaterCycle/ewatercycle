@@ -1,1 +1,1 @@
-
+from .config import CFG

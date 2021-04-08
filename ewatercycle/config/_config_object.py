@@ -7,7 +7,7 @@ from typing import Union
 
 import yaml
 
-import esmvalcore
+import ewatercycle
 
 from ._config_validators import _validators
 from ._validated_config import ValidatedConfig
@@ -24,7 +24,7 @@ class Config(ValidatedConfig):
 
     @classmethod
     def _load_user_config(cls,
-                          filename: Union[os.PathLike, str]):
+                          filename: Union[os.PathLike, str]=None):
         """Load user configuration from the given file.
 
         The config is cleared and updated in-place.
@@ -36,13 +36,8 @@ class Config(ValidatedConfig):
         """
         new = cls()
 
-        try:
-            mapping = _read_config_file(filename)
-            mapping['config_file'] = filename
-        except IOError:
-            if raise_exception:
-                raise
-            mapping = {}
+        mapping = read_config_file(filename)
+        mapping['config_file'] = filename
 
         new.update(CFG_DEFAULT)
         new.update(mapping)
@@ -55,7 +50,7 @@ class Config(ValidatedConfig):
         """Load the default configuration."""
         new = cls()
 
-        mapping = _read_config_file(filename)
+        mapping = read_config_file(filename)
         new.update(mapping)
 
         return new
@@ -80,7 +75,7 @@ class Config(ValidatedConfig):
         self.load_from_file(filename)
 
 
-def _read_config_file(config_file):
+def read_config_file(config_file: Union[os.PathLike, str]):
     """Read config user file and store settings in a dictionary."""
     config_file = Path(config_file)
     if not config_file.exists():
@@ -92,17 +87,29 @@ def _read_config_file(config_file):
     return cfg
 
 
+def find_user_config(sources: tuple, filename: str):
+    """Find user config in list of source directories."""
+    for source in sources:
+        user_config = source / filename
+        if user_config.exists():
+            return user_config
+
+
 FILENAME = 'ewatercycle.yaml'
 
-# ewatercycle / FILENAME
-# /etc/ FILENAME
-# /home/.ewatercycle / FILENAME
+SOURCES = (
+    Path.home() / '.ewatercycle',
+    Path('/etc'),
+)
 
-DEFAULT_CONFIG_DIR = Path(ewatercycle.__file__).parent
-DEFAULT_CONFIG = DEFAULT_CONFIG_DIR / 'defaults.yml'
+USER_CONFIG = find_user_config(SOURCES, FILENAME)
+DEFAULT_CONFIG = Path(ewatercycle.__file__).parents[1] / FILENAME
 
-USER_CONFIG_DIR = Path.home() / '.ewatercycle' / 'ewatercycle.yaml'
-USER_CONFIG = USER_CONFIG_DIR / 'ewatercycle.yaml'
+print(DEFAULT_CONFIG)
 
 # initialize placeholders
-CFG = Config._load_user_config(USER_CONFIG, raise_exception=False)
+CFG_DEFAULT = Config._load_default_config(DEFAULT_CONFIG)
+if USER_CONFIG:
+    CFG = Config._load_user_config(USER_CONFIG)
+else:
+    CFG = CFG_DEFAULT

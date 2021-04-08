@@ -5,11 +5,10 @@ import warnings
 from collections.abc import MutableMapping
 from typing import Callable, Dict, Tuple
 
-from .._exceptions import SuppressedError
 from ._config_validators import ValidationError
 
 
-class InvalidConfigParameter(SuppressedError):
+class InvalidConfigParameter(BaseException):
     """Config parameter is invalid."""
 
 
