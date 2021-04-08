@@ -7,16 +7,27 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle.models.abstract import AbstractModel
-from ewatercycle import CFG
+# from ewatercycle import CFG
+
+# mock CFG until the CFG PR is merged.
+CFG = {
+    "container_engine": "singularity",
+    "singularity_images": {
+        "wflow": "ewatercycle-wflow-grpc4bmi.sif",
+    },
+    "docker_images": {
+        "wflow": "ewatercycle/wflow-grpc4bmi:latest",
+    },
+}
 
 
 class Wflow(AbstractModel):
     """eWaterCycle implementation of WFLOW hydrological model.
 
     Attributes
-        bmi (Bmi): Basic Modeling Interface object
+        bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
-    def setup(self):
+    def setup(self, parameterset:Path, inifile:Path, forcing_data_path):
         """Performs model setup.
 
         1. Creates config file and config directory
@@ -29,69 +40,40 @@ class Wflow(AbstractModel):
         Returns:
             Path to config file and path to config directory
         """
-        config_file, config_dir = self._create_config()
+        work_dir = ....
+        config_file = work_dir / inifile.name
 
-        if CFG.container_engine.lower() == "docker":
-            container_engine = BmiClientDocker
-            container_image = "ewatercycle/wflow-grpc4bmi:latest"  # TODO Get from config?
-        elif CFG.container_engine.lower() == "singularity":
-            container_engine = BmiClientSingularity
-            container_image = "ewatercycle-wflow-grpc4bmi.sif"     # TODO Get from config?
-        else:
-            raise ValueError(
-                f"Unknown container technology in CFG: {CFG.container_engine}"
-            )
+        # For Wflow we have to copy the input (which is unwritable)
+        # to a working directory (what is writable)
+        shutil.copytree(src=parameterset, dst=work_dir)
+        shutil.copy(src=forcing_file, dst=work_dir)
 
-        self.bmi = container_engine(
-            image=container_image,
-            work_dir=str(TEMP_DIR)                   # TODO Get from config
-        )
-
-        self.bmi.initialize(str(config_file))
-
-    def _create_config(self):
-        # TODO this is just copied from the comparison notebook.
-        # TODO update this so it can work as standalone code
-        INPUT_DIR = (
-            PROJECT_HOME / "wflow_parameterset"
-            / "calibrated_parameterset" / catchment.lower()
-        )
-        config_template = f"{INPUT_DIR}/wflow_sbm_{dataset.lower()}_warmup.ini"
-
-        # Open default config file
+        # Modify the path to the forcing data in the config file
         cfg = ConfigParser()
         cfg.optionxform = lambda x: x
-        cfg.read(f"{TEMP_DIR}/wflow_sbm_{dataset.lower()}_warmup.ini")  # reinit=1
+        cfg.read(inifile)
+        cfg.set("framework", "netcdfinput", forcing_file.name)
+        with open(config_file, "w") as filename:
+            cfg.write(filename)
 
-        # Modify settings
-        start = PERIOD["start"].strftime("%Y-%m-%d")
-        end = PERIOD["end"].strftime("%Y-%m-%d")
-        cfg.set("framework", "netcdfinput", Path(forcing).name)
-        cfg.set("run", "starttime", f"{start} 12:00:00 GMT")
-        cfg.set("run", "endtime", f"{end} 12:00:00 GMT")
-        cfg.set("inputmapstacks", "Precipitation", "/pr")
-        cfg.set("inputmapstacks", "EvapoTranspiration", "/pet")
-        cfg.set("inputmapstacks", "Temperature", "/tas")
+        # Start the container
+        if CFG.container_engine.lower() == "docker":
+            self.bmi = BmiClientDocker(
+                image=CFG["docker_images"]["wflow"],
+                image_port=55555,
+                work_dir=work_dir,
+            )
+        elif CFG.container_engine.lower() == "singularity":
+            self.bmi = BmiClientSingularity(
+                image=CFG["singularity_images"]["wflow"],
+                work_dir=work_dir,
+            )
+        else:
+            raise ValueError(
+                f"Unknown container technology in CFG: {CFG['container_engine']}"
+            )
 
-        # Add API fields to the config file
-        cfg["API"] = {
-            "RiverRunoff": "2, m^3/s",
-        }
-
-        # Remove sections/options that break the BMI
-        cfg.remove_option("framework", "netcdfoutput")
-        cfg.remove_section("outputcsv_0")
-        cfg.remove_section("outputcsv_1")
-        cfg.remove_section("outputcsv_2")
-        cfg.remove_section("outputcsv_3")
-        cfg.remove_section("outputtss_0")
-
-        # Write to new config file
-        cfg_file = TEMP_DIR / f"wflow_sbm_{catchment}_{dataset}_warmup.ini"
-        with open(cfg_file, "w") as file:
-            cfg.write(file)
-
-        return config_file, config_dir
+        return config_file
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         # TODO this is just copied from the comparison notebook.
