@@ -2,14 +2,14 @@ from esmvalcore.experimental import get_recipe
 import deepdiff
 import copy
 import pytest
-from ewatercycle.forcing import update_marrmot, update_lisflood, update_hype, update_wflow, update_pcrglobwb
+from ewatercycle.forcing.preprocessors import update_marrmot, update_lisflood, update_hype, update_wflow, update_pcrglobwb
 
 TEST_INPUT_MARRMOT = (
     {},
     {
         'startyear': 1990,
         'endyear': 2018,
-        'forcings': ['ERA-Interim', 'ERA5'],
+        'dataset': 'ERA-Interim',
         'shapefile': 'Meuse/Meuse.shp',
     },
     {
@@ -19,7 +19,7 @@ TEST_INPUT_MARRMOT = (
         'endyear': 4321
     },
     {
-        'forcings': ['ERA5']
+        'dataset': 'ERA5'
     },
     {
         'shapefile': 'Rhine/Rhine.shp'
@@ -31,7 +31,7 @@ TEST_INPUT_LISFLOOD = (
     {
         'startyear': 1990,
         'endyear': 1990,
-        'forcings': ['ERA-Interim', 'ERA5'],
+        'dataset': 'ERA-Interim',
         'shapefile': 'Lorentz_Basin_Shapefiles/Meuse/Meuse.shp',
         'extract_region': {
             'start_longitude': 0,
@@ -47,7 +47,7 @@ TEST_INPUT_LISFLOOD = (
         'endyear': 4321
     },
     {
-        'forcings': ['ERA5']
+        'dataset': 'ERA5'
     },
     {
         'shapefile': 'Rhine/Rhine.shp'
@@ -67,7 +67,7 @@ TEST_INPUT_HYPE = (
     {
         'startyear': 1990,
         'endyear': 2001,
-        'forcings': ['ERA-Interim', 'ERA5'],
+        'dataset': 'ERA-Interim',
         'shapefile': 'Meuse_HYPE.shp',
     },
     {
@@ -77,7 +77,7 @@ TEST_INPUT_HYPE = (
         'endyear': 4321
     },
     {
-        'forcings': ['ERA5']
+        'dataset': 'ERA5'
     },
     {
         'shapefile': 'Rhine_HYPE.shp'
@@ -88,9 +88,9 @@ TEST_INPUT_WFLOW = (
     {},
     {
         'startyear': 1990,
-        'endyear': 1990,
-        'forcings': ['ERA-Interim', 'ERA5'],
-        'dem_file': 'wflow/wflow_dem_Meuse.nc',
+        'endyear': 2001,
+        'dataset': 'ERA-Interim',
+        'dem_file': 'wflow_parameterset/meuse/staticmaps/wflow_dem.map',
         'extract_region': {
             'start_longitude': 0,
             'end_longitude': 6.75,
@@ -105,7 +105,7 @@ TEST_INPUT_WFLOW = (
         'endyear': 4321
     },
     {
-        'forcings': ['ERA5']
+        'dataset': 'ERA5'
     },
     {
         'dem_file': 'wflow/wflow_dem_Rhine.nc'
@@ -127,7 +127,7 @@ TEST_INPUT_PCRGLOBWB = (
         'endyear': 2016,
         'startyear_climatology': 1990,
         'endyear_climatology': 2002,
-        'forcings': ['ERA-Interim', 'ERA5'],
+        'dataset': 'ERA-Interim',
         'basin': 'rhine',
         'extract_region': {
             'start_longitude': 3,
@@ -149,7 +149,7 @@ TEST_INPUT_PCRGLOBWB = (
         'endyear_climatology': 4321
     },
     {
-        'forcings': ['ERA5']
+        'dataset': 'ERA5'
     },
     {
         'basin': 'meuse'
@@ -166,7 +166,18 @@ TEST_INPUT_PCRGLOBWB = (
 
 EXPECTED_DIFF_MARRMOT = (
     {},
-    {},
+    {
+        'iterable_item_removed': {
+            "root['diagnostics']['diagnostic_daily']['additional_datasets'][1]":
+            {
+                'dataset': 'ERA5',
+                'project': 'OBS6',
+                'tier': 3,
+                'type': 'reanaly',
+                'version': 1
+            }
+        }
+    },
     {
         'values_changed': {
             "root['diagnostics']['diagnostic_daily']['variables']['tas']['start_year']":
@@ -261,7 +272,17 @@ EXPECTED_DIFF_MARRMOT = (
 
 EXPECTED_DIFF_LISFLOOD = (
     {},
-    {},
+    {
+        'iterable_item_removed': {
+            "root['datasets'][1]": {
+                'dataset': 'ERA5',
+                'project': 'OBS6',
+                'tier': 3,
+                'type': 'reanaly',
+                'version': 1
+            }
+        }
+    },
     {
         'values_changed': {
             "root['diagnostics']['diagnostic_daily']['variables']['pr']['start_year']":
@@ -508,7 +529,17 @@ EXPECTED_DIFF_LISFLOOD = (
 
 EXPECTED_DIFF_HYPE = (
     {},
-    {},
+    {
+        'iterable_item_removed': {
+            "root['datasets'][1]": {
+                'dataset': 'ERA5',
+                'project': 'OBS6',
+                'tier': 3,
+                'type': 'reanaly',
+                'version': 1
+            }
+        }
+    },
     {
         'values_changed': {
             "root['diagnostics']['hype']['variables']['tas']['start_year']": {
@@ -592,10 +623,50 @@ EXPECTED_DIFF_WFLOW = (
     {},
     {
         'values_changed': {
+            "root['diagnostics']['wflow_daily']['variables']['tas']['end_year']":
+            {
+                'new_value': 2001,
+                'old_value': 1990
+            },
+            "root['diagnostics']['wflow_daily']['variables']['pr']['end_year']":
+            {
+                'new_value': 2001,
+                'old_value': 1990
+            },
+            "root['diagnostics']['wflow_daily']['variables']['psl']['end_year']":
+            {
+                'new_value': 2001,
+                'old_value': 1990
+            },
+            "root['diagnostics']['wflow_daily']['variables']['rsds']['end_year']":
+            {
+                'new_value': 2001,
+                'old_value': 1990
+            },
+            "root['diagnostics']['wflow_daily']['variables']['rsdt']['end_year']":
+            {
+                'new_value': 2001,
+                'old_value': 1990
+            },
             "root['diagnostics']['wflow_daily']['scripts']['script']['basin']":
             {
-                'new_value': 'wflow_dem_Meuse',
+                'new_value': 'wflow_dem',
                 'old_value': 'Meuse'
+            },
+            "root['diagnostics']['wflow_daily']['scripts']['script']['dem_file']":
+            {
+                'new_value':
+                'wflow_parameterset/meuse/staticmaps/wflow_dem.map',
+                'old_value': 'wflow/wflow_dem_Meuse.nc'
+            }
+        },
+        'iterable_item_removed': {
+            "root['diagnostics']['wflow_daily']['additional_datasets'][1]": {
+                'dataset': 'ERA5',
+                'project': 'OBS6',
+                'tier': 3,
+                'type': 'reanaly',
+                'version': 1
             }
         }
     },
@@ -725,7 +796,18 @@ EXPECTED_DIFF_WFLOW = (
 
 EXPECTED_DIFF_PCRGLOBWB = (
     {},
-    {},
+    {
+        'iterable_item_removed': {
+            "root['diagnostics']['diagnostic_daily']['additional_datasets'][1]":
+            {
+                'dataset': 'ERA5',
+                'project': 'OBS6',
+                'tier': 3,
+                'type': 'reanaly',
+                'version': 1
+            }
+        }
+    },
     {
         'values_changed': {
             "root['diagnostics']['diagnostic_daily']['variables']['pr']['start_year']":

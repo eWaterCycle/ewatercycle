@@ -20,3 +20,5 @@ docs/apidocs/
 .vscode
 
 .scannerwork/
+
+.ipynb_checkpoints

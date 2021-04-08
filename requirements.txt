@@ -1,6 +1,0 @@
-deepdiff
-pytest
-pytest-cov
-sphinx
-recommonmark
-sphinx_rtd_theme
