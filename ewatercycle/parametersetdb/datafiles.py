@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import os
 import subprocess
-from abc import ABC
+from abc import abstractmethod, ABC
 
 
 class AbstractCopier(ABC):
+    @abstractmethod
     def __init__(self, source: str):
         """
 
@@ -13,6 +14,7 @@ class AbstractCopier(ABC):
         """
         self.source = source
 
+    @abstractmethod
     def save(self, target: str):
         """Saves datafiles to target directory
 

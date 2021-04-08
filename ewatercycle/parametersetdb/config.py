@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import configparser
-from abc import ABC
+from abc import ABC, abstractmethod
 from urllib.request import urlopen
 from typing import Any
 
@@ -28,9 +28,8 @@ class AbstractConfig(ABC):
         config (dict): Content of config as Python dictionary
 
     """
-    config: Any = None
-    """Content of config as Python dictionary"""
 
+    @abstractmethod
     def __init__(self, source: str):
         """Fetches and parses config file
 
@@ -39,6 +38,7 @@ class AbstractConfig(ABC):
         """
         self.source = source
 
+    @abstractmethod
     def save(self, target: str):
         """
 
@@ -48,6 +48,12 @@ class AbstractConfig(ABC):
         Returns:
 
         """
+        pass
+
+    @property
+    @abstractmethod
+    def config(self) -> Any:
+        """Content of config as Python dictionary or CaseConfigParser"""
         pass
 
 
