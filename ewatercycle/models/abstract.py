@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABCMeta
 from os import PathLike
-from typing import Tuple, Iterable, Any, Optional
+from typing import Tuple, Iterable, Any
 
 import numpy as np
 from basic_modeling_interface import Bmi
@@ -13,7 +13,7 @@ class AbstractModel(metaclass=ABCMeta):
         bmi (Bmi): Basic Modeling Interface object
     """
     def __init__(self):
-        self.bmi: Optional[Bmi] = None
+        self.bmi: Bmi = None  # bmi should set in setup() before calling its methods
 
     @abstractmethod
     def setup(self, *args, **kwargs) -> Tuple[PathLike, PathLike]:

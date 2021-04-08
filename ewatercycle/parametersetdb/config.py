@@ -2,7 +2,7 @@
 import configparser
 from abc import ABC, abstractmethod
 from urllib.request import urlopen
-from typing import Any
+from typing import Any, Type
 
 from ruamel.yaml import YAML
 
@@ -22,13 +22,6 @@ def fetch(url):
 
 
 class AbstractConfig(ABC):
-    """
-
-    Attributes:
-        config (dict): Content of config as Python dictionary
-
-    """
-
     @abstractmethod
     def __init__(self, source: str):
         """Fetches and parses config file
@@ -37,6 +30,8 @@ class AbstractConfig(ABC):
             source:  Source url of config file
         """
         self.source = source
+        self.config: Any = None
+        """Dict like content of config """
 
     @abstractmethod
     def save(self, target: str):
@@ -50,21 +45,14 @@ class AbstractConfig(ABC):
         """
         pass
 
-    @property
-    @abstractmethod
-    def config(self) -> Any:
-        """Content of config as Python dictionary or CaseConfigParser"""
-        pass
-
 
 class IniConfig(AbstractConfig):
     """Config container where config is read/saved in ini format.
     """
-    config = CaseConfigParser(strict=False)
-
     def __init__(self, source):
         super().__init__(source)
         body = fetch(source)
+        self.config = CaseConfigParser(strict=False)
         self.config.read_string(body)
 
     def save(self, target):
@@ -86,7 +74,7 @@ class YamlConfig(AbstractConfig):
             self.yaml.dump(self.config, f)
 
 
-CONFIG_FORMATS = {
+CONFIG_FORMATS: dict[str, Type[AbstractConfig]] = {
     'ini': IniConfig,
     'yaml': YamlConfig,
 }
