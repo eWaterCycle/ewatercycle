@@ -1,23 +1,20 @@
+from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple
 
 import numpy as np
 import xarray as xr
-
 from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle.models.abstract import AbstractModel
+
 # from ewatercycle import CFG
 
 # mock CFG until the CFG PR is merged.
 CFG = {
     "container_engine": "singularity",
-    "singularity_images": {
-        "wflow": "ewatercycle-wflow-grpc4bmi.sif",
-    },
-    "docker_images": {
-        "wflow": "ewatercycle/wflow-grpc4bmi:latest",
-    },
+    "singularity_images.wflow": "ewatercycle-wflow-grpc4bmi.sif",
+    "docker_images.wflow": "ewatercycle/wflow-grpc4bmi:latest",
 }
 
 
@@ -27,20 +24,35 @@ class Wflow(AbstractModel):
     Attributes
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
-    def setup(self, parameterset:Path, inifile:Path, forcing_data_path):
+    def setup(self,
+              work_dir: Path,
+              inifile: Path,
+              parameterset: Optional[Path] = None,
+              forcing_data: Optional[Path] = None):
         """Performs model setup.
 
         1. Creates config file and config directory
         2. Start bmi container and store as self.bmi
 
         Args:
-            *args: Positional arguments. Sub class should specify each arg.  # TODO
-            **kwargs: Named arguments. Sub class should specify each arg.    # TODO
+
+            - work_dir: a writable folder that will be used as the main working
+            directory for running the model
+
+            - inifile: path to the configuration file, typically somethig like
+            `work_dir/wflow_sbm.ini`
+
+            - parameterset (optional): path to a valid wflow model spec. If
+            given, the parameterset will be copied to `work_dir`
+
+            - forcing_data: path to meteorological forcing data (.nc) file. If
+            given, will be copied to work_dir. If not given, it should already
+            be there.
 
         Returns:
             Path to config file and path to config directory
         """
-        work_dir = ....
+        # work_dir = ....
         config_file = work_dir / inifile.name
 
         # For Wflow we have to copy the input (which is unwritable)
@@ -59,13 +71,13 @@ class Wflow(AbstractModel):
         # Start the container
         if CFG.container_engine.lower() == "docker":
             self.bmi = BmiClientDocker(
-                image=CFG["docker_images"]["wflow"],
+                image=CFG["docker_images.wflow"],
                 image_port=55555,
                 work_dir=work_dir,
             )
         elif CFG.container_engine.lower() == "singularity":
             self.bmi = BmiClientSingularity(
-                image=CFG["singularity_images"]["wflow"],
+                image=CFG["singularity_images.wflow"],
                 work_dir=work_dir,
             )
         else:
@@ -98,7 +110,11 @@ class Wflow(AbstractModel):
         data = np.reshape(model.get_value(variable), shape)
         da = xr.DataArray(
             data,
-            coords={"longitude": lon, "latitude": lat, "time": now},
+            coords={
+                "longitude": lon,
+                "latitude": lat,
+                "time": now
+            },
             dims=["latitude", "longitude"],
             name=variable,
             attrs={"units": model.get_var_units(variable)},
