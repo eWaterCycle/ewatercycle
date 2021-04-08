@@ -137,11 +137,13 @@ def test_output_var_names(bmi, model: MockedModel):
 
 
 def test_get_value_as_xarray(model: MockedModel):
-    expected = np.array([[1.0, 2.0]])
+    expected = xr.DataArray(
+            data=[[1.0, 2.0]],
+            dims=["time", "x"],
+            name='Temperature',
+            attrs=dict(units="degC"),
+        )
 
     dataarray = model.get_value_as_xarray("Temperature")
 
-    assert_array_equal(dataarray.values, expected)
-    assert dataarray.name == "Temperature"
-    assert dataarray.units == "degC"
-    assert isinstance(dataarray, xr.DataArray)
+    xr.testing.assert_equal(dataarray, expected)
