@@ -6,14 +6,12 @@ import numpy as np
 from basic_modeling_interface import Bmi
 
 
-class AbstractModel:
+class AbstractModel(metaclass=ABCMeta):
     """Abstract class of a eWaterCycle model.
 
     Attributes
         bmi (Bmi): Basic Modeling Interface object
     """
-    __metaclass__ = ABCMeta
-
     def __init__(self):
         self.bmi: Optional[Bmi] = None
 
