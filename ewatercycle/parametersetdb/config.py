@@ -2,7 +2,7 @@
 import configparser
 from abc import ABC, abstractmethod
 from urllib.request import urlopen
-from typing import Any, Type
+from typing import Any, Type, Dict
 
 from ruamel.yaml import YAML
 
@@ -74,7 +74,7 @@ class YamlConfig(AbstractConfig):
             self.yaml.dump(self.config, f)
 
 
-CONFIG_FORMATS: dict[str, Type[AbstractConfig]] = {
+CONFIG_FORMATS: Dict[str, Type[AbstractConfig]] = {
     'ini': IniConfig,
     'yaml': YamlConfig,
 }
