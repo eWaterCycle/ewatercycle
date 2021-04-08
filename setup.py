@@ -44,22 +44,23 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
     ],
-    test_suite='tests',
-    setup_requires=[
-        # dependency for `python setup.py test`
-        'pytest-runner',
-        # dependencies for `python setup.py build_sphinx`
-        'sphinx',
-        'recommonmark',
-        'sphinx_rtd_theme',
-    ],
-    tests_require=[
-        'deepdiff',
-        'pytest',
-        'pytest-cov',
-        'pycodestyle',
-    ],
     extras_require={
-        'dev':  ['prospector[with_pyroma]', 'yapf', 'isort'],
+        'dev':  [
+            # Test
+            'deepdiff',
+            'pytest',
+            'pytest-cov',
+            # Linters
+            'pycodestyle',
+            'prospector[with_pyroma]',
+            'yapf',
+            'isort',
+            # dependency for `pytest`
+            'pytest-runner',
+            # dependencies for documentation generation
+            'sphinx',
+            'recommonmark',
+            'sphinx_rtd_theme',
+         ],
     }
 )
