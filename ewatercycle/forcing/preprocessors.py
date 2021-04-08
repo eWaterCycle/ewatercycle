@@ -1,6 +1,6 @@
-from esmvalcore.experimental import get_recipe
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Callable
+from esmvalcore.experimental import get_recipe
 
 
 DATASETS = {
@@ -24,7 +24,7 @@ DATASETS = {
 def update_hype(
     recipe_dict: dict,
     *,
-    forcings: list = None,
+    dataset: str = None,
     startyear: int = None,
     endyear: int = None,
     shapefile: str = None,
@@ -36,8 +36,8 @@ def update_hype(
     ----------
     recipe_dict : dict
         Dictionary with the recipe data
-    forcings : list
-        List of forcings to use
+    dataset : str
+        Name of the dataset to use
     startyear : int
         Start year for the forcing data
     endyear : int
@@ -52,9 +52,8 @@ def update_hype(
             recipe_dict['preprocessors'][preproc_name]['extract_shape'][
                 'shapefile'] = shapefile
 
-    if forcings is not None:
-        datasets = [DATASETS[forcing] for forcing in forcings]
-        recipe_dict['datasets'] = datasets
+    if dataset is not None:
+        recipe_dict['datasets'] = [DATASETS[dataset]]
 
     variables = recipe_dict['diagnostics']['hype']['variables']
     var_names = 'tas', 'tasmin', 'tasmax', 'pr'
@@ -73,7 +72,7 @@ def update_hype(
 def update_lisflood(
     recipe_dict: dict,
     *,
-    forcings: list = None,
+    dataset: str = None,
     startyear: int = None,
     endyear: int = None,
     shapefile: str = None,
@@ -86,8 +85,8 @@ def update_lisflood(
     ----------
     recipe_dict : dict
         Dictionary with the recipe data
-    forcings : list
-        List of forcings to use
+    dataset : str
+        Name of the dataset to use
     startyear : int
         Start year for the observation data
     endyear : int
@@ -114,9 +113,8 @@ def update_lisflood(
             recipe_dict['preprocessors'][preproc_name][
                 'extract_region'] = extract_region
 
-    if forcings is not None:
-        datasets = [DATASETS[forcing] for forcing in forcings]
-        recipe_dict['datasets'] = datasets
+    if dataset is not None:
+        recipe_dict['datasets'] = [DATASETS[dataset]]
 
     variables = recipe_dict['diagnostics']['diagnostic_daily']['variables']
     var_names = 'pr', 'tas', 'tasmax', 'tasmin', 'tdps', 'uas', 'vas', 'rsds'
@@ -135,7 +133,7 @@ def update_lisflood(
 def update_marrmot(
     recipe_dict: dict,
     *,
-    forcings: list = None,
+    dataset: str = None,
     startyear: int = None,
     endyear: int = None,
     shapefile: str = None,
@@ -147,8 +145,8 @@ def update_marrmot(
     ----------
     recipe_dict : dict
         Dictionary with the recipe data
-    forcings : list
-        List of forcings to use
+    dataset : str
+        Name of the dataset to use
     startyear : int
         Start year for the observation data
     endyear : int
@@ -164,10 +162,9 @@ def update_marrmot(
         recipe_dict['diagnostics']['diagnostic_daily']['scripts']['script'][
             'basin'] = basin
 
-    if forcings is not None:
-        datasets = [DATASETS[forcing] for forcing in forcings]
+    if dataset is not None:
         recipe_dict['diagnostics']['diagnostic_daily'][
-            'additional_datasets'] = datasets
+            'additional_datasets'] = [DATASETS[dataset]]
 
     variables = recipe_dict['diagnostics']['diagnostic_daily']['variables']
     var_names = 'tas', 'pr', 'psl', 'rsds', 'rsdt'
@@ -185,7 +182,7 @@ def update_marrmot(
 
 def update_pcrglobwb(recipe_dict: dict,
                      *,
-                     forcings: list = None,
+                     dataset: str = None,
                      basin: str = None,
                      startyear: int = None,
                      endyear: int = None,
@@ -199,8 +196,8 @@ def update_pcrglobwb(recipe_dict: dict,
     ----------
     recipe_dict : dict
         Dictionary with the recipe data
-    forcings : list
-        List of forcings to use
+    dataset : str
+        Name of the dataset to use
     basin : str
         Name of the basin (used for data output filename only)
     startyear : int
@@ -218,10 +215,9 @@ def update_pcrglobwb(recipe_dict: dict,
     preproc_names = ('crop_basin', 'preproc_pr', 'preproc_tas',
                      'preproc_pr_clim', 'preproc_tas_clim')
 
-    if forcings is not None:
-        datasets = [DATASETS[forcing] for forcing in forcings]
+    if dataset is not None:
         recipe_dict['diagnostics']['diagnostic_daily'][
-            'additional_datasets'] = datasets
+            'additional_datasets'] = [DATASETS[dataset]]
 
     if basin is not None:
         recipe_dict['diagnostics']['diagnostic_daily']['scripts']['script'][
@@ -259,7 +255,7 @@ def update_pcrglobwb(recipe_dict: dict,
 def update_wflow(
     recipe_dict: dict,
     *,
-    forcings: list = None,
+    dataset: str = None,
     startyear: int = None,
     endyear: int = None,
     extract_region: dict = None,
@@ -272,8 +268,8 @@ def update_wflow(
     ----------
     recipe_dict : dict
         Dictionary with the recipe data
-    forcings : list
-        List of forcings to use
+    dataset : str
+        Name of the dataset to use
     startyear : int
         Start year for the observation data
     endyear : int
@@ -293,9 +289,9 @@ def update_wflow(
         recipe_dict['preprocessors']['rough_cutout'][
             'extract_region'] = extract_region
 
-    if forcings is not None:
-        datasets = [DATASETS[forcing] for forcing in forcings]
-        recipe_dict['diagnostics']['wflow_daily']['additional_datasets'] = datasets
+    if dataset is not None:
+        recipe_dict['diagnostics']['wflow_daily']['additional_datasets'] = [
+            DATASETS[dataset]]
 
     variables = recipe_dict['diagnostics']['wflow_daily']['variables']
     var_names = 'tas', 'pr', 'psl', 'rsds', 'rsdt'
@@ -311,43 +307,30 @@ def update_wflow(
     return recipe_dict
 
 
-MODEL_DATA: Dict[str, Dict[str, Any]] = {
-    'hype': {
-        'recipe_name': 'hydrology/recipe_hype.yml',
-        'update_func': update_hype,
-    },
-    'lisflood': {
-        'recipe_name': 'hydrology/recipe_lisflood.yml',
-        'update_func': update_lisflood,
-    },
-    'marrmot': {
-        'recipe_name': 'hydrology/recipe_marrmot.yml',
-        'update_func': update_marrmot,
-    },
-    'pcrglobwb': {
-        'recipe_name': 'hydrology/recipe_pcrglobwb.yml',
-        'update_func': update_pcrglobwb,
-    },
-    'wflow': {
-        'recipe_name': 'hydrology/recipe_wflow.yml',
-        'update_func': update_wflow,
-    },
+class RecipeGenerator:
+    def __init__(self, model: str, update_func: Callable, recipe_name: str):
+        self.recipe_name = recipe_name
+        self.update_func = update_func
+        self.model = model
+        self.recipe = get_recipe(recipe_name)
+
+    def __call__(self, **kwargs):
+        """Return recipe updated with new keyword arguments."""
+        # update recipe in-place
+        self.update_func(self.recipe.data, **kwargs)
+        return self.recipe
+
+    def __repr__(self):
+        """Return canonical class representation."""
+        return (f'{self.__class__.__name__}(model={self.model!r}, '
+                f'update_func={self.update_func!r}, '
+                f'recipe_name={self.recipe_name!r})')
+
+
+MODELS = {
+    'hype': RecipeGenerator(model='hype', update_func=update_hype, recipe_name='hydrology/recipe_hype.yml'),
+    'lisflood': RecipeGenerator(model='lisflood', update_func=update_lisflood, recipe_name='hydrology/recipe_lisflood.yml'),
+    'marrmot': RecipeGenerator(model='marrmot', update_func=update_marrmot, recipe_name='hydrology/recipe_marrmot.yml'),
+    'pcrglobwb': RecipeGenerator(model='pcrglobwb', update_func=update_pcrglobwb, recipe_name='hydrology/recipe_pcrglobwb.yml'),
+    'wflow': RecipeGenerator(model='wflow', update_func=update_wflow, recipe_name='hydrology/recipe_wflow.yml')
 }
-
-
-def generate(model: str, **kwargs):
-    """
-    Parameters
-    ----------
-    model : str
-        Name of the model
-    **kwargs :
-        Model specific parameters
-    """
-    model_data = MODEL_DATA[model]
-    recipe_name = model_data['recipe_name']
-    recipe = get_recipe(recipe_name)
-
-    update_func = model_data['update_func']
-    update_func(recipe.data, **kwargs)
-    recipe.run()

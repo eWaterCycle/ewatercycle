@@ -25,6 +25,9 @@ setup(
         'numpy',
         'pandas',
         'pyoos',
+        'basic_modeling_interface',
+        # TODO subclosses of ewatercycle.models.abstract.AbstractModle will need
+        # 'grpc4bmi>=0.2.12,<0.3',
     ],
     packages=find_packages(),
     include_package_data=True,
@@ -58,6 +61,23 @@ setup(
         'pycodestyle',
     ],
     extras_require={
-        'dev':  ['prospector[with_pyroma,with_mypy]', 'yapf', 'isort'],
+        'dev':  [
+            # Test
+            'deepdiff',
+            'pytest',
+            'pytest-cov',
+            'pytest-mypy',
+            # Linters
+            'pycodestyle',
+            'prospector[with_pyroma,with_mypy]',
+            'yapf',
+            'isort',
+            # dependency for `pytest`
+            'pytest-runner',
+            # dependencies for documentation generation
+            'sphinx',
+            'recommonmark',
+            'sphinx_rtd_theme',
+         ],
     }
 )
