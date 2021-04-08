@@ -9,7 +9,7 @@ import yaml
 
 import ewatercycle
 
-from ._config_validators import _validators
+from ._validators import _validators
 from ._validated_config import ValidatedConfig
 
 
@@ -23,8 +23,7 @@ class Config(ValidatedConfig):
     _validate = _validators
 
     @classmethod
-    def _load_user_config(cls,
-                          filename: Union[os.PathLike, str]=None):
+    def _load_user_config(cls, filename: Union[os.PathLike, str] = None):
         """Load user configuration from the given file.
 
         The config is cleared and updated in-place.
@@ -37,11 +36,10 @@ class Config(ValidatedConfig):
         new = cls()
 
         mapping = read_config_file(filename)
-        mapping['config_file'] = filename
+        mapping['ewatercycle_config'] = filename
 
         new.update(CFG_DEFAULT)
         new.update(mapping)
-        new.check_missing()
 
         return new
 
@@ -59,19 +57,15 @@ class Config(ValidatedConfig):
         """Load user configuration from the given file."""
         path = Path(filename).expanduser()
         if not path.exists():
-            try_path = USER_CONFIG_DIR / filename
-            if try_path.exists():
-                path = try_path
-            else:
-                raise FileNotFoundError(f'Cannot find: `{filename}`'
-                                        f'locally or in `{try_path}`')
+            raise FileNotFoundError(f'Cannot find: `{filename}')
 
         self.clear()
+        self.update(CFG_DEFAULT)
         self.update(Config._load_user_config(path))
 
     def reload(self):
         """Reload the config file."""
-        filename = self.get('config_file', DEFAULT_CONFIG)
+        filename = self.get('ewatercycle_config', DEFAULT_CONFIG)
         self.load_from_file(filename)
 
 
@@ -105,10 +99,8 @@ SOURCES = (
 USER_CONFIG = find_user_config(SOURCES, FILENAME)
 DEFAULT_CONFIG = Path(ewatercycle.__file__).parents[1] / FILENAME
 
-print(DEFAULT_CONFIG)
-
-# initialize placeholders
 CFG_DEFAULT = Config._load_default_config(DEFAULT_CONFIG)
+
 if USER_CONFIG:
     CFG = Config._load_user_config(USER_CONFIG)
 else:

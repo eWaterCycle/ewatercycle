@@ -101,15 +101,6 @@ def _listify_validator(scalar_validator,
     return func
 
 
-def validate_bool(value, allow_none=False):
-    """Check if the value can be evaluate as a boolean."""
-    if (value is None) and allow_none:
-        return value
-    if not isinstance(value, bool):
-        raise ValidationError(f"Could not convert `{value}` to `bool`")
-    return value
-
-
 def validate_path(value, allow_none=False):
     """Return a `Path` object."""
     if (value is None) and allow_none:
@@ -122,6 +113,28 @@ def validate_path(value, allow_none=False):
         return path
 
 
+validate_string = _make_type_validator(str)
+validate_string_or_none = _make_type_validator(str, allow_none=True)
+validate_stringlist = _listify_validator(validate_string,
+                                         docstring='Return a list of strings.')
+validate_int = _make_type_validator(int)
+validate_int_or_none = _make_type_validator(int, allow_none=True)
+validate_float = _make_type_validator(float)
+validate_floatlist = _listify_validator(validate_float,
+                                        docstring='Return a list of floats.')
+
+validate_dict = _make_type_validator(dict)
+
+validate_path_or_none = _make_type_validator(validate_path, allow_none=True)
+
+validate_pathlist = _listify_validator(validate_path,
+                                       docstring='Return a list of paths.')
+
 _validators = {
-    'test': validate_path,
+    'esmvaltool_config': validate_path_or_none,
+    'grdc_location': validate_path_or_none,
+    'container_engine': validate_string_or_none,
+    'singularity_dir': validate_path_or_none,
+    'output_dir': validate_path_or_none,
+    'ewatercycle_config': validate_path_or_none
 }
