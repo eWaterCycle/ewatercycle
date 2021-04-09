@@ -1,6 +1,8 @@
 import xml.etree.ElementTree as ET
 import os
 import subprocess
+from pathlib import Path
+import time
 
 from ewatercycle.parametersetdb.config import AbstractConfig
 from ewatercycle.models.abstract import AbstractModel
@@ -73,9 +75,7 @@ class Lisflood(AbstractModel):
         Returns:
             Path to config file and path to config directory
         """
-        # TODO check work_dir is None, then create timestamp directory
-        self.work_dir = work_dir
-
+        self._check_work_dir(work_dir)
         self._check_forcing(forcing)
 
         config_file = self._create_lisflood_config()
@@ -106,6 +106,16 @@ class Lisflood(AbstractModel):
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
         return config_file, work_dir
+
+    def _check_work_dir(self, work_dir):
+        """"""
+        # TODO this timestamp isnot safe for parallel processing
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        if work_dir is None:
+            work_dir = Path(scratch_dir) / f'lisflood_{timestamp}'
+            work_dir.mkdir(parents=True, exist_ok=True)
+
+        self.work_dir = work_dir
 
     def _check_forcing(self, forcing):
         """"Check forcing argument."""
