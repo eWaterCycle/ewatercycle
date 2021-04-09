@@ -1,19 +1,39 @@
-from ewatercycle.parametersetdb.config import AbstractConfig
 import xml.etree.ElementTree as ET
+import os
+import subprocess
+
+from ewatercycle.parametersetdb.config import AbstractConfig
 from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.forcing.forcing_data import ForcingData
+
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 from grpc4bmi.bmi_client_docker import BmiClientDocker
-from ewatercycle import CFG
+# from ewatercycle import CFG
 from os import PathLike
 from typing import Tuple, Iterable, Any, Optional
 
+# CFG:
+CFG = {
+    'lisflood':{
+        'input_dir': 'PROJECT_HOME/lisflood_input',
+        'mask_dir': 'PROJECT_HOME/recipes_auxiliary_datasets/LISFLOOD',
+        'work_dir': '.',
+        'lisflood_config_path': 'settings_lisflood.xml',
+        'lisvap_config_path': 'settings_lisvap.xml',
+        'singularity_image': 'ewatercycle-lisflood-grpc4bmi.sif',
+        'docker_image': 'ewatercycle/lisflood-grpc4bmi:latest',
+    },
+    'container_engine': 'singularity',
+}
 
-input_dir = CFG.lisflood.input_dir
-mask_dir = CFG.lisflood.mask_dir
-forcing_dir = CFG.lisflood.forcing_dir
-work_dir = CFG.lisflood.work_dir
-lisflood_config_path = CFG.lisflood.settings_lisflood
-lisvap_config_path = CFG.lisflood.settings_lisvap
+_cfg = CFG['lisflood']
+input_dir = _cfg['input_dir']
+mask_dir = _cfg['mask_dir']
+work_dir = _cfg['work_dir']
+lisflood_config_path = _cfg['lisflood_config_path']
+lisvap_config_path = _cfg['lisvap_config_path']
+singularity_image = _cfg['singularity_image']
+docker_image = _cfg['docker_image']
 
 # mapping lisvap input varnames to cmor varnames
 INPUT_NAMES = {
@@ -33,11 +53,6 @@ MAPS_PREFIXES = {
     'ET0Maps': {'name': 'PrefixET0', 'value': 'et0'},
 }
 
-# write discharge and other output vars to disk for later analysis
-OUTPUT_VARNAMES = [
-    "Discharge",
-]
-
 class Lisflood(AbstractModel):
     """eWaterCycle implementation of Lisflood hydrological model.
 
@@ -45,7 +60,7 @@ class Lisflood(AbstractModel):
         bmi (Bmi): Basic Modeling Interface object
     """
 
-    def setup(self, spinup_start, start, end, dataset):
+    def setup(self, forcing):
         """Performs model setup.
 
         1. Creates config file and config directory
@@ -58,52 +73,100 @@ class Lisflood(AbstractModel):
         Returns:
             Path to config file and path to config directory
         """
-        self.spinup_start = spinup_start
-        self.start = start
-        self.end = end
-        self.dataset = dataset
+        if isinstance(forcing, PathLike):
+            # TODO Get forcing info from netcdf attributes
+            # self.start, self.end, self.dataset = _get_forcing_info()
+            self.forcing_dir = forcing
+        elif isinstance(forcing, ForcingData):
+            self.start = forcing.start_year
+            self.end = forcing.end_year
+            self.dataset = forcing.forcing
+            self.forcing_dir = forcing.location
+        else:
+            raise TypeError(
+                f"Unknown forcing type: {forcing}"
+            )
+
         config_dir = _create_lisflood_config(self)
 
-        if CFG.container_engine.lower() == 'singularity':
+        if CFG['container_engine'].lower() == 'singularity':
             self.bmi = BmiClientSingularity(
-                image=CFG["singularity_images.lisflood"],
+                image=singularity_image,
                 input_dirs=[
                     input_dir,
                     mask_dir,
-                    forcing_dir
+                    self.forcing_dir
                     ],
                 work_dir=work_dir,
             )
-        elif CFG.container_engine.lower() == "docker":
+        elif CFG['container_engine'].lower() == 'docker':
             self.bmi = BmiClientDocker(
-                image=CFG["docker_images.lisflood"],
+                image=docker_image,
                 image_port=55555,
                 input_dirs=[
                     input_dir,
                     mask_dir,
-                    forcing_dir
+                    self.forcing_dir
                     ],
                 work_dir=work_dir,
             )
         else:
             raise ValueError(
-                f"Unknown container technology in CFG: {CFG.container_engine}"
+                f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-
-        # run_lisvap()
 
         self.bmi.initialize(config_dir)
 
-    # def run_lisvap(self):
-    #     """Run lisvap using singularity image on Cartesius"""
-    #     lisvap_file = _create_lisvap_config()
-    #     #TODO check if inside directories are needed
-    #     !singularity exec -B {self.input_dir}:/data/lisflood_input \
-    #         -B {self.mask_dir}:/data/mask -B {self.forcing_dir}:/data/forcing \
-    #         -B {self.temp_dir}:/settings -B {self.temp_dir}:/output \
-    #         --pwd {self.temp_dir} \
-    #         ewatercycle-lisflood-grpc4bmi.sif \
-    #         python3 /opt/Lisvap/src/lisvap1.py /settings/{lisvap_file}
+    def run_lisvap(self, forcing):
+        """Run lisvap."""
+
+        if isinstance(forcing, PathLike):
+            # TODO Get forcing info from netcdf attributes
+            # self.start, self.end, self.dataset = _get_forcing_info()
+            self.forcing_dir = forcing
+        elif isinstance(forcing, ForcingData):
+            self.start = forcing.start_year
+            self.end = forcing.end_year
+            self.dataset = forcing.forcing
+            self.forcing_dir = forcing.location
+        else:
+            raise TypeError(
+                f"Unknown forcing type: {forcing}"
+            )
+
+        lisvap_file = _create_lisvap_config(self)
+        #TODO check if inside directories are needed
+
+        mount_points = {
+            f'{input_dir}':' /data/lisflood_input',
+            f'{mask_dir}': '/data/mask',
+            f'{self.forcing_dir}': '/data/forcing',
+            f'{work_dir}': '/settings',
+            f'{work_dir}': '/output',
+        }
+
+        if CFG['container_engine'].lower() == 'singularity':
+            args = [
+                "singularity",
+                "run",
+            ]
+            args += ["--bind", ','.join([hp + ':' + ip for hp, ip in mount_points.items()])]
+            args.append(singularity_image)
+
+        elif CFG['container_engine'].lower() == 'docker':
+            args = [
+                "docker",
+                "run -ti",
+            ]
+            args += ["--volume", ','.join([hp + ':' + ip for hp, ip in mount_points.items()])]
+            args.append(docker_image)
+
+        else:
+            raise ValueError(
+                f"Unknown container technology in CFG: {CFG['container_engine']}"
+            )
+        args.append (f"python3 /opt/Lisvap/src/lisvap1.py /settings/{lisvap_file}")
+        subprocess.Popen(args,  preexec_fn=os.setsid)
 
 
     # def get_value_as_xarray(self, name: str) -> xr.DataArray:
@@ -121,18 +184,16 @@ def _create_lisflood_config(self) -> PathLike:
     cfg = XmlConfig(lisflood_config_path)
 
     settings = {
-        "CalendarDayStart": self.spinup_start.strftime("%d/%m/%Y %H:%M"),
+        "CalendarDayStart": self.start.strftime("%d/%m/%Y %H:%M"),
         "StepStart": "1",
-        "StepEnd": str((self.end - self.spinup_start).days),
+        "StepEnd": str((self.end - self.start).days),
         "PathRoot": f"{input_dir}/Lisflood01degree_masked",
         "MaskMap": f"{mask_dir}/model_mask",
-        "PathMeteo": f"{forcing_dir}",
+        "PathMeteo": f"{self.forcing_dir}",
         "PathOut": f"{work_dir}",
     }
 
-    start_year = self.spinup_start.year
-    end_year = self.end.year
-    timestamp = f"{start_year}_{end_year}"
+    timestamp = f"{self.start.year}_{self.end.year}"
     dataset = self.dataset
 
     for textvar in cfg.config.iter("textvar"):
@@ -172,8 +233,8 @@ def _create_lisvap_config(self) -> PathLike:
     #TODO check if inside directories are needed
     maps = "/data/lisflood_input/Lisflood01degree_masked/maps_netcdf"
     settings = {
-        "CalendarDayStart": self.spinup_start.strftime("%d/%m/%Y %H:%M"),
-        "StepStart": self.spinup_start.strftime("%d/%m/%Y %H:%M"),
+        "CalendarDayStart": self.start.strftime("%d/%m/%Y %H:%M"),
+        "StepStart": self.start.strftime("%d/%m/%Y %H:%M"),
         "StepEnd": self.end.strftime("%d/%m/%Y %H:%M"),
         "PathOut": "/output",
         "PathBaseMapsIn": maps,
@@ -181,10 +242,7 @@ def _create_lisvap_config(self) -> PathLike:
         "PathMeteoIn": "/data/forcing",
     }
 
-    start_year = self.spinup_start.year
-    end_year = self.end.year
-    timestamp = f"{start_year}_{end_year}"
-
+    timestamp = f"{self.start.year}_{self.end.year}"
     dataset = self.dataset
 
     for textvar in cfg.config.iter("textvar"):
