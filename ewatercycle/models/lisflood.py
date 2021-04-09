@@ -15,11 +15,11 @@ from typing import Tuple, Iterable, Any, Optional
 # CFG:
 CFG = {
     'lisflood':{
-        'input_dir': 'PROJECT_HOME/lisflood_input',
-        'mask_dir': 'PROJECT_HOME/recipes_auxiliary_datasets/LISFLOOD',
-        'work_dir': '.',
-        'lisflood_config_path': 'settings_lisflood.xml',
-        'lisvap_config_path': 'settings_lisvap.xml',
+        'input_dir': '/projects/0/wtrcycle/comparison/lisflood_input',
+        'mask_dir': '/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD',
+        'scratch_dir': '/scratch/shared/ewatercycle',
+        'lisflood_config_path': '/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml',
+        'lisvap_config_path': '/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisvap.xml',
         'singularity_image': 'ewatercycle-lisflood-grpc4bmi.sif',
         'docker_image': 'ewatercycle/lisflood-grpc4bmi:latest',
     },
@@ -29,9 +29,9 @@ CFG = {
 _cfg = CFG['lisflood']
 input_dir = _cfg['input_dir']
 mask_dir = _cfg['mask_dir']
-work_dir = _cfg['work_dir']
-lisflood_config_path = _cfg['lisflood_config_path']
-lisvap_config_path = _cfg['lisvap_config_path']
+scratch_dir = _cfg['scratch_dir']
+lisflood_config_template = _cfg['lisflood_config_path']
+lisvap_config_template = _cfg['lisvap_config_path']
 singularity_image = _cfg['singularity_image']
 docker_image = _cfg['docker_image']
 
@@ -60,34 +60,25 @@ class Lisflood(AbstractModel):
         bmi (Bmi): Basic Modeling Interface object
     """
 
-    def setup(self, forcing):
+    def setup(self, forcing:ForcingData, work_dir:PathLike=None) -> Tuple[PathLike, PathLike]:
         """Performs model setup.
 
         1. Creates config file and config directory
         2. Start bmi container and store as self.bmi
 
         Args:
-            *args: Positional arguments. Sub class should specify each arg.
-            **kwargs: Named arguments. Sub class should specify each arg.
+            forcing: a forcing directory or a forcing data object.
+            work_dir: a working directory given by user or created for user.
 
         Returns:
             Path to config file and path to config directory
         """
-        if isinstance(forcing, PathLike):
-            # TODO Get forcing info from netcdf attributes
-            # self.start, self.end, self.dataset = _get_forcing_info()
-            self.forcing_dir = forcing
-        elif isinstance(forcing, ForcingData):
-            self.start = forcing.start_year
-            self.end = forcing.end_year
-            self.dataset = forcing.forcing
-            self.forcing_dir = forcing.location
-        else:
-            raise TypeError(
-                f"Unknown forcing type: {forcing}"
-            )
+        # TODO check work_dir is None, then create timestamp directory
+        self.work_dir = work_dir
 
-        config_dir = _create_lisflood_config(self)
+        self._check_forcing(forcing)
+
+        config_file = self._create_lisflood_config()
 
         if CFG['container_engine'].lower() == 'singularity':
             self.bmi = BmiClientSingularity(
@@ -114,17 +105,17 @@ class Lisflood(AbstractModel):
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
+        return config_file, work_dir
 
-        self.bmi.initialize(config_dir)
-
-    def run_lisvap(self, forcing):
-        """Run lisvap."""
-
-        if isinstance(forcing, PathLike):
-            # TODO Get forcing info from netcdf attributes
-            # self.start, self.end, self.dataset = _get_forcing_info()
-            self.forcing_dir = forcing
-        elif isinstance(forcing, ForcingData):
+    def _check_forcing(self, forcing):
+        """"Check forcing argument."""
+        # TODO for the future
+        # if isinstance(forcing, PathLike):
+        #     # TODO Get forcing info from netcdf attributes
+        #     # self.start, self.end, self.dataset, self.forcing_pr, self.forcing_tas = _get_forcing_info()
+        #     # self.forcing_pr, self.forcing_tas are names used by config file
+        #     self.forcing_dir = forcing
+        if isinstance(forcing, ForcingData):
             self.start = forcing.start_year
             self.end = forcing.end_year
             self.dataset = forcing.forcing
@@ -134,15 +125,114 @@ class Lisflood(AbstractModel):
                 f"Unknown forcing type: {forcing}"
             )
 
-        lisvap_file = _create_lisvap_config(self)
+    def _create_lisflood_config(self) -> PathLike:
+        """Create lisflood config file"""
+        cfg = XmlConfig(lisflood_config_template)
+
+        settings = {
+            "CalendarDayStart": self.start.strftime("%d/%m/%Y %H:%M"),
+            "StepStart": "1",
+            "StepEnd": str((self.end - self.start).days),
+            "PathRoot": f"{input_dir}/Lisflood01degree_masked",
+            "MaskMap": f"{mask_dir}/model_mask",
+            "PathMeteo": f"{self.forcing_dir}",
+            "PathOut": f"{self.work_dir}",
+        }
+
+        timestamp = f"{self.start.year}_{self.end.year}"
+        dataset = self.dataset
+
+        for textvar in cfg.config.iter("textvar"):
+            textvar_name = textvar.attrib["name"]
+
+            # general settings
+            for key, value in settings.items():
+                if key in textvar_name:
+                    textvar.set("value", value)
+
+            # input for lisflood
+            if "PrefixPrecipitation" in textvar_name:
+                textvar.set("value", f"lisflood_{dataset}_pr_{timestamp}")
+            if "PrefixTavg" in textvar_name:
+                textvar.set("value", f"lisflood_{dataset}_tas_{timestamp}")
+
+            # output of lisvap
+            for map_var, prefix in MAPS_PREFIXES.items():
+                if prefix['name'] in textvar_name:
+                    textvar.set(
+                        "value",
+                        f"lisflood_{dataset}_{prefix['value']}_{timestamp}",
+                    )
+                if map_var in textvar_name:
+                    textvar.set('value', f"$(PathOut)/$({prefix['name']})")
+
+        # Write to new setting file
+        # TODO return name
+        lisflood_file = f"{self.work_dir}/lisflood_{dataset}_setting.xml"
+        cfg.save(lisflood_file)
+        return lisflood_file
+
+    def _create_lisvap_config(self) -> PathLike:
+        """Update lisvap setting file"""
+        cfg = XmlConfig(lisflood_config_template)
+        # Make a dictionary for settings
+        #TODO check if inside directories are needed
+        maps = "/data/lisflood_input/Lisflood01degree_masked/maps_netcdf"
+        settings = {
+            "CalendarDayStart": self.start.strftime("%d/%m/%Y %H:%M"),
+            "StepStart": self.start.strftime("%d/%m/%Y %H:%M"),
+            "StepEnd": self.end.strftime("%d/%m/%Y %H:%M"),
+            "PathOut": "/output",
+            "PathBaseMapsIn": maps,
+            "MaskMap": "/data/mask/model_mask",
+            "PathMeteoIn": "/data/forcing",
+        }
+
+        timestamp = f"{self.start.year}_{self.end.year}"
+        dataset = self.dataset
+
+        for textvar in cfg.config.iter("textvar"):
+            textvar_name = textvar.attrib["name"]
+
+        # general settings
+        for key, value in settings.items():
+            if key in textvar_name:
+                textvar.set("value", value)
+
+        # lisvap input files
+        for lisvap_var, cmor_var in INPUT_NAMES.items():
+            if lisvap_var in textvar_name:
+                filename = f"lisflood_{dataset}_{cmor_var}_{timestamp}"
+                textvar.set(
+                    "value", f"$(PathMeteoIn)/{filename}",
+                )
+
+        # lisvap output files
+        for prefix in MAPS_PREFIXES.values():
+            if prefix['name'] in textvar_name:
+                textvar.set(
+                    "value",
+                    f"lisflood_{dataset}_{prefix['value']}_{timestamp}",
+                )
+
+        # Write to new setting file
+        lisvap_file = f"{self.work_dir}/lisvap_{dataset}_setting.xml"
+        cfg.save(lisvap_file)
+        return lisvap_file
+
+    # TODO take this out of the class
+    def run_lisvap(self, forcing):
+        """Run lisvap."""
+        self._check_forcing(forcing)
+        lisvap_file = self._create_lisvap_config()
         #TODO check if inside directories are needed
 
         mount_points = {
-            f'{input_dir}':' /data/lisflood_input',
+            f'{input_dir}':'/data/lisflood_input',
             f'{mask_dir}': '/data/mask',
             f'{self.forcing_dir}': '/data/forcing',
-            f'{work_dir}': '/settings',
-            f'{work_dir}': '/output',
+            f'{self.work_dir}': '/settings',
+            f'{self.work_dir}': '/output',
         }
 
         if CFG['container_engine'].lower() == 'singularity':
@@ -169,110 +259,15 @@ class Lisflood(AbstractModel):
         subprocess.Popen(args,  preexec_fn=os.setsid)
 
 
-    # def get_value_as_xarray(self, name: str) -> xr.DataArray:
-
-    # def run(self, spinup_years, start_years, end_years, variable) -> np.ndarray:
-
-@property
-def parameters(self):
-    """List the variable names that are available for this model."""
-    return self.model.get_output_var_names()
-
-
-def _create_lisflood_config(self) -> PathLike:
-    """Create lisflood config file"""
-    cfg = XmlConfig(lisflood_config_path)
-
-    settings = {
-        "CalendarDayStart": self.start.strftime("%d/%m/%Y %H:%M"),
-        "StepStart": "1",
-        "StepEnd": str((self.end - self.start).days),
-        "PathRoot": f"{input_dir}/Lisflood01degree_masked",
-        "MaskMap": f"{mask_dir}/model_mask",
-        "PathMeteo": f"{self.forcing_dir}",
-        "PathOut": f"{work_dir}",
-    }
-
-    timestamp = f"{self.start.year}_{self.end.year}"
-    dataset = self.dataset
-
-    for textvar in cfg.config.iter("textvar"):
-        textvar_name = textvar.attrib["name"]
-
-        # general settings
-        for key, value in settings.items():
-            if key in textvar_name:
-                textvar.set("value", value)
-
-        # input for lisflood
-        if "PrefixPrecipitation" in textvar_name:
-            textvar.set("value", f"lisflood_{dataset}_pr_{timestamp}")
-        if "PrefixTavg" in textvar_name:
-            textvar.set("value", f"lisflood_{dataset}_tas_{timestamp}")
-
-        # output of lisvap
-        for map_var, prefix in MAPS_PREFIXES.items():
-            if prefix['name'] in textvar_name:
-                textvar.set(
-                    "value",
-                    f"lisflood_{dataset}_{prefix['value']}_{timestamp}",
-                )
-            if map_var in textvar_name:
-                textvar.set('value', f"$(PathOut)/$({prefix['name']})")
-
-    # Write to new setting file
-    lisflood_file = f"{work_dir}/lisflood_{dataset}_setting.xml"
-    cfg.save(lisflood_file)
-    return lisflood_file
-
-
-def _create_lisvap_config(self) -> PathLike:
-    """Update lisvap setting file"""
-    cfg = XmlConfig(lisflood_config_path)
-    # Make a dictionary for settings
-    #TODO check if inside directories are needed
-    maps = "/data/lisflood_input/Lisflood01degree_masked/maps_netcdf"
-    settings = {
-        "CalendarDayStart": self.start.strftime("%d/%m/%Y %H:%M"),
-        "StepStart": self.start.strftime("%d/%m/%Y %H:%M"),
-        "StepEnd": self.end.strftime("%d/%m/%Y %H:%M"),
-        "PathOut": "/output",
-        "PathBaseMapsIn": maps,
-        "MaskMap": "/data/mask/model_mask",
-        "PathMeteoIn": "/data/forcing",
-    }
-
-    timestamp = f"{self.start.year}_{self.end.year}"
-    dataset = self.dataset
-
-    for textvar in cfg.config.iter("textvar"):
-        textvar_name = textvar.attrib["name"]
-
-        # general settings
-        for key, value in settings.items():
-            if key in textvar_name:
-                textvar.set("value", value)
-
-        # lisvap input files
-        for lisvap_var, cmor_var in INPUT_NAMES.items():
-            if lisvap_var in textvar_name:
-                filename = f"lisflood_{dataset}_{cmor_var}_{timestamp}"
-                textvar.set(
-                    "value", f"$(PathMeteoIn)/{filename}",
-                )
-
-        # lisvap output files
-        for prefix in MAPS_PREFIXES.values():
-            if prefix['name'] in textvar_name:
-                textvar.set(
-                    "value",
-                    f"lisflood_{dataset}_{prefix['value']}_{timestamp}",
-                )
-
-    # Write to new setting file
-    lisvap_file = f"{work_dir}/lisvap_{dataset}_setting.xml"
-    cfg.save(lisvap_file)
-    return lisvap_file
+    @property
+    def parameters(self) -> Iterable[Tuple[str, Any]]:
+        """List the parameters for this model."""
+        if self.forcing_dir and self.work_dir:
+            return {
+                'forcing_dir': self.forcing_dir,
+                'work_dir': self.work_dir,
+                }
+        return dict()
 
 
 class XmlConfig(AbstractConfig):
