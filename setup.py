@@ -26,7 +26,7 @@ setup(
         'pandas',
         'pyoos',
         'basic_modeling_interface',
-        # TODO subclosses of ewatercycle.models.abstract.AbstractModle will need
+        # TODO subclosses of ewatercycle.models.abstract.AbstractModel will need
         # 'grpc4bmi>=0.2.12,<0.3',
     ],
     packages=find_packages(),
@@ -43,22 +43,6 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
-    ],
-    test_suite='tests',
-    setup_requires=[
-        # dependency for `python setup.py test`
-        'pytest-runner',
-        # dependencies for `python setup.py build_sphinx`
-        'sphinx',
-        'recommonmark',
-        'sphinx_rtd_theme',
-    ],
-    tests_require=[
-        'deepdiff',
-        'pytest',
-        'pytest-cov',
-        'pytest-mypy',
-        'pycodestyle',
     ],
     extras_require={
         'dev':  [
