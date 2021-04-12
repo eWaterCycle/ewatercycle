@@ -151,7 +151,8 @@ class Lisflood(AbstractModel):
             for data_file in data_files:
                 dataset = data_file.load_xarray()
                 var_name = list(dataset.data_var.keys())[0]
-                self.forcing_files[var_name] = data_file.filename
+                self.forcing_files[var_name] = data_file.filename.name
+                self.forcing_dir = data_file.filename.parent
                 # get start and end date of time dimension
                 self.start = dataset.coords['time'][0]
                 self.end = dataset.coords['time'][-1]
@@ -182,7 +183,6 @@ class Lisflood(AbstractModel):
         }
 
         timestamp = f"{self.start.year}_{self.end.year}"
-        dataset = self.dataset
 
         for textvar in cfg.config.iter("textvar"):
             textvar_name = textvar.attrib["name"]
@@ -194,23 +194,23 @@ class Lisflood(AbstractModel):
 
             # input for lisflood
             if "PrefixPrecipitation" in textvar_name:
-                textvar.set("value", f"lisflood_{dataset}_pr_{timestamp}")
+                textvar.set("value", self.forcing_files['pr'])
             if "PrefixTavg" in textvar_name:
-                textvar.set("value", f"lisflood_{dataset}_tas_{timestamp}")
+                textvar.set("value", self.forcing_files['tas'])
 
             # output of lisvap
             for map_var, prefix in MAPS_PREFIXES.items():
                 if prefix['name'] in textvar_name:
                     textvar.set(
                         "value",
-                        f"lisflood_{dataset}_{prefix['value']}_{timestamp}",
+                        f"lisflood_{prefix['value']}_{timestamp}",
                     )
                 if map_var in textvar_name:
                     textvar.set('value', f"$(PathOut)/$({prefix['name']})")
 
         # Write to new setting file
         # TODO return name
-        lisflood_file = f"{self.work_dir}/lisflood_{dataset}_setting.xml"
+        lisflood_file = f"{self.work_dir}/lisflood_{timestamp}_setting.xml"
         cfg.save(lisflood_file)
         return lisflood_file
 
@@ -231,7 +231,6 @@ class Lisflood(AbstractModel):
         }
 
         timestamp = f"{self.start.year}_{self.end.year}"
-        dataset = self.dataset
 
         for textvar in cfg.config.iter("textvar"):
             textvar_name = textvar.attrib["name"]
@@ -244,7 +243,7 @@ class Lisflood(AbstractModel):
         # lisvap input files
         for lisvap_var, cmor_var in INPUT_NAMES.items():
             if lisvap_var in textvar_name:
-                filename = f"lisflood_{dataset}_{cmor_var}_{timestamp}"
+                filename = self.forcing_files[cmor_var]
                 textvar.set(
                     "value", f"$(PathMeteoIn)/{filename}",
                 )
@@ -254,11 +253,11 @@ class Lisflood(AbstractModel):
             if prefix['name'] in textvar_name:
                 textvar.set(
                     "value",
-                    f"lisflood_{dataset}_{prefix['value']}_{timestamp}",
+                    f"lisflood_{prefix['value']}_{timestamp}",
                 )
 
         # Write to new setting file
-        lisvap_file = f"{self.work_dir}/lisvap_{dataset}_setting.xml"
+        lisvap_file = f"{self.work_dir}/lisvap_setting_{timestamp}.xml"
         cfg.save(lisvap_file)
         return lisvap_file
 
