@@ -23,7 +23,7 @@ class LisfloodParameterSet:
     """Directory with NetCDF file with model boundaries. NetCDF files should be called model_mask.nc"""
     config_template: str
     """Config file used as template for a lisflood run"""
-    lisvap_config_template: str
+    lisvap_config_template: str = None
     """Config file used as template for a lisvap run"""
 
 parameterset = LisfloodParameterSet(
@@ -145,10 +145,23 @@ class Lisflood(AbstractModel):
         #     # self.forcing_pr, self.forcing_tas are names used by config file
         #     self.forcing_dir = forcing
         if isinstance(forcing, ForcingData):
-            self.start = forcing.start_year
-            self.end = forcing.end_year
-            self.dataset = forcing.forcing
-            self.forcing_dir = forcing.location
+            # key is cmor var name and value is path to NetCDF file 
+            self.forcing_files = dict()
+            data_files = list(forcing.recipe_output.values())[0].data_files
+            for data_file in data_files:
+                dataset = data_file.load_xarray()
+                var_name = list(dataset.data_var.keys())[0]
+                self.forcing_files[var_name] = data_file.filename
+                # get start and end date of time dimension
+                self.start = dataset.coords['time'][0]
+                self.end = dataset.coords['time'][-1]
+
+
+            # TODO use implementation from wishful notebook
+            # self.start = forcing.start_year
+            # self.end = forcing.end_year
+            # self.dataset = forcing.forcing
+            # self.forcing_dir = forcing.location
         else:
             raise TypeError(
                 f"Unknown forcing type: {forcing}"
