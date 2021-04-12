@@ -26,7 +26,7 @@ setup(
         'pandas',
         'pyoos',
         'basic_modeling_interface',
-        # TODO subclosses of ewatercycle.models.abstract.AbstractModle will need
+        # TODO subclosses of ewatercycle.models.abstract.AbstractModel will need
         # 'grpc4bmi>=0.2.12,<0.3',
     ],
     packages=find_packages(),
@@ -50,9 +50,10 @@ setup(
             'deepdiff',
             'pytest',
             'pytest-cov',
+            'pytest-mypy',
             # Linters
             'pycodestyle',
-            'prospector[with_pyroma]',
+            'prospector[with_pyroma,with_mypy]',
             'yapf',
             'isort',
             # dependency for `pytest`
