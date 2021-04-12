@@ -4,6 +4,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from ewatercycle import CFG
+
 from ewatercycle.config._config_object import Config
 from ewatercycle.config._validators import (
     _listify_validator,
@@ -132,10 +134,15 @@ def test_validator_invalid(validator, arg, exception_type):
         validator(arg)
 
 
-def test_config_init():
+def test_config_object():
     """Test that the config is of the right type."""
-    config = Config()
-    assert isinstance(config, MutableMapping)
+    assert isinstance(CFG, MutableMapping)
+
+    del CFG['output_dir']
+    assert 'output_dir' not in CFG
+
+    CFG.reload()
+    assert 'output_dir' in CFG
 
 
 def test_config_update():
