@@ -3,6 +3,7 @@ import os
 import subprocess
 from pathlib import Path
 import time
+from dataclasses import dataclass
 
 from ewatercycle.parametersetdb.config import AbstractConfig
 from ewatercycle.models.abstract import AbstractModel
@@ -14,26 +15,38 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from os import PathLike
 from typing import Tuple, Iterable, Any, Optional
 
+@dataclass
+class LisfloodParameterSet:
+    root: str
+    """Directory with input files"""
+    mask: str
+    """Directory with NetCDF file with model boundaries. NetCDF files should be called model_mask.nc"""
+    config_template: str
+    """Config file used as template for a lisflood run"""
+    lisvap_config_template: str
+    """Config file used as template for a lisvap run"""
+
+parameterset = LisfloodParameterSet(
+    # TODO one level down (+ /Lisflood01degree_masked)?
+    root='/projects/0/wtrcycle/comparison/lisflood_input',
+    # TODO dir or file (+ /model_mask.nc)?
+    mask='/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD',
+    config_template='/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml',
+    lisvap_config_template='/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisvap.xml',
+)
+
 # CFG:
 CFG = {
     'lisflood':{
-        'input_dir': '/projects/0/wtrcycle/comparison/lisflood_input',
-        'mask_dir': '/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD',
-        'scratch_dir': '/scratch/shared/ewatercycle',
-        'lisflood_config_path': '/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml',
-        'lisvap_config_path': '/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisvap.xml',
         'singularity_image': 'ewatercycle-lisflood-grpc4bmi.sif',
         'docker_image': 'ewatercycle/lisflood-grpc4bmi:latest',
     },
     'container_engine': 'singularity',
+    'scratch_dir': '/scratch/shared/ewatercycle',
 }
 
 _cfg = CFG['lisflood']
-input_dir = _cfg['input_dir']
-mask_dir = _cfg['mask_dir']
-scratch_dir = _cfg['scratch_dir']
-lisflood_config_template = _cfg['lisflood_config_path']
-lisvap_config_template = _cfg['lisvap_config_path']
+scratch_dir = CFG['scratch_dir']
 singularity_image = _cfg['singularity_image']
 docker_image = _cfg['docker_image']
 
@@ -62,7 +75,10 @@ class Lisflood(AbstractModel):
         bmi (Bmi): Basic Modeling Interface object
     """
 
-    def setup(self, forcing:ForcingData, work_dir:PathLike=None) -> Tuple[PathLike, PathLike]:
+    def setup(self,
+              forcing: ForcingData,
+              parameterset: LisfloodParameterSet,
+              work_dir:PathLike=None) -> Tuple[PathLike, PathLike]:
         """Performs model setup.
 
         1. Creates config file and config directory
@@ -70,6 +86,7 @@ class Lisflood(AbstractModel):
 
         Args:
             forcing: a forcing directory or a forcing data object.
+            parameterset: LISFLOOD input files. Any included forcing data will be ignored.
             work_dir: a working directory given by user or created for user.
 
         Returns:
@@ -77,6 +94,7 @@ class Lisflood(AbstractModel):
         """
         self._check_work_dir(work_dir)
         self._check_forcing(forcing)
+        self.parameterset = parameterset
 
         config_file = self._create_lisflood_config()
 
@@ -84,8 +102,8 @@ class Lisflood(AbstractModel):
             self.bmi = BmiClientSingularity(
                 image=singularity_image,
                 input_dirs=[
-                    input_dir,
-                    mask_dir,
+                    parameterset.root,
+                    parameterset.mask,
                     self.forcing_dir
                     ],
                 work_dir=work_dir,
@@ -95,8 +113,8 @@ class Lisflood(AbstractModel):
                 image=docker_image,
                 image_port=55555,
                 input_dirs=[
-                    input_dir,
-                    mask_dir,
+                    parameterset.root,
+                    parameterset.mask,
                     self.forcing_dir
                     ],
                 work_dir=work_dir,
@@ -137,14 +155,14 @@ class Lisflood(AbstractModel):
 
     def _create_lisflood_config(self) -> PathLike:
         """Create lisflood config file"""
-        cfg = XmlConfig(lisflood_config_template)
+        cfg = XmlConfig(self.parameterset.config_template)
 
         settings = {
             "CalendarDayStart": self.start.strftime("%d/%m/%Y %H:%M"),
             "StepStart": "1",
             "StepEnd": str((self.end - self.start).days),
-            "PathRoot": f"{input_dir}/Lisflood01degree_masked",
-            "MaskMap": f"{mask_dir}/model_mask",
+            "PathRoot": f"{self.parameterset.root}/Lisflood01degree_masked",
+            "MaskMap": f"{self.parameterset.mask}/model_mask",
             "PathMeteo": f"{self.forcing_dir}",
             "PathOut": f"{self.work_dir}",
         }
@@ -184,7 +202,7 @@ class Lisflood(AbstractModel):
 
     def _create_lisvap_config(self) -> PathLike:
         """Update lisvap setting file"""
-        cfg = XmlConfig(lisflood_config_template)
+        cfg = XmlConfig(self.parameterset.lisvap_config_template)
         # Make a dictionary for settings
         #TODO check if inside directories are needed
         maps = "/data/lisflood_input/Lisflood01degree_masked/maps_netcdf"
@@ -238,8 +256,8 @@ class Lisflood(AbstractModel):
         #TODO check if inside directories are needed
 
         mount_points = {
-            f'{input_dir}':'/data/lisflood_input',
-            f'{mask_dir}': '/data/mask',
+            f'{self.parameterset.root}':'/data/lisflood_input',
+            f'{self.parameterset.mask}': '/data/mask',
             f'{self.forcing_dir}': '/data/forcing',
             f'{self.work_dir}': '/settings',
             f'{self.work_dir}': '/output',
