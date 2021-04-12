@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Union, Optional
 
-import yaml
+from ruamel import yaml
 
 import ewatercycle
 
