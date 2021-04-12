@@ -208,6 +208,6 @@ autodoc_mock_imports = [
     'numpy',
     'scipy',
     'pandas',
-    'ruamel',
+    'ruamel.yaml',
     'pyoos',
 ]
