@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """Documentation about ewatercycle_parametersetdb"""
+from typing import Any
+
 from ewatercycle.parametersetdb.config import AbstractConfig, CONFIG_FORMATS
 from ewatercycle.parametersetdb.datafiles import AbstractCopier, DATAFILES_FORMATS
+
 
 class ParameterSet:
     def __init__(self, df: AbstractCopier, cfg: AbstractConfig):
@@ -32,7 +35,7 @@ class ParameterSet:
         self._cfg.save(target)
 
     @property
-    def config(self) -> dict:
+    def config(self) -> Any:
         """Configuration as dictionary.
 
         To make changes to configuration before saving set the config keys and/or values.

@@ -10,6 +10,7 @@ htmlcov
 xunit-result.xml
 .pytest_cache/
 coverage.xml
+.mypy_cache
 
 docs/_build
 docs/apidocs/
