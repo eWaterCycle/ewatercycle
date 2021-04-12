@@ -136,5 +136,8 @@ _validators = {
     'container_engine': validate_string_or_none,
     'singularity_dir': validate_path_or_none,
     'output_dir': validate_path_or_none,
-    'ewatercycle_config': validate_path_or_none
+    'ewatercycle_config': validate_path_or_none,
+    # wflow specific
+    'wflow.singularity_images': validate_string,
+    'wflow.docker_images': validate_string,
 }

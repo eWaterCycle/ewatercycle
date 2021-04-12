@@ -3,3 +3,5 @@ grdc_location: null
 container_engine: null
 singularity_dir: null
 output_dir: null
+wflow.singularity_images: null
+wflow.docker_images: null
