@@ -2,6 +2,8 @@ import shutil
 
 import pytest
 
+from esmvalcore.experimental.recipe_output import DataFile
+from ewatercycle.forcing.forcing_data import ForcingData
 from ewatercycle.parametersetdb.datafiles import SubversionCopier
 from ewatercycle.models.lisflood import CFG, Lisflood, LisfloodParameterSet
 
@@ -37,18 +39,28 @@ def parameterset(tmp_path):
         config_template=root / 'settings_lat_lon-Run.xml',
     )
 
+@pytest.fixture
 def forcing(tmp_path):
     forcing_dir = tmp_path / 'forcing'
+    forcing_dir.mkdir()
 
+    class MockedTaskOutput:
+        data_files = (
+            DataFile(str(forcing_dir / 'lisflood_ERA-Interim_Meuse_rsds_1990_1990.nc')),
+            DataFile(str(forcing_dir / 'lisflood_ERA-Interim_Meuse_e_1990_1990.nc')),
+            DataFile(str(forcing_dir / 'lisflood_ERA-Interim_Meuse_tasmax_1990_1990.nc')),
+            DataFile(str(forcing_dir / 'lisflood_ERA-Interim_Meuse_pr_1990_1990.nc')),
+            DataFile(str(forcing_dir / 'lisflood_ERA-Interim_Meuse_sfcWind_1990_1990.nc')),
+            DataFile(str(forcing_dir / 'lisflood_ERA-Interim_Meuse_tas_1990_1990.nc')),
+            DataFile(str(forcing_dir / 'lisflood_ERA-Interim_Meuse_tasmin_1990_1990.nc')),
+        )
 
-    @dataclass
-    class MockedForcingData(ForcingData):
-        start_year = '1986'
-        end_year = '1986'
-        forcing = 'ERA5'
-        location = forcing_dir
+    # TODO copy meteo files from usecase and convert from pcraster to netcdf
+    recipe_output = {
+        'diagnostic_daily/script': MockedTaskOutput()
+    }
+    return ForcingData(recipe_output)
 
-    return MockedForcingData()
 
 def test_setup(model, forcing, parameterset):
     config_file, config_dir = model.setup(forcing, parameterset)
