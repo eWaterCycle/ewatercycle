@@ -40,6 +40,7 @@ CFG = {
     'lisflood':{
         'singularity_image': 'ewatercycle-lisflood-grpc4bmi.sif',
         'docker_image': 'ewatercycle/lisflood-grpc4bmi:latest',
+        # TODO add parameters sets available on system that can be passed to setup()
     },
     'container_engine': 'singularity',
     'scratch_dir': '/scratch/shared/ewatercycle',
