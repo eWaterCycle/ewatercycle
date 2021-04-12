@@ -25,7 +25,6 @@ class ValidatedConfig(MutableMapping):
     """Based on `matplotlib.rcParams`."""
 
     _validate: Dict[str, Callable] = {}
-    _warn_if_missing: Tuple[Tuple[str, str], ...] = ()
 
     # validate values on the way in
     def __init__(self, *args, **kwargs):

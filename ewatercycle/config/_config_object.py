@@ -3,7 +3,7 @@
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional
 
 import yaml
 
@@ -23,7 +23,7 @@ class Config(ValidatedConfig):
     _validate = _validators
 
     @classmethod
-    def _load_user_config(cls, filename: Union[os.PathLike, str] = None):
+    def _load_user_config(cls, filename: Union[os.PathLike, str]) -> 'Config':
         """Load user configuration from the given file.
 
         The config is cleared and updated in-place.
@@ -44,7 +44,8 @@ class Config(ValidatedConfig):
         return new
 
     @classmethod
-    def _load_default_config(cls, filename: Union[os.PathLike, str]):
+    def _load_default_config(cls, filename: Union[os.PathLike,
+                                                  str]) -> 'Config':
         """Load the default configuration."""
         new = cls()
 
@@ -53,7 +54,7 @@ class Config(ValidatedConfig):
 
         return new
 
-    def load_from_file(self, filename: Union[os.PathLike, str]):
+    def load_from_file(self, filename: Union[os.PathLike, str]) -> None:
         """Load user configuration from the given file."""
         path = Path(filename).expanduser()
         if not path.exists():
@@ -63,13 +64,13 @@ class Config(ValidatedConfig):
         self.update(CFG_DEFAULT)
         self.update(Config._load_user_config(path))
 
-    def reload(self):
+    def reload(self) -> None:
         """Reload the config file."""
         filename = self.get('ewatercycle_config', DEFAULT_CONFIG)
         self.load_from_file(filename)
 
 
-def read_config_file(config_file: Union[os.PathLike, str]):
+def read_config_file(config_file: Union[os.PathLike, str]) -> dict:
     """Read config user file and store settings in a dictionary."""
     config_file = Path(config_file)
     if not config_file.exists():
@@ -81,12 +82,13 @@ def read_config_file(config_file: Union[os.PathLike, str]):
     return cfg
 
 
-def find_user_config(sources: tuple, filename: str):
+def find_user_config(sources: tuple, filename: str) -> Optional[os.PathLike]:
     """Find user config in list of source directories."""
     for source in sources:
         user_config = source / filename
         if user_config.exists():
             return user_config
+    return None
 
 
 FILENAME = 'ewatercycle.yaml'
