@@ -123,8 +123,6 @@ validate_float = _make_type_validator(float)
 validate_floatlist = _listify_validator(validate_float,
                                         docstring='Return a list of floats.')
 
-validate_dict = _make_type_validator(dict)
-
 validate_path_or_none = _make_type_validator(validate_path, allow_none=True)
 
 validate_pathlist = _listify_validator(validate_path,
