@@ -9,7 +9,7 @@ import re
 from ._validators import ValidationError
 
 
-class InvalidConfigParameter(BaseException):
+class InvalidConfigParameter(Exception):
     """Config parameter is invalid."""
 
 
