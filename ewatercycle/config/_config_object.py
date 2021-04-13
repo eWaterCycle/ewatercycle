@@ -7,8 +7,6 @@ from typing import Union, Optional
 
 from ruamel import yaml
 
-import ewatercycle
-
 from ._validators import _validators
 from ._validated_config import ValidatedConfig
 
@@ -99,7 +97,7 @@ SOURCES = (
 )
 
 USER_CONFIG = find_user_config(SOURCES, FILENAME)
-DEFAULT_CONFIG = Path(ewatercycle.__file__).parents[1] / FILENAME
+DEFAULT_CONFIG = Path(__file__).parent / FILENAME
 
 CFG_DEFAULT = Config._load_default_config(DEFAULT_CONFIG)
 

@@ -30,6 +30,9 @@ setup(
         # 'grpc4bmi>=0.2.12,<0.3',
     ],
     packages=find_packages(),
+    package_data={
+        "": ["*.yaml"],
+    },
     include_package_data=True,
     license="Apache Software License 2.0",
     zip_safe=False,
