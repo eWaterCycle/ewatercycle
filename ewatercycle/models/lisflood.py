@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import os
 import subprocess
+from datetime import datetime
 from pathlib import Path
 import time
 from dataclasses import dataclass
@@ -13,19 +14,22 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 from grpc4bmi.bmi_client_docker import BmiClientDocker
 # from ewatercycle import CFG
 from os import PathLike
-from typing import Tuple, Iterable, Any, Optional
+from typing import Tuple, Iterable, Any
+
 
 @dataclass
 class LisfloodParameterSet:
-    root: str
+    root: PathLike
     """Directory with input files"""
-    mask: str
+    mask: PathLike
     """Directory with NetCDF file with model boundaries. NetCDF files should be called model_mask.nc"""
-    config_template: str
+    config_template: PathLike
     """Config file used as template for a lisflood run"""
-    lisvap_config_template: str = None
+    lisvap_config_template: PathLike = None
     """Config file used as template for a lisvap run"""
 
+
+# TODO move to docs or example, should not be part of this file as its system specific
 parameterset = LisfloodParameterSet(
     # TODO one level down (+ /Lisflood01degree_masked)?
     root='/projects/0/wtrcycle/comparison/lisflood_input',
@@ -37,7 +41,7 @@ parameterset = LisfloodParameterSet(
 
 # CFG:
 CFG = {
-    'lisflood':{
+    'lisflood': {
         'singularity_image': 'ewatercycle-lisflood-grpc4bmi.sif',
         'docker_image': 'ewatercycle/lisflood-grpc4bmi:latest',
         # TODO add parameters sets available on system that can be passed to setup()
@@ -69,17 +73,19 @@ MAPS_PREFIXES = {
     'ET0Maps': {'name': 'PrefixET0', 'value': 'et0'},
 }
 
+
 class Lisflood(AbstractModel):
     """eWaterCycle implementation of Lisflood hydrological model.
 
     Attributes
         bmi (Bmi): Basic Modeling Interface object
+        parameterset (LisfloodParameterSet): Set of input files for a certain catchment/period
     """
 
     def setup(self,
               forcing: ForcingData,
               parameterset: LisfloodParameterSet,
-              work_dir:PathLike=None) -> Tuple[PathLike, PathLike]:
+              work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
         """Performs model setup.
 
         1. Creates config file and config directory
@@ -100,14 +106,15 @@ class Lisflood(AbstractModel):
         config_file = self._create_lisflood_config()
 
         if CFG['container_engine'].lower() == 'singularity':
+            1/0
             self.bmi = BmiClientSingularity(
                 image=singularity_image,
                 input_dirs=[
-                    parameterset.root,
-                    parameterset.mask,
-                    self.forcing_dir
-                    ],
-                work_dir=work_dir,
+                    str(parameterset.root),
+                    str(parameterset.mask),
+                    str(self.forcing_dir)
+                ],
+                work_dir=str(self.work_dir),
             )
         elif CFG['container_engine'].lower() == 'docker':
             self.bmi = BmiClientDocker(
@@ -117,8 +124,8 @@ class Lisflood(AbstractModel):
                     parameterset.root,
                     parameterset.mask,
                     self.forcing_dir
-                    ],
-                work_dir=work_dir,
+                ],
+                work_dir=str(self.work_dir),
             )
         else:
             raise ValueError(
@@ -145,18 +152,17 @@ class Lisflood(AbstractModel):
         #     # self.forcing_pr, self.forcing_tas are names used by config file
         #     self.forcing_dir = forcing
         if isinstance(forcing, ForcingData):
-            # key is cmor var name and value is path to NetCDF file 
+            # key is cmor var name and value is path to NetCDF file
             self.forcing_files = dict()
             data_files = list(forcing.recipe_output.values())[0].data_files
             for data_file in data_files:
                 dataset = data_file.load_xarray()
-                var_name = list(dataset.data_var.keys())[0]
+                var_name = list(dataset.data_vars.keys())[0]
                 self.forcing_files[var_name] = data_file.filename.name
                 self.forcing_dir = data_file.filename.parent
                 # get start and end date of time dimension
-                self.start = dataset.coords['time'][0]
-                self.end = dataset.coords['time'][-1]
-
+                self.start = datetime.utcfromtimestamp(dataset.coords['time'][0].values.astype('O') / 1e9)
+                self.end = datetime.utcfromtimestamp(dataset.coords['time'][-1].values.astype('O') / 1e9)
 
             # TODO use implementation from wishful notebook
             # self.start = forcing.start_year
@@ -218,7 +224,7 @@ class Lisflood(AbstractModel):
         """Update lisvap setting file"""
         cfg = XmlConfig(self.parameterset.lisvap_config_template)
         # Make a dictionary for settings
-        #TODO check if inside directories are needed
+        # TODO check if inside directories are needed
         maps = "/data/lisflood_input/Lisflood01degree_masked/maps_netcdf"
         settings = {
             "CalendarDayStart": self.start.strftime("%d/%m/%Y %H:%M"),
@@ -266,10 +272,10 @@ class Lisflood(AbstractModel):
         """Run lisvap."""
         self._check_forcing(forcing)
         lisvap_file = self._create_lisvap_config()
-        #TODO check if inside directories are needed
+        # TODO check if inside directories are needed
 
         mount_points = {
-            f'{self.parameterset.root}':'/data/lisflood_input',
+            f'{self.parameterset.root}': '/data/lisflood_input',
             f'{self.parameterset.mask}': '/data/mask',
             f'{self.forcing_dir}': '/data/forcing',
             f'{self.work_dir}': '/settings',
@@ -296,9 +302,8 @@ class Lisflood(AbstractModel):
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        args.append (f"python3 /opt/Lisvap/src/lisvap1.py /settings/{lisvap_file}")
-        subprocess.Popen(args,  preexec_fn=os.setsid)
-
+        args.append(f"python3 /opt/Lisvap/src/lisvap1.py /settings/{lisvap_file}")
+        subprocess.Popen(args, preexec_fn=os.setsid)
 
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
@@ -307,7 +312,7 @@ class Lisflood(AbstractModel):
             return {
                 'forcing_dir': self.forcing_dir,
                 'work_dir': self.work_dir,
-                }
+            }
         return dict()
 
 
@@ -321,5 +326,3 @@ class XmlConfig(AbstractConfig):
 
     def save(self, target):
         self.tree.write(target)
-
-
