@@ -254,26 +254,26 @@ class Lisflood(AbstractModel):
         for textvar in cfg.config.iter("textvar"):
             textvar_name = textvar.attrib["name"]
 
-        # general settings
-        for key, value in settings.items():
-            if key in textvar_name:
-                textvar.set("value", value)
+            # general settings
+            for key, value in settings.items():
+                if key in textvar_name:
+                    textvar.set("value", value)
 
-        # lisvap input files
-        for lisvap_var, cmor_var in INPUT_NAMES.items():
-            if lisvap_var in textvar_name:
-                filename = self.forcing_files[cmor_var]
-                textvar.set(
-                    "value", f"$(PathMeteoIn)/{filename}",
-                )
+            # lisvap input files
+            for lisvap_var, cmor_var in INPUT_NAMES.items():
+                if lisvap_var in textvar_name:
+                    filename = self.forcing_files[cmor_var]
+                    textvar.set(
+                        "value", f"$(PathMeteoIn)/{filename}",
+                    )
 
-        # lisvap output files
-        for prefix in MAPS_PREFIXES.values():
-            if prefix['name'] in textvar_name:
-                textvar.set(
-                    "value",
-                    f"lisflood_{prefix['value']}_{timestamp}",
-                )
+            # lisvap output files
+            for prefix in MAPS_PREFIXES.values():
+                if prefix['name'] in textvar_name:
+                    textvar.set(
+                        "value",
+                        f"lisflood_{prefix['value']}_{timestamp}",
+                    )
 
         # Write to new setting file
         lisvap_file = f"{self.work_dir}/lisvap_setting_{timestamp}.xml"
