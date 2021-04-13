@@ -160,7 +160,7 @@ class Lisflood(AbstractModel):
                 # TODO converting numpy.datetime64 to datetime object is ugly, find better way
                 self.start = datetime.utcfromtimestamp(dataset.coords['time'][0].values.astype('O') / 1e9)
                 self.end = datetime.utcfromtimestamp(dataset.coords['time'][-1].values.astype('O') / 1e9)
-        if isinstance(forcing, ForcingData):
+        elif isinstance(forcing, ForcingData):
             # key is cmor var name and value is path to NetCDF file
             self.forcing_files = dict()
             data_files = list(forcing.recipe_output.values())[0].data_files
@@ -279,7 +279,6 @@ class Lisflood(AbstractModel):
         lisvap_file = f"{self.work_dir}/lisvap_setting_{timestamp}.xml"
         cfg.save(lisvap_file)
         return lisvap_file
-
 
 
     # TODO take this out of the class
