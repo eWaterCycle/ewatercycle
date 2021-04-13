@@ -51,11 +51,6 @@ CFG = {
     'scratch_dir': '/scratch/shared/ewatercycle',
 }
 
-_cfg = CFG['lisflood']
-scratch_dir = CFG['scratch_dir']
-singularity_image = _cfg['singularity_image']
-docker_image = _cfg['docker_image']
-
 # mapping lisvap input varnames to cmor varnames
 INPUT_NAMES = {
     'TAvgMaps': 'tas',
@@ -103,6 +98,9 @@ class Lisflood(AbstractModel):
         Returns:
             Path to config file and path to config directory
         """
+        _cfg = CFG['lisflood']
+        singularity_image = _cfg['singularity_image']
+        docker_image = _cfg['docker_image']
         self._check_work_dir(work_dir)
         self._check_forcing(forcing)
         self.parameterset = parameterset
@@ -141,6 +139,7 @@ class Lisflood(AbstractModel):
         # TODO this timestamp isnot safe for parallel processing
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         if work_dir is None:
+            scratch_dir = CFG['scratch_dir']
             work_dir = Path(scratch_dir) / f'lisflood_{timestamp}'
             work_dir.mkdir(parents=True, exist_ok=True)
 
@@ -181,7 +180,7 @@ class Lisflood(AbstractModel):
             # self.dataset = forcing.forcing
             # self.forcing_dir = forcing.location
 
-            # TODO check if mask has same grid as forcing files, 
+            # TODO check if mask has same grid as forcing files,
             # if not perform reindex
         else:
             raise TypeError(
@@ -286,8 +285,8 @@ class Lisflood(AbstractModel):
     # TODO take this out of the class
     def run_lisvap(self, forcing):
         """Run lisvap.
-    
-        
+
+
         """
         self._check_forcing(forcing)
         lisvap_file = self._create_lisvap_config()
@@ -354,7 +353,7 @@ def reindex_forcings(mask_map: PathLike, forcing: ForcingData, output_dir: PathL
                     tolerance=1e-2,
                 ).to_netcdf(out_fn, encoding=encoding)
     return output_dir
-    
+
 
 class XmlConfig(AbstractConfig):
     """Config container where config is read/saved in xml format"""
