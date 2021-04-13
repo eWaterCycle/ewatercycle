@@ -192,7 +192,7 @@ class Lisflood(AbstractModel):
         cfg = XmlConfig(self.parameterset.config_template)
 
         settings = {
-            "CalendarDayStart": self.start.strftime("%d/%m/%Y %H:%M"),
+            "CalendarDayStart": self.start.strftime("%d/%m/%Y 00:00"),
             "StepStart": "1",
             "StepEnd": str((self.end - self.start).days),
             "PathRoot": f"{self.parameterset.root}/Lisflood01degree_masked",
@@ -240,9 +240,9 @@ class Lisflood(AbstractModel):
         # TODO check if inside directories are needed
         maps = "/data/lisflood_input/Lisflood01degree_masked/maps_netcdf"
         settings = {
-            "CalendarDayStart": self.start.strftime("%d/%m/%Y %H:%M"),
-            "StepStart": self.start.strftime("%d/%m/%Y %H:%M"),
-            "StepEnd": self.end.strftime("%d/%m/%Y %H:%M"),
+            "CalendarDayStart": self.start.strftime("%d/%m/%Y 00:00"),
+            "StepStart": self.start.strftime("%d/%m/%Y 00:00"),
+            "StepEnd": self.end.strftime("%d/%m/%Y 00:00"),
             "PathOut": "/output",
             "PathBaseMapsIn": maps,
             "MaskMap": "/data/mask/model_mask",
