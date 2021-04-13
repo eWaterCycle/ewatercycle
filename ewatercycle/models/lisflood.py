@@ -298,7 +298,6 @@ class Lisflood(AbstractModel):
             f'{self.parameterset.root}': '/data/lisflood_input',
             f'{self.parameterset.mask}': '/data/mask',
             f'{self.forcing_dir}': '/data/forcing',
-            f'{self.work_dir}': '/settings',
             f'{self.work_dir}': '/output',
         }
 
@@ -324,7 +323,7 @@ class Lisflood(AbstractModel):
             )
 
         lisvap_filename = Path(lisvap_file).name
-        args.append(f"python3 /opt/Lisvap/src/lisvap1.py /settings/{lisvap_filename}")
+        args.append(f"python3 /opt/Lisvap/src/lisvap1.py /output/{lisvap_filename}")
         subprocess.Popen(args, preexec_fn=os.setsid)
 
     @property
