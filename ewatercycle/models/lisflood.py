@@ -322,7 +322,9 @@ class Lisflood(AbstractModel):
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        args.append(f"python3 /opt/Lisvap/src/lisvap1.py /settings/{lisvap_file}")
+
+        lisvap_filename = Path(lisvap_file).name
+        args.append(f"python3 /opt/Lisvap/src/lisvap1.py /settings/{lisvap_filename}")
         subprocess.Popen(args, preexec_fn=os.setsid)
 
     @property
