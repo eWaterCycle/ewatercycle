@@ -282,7 +282,7 @@ class Lisflood(AbstractModel):
 
 
     # TODO take this out of the class
-    def run_lisvap(self, forcing):
+    def run_lisvap(self, forcing) ->Tuple[int, str, str]:
         """Run lisvap.
 
 
@@ -323,8 +323,11 @@ class Lisflood(AbstractModel):
             )
 
         lisvap_filename = Path(lisvap_file).name
-        args.append(f"python3 /opt/Lisvap/src/lisvap1.py /output/{lisvap_filename}")
-        subprocess.Popen(args, preexec_fn=os.setsid)
+        args += ['python3', '/opt/Lisvap/src/lisvap1.py', f"/output/{lisvap_filename}"]
+        container = subprocess.Popen(args, preexec_fn=os.setsid, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        exit_code = container.wait()
+        stdout, stderr = container.communicate()
+        return exit_code, stdout, stderr
 
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
