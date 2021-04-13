@@ -3,16 +3,17 @@
 .. data:: CFG
 
     eWaterCycle configuration object.
-    
-    The configuration is loaded from 
-    1. ~/.ewatercycle/ewatercycle.yaml
-    2. /etc/ewatercycle/ewatercycle.yaml
-    3. Fall back to empty configuration
-    
+
+    The configuration is loaded from
+    1. ~/.ewatercycle/$XDG_CONFIG_HOME/.ewatercycle/ewatercycle.yaml
+    2. ~/.ewatercycle/.config/.ewatercycle/ewatercycle.yaml
+    3. /etc/ewatercycle.yaml
+    4. Fall back to empty configuration
+
     The `ewatercycle.yaml` is formatted in YAML and could for example look like
-    
+
     .. code-block:: yaml
-    
+
       esmvaltool_config: ~/.esmvaltool/config-user.yml
       grdc_location: /data/grdc
       container_engine: singularity
