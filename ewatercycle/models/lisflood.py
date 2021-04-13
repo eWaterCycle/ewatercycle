@@ -229,7 +229,7 @@ class Lisflood(AbstractModel):
 
         # Write to new setting file
         # TODO return name
-        lisflood_file = f"{self.work_dir}/lisflood_{timestamp}_setting.xml"
+        lisflood_file = f"{self.work_dir}/lisflood_setting_{timestamp}.xml"
         cfg.save(lisflood_file)
         return lisflood_file
 
