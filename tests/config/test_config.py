@@ -174,14 +174,14 @@ def test_config_class():
 def test_get_subset():
     """Test getting a subset of config params."""
     config = {
-        'wflow.singularity_images': "ewatercycle-wflow-grpc4bmi.sif",
-        'wflow.docker_images': "ewatercycle/wflow-grpc4bmi:latest",
+        'wflow.singularity_image': "ewatercycle-wflow-grpc4bmi.sif",
+        'wflow.docker_image': "ewatercycle/wflow-grpc4bmi:latest",
     }
 
     cfg = Config(config)
     subset = cfg.get_subset('wflow')
 
-    assert 'singularity_images' in subset
-    assert 'docker_images' in subset
-    assert 'wflow.singularity_images' not in subset
-    assert 'wflow.docker_images' not in subset
+    assert 'singularity_image' in subset
+    assert 'docker_image' in subset
+    assert 'wflow.singularity_image' not in subset
+    assert 'wflow.docker_image' not in subset
