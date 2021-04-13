@@ -132,7 +132,7 @@ class Lisflood(AbstractModel):
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        return config_file, work_dir
+        return config_file, self.work_dir
 
     def _check_work_dir(self, work_dir):
         """"""
