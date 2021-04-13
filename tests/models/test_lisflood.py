@@ -61,6 +61,7 @@ class TestLFlatlonUseCase:
         }
         for fn, var_rename in meteo_files.items():
             ds = xarray.open_dataset(meteo_dir / fn)
+            # TODO save files as f"lisflood_{prefix['value']}_{timestamp}",
             if var_rename:
                 ds.rename(var_rename).to_netcdf(forcing_dir / fn)
             else:

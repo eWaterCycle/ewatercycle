@@ -1,20 +1,21 @@
-import xml.etree.ElementTree as ET
 import os
 import subprocess
-from datetime import datetime
-from pathlib import Path
 import time
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass
-
-from ewatercycle.parametersetdb.config import AbstractConfig
-from ewatercycle.models.abstract import AbstractModel
-from ewatercycle.forcing.forcing_data import ForcingData
-
-from grpc4bmi.bmi_client_singularity import BmiClientSingularity
-from grpc4bmi.bmi_client_docker import BmiClientDocker
+from datetime import datetime
 # from ewatercycle import CFG
 from os import PathLike
-from typing import Tuple, Iterable, Any
+from pathlib import Path
+from typing import Any, Iterable, Tuple, Union
+
+import xarray as xr
+from grpc4bmi.bmi_client_docker import BmiClientDocker
+from grpc4bmi.bmi_client_singularity import BmiClientSingularity
+
+from ewatercycle.forcing.forcing_data import ForcingData
+from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.parametersetdb.config import AbstractConfig
 
 
 @dataclass
@@ -80,13 +81,16 @@ class Lisflood(AbstractModel):
     Attributes
         bmi (Bmi): Basic Modeling Interface object
         parameterset (LisfloodParameterSet): Set of input files for a certain catchment/period
+        forcing_dir (PathLike): Directory with meteological input files
     """
 
     def setup(self,
-              forcing: ForcingData,
+              forcing: Union[ForcingData, PathLike],
               parameterset: LisfloodParameterSet,
               work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
         """Performs model setup.
+
+        If forcing is missing evaporation files (e0, es0, et0) then the run_lisvap function should be run.
 
         1. Creates config file and config directory
         2. Start bmi container and store as self.bmi
@@ -106,7 +110,6 @@ class Lisflood(AbstractModel):
         config_file = self._create_lisflood_config()
 
         if CFG['container_engine'].lower() == 'singularity':
-            1/0
             self.bmi = BmiClientSingularity(
                 image=singularity_image,
                 input_dirs=[
@@ -146,11 +149,18 @@ class Lisflood(AbstractModel):
     def _check_forcing(self, forcing):
         """"Check forcing argument."""
         # TODO for the future
-        # if isinstance(forcing, PathLike):
-        #     # TODO Get forcing info from netcdf attributes
-        #     # self.start, self.end, self.dataset, self.forcing_pr, self.forcing_tas = _get_forcing_info()
-        #     # self.forcing_pr, self.forcing_tas are names used by config file
-        #     self.forcing_dir = forcing
+        if isinstance(forcing, PathLike):
+            self.forcing_dir = forcing
+            self.forcing_files = dict()
+            for forcing_file in forcing.glob('*.nc'):
+                dataset = xr.open_dataset(forcing_file)
+                # TODO check dataset was created by ESMValTool, to make sure var names are as expected
+                var_name = list(dataset.data_vars.keys())[0]
+                self.forcing_files[var_name] = forcing_file.name
+                # get start and end date of time dimension
+                # TODO converting numpy.datetime64 to datetime object is ugly, find better way
+                self.start = datetime.utcfromtimestamp(dataset.coords['time'][0].values.astype('O') / 1e9)
+                self.end = datetime.utcfromtimestamp(dataset.coords['time'][-1].values.astype('O') / 1e9)
         if isinstance(forcing, ForcingData):
             # key is cmor var name and value is path to NetCDF file
             self.forcing_files = dict()
@@ -170,6 +180,9 @@ class Lisflood(AbstractModel):
             # self.end = forcing.end_year
             # self.dataset = forcing.forcing
             # self.forcing_dir = forcing.location
+
+            # TODO check if mask has same grid as forcing files, 
+            # if not perform reindex
         else:
             raise TypeError(
                 f"Unknown forcing type: {forcing}"
@@ -268,9 +281,14 @@ class Lisflood(AbstractModel):
         cfg.save(lisvap_file)
         return lisvap_file
 
+
+
     # TODO take this out of the class
     def run_lisvap(self, forcing):
-        """Run lisvap."""
+        """Run lisvap.
+    
+        
+        """
         self._check_forcing(forcing)
         lisvap_file = self._create_lisvap_config()
         # TODO check if inside directories are needed
@@ -316,6 +334,27 @@ class Lisflood(AbstractModel):
             }
         return dict()
 
+
+def reindex_forcings(mask_map: PathLike, forcing: ForcingData, output_dir: PathLike) -> PathLike:
+    """
+
+    Arguments:
+        mask_map: Path to NetCDF file used a boolean map that defines model boundaries.
+    """
+    mask = xr.open_dataarray(mask_map).load()
+    data_files = list(forcing.recipe_output.values())[0].data_files
+    for data_file in data_files:
+        dataset = data_file.load_xarray()
+        out_fn = output_dir / data_file.filename.name
+        var_name = list(dataset.data_vars.keys())[0]
+        encoding = {var_name: {"zlib": True, "complevel": 4, "chunksizes": (1,) + dataset[var_name].shape[1:]}}
+        dataset.reindex(
+                    {"lat": mask["lat"], "lon": mask["lon"]},
+                    method="nearest",
+                    tolerance=1e-2,
+                ).to_netcdf(out_fn, encoding=encoding)
+    return output_dir
+    
 
 class XmlConfig(AbstractConfig):
     """Config container where config is read/saved in xml format"""
