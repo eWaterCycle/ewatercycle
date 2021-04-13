@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import configparser
+from configparser import ConfigParser
 from abc import ABC, abstractmethod
 from urllib.request import urlopen
 

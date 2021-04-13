@@ -1,5 +1,6 @@
 import shutil
 import time
+from configparser import ConfigParser
 from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple
 
@@ -29,72 +30,97 @@ class Wflow(AbstractModel):
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
     def setup(self,
-              inifile: str,
-              parameterset: str,
-              forcing_data: Optional[str] = None):
+              cfg_dir: str,
+              cfg_file: str = None,
+              forcing_data: Optional[str] = None,
+              **kwargs):
         """Start the model inside a container and return a valid config file.
 
         Args:
 
-            - inifile: path to the configuration file, typically somethig like
-            `wflow_sbm.ini`.
+            - cfg_dir: path to a valid wflow model spec.
 
-            - parameterset: path to a valid wflow model spec.
+            - cfg_file: path to the configuration file, typically somethig like
+            `wflow_sbm.ini`. This overwrites any existing files in cfg_dir with
+            the same filename.
 
             - forcing_data (optional): path to meteorological forcing data (.nc)
-            file. If not given, it should already be in the parameterset.
+            file. If not given, it should already be in the cfg_dir.
+
+            - **kwargs (optional, dict): any settings in the cfg_file that you want
+            to overwrite programmatically. Should be passed as a dict, e.g.
+            `run = {"starttime": "1995-01-31 00:00:00 GMT"}` where run is the
+            section in which the starttime option may be found.
 
         Returns:
-            Path to config file & work dir???
+            Path to config file and config dir
         """
-        self._setup_workdir(parameterset=parameterset)
+        self._setup_cfg_dir(cfg_dir=cfg_dir)
+        self._setup_cfg_file(cfg_file=cfg_file, **kwargs)
+        self._setup_forcing(forcing_data=forcing_data)
+        self._start_container()
 
-        config_file = Path(work_dir) / Path(inifile).name
+        return self.cfg_dir, Path(self.cfg_file).name
+
+    def _setup_cfg_dir(self, cfg_dir: str):
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        work_dir = Path(CFG["scratch_dir"]) / f'wflow_{timestamp}'
+        shutil.copytree(src=cfg_dir, dst=work_dir)
+        self.cfg_dir = str(work_dir.resolve())
+        print(f"Working directory created: {work_dir}")
+
+    def _setup_cfg_file(self, cfg_file, **kwargs):
+        cfg = ConfigParser()
+        cfg.optionxform = lambda x: x
+        cfg.read(cfg_file)
+        self.cfg = cfg
+
+        for section, options in kwargs.items():
+            for option, value in options.items():
+                cfg.set(section, option, value)
+
+        new_cfg_file = Path(self.cfg_dir) / "wflow_ewatercycle.ini"
+        with new_cfg_file.open("w") as filename:
+            cfg.write(filename)
+
+        self.cfg_file = str(new_cfg_file.resolve())
+        print(f"Created {self.cfg_file}.")
+
+    def _setup_forcing(self, forcing_data):
         if forcing_data is not None:
-            shutil.copy(src=forcing_file, dst=work_dir)
-
-            cfg = ConfigParser()
-            cfg.optionxform = lambda x: x
-            cfg.read(inifile)
-            cfg.set("framework", "netcdfinput", Path(forcing_file).name)
+            shutil.copy(src=forcing_file, dst=self.cfg_dir)
+            self.cfg.set("framework", "netcdfinput", Path(forcing_file).name)
 
             with open(config_file, "w") as filename:
                 cfg.write(filename)
-
-        self._start_container()
-
-        return config_file.name
-
-    def _setup_workdir(self, parameterset: str):
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        work_dir = Path(CFG["scratch_dir"]) / f'wflow_{timestamp}'
-        work_dir.mkdir(parents=True, exist_ok=True)
-        self.work_dir = work_dir
-        shutil.copytree(src=parameterset, dst=work_dir)
-        print(f"Working directory created: {work_dir}")
+            print(
+                f"Copied forcing data to {self.cfg_dir} and updated {self.cfg_file} accordingly."
+            )
 
     def _start_container(self):
         if CFG["container_engine"] == "docker":
             self.bmi = BmiClientDocker(
                 image=CFG["docker_images.wflow"],
                 image_port=55555,
-                work_dir=self.work_dir,
+                work_dir=self.cfg_dir,
                 timeout=10,
             )
         elif CFG["container_engine"] == "singularity":
             image = CFG["singularity_images.wflow"]
-            assert Path(
-                image).exists(), f"No singularity image found at {image}"
+
+            message = f"No singularity image found at {image}"
+            assert Path(image).exists(), message
+
             self.bmi = BmiClientSingularity(
                 image=image,
-                work_dir=self.work_dir,
+                work_dir=self.cfg_dir,
                 timeout=10,
             )
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        print(f"Started wflow container with working directory {work_dir}")
+        print(f"Started wflow container with working directory {self.cfg_dir}")
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
@@ -120,5 +146,11 @@ class Wflow(AbstractModel):
 
     @property
     def parameters(self):
-        """List the variable names that are available for this model."""
-        return self.bmi.get_output_var_names()
+        """List the configurable parameters for this model."""
+        if hasattr(self, "cfg"):
+            for section in self.cfg.sections():
+                print(section)
+                for option in self.cfg.options(section):
+                    print(f"    {option}: {self.cfg.get(section, option)}")
+        else:
+            print("First run setup with a valid .ini file.")
