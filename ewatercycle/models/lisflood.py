@@ -213,9 +213,9 @@ class Lisflood(AbstractModel):
 
             # input for lisflood
             if "PrefixPrecipitation" in textvar_name:
-                textvar.set("value", self.forcing_files['pr'])
+                textvar.set("value", self.forcing_files['pr'].rstrip('.nc'))
             if "PrefixTavg" in textvar_name:
-                textvar.set("value", self.forcing_files['tas'])
+                textvar.set("value", self.forcing_files['tas'].rstrip('.nc'))
 
             # output of lisvap
             for map_var, prefix in MAPS_PREFIXES.items():
