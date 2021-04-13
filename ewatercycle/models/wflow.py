@@ -1,4 +1,5 @@
 import shutil
+import time
 from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple
 
@@ -17,6 +18,7 @@ CFG = {
     "container_engine": "docker",
     "singularity_images.wflow": "ewatercycle-wflow-grpc4bmi.sif",
     "docker_images.wflow": "ewatercycle/wflow-grpc4bmi:latest",
+    "scratch_dir": "./"
 }
 
 
@@ -27,39 +29,27 @@ class Wflow(AbstractModel):
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
     def setup(self,
-              work_dir: str,
               inifile: str,
-              parameterset: Optional[str] = None,
+              parameterset: str,
               forcing_data: Optional[str] = None):
         """Start the model inside a container and return a valid config file.
 
         Args:
 
-            - work_dir: a writable folder that will be used as the main working
-            directory for running the model. This directory should either be
-            pre-populated with valid parametersets and forcing, or the user
-            should specify the additional arguments `parameterset` and
-            `forcing_data`.
-
             - inifile: path to the configuration file, typically somethig like
             `wflow_sbm.ini`.
 
-            - parameterset (optional): path to a valid wflow model spec. If
-            given, the parameterset will be copied to `work_dir`. This is useful
-            if you can't or don't want to write to this folder.
+            - parameterset: path to a valid wflow model spec.
 
-            - forcing_data: path to meteorological forcing data (.nc) file. If
-            given, will be copied to work_dir. If not given, it should already
-            be there.
+            - forcing_data (optional): path to meteorological forcing data (.nc)
+            file. If not given, it should already be in the parameterset.
 
         Returns:
-            Path to config file
+            Path to config file & work dir???
         """
+        self._setup_workdir(parameterset=parameterset)
+
         config_file = Path(work_dir) / Path(inifile).name
-
-        if parameterset is not None:
-            shutil.copytree(src=parameterset, dst=work_dir)
-
         if forcing_data is not None:
             shutil.copy(src=forcing_file, dst=work_dir)
 
@@ -71,12 +61,24 @@ class Wflow(AbstractModel):
             with open(config_file, "w") as filename:
                 cfg.write(filename)
 
-        # Start the container
+        self._start_container()
+
+        return config_file.name
+
+    def _setup_workdir(self, parameterset: str):
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        work_dir = Path(CFG["scratch_dir"]) / f'wflow_{timestamp}'
+        work_dir.mkdir(parents=True, exist_ok=True)
+        self.work_dir = work_dir
+        shutil.copytree(src=parameterset, dst=work_dir)
+        print(f"Working directory created: {work_dir}")
+
+    def _start_container(self):
         if CFG["container_engine"] == "docker":
             self.bmi = BmiClientDocker(
                 image=CFG["docker_images.wflow"],
                 image_port=55555,
-                work_dir=work_dir,
+                work_dir=self.work_dir,
                 timeout=10,
             )
         elif CFG["container_engine"] == "singularity":
@@ -85,16 +87,14 @@ class Wflow(AbstractModel):
                 image).exists(), f"No singularity image found at {image}"
             self.bmi = BmiClientSingularity(
                 image=image,
-                work_dir=work_dir,
+                work_dir=self.work_dir,
                 timeout=10,
             )
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-
-        print(f"Started Wflow container with working directory {work_dir}")
-        return config_file.name
+        print(f"Started wflow container with working directory {work_dir}")
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
