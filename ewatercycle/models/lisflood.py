@@ -288,6 +288,9 @@ class Lisflood(AbstractModel):
 
 
         """
+        _cfg = CFG['lisflood']
+        singularity_image = _cfg['singularity_image']
+        docker_image = _cfg['docker_image']
         self._check_forcing(forcing)
         lisvap_file = self._create_lisvap_config()
         # TODO check if inside directories are needed
