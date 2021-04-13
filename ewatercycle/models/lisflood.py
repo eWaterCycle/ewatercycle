@@ -304,7 +304,7 @@ class Lisflood(AbstractModel):
         if CFG['container_engine'].lower() == 'singularity':
             args = [
                 "singularity",
-                "run",
+                "exec",
             ]
             args += ["--bind", ','.join([hp + ':' + ip for hp, ip in mount_points.items()])]
             args.append(singularity_image)
