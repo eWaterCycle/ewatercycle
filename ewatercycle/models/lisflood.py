@@ -32,11 +32,11 @@ class LisfloodParameterSet:
 # TODO move to docs or example, should not be part of this file as its system specific
 parameterset = LisfloodParameterSet(
     # TODO one level down (+ /Lisflood01degree_masked)?
-    root='/projects/0/wtrcycle/comparison/lisflood_input',
+    root=Path('/projects/0/wtrcycle/comparison/lisflood_input'),
     # TODO dir or file (+ /model_mask.nc)?
-    mask='/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD',
-    config_template='/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml',
-    lisvap_config_template='/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisvap.xml',
+    mask=Path('/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD'),
+    config_template=Path('/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml'),
+    lisvap_config_template=Path('/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisvap.xml'),
 )
 
 # CFG:
@@ -161,6 +161,7 @@ class Lisflood(AbstractModel):
                 self.forcing_files[var_name] = data_file.filename.name
                 self.forcing_dir = data_file.filename.parent
                 # get start and end date of time dimension
+                # TODO converting numpy.datetime64 to datetime object is ugly, find better way
                 self.start = datetime.utcfromtimestamp(dataset.coords['time'][0].values.astype('O') / 1e9)
                 self.end = datetime.utcfromtimestamp(dataset.coords['time'][-1].values.astype('O') / 1e9)
 
