@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable
+from typing import Dict, Any, Callable
 from esmvalcore.experimental import get_recipe
 
 
