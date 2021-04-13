@@ -136,14 +136,7 @@ class Lisflood(AbstractModel):
 
     def _check_work_dir(self, work_dir):
         """"""
-        # TODO this timestamp isnot safe for parallel processing
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        if work_dir is None:
-            scratch_dir = CFG['scratch_dir']
-            work_dir = Path(scratch_dir) / f'lisflood_{timestamp}'
-            work_dir.mkdir(parents=True, exist_ok=True)
-
-        self.work_dir = work_dir
+        self.work_dir = _generate_workdir(work_dir)
 
     def _check_forcing(self, forcing):
         """"Check forcing argument."""
@@ -187,7 +180,7 @@ class Lisflood(AbstractModel):
                 f"Unknown forcing type: {forcing}"
             )
 
-    def _create_lisflood_config(self) -> PathLike:
+    def _create_lisflood_config(self) -> str:
         """Create lisflood config file"""
         cfg = XmlConfig(self.parameterset.config_template)
 
@@ -233,7 +226,7 @@ class Lisflood(AbstractModel):
         cfg.save(lisflood_file)
         return lisflood_file
 
-    def _create_lisvap_config(self) -> PathLike:
+    def _create_lisvap_config(self) -> str:
         """Update lisvap setting file"""
         cfg = XmlConfig(self.parameterset.lisvap_config_template)
         # Make a dictionary for settings
@@ -280,12 +273,15 @@ class Lisflood(AbstractModel):
         cfg.save(lisvap_file)
         return lisvap_file
 
-
     # TODO take this out of the class
-    def run_lisvap(self, forcing) ->Tuple[int, str, str]:
-        """Run lisvap.
+    def run_lisvap(self, forcing: PathLike) -> Tuple[int, bytes, bytes]:
+        """Run lisvap to generate evaporation input files
 
+        Args:
+            forcing: Path to re-indexed forcings
 
+        Returns:
+            Tuple with exit code, stdout and stderr
         """
         _cfg = CFG['lisflood']
         singularity_image = _cfg['singularity_image']
@@ -340,12 +336,18 @@ class Lisflood(AbstractModel):
         return dict()
 
 
-def reindex_forcings(mask_map: PathLike, forcing: ForcingData, output_dir: PathLike) -> PathLike:
-    """
+def reindex_forcings(mask_map: PathLike, forcing: ForcingData, output_dir: PathLike = None) -> PathLike:
+    """Reindex forcing files to match mask map grid
 
-    Arguments:
+    Args:
         mask_map: Path to NetCDF file used a boolean map that defines model boundaries.
+        forcing: Forcing data from ESMValTool
+        output_dir: Directory where to write the re-indexed files
+
+    Returns:
+        Output dir with re-indexed files.
     """
+    output_dir = _generate_workdir(output_dir)
     mask = xr.open_dataarray(mask_map).load()
     data_files = list(forcing.recipe_output.values())[0].data_files
     for data_file in data_files:
@@ -359,6 +361,24 @@ def reindex_forcings(mask_map: PathLike, forcing: ForcingData, output_dir: PathL
                     tolerance=1e-2,
                 ).to_netcdf(out_fn, encoding=encoding)
     return output_dir
+
+
+def _generate_workdir(work_dir: PathLike = None) -> PathLike:
+    """
+
+    Args:
+        work_dir: If work dir is None then create sub-directory in CFG['scratch_dir']
+
+    Returns:
+
+    """
+    if work_dir is None:
+        scratch_dir = CFG['scratch_dir']
+        # TODO this timestamp isnot safe for parallel processing
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        work_dir = Path(scratch_dir) / f'lisflood_{timestamp}'
+        work_dir.mkdir(parents=True, exist_ok=True)
+    return work_dir
 
 
 class XmlConfig(AbstractConfig):
