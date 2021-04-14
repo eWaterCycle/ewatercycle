@@ -30,8 +30,8 @@ class Wflow(AbstractModel):
     Attributes
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
-    def setup(
-            self,  # type: ignore
+    def setup( # type: ignore
+            self,
             cfg_dir: PathLike,
             cfg_file: PathLike,
             forcing_data: Optional[PathLike] = None,
