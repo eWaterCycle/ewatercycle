@@ -2,6 +2,7 @@
 import os
 import subprocess
 from abc import abstractmethod, ABC
+from typing import Type, Dict
 
 
 class AbstractCopier(ABC):
@@ -42,7 +43,7 @@ class SymlinkCopier(AbstractCopier):
         os.symlink(self.source, target)
 
 
-DATAFILES_FORMATS = {
+DATAFILES_FORMATS: Dict[str, Type[AbstractCopier]] = {
     'svn': SubversionCopier,
     'symlink': SymlinkCopier,
 }

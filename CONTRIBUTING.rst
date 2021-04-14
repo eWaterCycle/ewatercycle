@@ -40,10 +40,12 @@ You want to make some kind of change to the code base
 1. (**important**) announce your plan to the rest of the community *before you start working*. This announcement should be in the form of a (new) issue;
 2. (**important**) wait until some kind of consensus is reached about your idea being a good idea;
 3. if needed, fork the repository to your own Github profile and create your own feature branch off of the latest master commit. While working on your feature branch, make sure to stay up to date with the master branch by pulling in changes, possibly from the 'upstream' repository (follow the instructions `here <https://help.github.com/articles/configuring-a-remote-for-a-fork/>`_ and `here <https://help.github.com/articles/syncing-a-fork/>`_);
-4. make sure the existing tests still work by running ``python setup.py test``;
-5. add your own tests (if necessary);
-6. update or expand the documentation;
-7. `push <http://rogerdudler.github.io/git-guide/>`_ your feature branch to (your fork of) the ewatercycle repository on GitHub;
-8. create the pull request, e.g. following the instructions `here <https://help.github.com/articles/creating-a-pull-request/>`_.
+4. install the package in editable mode and its dependencies with ``pip3 install -e .[dev]``;
+5. make sure the existing tests still work by running ``pytest``;
+6. make sure the existing documentation can still by generated without warnings by running ``cd docs && make html``;
+7. add your own tests (if necessary);
+8. update or expand the documentation;
+9. `push <http://rogerdudler.github.io/git-guide/>`_ your feature branch to (your fork of) the ewatercycle repository on GitHub;
+10. create the pull request, e.g. following the instructions `here <https://help.github.com/articles/creating-a-pull-request/>`_.
 
 In case you feel like you've made a valuable contribution, but you don't know how to write or run tests for it, or how to generate the documentation: don't let this discourage you from making the pull request; we can help you! Just go ahead and submit the pull request, but keep in mind that you might be asked to append additional commits to your pull request.

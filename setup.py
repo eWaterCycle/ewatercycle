@@ -19,14 +19,14 @@ setup(
     author_email='s.verhoeven@esciencecenter.nl',
     url='https://github.com/eWaterCycle/ewatercycle',
     install_requires=[
+        'basic_modeling_interface',
         'esmvaltool',
-        'ruamel.yaml',
-        'xarray',
         'numpy',
         'pandas',
         'pyoos',
-        'basic_modeling_interface',
-        # TODO subclosses of ewatercycle.models.abstract.AbstractModle will need
+        'ruamel.yaml',
+        'xarray',
+        # TODO subclosses of ewatercycle.models.abstract.AbstractModel will need
         # 'grpc4bmi>=0.2.12,<0.3',
     ],
     packages=find_packages(),
@@ -44,22 +44,23 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
     ],
-    test_suite='tests',
-    setup_requires=[
-        # dependency for `python setup.py test`
-        'pytest-runner',
-        # dependencies for `python setup.py build_sphinx`
-        'sphinx',
-        'recommonmark',
-        'sphinx_rtd_theme',
-    ],
-    tests_require=[
-        'deepdiff',
-        'pytest',
-        'pytest-cov',
-        'pycodestyle',
-    ],
     extras_require={
-        'dev':  ['prospector[with_pyroma]', 'yapf', 'isort'],
+        'dev':  [
+            # Test
+            'deepdiff',
+            'pytest',
+            'pytest-cov',
+            'pytest-mypy',
+            'pytest-runner',
+            # Linters
+            'isort',
+            'prospector[with_pyroma,with_mypy]',
+            'pycodestyle',
+            'yapf',
+            # Dependencies for documentation generation
+            'recommonmark',
+            'sphinx',
+            'sphinx_rtd_theme',
+         ],
     }
 )
