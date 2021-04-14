@@ -19,13 +19,13 @@ setup(
     author_email='s.verhoeven@esciencecenter.nl',
     url='https://github.com/eWaterCycle/ewatercycle',
     install_requires=[
+        'basic_modeling_interface',
         'esmvaltool',
-        'ruamel.yaml',
-        'xarray',
         'numpy',
         'pandas',
         'pyoos',
-        'basic_modeling_interface',
+        'ruamel.yaml',
+        'xarray',
         # TODO subclosses of ewatercycle.models.abstract.AbstractModel will need
         # 'grpc4bmi>=0.2.12,<0.3',
     ],
@@ -51,16 +51,15 @@ setup(
             'pytest',
             'pytest-cov',
             'pytest-mypy',
-            # Linters
-            'pycodestyle',
-            'prospector[with_pyroma,with_mypy]',
-            'yapf',
-            'isort',
-            # dependency for `pytest`
             'pytest-runner',
-            # dependencies for documentation generation
-            'sphinx',
+            # Linters
+            'isort',
+            'prospector[with_pyroma,with_mypy]',
+            'pycodestyle',
+            'yapf',
+            # Dependencies for documentation generation
             'recommonmark',
+            'sphinx',
             'sphinx_rtd_theme',
          ],
     }
