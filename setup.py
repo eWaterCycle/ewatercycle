@@ -26,8 +26,7 @@ setup(
         'pandas',
         'pyoos',
         'basic_modeling_interface',
-        # TODO subclosses of ewatercycle.models.abstract.AbstractModel will need
-        # 'grpc4bmi>=0.2.12,<0.3',
+        'grpc4bmi>=0.2.12,<0.3',
     ],
     packages=find_packages(),
     include_package_data=True,
