@@ -140,9 +140,9 @@ class Lisflood(AbstractModel):
         """"Check forcing argument."""
         # TODO for the future
         if isinstance(forcing, PathLike):
-            self.forcing_dir = forcing
+            self.forcing_dir = forcing.expanduser()
             self.forcing_files = dict()
-            for forcing_file in forcing.glob('*.nc'):
+            for forcing_file in self.forcing_dir.glob('*.nc'):
                 dataset = xr.open_dataset(forcing_file)
                 # TODO check dataset was created by ESMValTool, to make sure var names are as expected
                 var_name = list(dataset.data_vars.keys())[0]
