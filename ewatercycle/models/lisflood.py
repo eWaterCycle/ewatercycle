@@ -35,7 +35,7 @@ class LisfloodParameterSet:
     """
     root: PathLike
     """Directory with input files"""
-    mask: PathLike
+    mask: Path
     """A NetCDF file with model boundaries"""
     config_template: PathLike
     """Config file used as template for a lisflood run"""
