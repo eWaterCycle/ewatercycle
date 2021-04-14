@@ -7,9 +7,11 @@ from datetime import datetime
 # from ewatercycle import CFG
 from os import PathLike
 from pathlib import Path
-from typing import Any, Iterable, Tuple, Union, Optional
+from typing import Any, Iterable, Optional, Tuple, Union
 
+import numpy as np
 import xarray as xr
+from cftime import num2date
 from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
@@ -314,6 +316,28 @@ class Lisflood(AbstractModel):
         exit_code = container.wait()
         stdout, stderr = container.communicate()
         return exit_code, stdout, stderr
+
+    def get_value_as_xarray(self, name: str) -> xr.DataArray:
+        """Return the value as xarray object."""
+        # Get time information
+        time_units = self.bmi.get_time_units()
+        grid = self.bmi.get_var_grid(name)
+        shape = self.bmi.get_grid_shape(grid)
+
+        # Extract the data and store it in an xarray DataArray
+        da = xr.DataArray(
+            data=np.reshape(self.bmi.get_value(name), shape),
+            coords={
+                "longitude": self.bmi.get_grid_y(grid),
+                "latitude": self.bmi.get_grid_x(grid),
+                "time": num2date(self.bmi.get_current_time(), time_units)
+            },
+            dims=["latitude", "longitude"],
+            name=name,
+            attrs={"units": self.bmi.get_var_units(name)},
+        )
+
+        return da
 
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
