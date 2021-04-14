@@ -174,7 +174,7 @@ class Lisflood(AbstractModel):
             "StepStart": "1",
             "StepEnd": str((self.end - self.start).days),
             "PathRoot": f"{self.parameterset.root}",
-            "MaskMap": f"{self.parameterset.mask.rstrip('.nc')}",
+            "MaskMap": f"{self.parameterset.mask}".rstrip('.nc'),
             "PathMeteo": f"{self.forcing_dir}",
             "PathOut": f"{self.work_dir}",
         }
