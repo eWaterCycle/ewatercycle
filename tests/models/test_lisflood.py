@@ -82,18 +82,29 @@ class TestLFlatlonUseCase:
         }
         return ForcingData(recipe_output)
 
-    # TODO stuck during BmiClientSingularity creation
-    def test_setup(self, mocked_config, model, forcing, parameterset, tmp_path):
+    @pytest.fixture
+    def model_with_setup(self, mocked_config, model, forcing, parameterset):
         with patch.object(BmiClientSingularity, '__init__', return_value=None) as mocked_constructor, patch(
               'time.strftime', return_value='42'):
             config_file, config_dir = model.setup(forcing, parameterset)
+        return config_file, config_dir, mocked_constructor
 
-            mocked_constructor.assert_called_once_with(
-                image='docker://ewatercycle/lisflood-grpc4bmi:latest',
-                input_dirs=[
-                    f'{tmp_path}/input',
-                    f'{tmp_path}/mask',
-                    f'{tmp_path}/forcing'],
-                work_dir=f'{tmp_path}/lisflood_42')
-            assert 'lisflood_42' in str(config_dir)
-            assert config_file.name == 'lisflood_setting_1986_2018.xml'
+    def test_setup(self, model_with_setup, tmp_path):
+        config_file, config_dir, mocked_constructor = model_with_setup
+
+        mocked_constructor.assert_called_once_with(
+            image='docker://ewatercycle/lisflood-grpc4bmi:latest',
+            input_dirs=[
+                f'{tmp_path}/input',
+                f'{tmp_path}/mask',
+                f'{tmp_path}/forcing'],
+            work_dir=f'{tmp_path}/lisflood_42')
+        assert 'lisflood_42' in str(config_dir)
+        assert config_file.name == 'lisflood_setting_1986_2018.xml'
+
+    # TODO add lisvap settings file
+    # def test_run_lisvap(self, model_with_setup, model: Lisflood, tmp_path):
+    #     with patch('subprocess.Popen') as mocked_popen:
+    #         exit_code, stdout, stderr = model.run_lisvap(tmp_path / 'forcing')
+    #
+    #         assert exit_code == 0
