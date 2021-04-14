@@ -1,6 +1,6 @@
 import shutil
 import time
-from configparser import ConfigParser
+from os import PathLike
 from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple
 
@@ -11,6 +11,7 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.parametersetdb.config import CaseConfigParser
 
 # from ewatercycle import CFG
 
@@ -29,11 +30,12 @@ class Wflow(AbstractModel):
     Attributes
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
-    def setup(self,
-              cfg_dir: str,
-              cfg_file: str = None,
-              forcing_data: Optional[str] = None,
-              **kwargs):
+    def setup(
+            self,  # type: ignore
+            cfg_dir: PathLike,
+            cfg_file: PathLike,
+            forcing_data: Optional[PathLike] = None,
+            **kwargs) -> Tuple[PathLike, PathLike]:
         """Start the model inside a container and return a valid config file.
 
         Args:
@@ -60,18 +62,17 @@ class Wflow(AbstractModel):
         self._setup_forcing(forcing_data=forcing_data)
         self._start_container()
 
-        return self.cfg_dir, Path(self.cfg_file).name
+        return self.cfg_dir, self.cfg_file
 
-    def _setup_cfg_dir(self, cfg_dir: str):
+    def _setup_cfg_dir(self, cfg_dir: PathLike):
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         work_dir = Path(CFG["scratch_dir"]) / f'wflow_{timestamp}'
         shutil.copytree(src=cfg_dir, dst=work_dir)
-        self.cfg_dir = str(work_dir.resolve())
+        self.cfg_dir = work_dir.resolve()
         print(f"Working directory created: {work_dir}")
 
-    def _setup_cfg_file(self, cfg_file, **kwargs):
-        cfg = ConfigParser()
-        cfg.optionxform = lambda x: x
+    def _setup_cfg_file(self, cfg_file: PathLike, **kwargs):
+        cfg = CaseConfigParser()
         cfg.read(cfg_file)
         self.cfg = cfg
 
@@ -83,16 +84,16 @@ class Wflow(AbstractModel):
         with new_cfg_file.open("w") as filename:
             cfg.write(filename)
 
-        self.cfg_file = str(new_cfg_file.resolve())
+        self.cfg_file = new_cfg_file.resolve()
         print(f"Created {self.cfg_file}.")
 
-    def _setup_forcing(self, forcing_data):
+    def _setup_forcing(self, forcing_data: Optional[PathLike]):
         if forcing_data is not None:
-            shutil.copy(src=forcing_file, dst=self.cfg_dir)
-            self.cfg.set("framework", "netcdfinput", Path(forcing_file).name)
+            shutil.copy(src=forcing_data, dst=self.cfg_dir)
+            self.cfg.set("framework", "netcdfinput", Path(forcing_data).name)
 
-            with open(config_file, "w") as filename:
-                cfg.write(filename)
+            with self.cfg_file.open("w") as filename:
+                self.cfg.write(filename)
             print(
                 f"Copied forcing data to {self.cfg_dir} and updated {self.cfg_file} accordingly."
             )
@@ -102,7 +103,7 @@ class Wflow(AbstractModel):
             self.bmi = BmiClientDocker(
                 image=CFG["docker_images.wflow"],
                 image_port=55555,
-                work_dir=self.cfg_dir,
+                work_dir=str(self.cfg_dir),
                 timeout=10,
             )
         elif CFG["container_engine"] == "singularity":
@@ -113,7 +114,7 @@ class Wflow(AbstractModel):
 
             self.bmi = BmiClientSingularity(
                 image=image,
-                work_dir=self.cfg_dir,
+                work_dir=str(self.cfg_dir),
                 timeout=10,
             )
         else:
