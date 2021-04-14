@@ -104,7 +104,7 @@ class Lisflood(AbstractModel):
                 image=singularity_image,
                 input_dirs=[
                     str(parameterset.root),
-                    str(parameterset.mask),
+                    str(parameterset.mask.parent),
                     str(self.forcing_dir)
                 ],
                 work_dir=str(self.work_dir),
@@ -114,9 +114,9 @@ class Lisflood(AbstractModel):
                 image=docker_image,
                 image_port=55555,
                 input_dirs=[
-                    parameterset.root,
-                    parameterset.mask,
-                    self.forcing_dir
+                    str(parameterset.root),
+                    str(parameterset.mask.parent),
+                    str(self.forcing_dir)
                 ],
                 work_dir=str(self.work_dir),
             )
