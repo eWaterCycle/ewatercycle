@@ -19,14 +19,14 @@ setup(
     author_email='s.verhoeven@esciencecenter.nl',
     url='https://github.com/eWaterCycle/ewatercycle',
     install_requires=[
+        'basic_modeling_interface',
         'esmvaltool',
-        'ruamel.yaml',
-        'xarray',
         'numpy',
         'pandas',
         'pyoos',
-        'basic_modeling_interface',
         'grpc4bmi>=0.2.12,<0.3',
+        'ruamel.yaml',
+        'xarray',
     ],
     packages=find_packages(),
     include_package_data=True,
@@ -49,16 +49,16 @@ setup(
             'deepdiff',
             'pytest',
             'pytest-cov',
-            # Linters
-            'pycodestyle',
-            'prospector[with_pyroma]',
-            'yapf',
-            'isort',
-            # dependency for `pytest`
+            'pytest-mypy',
             'pytest-runner',
-            # dependencies for documentation generation
-            'sphinx',
+            # Linters
+            'isort',
+            'prospector[with_pyroma,with_mypy]',
+            'pycodestyle',
+            'yapf',
+            # Dependencies for documentation generation
             'recommonmark',
+            'sphinx',
             'sphinx_rtd_theme',
          ],
     }

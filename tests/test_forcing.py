@@ -2,9 +2,11 @@ from esmvalcore.experimental import get_recipe
 import deepdiff
 import copy
 import pytest
+from typing import Dict, Any, Tuple, Callable
 from ewatercycle.forcing.preprocessors import update_marrmot, update_lisflood, update_hype, update_wflow, update_pcrglobwb
 
-TEST_INPUT_MARRMOT = (
+
+TEST_INPUT_MARRMOT: Tuple[Dict[str, Any], ...] = (
     {},
     {
         'startyear': 1990,
@@ -26,7 +28,7 @@ TEST_INPUT_MARRMOT = (
     },
 )
 
-TEST_INPUT_LISFLOOD = (
+TEST_INPUT_LISFLOOD: Tuple[Dict[str, Any], ...] = (
     {},
     {
         'startyear': 1990,
@@ -62,7 +64,7 @@ TEST_INPUT_LISFLOOD = (
     },
 )
 
-TEST_INPUT_HYPE = (
+TEST_INPUT_HYPE: Tuple[Dict[str, Any], ...] = (
     {},
     {
         'startyear': 1990,
@@ -84,7 +86,7 @@ TEST_INPUT_HYPE = (
     },
 )
 
-TEST_INPUT_WFLOW = (
+TEST_INPUT_WFLOW: Tuple[Dict[str, Any], ...] = (
     {},
     {
         'startyear': 1990,
@@ -120,7 +122,7 @@ TEST_INPUT_WFLOW = (
     },
 )
 
-TEST_INPUT_PCRGLOBWB = (
+TEST_INPUT_PCRGLOBWB: Tuple[Dict[str, Any], ...] = (
     {},
     {
         'startyear': 2002,
@@ -164,7 +166,7 @@ TEST_INPUT_PCRGLOBWB = (
     },
 )
 
-EXPECTED_DIFF_MARRMOT = (
+EXPECTED_DIFF_MARRMOT: Tuple[Dict[str, Any], ...] = (
     {},
     {
         'iterable_item_removed': {
@@ -270,7 +272,7 @@ EXPECTED_DIFF_MARRMOT = (
     },
 )
 
-EXPECTED_DIFF_LISFLOOD = (
+EXPECTED_DIFF_LISFLOOD: Tuple[Dict[str, Any], ...] = (
     {},
     {
         'iterable_item_removed': {
@@ -527,7 +529,7 @@ EXPECTED_DIFF_LISFLOOD = (
     },
 )
 
-EXPECTED_DIFF_HYPE = (
+EXPECTED_DIFF_HYPE: Tuple[Dict[str, Any], ...] = (
     {},
     {
         'iterable_item_removed': {
@@ -619,7 +621,7 @@ EXPECTED_DIFF_HYPE = (
     },
 )
 
-EXPECTED_DIFF_WFLOW = (
+EXPECTED_DIFF_WFLOW: Tuple[Dict[str, Any], ...] = (
     {},
     {
         'values_changed': {
@@ -794,7 +796,7 @@ EXPECTED_DIFF_WFLOW = (
     },
 )
 
-EXPECTED_DIFF_PCRGLOBWB = (
+EXPECTED_DIFF_PCRGLOBWB: Tuple[Dict[str, Any], ...] = (
     {},
     {
         'iterable_item_removed': {
@@ -1071,7 +1073,7 @@ def test_forcing_pcrglobwb(params, expected_diff):
 if __name__ == '__main__':
     model = 'wflow'
 
-    func_list = {
+    func_list: Dict[str, Callable] = {
         'marrmot': update_marrmot,
         'lisflood': update_lisflood,
         'hype': update_hype,
@@ -1079,7 +1081,7 @@ if __name__ == '__main__':
         'pcrglobwb': update_pcrglobwb,
     }
 
-    test_input_list = {
+    test_input_list: Dict[str, Tuple] = {
         'marrmot': TEST_INPUT_MARRMOT,
         'lisflood': TEST_INPUT_LISFLOOD,
         'hype': TEST_INPUT_HYPE,
@@ -1102,4 +1104,4 @@ if __name__ == '__main__':
 
         NEW_TEST_CASES.append(diff)
 
-    NEW_TEST_CASES = tuple(NEW_TEST_CASES)
+    NEW_TEST_CASES = list(NEW_TEST_CASES)

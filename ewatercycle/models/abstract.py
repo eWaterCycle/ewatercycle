@@ -1,8 +1,9 @@
-from abc import abstractmethod, ABCMeta
+from abc import ABCMeta, abstractmethod
 from os import PathLike
-from typing import Tuple, Iterable, Any, Optional
+from typing import Tuple, Iterable, Any
 
 import numpy as np
+import xarray as xr
 from basic_modeling_interface import Bmi
 
 
@@ -13,7 +14,7 @@ class AbstractModel(metaclass=ABCMeta):
         bmi (Bmi): Basic Modeling Interface object
     """
     def __init__(self):
-        self.bmi: Optional[Bmi] = None
+        self.bmi: Bmi = None  # bmi should set in setup() before calling its methods
 
     @abstractmethod
     def setup(self, *args, **kwargs) -> Tuple[PathLike, PathLike]:
@@ -66,6 +67,17 @@ class AbstractModel(metaclass=ABCMeta):
 
         """
         self.bmi.set_value(name, value)
+
+    @abstractmethod
+    def get_value_as_xarray(self, name: str) -> xr.DataArray:
+        """Get a copy values of the given variable as xarray DataArray.
+
+        The xarray object also contains coordinate information and additional
+        attributes such as the units.
+
+        Args: name: Name of the variable
+
+        """
 
     @property
     @abstractmethod
