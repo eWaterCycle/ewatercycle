@@ -42,7 +42,7 @@ Or, if the value entered cannot be converted to the expected type:
     >>> CFG['output_dir'] = 123
     InvalidConfigParameter: Key `output_dir`: Expected a path, but got 123
 
-By default, the config is loaded from the default location (i.e. ``~/.config/.ewatercycle/config-user.yml``).
+By default, the config is loaded from the default location (i.e. ``~/.config/.ewatercycle/ewatercycle.yaml``).
 If it does not exist, it falls back to the default values.
 to load a different file:
 
