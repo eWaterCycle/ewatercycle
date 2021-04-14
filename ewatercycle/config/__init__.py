@@ -62,8 +62,8 @@ eWaterCycle configuration object.
 
 The configuration is loaded from:
 
- 1. ``~/.ewatercycle/$XDG_CONFIG_HOME/.ewatercycle/ewatercycle.yaml``
- 2. ``~/.ewatercycle/.config/.ewatercycle/ewatercycle.yaml``
+ 1. ``~/$XDG_CONFIG_HOME/.ewatercycle/ewatercycle.yaml``
+ 2. ``~/.config/.ewatercycle/ewatercycle.yaml``
  3. ``/etc/ewatercycle.yaml``
  4. Fall back to empty configuration
 
