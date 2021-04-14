@@ -7,7 +7,7 @@ from datetime import datetime
 # from ewatercycle import CFG
 from os import PathLike
 from pathlib import Path
-from typing import Any, Iterable, Tuple, Union
+from typing import Any, Iterable, Tuple, Union, Optional
 
 import xarray as xr
 from grpc4bmi.bmi_client_docker import BmiClientDocker
@@ -26,7 +26,7 @@ class LisfloodParameterSet:
     """Directory with NetCDF file with model boundaries. NetCDF files should be called model_mask.nc"""
     config_template: PathLike
     """Config file used as template for a lisflood run"""
-    lisvap_config_template: PathLike = None
+    lisvap_config_template: Optional[PathLike] = None
     """Config file used as template for a lisvap run"""
 
 
@@ -42,11 +42,9 @@ parameterset = LisfloodParameterSet(
 
 # CFG:
 CFG = {
-    'lisflood': {
-        'singularity_image': 'ewatercycle-lisflood-grpc4bmi.sif',
-        'docker_image': 'ewatercycle/lisflood-grpc4bmi:latest',
-        # TODO add parameters sets available on system that can be passed to setup()
-    },
+    'lisflood.singularity_image': 'ewatercycle-lisflood-grpc4bmi.sif',
+    'lisflood.docker_image': 'ewatercycle/lisflood-grpc4bmi:latest',
+    # TODO add parameters sets available on system that can be passed to setup()
     'container_engine': 'singularity',
     'scratch_dir': '/scratch/shared/ewatercycle',
 }
@@ -79,7 +77,8 @@ class Lisflood(AbstractModel):
         forcing_dir (PathLike): Directory with meteological input files
     """
 
-    def setup(self,
+    # unable to subclass with more specialized arguments so ignore type
+    def setup(self,  # type: ignore
               forcing: Union[ForcingData, PathLike],
               parameterset: LisfloodParameterSet,
               work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
@@ -98,9 +97,8 @@ class Lisflood(AbstractModel):
         Returns:
             Path to config file and path to config directory
         """
-        _cfg = CFG['lisflood']
-        singularity_image = _cfg['singularity_image']
-        docker_image = _cfg['docker_image']
+        singularity_image = CFG['lisflood.singularity_image']
+        docker_image = CFG['lisflood.docker_image']
         self._check_work_dir(work_dir)
         self._check_forcing(forcing)
         self.parameterset = parameterset
@@ -132,7 +130,7 @@ class Lisflood(AbstractModel):
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        return config_file, self.work_dir
+        return Path(config_file), self.work_dir
 
     def _check_work_dir(self, work_dir):
         """"""
@@ -283,9 +281,8 @@ class Lisflood(AbstractModel):
         Returns:
             Tuple with exit code, stdout and stderr
         """
-        _cfg = CFG['lisflood']
-        singularity_image = _cfg['singularity_image']
-        docker_image = _cfg['docker_image']
+        singularity_image = CFG['lisflood.singularity_image']
+        docker_image = CFG['lisflood.docker_image']
         self._check_forcing(forcing)
         lisvap_file = self._create_lisvap_config()
         # TODO check if inside directories are needed
@@ -332,8 +329,8 @@ class Lisflood(AbstractModel):
             return {
                 'forcing_dir': self.forcing_dir,
                 'work_dir': self.work_dir,
-            }
-        return dict()
+            }.items()
+        return []
 
 
 def reindex_forcings(mask_map: PathLike, forcing: ForcingData, output_dir: PathLike = None) -> PathLike:
