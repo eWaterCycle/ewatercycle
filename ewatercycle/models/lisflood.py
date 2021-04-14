@@ -27,10 +27,8 @@ class LisfloodParameterSet:
     .. code-block::
 
         parameterset = LisfloodParameterSet(
-            # TODO one level down (+ /Lisflood01degree_masked)?
-            root=Path('/projects/0/wtrcycle/comparison/lisflood_input'),
-            # TODO dir or file (+ /model_mask.nc)?
-            mask=Path('/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD'),
+            root=Path('/projects/0/wtrcycle/comparison/lisflood_input/Lisflood01degree_masked'),
+            mask=Path('/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD/model_mask.nc'),
             config_template=Path('/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml'),
             lisvap_config_template=Path('/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisvap.xml'),
         )
@@ -38,7 +36,7 @@ class LisfloodParameterSet:
     root: PathLike
     """Directory with input files"""
     mask: PathLike
-    """Directory with NetCDF file with model boundaries. NetCDF files should be called model_mask.nc"""
+    """A NetCDF file with model boundaries"""
     config_template: PathLike
     """Config file used as template for a lisflood run"""
     lisvap_config_template: Optional[PathLike] = None
@@ -175,8 +173,8 @@ class Lisflood(AbstractModel):
             "CalendarDayStart": self.start.strftime("%d/%m/%Y 00:00"),
             "StepStart": "1",
             "StepEnd": str((self.end - self.start).days),
-            "PathRoot": f"{self.parameterset.root}/Lisflood01degree_masked",
-            "MaskMap": f"{self.parameterset.mask}/model_mask",
+            "PathRoot": f"{self.parameterset.root}",
+            "MaskMap": f"{self.parameterset.mask.rstrip('.nc')}",
             "PathMeteo": f"{self.forcing_dir}",
             "PathOut": f"{self.work_dir}",
         }
@@ -216,14 +214,14 @@ class Lisflood(AbstractModel):
         """Update lisvap setting file"""
         cfg = XmlConfig(self.parameterset.lisvap_config_template)
         # Make a dictionary for settings
-        maps = "/data/lisflood_input/Lisflood01degree_masked/maps_netcdf"
+        maps = "/data/lisflood_input/maps_netcdf"
         settings = {
             "CalendarDayStart": self.start.strftime("%d/%m/%Y 00:00"),
             "StepStart": self.start.strftime("%d/%m/%Y 00:00"),
             "StepEnd": self.end.strftime("%d/%m/%Y 00:00"),
             "PathOut": "/output",
             "PathBaseMapsIn": maps,
-            "MaskMap": "/data/mask/model_mask",
+            "MaskMap": "/data/model_mask",
             "PathMeteoIn": "/data/forcing",
         }
 
@@ -284,7 +282,7 @@ class Lisflood(AbstractModel):
 
         mount_points = {
             f'{self.parameterset.root}': '/data/lisflood_input',
-            f'{self.parameterset.mask}': '/data/mask',
+            f'{self.parameterset.mask}': '/data/model_mask.nc',
             f'{self.forcing_dir}': '/data/forcing',
             f'{self.work_dir}': '/output',
         }
