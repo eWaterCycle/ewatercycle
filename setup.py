@@ -33,7 +33,6 @@ setup(
     package_data={
         "": ["*.yaml"],
     },
-    include_package_data=True,
     license="Apache Software License 2.0",
     zip_safe=False,
     keywords='ewatercycle',
