@@ -20,6 +20,21 @@ from ewatercycle.parametersetdb.config import AbstractConfig
 
 @dataclass
 class LisfloodParameterSet:
+    """Input files specific for parameterset, model boundaries, and configuration template files
+
+    Example:
+
+    .. code-block::
+
+        parameterset = LisfloodParameterSet(
+            # TODO one level down (+ /Lisflood01degree_masked)?
+            root=Path('/projects/0/wtrcycle/comparison/lisflood_input'),
+            # TODO dir or file (+ /model_mask.nc)?
+            mask=Path('/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD'),
+            config_template=Path('/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml'),
+            lisvap_config_template=Path('/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisvap.xml'),
+        )
+    """
     root: PathLike
     """Directory with input files"""
     mask: PathLike
@@ -29,34 +44,13 @@ class LisfloodParameterSet:
     lisvap_config_template: Optional[PathLike] = None
     """Config file used as template for a lisvap run"""
 
-
-# TODO move to docs or example, should not be part of this file as its system specific
-parameterset = LisfloodParameterSet(
-    # TODO one level down (+ /Lisflood01degree_masked)?
-    root=Path('/projects/0/wtrcycle/comparison/lisflood_input'),
-    # TODO dir or file (+ /model_mask.nc)?
-    mask=Path('/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD'),
-    config_template=Path('/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml'),
-    lisvap_config_template=Path('/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisvap.xml'),
-)
-
+# TODO remove CFG dict when PR #45 is merged.
 # CFG:
 CFG = {
     'lisflood.singularity_image': 'ewatercycle-lisflood-grpc4bmi.sif',
     'lisflood.docker_image': 'ewatercycle/lisflood-grpc4bmi:latest',
-    # TODO add parameters sets available on system that can be passed to setup()
     'container_engine': 'singularity',
     'scratch_dir': '/scratch/shared/ewatercycle',
-}
-
-# mapping lisvap input varnames to cmor varnames
-INPUT_NAMES = {
-    'TAvgMaps': 'tas',
-    'TMaxMaps': 'tasmax',
-    'TMinMaps': 'tasmin',
-    'EActMaps': 'e',
-    'WindMaps': 'sfcWind',
-    'RgdMaps': 'rsds',
 }
 
 # LISFLOOD settings file reference maps prefixes
@@ -71,10 +65,12 @@ MAPS_PREFIXES = {
 class Lisflood(AbstractModel):
     """eWaterCycle implementation of Lisflood hydrological model.
 
-    Attributes
+    Attributes:
         bmi (Bmi): Basic Modeling Interface object
-        parameterset (LisfloodParameterSet): Set of input files for a certain catchment/period
-        forcing_dir (PathLike): Directory with meteological input files
+        work_dir (PathLike): Working directory for the model where it can read/write files
+
+    Example:
+        See examples/lisflood.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
 
     # unable to subclass with more specialized arguments so ignore type
@@ -82,12 +78,12 @@ class Lisflood(AbstractModel):
               forcing: Union[ForcingData, PathLike],
               parameterset: LisfloodParameterSet,
               work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
-        """Performs model setup.
+        """Configure model run
 
-        If forcing is missing evaporation files (e0, es0, et0) then the run_lisvap function should be run.
+        If forcing is missing evaporation files (e0, es0, et0) then the :py:meth:`run_lisvap` function should be run.
 
-        1. Creates config file and config directory
-        2. Start bmi container and store as self.bmi
+        1. Creates config file and config directory based on the forcing variables and time range
+        2. Start bmi container and store as :py:attr:`bmi`
 
         Args:
             forcing: a forcing directory or a forcing data object.
@@ -133,12 +129,14 @@ class Lisflood(AbstractModel):
         return Path(config_file), self.work_dir
 
     def _check_work_dir(self, work_dir):
-        """"""
+        """Check and optionally create the work directory."""
         self.work_dir = _generate_workdir(work_dir)
 
     def _check_forcing(self, forcing):
         """"Check forcing argument."""
-        # TODO for the future
+
+        # TODO check if mask has same grid as forcing files,
+        # if not warn users to run reindex_forcings
         if isinstance(forcing, PathLike):
             self.forcing_dir = forcing.expanduser()
             self.forcing_files = dict()
@@ -164,18 +162,9 @@ class Lisflood(AbstractModel):
                 # TODO converting numpy.datetime64 to datetime object is ugly, find better way
                 self.start = datetime.utcfromtimestamp(dataset.coords['time'][0].values.astype('O') / 1e9)
                 self.end = datetime.utcfromtimestamp(dataset.coords['time'][-1].values.astype('O') / 1e9)
-
-            # TODO use implementation from wishful notebook
-            # self.start = forcing.start_year
-            # self.end = forcing.end_year
-            # self.dataset = forcing.forcing
-            # self.forcing_dir = forcing.location
-
-            # TODO check if mask has same grid as forcing files,
-            # if not perform reindex
         else:
             raise TypeError(
-                f"Unknown forcing type: {forcing}"
+                f"Unknown forcing type: {forcing}. Please supply either a Path or ForcingData object."
             )
 
     def _create_lisflood_config(self) -> str:
@@ -219,7 +208,6 @@ class Lisflood(AbstractModel):
                     textvar.set('value', f"$(PathOut)/$({prefix['name']})")
 
         # Write to new setting file
-        # TODO return name
         lisflood_file = f"{self.work_dir}/lisflood_setting_{timestamp}.xml"
         cfg.save(lisflood_file)
         return lisflood_file
@@ -228,7 +216,6 @@ class Lisflood(AbstractModel):
         """Update lisvap setting file"""
         cfg = XmlConfig(self.parameterset.lisvap_config_template)
         # Make a dictionary for settings
-        # TODO check if inside directories are needed
         maps = "/data/lisflood_input/Lisflood01degree_masked/maps_netcdf"
         settings = {
             "CalendarDayStart": self.start.strftime("%d/%m/%Y 00:00"),
@@ -242,6 +229,15 @@ class Lisflood(AbstractModel):
 
         timestamp = f"{self.start.year}_{self.end.year}"
 
+        # Mapping lisvap input varnames to cmor varnames
+        INPUT_NAMES = {
+            'TAvgMaps': 'tas',
+            'TMaxMaps': 'tasmax',
+            'TMinMaps': 'tasmin',
+            'EActMaps': 'e',
+            'WindMaps': 'sfcWind',
+            'RgdMaps': 'rsds',
+        }
         for textvar in cfg.config.iter("textvar"):
             textvar_name = textvar.attrib["name"]
 
@@ -271,7 +267,7 @@ class Lisflood(AbstractModel):
         cfg.save(lisvap_file)
         return lisvap_file
 
-    # TODO take this out of the class
+    # TODO take this out of the class?
     def run_lisvap(self, forcing: PathLike) -> Tuple[int, bytes, bytes]:
         """Run lisvap to generate evaporation input files
 
@@ -285,7 +281,6 @@ class Lisflood(AbstractModel):
         docker_image = CFG['lisflood.docker_image']
         self._check_forcing(forcing)
         lisvap_file = self._create_lisvap_config()
-        # TODO check if inside directories are needed
 
         mount_points = {
             f'{self.parameterset.root}': '/data/lisflood_input',
@@ -339,7 +334,7 @@ def reindex_forcings(mask_map: PathLike, forcing: ForcingData, output_dir: PathL
     Args:
         mask_map: Path to NetCDF file used a boolean map that defines model boundaries.
         forcing: Forcing data from ESMValTool
-        output_dir: Directory where to write the re-indexed files
+        output_dir: Directory where to write the re-indexed files, given by user or created for user
 
     Returns:
         Output dir with re-indexed files.
@@ -366,8 +361,6 @@ def _generate_workdir(work_dir: PathLike = None) -> PathLike:
     Args:
         work_dir: If work dir is None then create sub-directory in CFG['scratch_dir']
 
-    Returns:
-
     """
     if work_dir is None:
         scratch_dir = CFG['scratch_dir']
@@ -384,7 +377,8 @@ class XmlConfig(AbstractConfig):
     def __init__(self, source):
         super().__init__(source)
         self.tree = ET.parse(source)
-        self.config = self.tree.getroot()
+        self.config: ET.Element = self.tree.getroot()
+        """XML element used to make changes to the config"""
 
     def save(self, target):
         self.tree.write(target)
