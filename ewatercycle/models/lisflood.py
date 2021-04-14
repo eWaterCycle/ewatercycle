@@ -136,7 +136,7 @@ class Lisflood(AbstractModel):
         # TODO check if mask has same grid as forcing files,
         # if not warn users to run reindex_forcings
         if isinstance(forcing, PathLike):
-            self.forcing_dir = forcing.expanduser()
+            self.forcing_dir = forcing.expanduser().resolve()
             self.forcing_files = dict()
             for forcing_file in self.forcing_dir.glob('*.nc'):
                 dataset = xr.open_dataset(forcing_file)
