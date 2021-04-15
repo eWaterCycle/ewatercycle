@@ -1,7 +1,7 @@
 esmvaltool_config: null
 grdc_location: null
-container_engine: docker
-singularity_dir: './'
-output_dir: './'
-wflow.singularity_image: "./ewatercycle-wflow-grpc4bmi.sif"
-wflow.docker_image: "ewatercycle/wflow-grpc4bmi:latest"
+container_engine: null
+singularity_dir: null
+output_dir: null
+wflow.singularity_image: null
+wflow.docker_image: null
