@@ -24,7 +24,8 @@ def hydrograph(
         fname: Union[os.PathLike, str] = None,
         dpi : int = None,
         title : str = 'Hydrograph',
-        ylabel: str = 'Streamflow (m$^3$ s$^{-1}$)',
+        discharge_units: str = 'm$^3$ s$^{-1}$',
+        precipitation_units: str = 'mm day$^{-1}$',
     ) -> plt.Axes:
     """Plot a hydrograph.
 
@@ -50,6 +51,11 @@ def hydrograph(
     y_obs = discharge[reference]
     y_sim = discharge[discharge_cols]
 
+    fig, ax = plt.subplots(dpi=dpi)
+
+    y_obs.plot(ax=ax)
+    y_sim.plot(ax=ax)
+
     def calc_metric(metric) -> float:
         return y_sim.apply(metric, observed_array=y_obs)
 
@@ -59,11 +65,6 @@ def hydrograph(
         'sa': calc_metric(metrics.sa),
         'me': calc_metric(metrics.me),
     })
-
-    fig, ax = plt.subplots(dpi=dpi)
-
-    y_obs.plot(ax=ax)
-    y_sim.plot(ax=ax)
 
     handles, labels = ax.get_legend_handles_labels()
 
@@ -78,10 +79,20 @@ def hydrograph(
     ax.legend(handles, new_labels, bbox_to_anchor=(0.5, -0.15), loc='upper center')
 
     ax.set_title(title)
-    ax.set_ylabel(ylabel)
+    ax.set_ylabel(f'Discharge ({discharge_units})')
 
     if precipitation is not None:
-        raise NotImplementedError
+        ax_pr = ax.twinx()
+
+        precipitation.plot(ax=ax_pr)
+        ax_pr.invert_yaxis()
+        ax_pr.set_ylabel(f'Precipitation ({precipitation_units})')
+
+        # tweak ylim to make space at bottom and top
+        ax_pr.set_ylim(ax_pr.get_ylim()[0] * 2.5, 0)
+        ax.set_ylim(0, ax.get_ylim()[1] * 1.2)
+
+
 
     if fname is not None:
         fig.savefig(fname, bbox_inches='tight', dpi=dpi)
