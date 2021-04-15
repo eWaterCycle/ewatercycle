@@ -4,7 +4,6 @@ import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import datetime
-# from ewatercycle import CFG
 from os import PathLike
 from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple, Union
@@ -15,6 +14,7 @@ from cftime import num2date
 from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
+from ewatercycle import CFG
 from ewatercycle.forcing.forcing_data import ForcingData
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import AbstractConfig
@@ -44,14 +44,6 @@ class LisfloodParameterSet:
     lisvap_config_template: Optional[PathLike] = None
     """Config file used as template for a lisvap run"""
 
-# TODO remove CFG dict when PR #45 is merged.
-# CFG:
-CFG = {
-    'lisflood.singularity_image': 'ewatercycle-lisflood-grpc4bmi.sif',
-    'lisflood.docker_image': 'ewatercycle/lisflood-grpc4bmi:latest',
-    'container_engine': 'singularity',
-    'scratch_dir': '/scratch/shared/ewatercycle',
-}
 
 # LISFLOOD settings file reference maps prefixes
 # MapsName: {prefix_name, prefix}
@@ -381,11 +373,11 @@ def _generate_workdir(work_dir: PathLike = None) -> PathLike:
     """
 
     Args:
-        work_dir: If work dir is None then create sub-directory in CFG['scratch_dir']
+        work_dir: If work dir is None then create sub-directory in CFG['output_dir']
 
     """
     if work_dir is None:
-        scratch_dir = CFG['scratch_dir']
+        scratch_dir = CFG['output_dir']
         # TODO this timestamp isnot safe for parallel processing
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         work_dir = Path(scratch_dir) / f'lisflood_{timestamp}'

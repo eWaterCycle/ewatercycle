@@ -8,14 +8,15 @@ import xarray
 from esmvalcore.experimental.recipe_output import DataFile
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
+from ewatercycle import CFG
 from ewatercycle.forcing.forcing_data import ForcingData
 from ewatercycle.parametersetdb.datafiles import SubversionCopier
-from ewatercycle.models.lisflood import CFG, Lisflood, LisfloodParameterSet
+from ewatercycle.models.lisflood import Lisflood, LisfloodParameterSet
 
 
 @pytest.fixture
 def mocked_config(tmp_path):
-    CFG['scratch_dir'] = tmp_path
+    CFG['output_dir'] = tmp_path
     CFG['container_engine'] = 'singularity'
     # TODO for reproducibility use versioned label instead of latest
     CFG['lisflood.singularity_image'] = 'docker://ewatercycle/lisflood-grpc4bmi:latest'
