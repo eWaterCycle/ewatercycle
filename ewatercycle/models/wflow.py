@@ -57,7 +57,7 @@ class Wflow(AbstractModel):
         self._setup_cfg_file(cfg_file=cfg_file, **kwargs)
         self._start_container()
 
-        return self.cfg_dir, self.cfg_file
+        return self.cfg_file, self.cfg_dir,
 
     def _setup_cfg_dir(self, cfg_dir: PathLike):
         timestamp = time.strftime("%Y%m%d_%H%M%S")
