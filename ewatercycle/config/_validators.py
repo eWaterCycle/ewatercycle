@@ -138,4 +138,7 @@ _validators = {
     # wflow specific
     'wflow.singularity_image': validate_string_or_none,
     'wflow.docker_image': validate_string_or_none,
+    # lisflood specific
+    'lisflood.singularity_image': validate_string_or_none,
+    'lisflood.docker_image': validate_string_or_none,
 }
