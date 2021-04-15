@@ -34,7 +34,6 @@ class Wflow(AbstractModel):
             self,
             cfg_dir: PathLike,
             cfg_file: PathLike,
-            forcing_data: Optional[PathLike] = None,
             **kwargs) -> Tuple[PathLike, PathLike]:
         """Start the model inside a container and return a valid config file.
 
@@ -46,9 +45,6 @@ class Wflow(AbstractModel):
             `wflow_sbm.ini`. This overwrites any existing files in cfg_dir with
             the same filename.
 
-            - forcing_data (optional): path to meteorological forcing data (.nc)
-            file. If not given, it should already be in the cfg_dir.
-
             - **kwargs (optional, dict): any settings in the cfg_file that you want
             to overwrite programmatically. Should be passed as a dict, e.g.
             `run = {"starttime": "1995-01-31 00:00:00 GMT"}` where run is the
@@ -59,7 +55,6 @@ class Wflow(AbstractModel):
         """
         self._setup_cfg_dir(cfg_dir=cfg_dir)
         self._setup_cfg_file(cfg_file=cfg_file, **kwargs)
-        self._setup_forcing(forcing_data=forcing_data)
         self._start_container()
 
         return self.cfg_dir, self.cfg_file
@@ -86,17 +81,6 @@ class Wflow(AbstractModel):
 
         self.cfg_file = new_cfg_file.resolve()
         print(f"Created {self.cfg_file}.")
-
-    def _setup_forcing(self, forcing_data: Optional[PathLike]):
-        if forcing_data is not None:
-            shutil.copy(src=forcing_data, dst=self.cfg_dir)
-            self.cfg.set("framework", "netcdfinput", Path(forcing_data).name)
-
-            with self.cfg_file.open("w") as filename:
-                self.cfg.write(filename)
-            print(
-                f"Copied forcing data to {self.cfg_dir} and updated {self.cfg_file} accordingly."
-            )
 
     def _start_container(self):
         if CFG["container_engine"] == "docker":
