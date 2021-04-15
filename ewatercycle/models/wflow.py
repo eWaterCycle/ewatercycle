@@ -30,10 +30,8 @@ class Wflow(AbstractModel):
     Attributes
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
-    def setup( # type: ignore
-            self,
-            cfg_dir: PathLike,
-            cfg_file: PathLike,
+    def setup(  # type: ignore
+            self, cfg_dir: PathLike, cfg_file: PathLike,
             **kwargs) -> Tuple[PathLike, PathLike]:
         """Start the model inside a container and return a valid config file.
 
@@ -130,12 +128,13 @@ class Wflow(AbstractModel):
         return da.where(da != -999)
 
     @property
-    def parameters(self):
+    def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the configurable parameters for this model."""
-        if hasattr(self, "cfg"):
-            for section in self.cfg.sections():
-                print(section)
-                for option in self.cfg.options(section):
-                    print(f"    {option}: {self.cfg.get(section, option)}")
-        else:
-            print("First run setup with a valid .ini file.")
+        if not hasattr(self, "cfg"):
+            raise NotImplementedError(
+                "No default parameters available for wflow. To see the "
+                "parameters, first run setup with a valid .ini file.")
+
+        return [(f"{section}.{option}", f"{self.cfg.get(section, option)}")
+                for section in self.cfg.sections()
+                for option in self.cfg.options(section)]
