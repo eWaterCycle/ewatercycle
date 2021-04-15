@@ -10,18 +10,9 @@ from cftime import num2date
 from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
+from ewatercycle import CFG
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import CaseConfigParser
-
-# from ewatercycle import CFG
-
-# mock CFG until the CFG PR is merged.
-CFG = {
-    "container_engine": "docker",
-    "singularity_images.wflow": "ewatercycle-wflow-grpc4bmi.sif",
-    "docker_images.wflow": "ewatercycle/wflow-grpc4bmi:latest",
-    "scratch_dir": "./"
-}
 
 
 class Wflow(AbstractModel):
@@ -59,7 +50,7 @@ class Wflow(AbstractModel):
 
     def _setup_cfg_dir(self, cfg_dir: PathLike):
         timestamp = time.strftime("%Y%m%d_%H%M%S")
-        work_dir = Path(CFG["scratch_dir"]) / f'wflow_{timestamp}'
+        work_dir = Path(CFG["output_dir"]) / f'wflow_{timestamp}'
         shutil.copytree(src=cfg_dir, dst=work_dir)
         self.cfg_dir = work_dir.resolve()
         print(f"Working directory created: {work_dir}")
@@ -83,13 +74,13 @@ class Wflow(AbstractModel):
     def _start_container(self):
         if CFG["container_engine"] == "docker":
             self.bmi = BmiClientDocker(
-                image=CFG["docker_images.wflow"],
+                image=CFG["wflow.docker_image"],
                 image_port=55555,
                 work_dir=str(self.cfg_dir),
                 timeout=10,
             )
         elif CFG["container_engine"] == "singularity":
-            image = CFG["singularity_images.wflow"]
+            image = CFG["wflow.singularity_image"]
 
             message = f"No singularity image found at {image}"
             assert Path(image).exists(), message
