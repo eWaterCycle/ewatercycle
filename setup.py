@@ -30,7 +30,9 @@ setup(
         # 'grpc4bmi>=0.2.12,<0.3',
     ],
     packages=find_packages(),
-    include_package_data=True,
+    package_data={
+        "": ["*.yaml"],
+    },
     license="Apache Software License 2.0",
     zip_safe=False,
     keywords='ewatercycle',
