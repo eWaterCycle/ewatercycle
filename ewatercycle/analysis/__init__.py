@@ -25,7 +25,7 @@ def hydrograph(
         dpi : int = None,
         title : str = 'Hydrograph',
         ylabel: str = 'Streamflow (m$^3$ s$^{-1}$)',
-    ):
+    ) -> plt.Axes:
     """Plot a hydrograph.
 
     Parameters
@@ -84,4 +84,6 @@ def hydrograph(
         raise NotImplementedError
 
     if fname is not None:
-        raise NotImplementedError
+        fig.savefig(fname, bbox_inches='tight', dpi=dpi)
+
+    return ax
