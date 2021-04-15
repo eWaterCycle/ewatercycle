@@ -24,10 +24,9 @@ setup(
         'numpy',
         'pandas',
         'pyoos',
+        'grpc4bmi>=0.2.12,<0.3',
         'ruamel.yaml',
         'xarray',
-        # TODO subclosses of ewatercycle.models.abstract.AbstractModel will need
-        # 'grpc4bmi>=0.2.12,<0.3',
     ],
     packages=find_packages(),
     package_data={
