@@ -45,8 +45,9 @@ class LisfloodParameterSet:
     """Config file used as template for a lisvap run"""
 
 
-# LISFLOOD settings file reference maps prefixes
-# MapsName: {prefix_name, prefix}
+# Mapping from lisvap output to lisflood input files. MAPS_PREFIXES dictionary
+# contains lisvap filenames in lisvap and lisflood config files and their
+# equivalent cmor names
 MAPS_PREFIXES = {
     'E0Maps': {'name': 'PrefixE0', 'value': 'e0'},
     'ES0Maps': {'name': 'PrefixES0', 'value': 'es0'},
@@ -85,6 +86,7 @@ class Lisflood(AbstractModel):
         Returns:
             Path to config file and path to config directory
         """
+        #TODO forcing can be a part of parameterset
         singularity_image = CFG['lisflood.singularity_image']
         docker_image = CFG['lisflood.docker_image']
         self._check_work_dir(work_dir)
@@ -125,8 +127,7 @@ class Lisflood(AbstractModel):
         self.work_dir = _generate_workdir(work_dir)
 
     def _check_forcing(self, forcing):
-        """"Check forcing argument."""
-
+        """"Check forcing argument and get path, start and end time of forcing data."""
         # TODO check if mask has same grid as forcing files,
         # if not warn users to run reindex_forcings
         if isinstance(forcing, PathLike):
@@ -200,7 +201,7 @@ class Lisflood(AbstractModel):
                     textvar.set('value', f"$(PathOut)/$({prefix['name']})")
 
         # Write to new setting file
-        lisflood_file = f"{self.work_dir}/lisflood_setting_{timestamp}.xml"
+        lisflood_file = f"{self.work_dir}/lisflood_setting.xml"
         cfg.save(lisflood_file)
         return lisflood_file
 
@@ -255,7 +256,7 @@ class Lisflood(AbstractModel):
                     )
 
         # Write to new setting file
-        lisvap_file = f"{self.work_dir}/lisvap_setting_{timestamp}.xml"
+        lisvap_file = f"{self.work_dir}/lisvap_setting.xml"
         cfg.save(lisvap_file)
         return lisvap_file
 
@@ -264,7 +265,7 @@ class Lisflood(AbstractModel):
         """Run lisvap to generate evaporation input files
 
         Args:
-            forcing: Path to re-indexed forcings
+            forcing: Path to forcing data
 
         Returns:
             Tuple with exit code, stdout and stderr

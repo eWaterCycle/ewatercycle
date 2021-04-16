@@ -101,7 +101,7 @@ class TestLFlatlonUseCase:
                 f'{tmp_path}/forcing'],
             work_dir=f'{tmp_path}/lisflood_42')
         assert 'lisflood_42' in str(config_dir)
-        assert config_file.name == 'lisflood_setting_1986_2018.xml'
+        assert config_file.name == 'lisflood_setting.xml'
 
     # TODO add lisvap settings file
     # def test_run_lisvap(self, model_with_setup, model: Lisflood, tmp_path):
