@@ -21,6 +21,7 @@ setup(
     install_requires=[
         'basic_modeling_interface',
         'esmvaltool',
+        'hydrostats',
         'matplotlib',
         'numpy',
         'pandas',

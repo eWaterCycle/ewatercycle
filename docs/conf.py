@@ -204,6 +204,7 @@ texinfo_documents = [
 autodoc_mock_imports = [
     'dask',
     'esmvalcore',
+    'hydrostats',
     'matplotlib',
     'numpy',
     'pandas',
