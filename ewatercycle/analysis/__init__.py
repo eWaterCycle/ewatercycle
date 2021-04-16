@@ -3,6 +3,7 @@ import os
 from typing import Union
 from hydrostats import metrics
 import matplotlib.pyplot as plt
+from matplotlib.dates import DateFormatter
 
 
 def metrics_to_string(row: pd.Series) -> str:
@@ -51,33 +52,18 @@ def hydrograph(
     y_obs = discharge[reference]
     y_sim = discharge[discharge_cols]
 
-    fig, ax = plt.subplots(dpi=dpi)
+    fig, (ax, ax_tbl) = plt.subplots(
+        nrows=2,
+        ncols=1,
+        dpi=dpi,
+        figsize=(10,10),
+        gridspec_kw={'height_ratios': [3, 1]}
+    )
 
     y_obs.plot(ax=ax)
     y_sim.plot(ax=ax)
 
-    def calc_metric(metric) -> float:
-        return y_sim.apply(metric, observed_array=y_obs)
-
-    metrs = pd.DataFrame({
-        'nse': calc_metric(metrics.nse),
-        'kge_2009': calc_metric(metrics.kge_2009),
-        'sa': calc_metric(metrics.sa),
-        'me': calc_metric(metrics.me),
-    })
-
-    def update_labels_with_metrics(labels) -> list:
-        """Generate labels that include the metrics for the discharge data."""
-        new_labels = []
-        for label in labels:
-            if label != reference:
-                label = metrics_to_string(metrs.T[label])
-            new_labels.append(label)
-        return new_labels
-
     handles, labels = ax.get_legend_handles_labels()
-    # Generate labels that include the metrics for the discharge data
-    labels = update_labels_with_metrics(labels)
 
     ax.set_title(title)
     ax.set_ylabel(f'Discharge ({discharge_units})')
@@ -105,10 +91,36 @@ def hydrograph(
         labels = labels_pr + labels
 
     # Put the legend outside the plot, at the bottom
-    ax.legend(handles, labels, bbox_to_anchor=(0.5, -0.15), loc='upper center')
+    ax.legend(handles, labels, bbox_to_anchor=(1.10, 1), loc='upper left')
 
-    # Fix overlap in the date formatting
-    fig.autofmt_xdate()
+    # set formatting for xticks
+    date_fmt = DateFormatter("%Y-%m")
+    ax.xaxis.set_major_formatter(date_fmt)
+    ax.tick_params(axis='x', rotation=30)
+
+    def calc_metric(metric) -> float:
+        return y_sim.apply(metric, observed_array=y_obs)
+
+    metrs = pd.DataFrame({
+        'nse': calc_metric(metrics.nse),
+        'kge_2009': calc_metric(metrics.kge_2009),
+        'sa': calc_metric(metrics.sa),
+        'me': calc_metric(metrics.me),
+    })
+
+    # convert data in dataframe to strings
+    cell_text = [[f'{item:.2f}' for item in row[1]] for row in metrs.iterrows()]
+
+    # Add table with metrics underneath the plot
+    table = ax_tbl.table(
+        cellText=cell_text,
+        rowLabels=metrs.index,
+        colLabels=metrs.columns,
+        loc='center'
+    )
+
+    table.scale(1, 1.5)
+    ax_tbl.set_axis_off()
 
     if fname is not None:
         fig.savefig(fname, bbox_inches='tight', dpi=dpi)
