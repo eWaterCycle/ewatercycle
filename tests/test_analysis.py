@@ -7,7 +7,8 @@ import numpy as np
 @image_comparison(
     baseline_images=['hydrograph'],
     remove_text=True,
-    extensions=['png']
+    extensions=['png'],
+    savefig_kwarg={'bbox_inches':'tight'},
 )
 def test_hydrograph():
     ntime = 300
