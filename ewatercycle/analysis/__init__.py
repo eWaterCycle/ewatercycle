@@ -66,33 +66,49 @@ def hydrograph(
         'me': calc_metric(metrics.me),
     })
 
+    def update_labels_with_metrics(labels) -> list:
+        """Generate labels that include the metrics for the discharge data."""
+        new_labels = []
+        for label in labels:
+            if label != reference:
+                label = metrics_to_string(metrs.T[label])
+            new_labels.append(label)
+        return new_labels
+
     handles, labels = ax.get_legend_handles_labels()
-
     # Generate labels that include the metrics for the discharge data
-    new_labels = []
-    for label in labels:
-        if label != reference:
-            label = metrics_to_string(metrs.T[label])
-        new_labels.append(label)
-
-    # Put the legend outside the plot, at the bottom
-    ax.legend(handles, new_labels, bbox_to_anchor=(0.5, -0.15), loc='upper center')
+    labels = update_labels_with_metrics(labels)
 
     ax.set_title(title)
     ax.set_ylabel(f'Discharge ({discharge_units})')
 
     if precipitation is not None:
         ax_pr = ax.twinx()
-
-        precipitation.plot(ax=ax_pr)
         ax_pr.invert_yaxis()
         ax_pr.set_ylabel(f'Precipitation ({precipitation_units})')
 
+        for pr_label, pr_timeseries in precipitation.iteritems():
+            ax_pr.bar(
+                pr_timeseries.index.values,
+                pr_timeseries.values,
+                alpha=0.4,
+                label=pr_label,
+            )
+
         # tweak ylim to make space at bottom and top
-        ax_pr.set_ylim(ax_pr.get_ylim()[0] * 2.5, 0)
-        ax.set_ylim(0, ax.get_ylim()[1] * 1.2)
+        ax_pr.set_ylim(ax_pr.get_ylim()[0] * (7/2), 0)
+        ax.set_ylim(0, ax.get_ylim()[1] * (7/5))
 
+        # prepend handles/labels so they appear at the top
+        handles_pr, labels_pr = ax_pr.get_legend_handles_labels()
+        handles = handles_pr + handles
+        labels = labels_pr + labels
 
+    # Put the legend outside the plot, at the bottom
+    ax.legend(handles, labels, bbox_to_anchor=(0.5, -0.15), loc='upper center')
+
+    # Fix overlap in the date formatting
+    fig.autofmt_xdate()
 
     if fname is not None:
         fig.savefig(fname, bbox_inches='tight', dpi=dpi)
