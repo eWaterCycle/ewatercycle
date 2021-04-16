@@ -25,7 +25,6 @@ setup(
         'numpy',
         'pandas',
         'pyoos',
-        'grpc4bmi>=0.2.12,<0.3',
         'ruamel.yaml',
         'xarray',
     ],
