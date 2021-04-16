@@ -73,7 +73,7 @@ class Lisflood(AbstractModel):
               work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
         """Configure model run
 
-        If forcing is missing evaporation files (e0, es0, et0) then the :py:meth:`run_lisvap` function should be run.
+        If evaporation files (e0, es0, et0) are not included in the forcing, then :py:meth:`run_lisvap` function should be called before setup.
 
         1. Creates config file and config directory based on the forcing variables and time range
         2. Start bmi container and store as :py:attr:`bmi`
