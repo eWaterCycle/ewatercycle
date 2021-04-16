@@ -138,4 +138,8 @@ _validators = {
     # wflow specific
     'wflow.singularity_image': validate_string_or_none,
     'wflow.docker_image': validate_string_or_none,
+    # marrmot specific
+    'marrmot.singularity_image': validate_string_or_none,
+    'marrmot.docker_image': validate_string_or_none,
+
 }
