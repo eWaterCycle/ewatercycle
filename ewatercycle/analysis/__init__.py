@@ -19,6 +19,13 @@ def hydrograph(
 ) -> plt.Axes:
     """Plot a hydrograph.
 
+    This utility function makes it convenient to create a hydrograph from
+    a set of discharge data from a `pandas.DataFrame`. A column must be marked
+    as the reference, so that the agreement metrics can be calculated.
+
+    Optionally, the corresponding precipitation data can be plotted for
+    comparison.
+
     Parameters
     ----------
     discharge : pd.DataFrame
@@ -32,10 +39,19 @@ def hydrograph(
         plotted from the top of the hydrograph.
     fname : str, Path
         If specified, a copy of the plot will be saved to this path.
-    dpi : int
+    dpi : int, optional
         DPI for the plot.
-    title : str
+    title : str, optional
         Title of the hydrograph.
+    discharge_units : str, optional
+        Units for the discharge data.
+    precipitation_units : str, optional
+        Units for the precipitation data.
+
+    Returns
+    -------
+    ax : :obj:`matplotlib.axes.Axes`
+        Instance of a `~matplotlib.axes.Axes` object.
     """
     discharge_cols = discharge.columns.drop('reference')
     y_obs = discharge[reference]
