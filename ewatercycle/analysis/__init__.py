@@ -6,28 +6,17 @@ import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 
 
-def metrics_to_string(row: pd.Series) -> str:
-    """Takes a row with metrics and formats it as a label string."""
-    return (
-        f'{row.name}\n'
-        f'NSE={row.nse:.2f}; '
-        f'KGE_2009={row.kge_2009:.2f}; '
-        f'SA={row.sa:.2f}; '
-        f'ME={row.me:.2f}; '
-    )
-
-
 def hydrograph(
-        discharge: pd.DataFrame,
-        *,
-        reference: str,
-        precipitation: pd.DataFrame = None,
-        fname: Union[os.PathLike, str] = None,
-        dpi : int = None,
-        title : str = 'Hydrograph',
-        discharge_units: str = 'm$^3$ s$^{-1}$',
-        precipitation_units: str = 'mm day$^{-1}$',
-    ) -> plt.Axes:
+    discharge: pd.DataFrame,
+    *,
+    reference: str,
+    precipitation: pd.DataFrame = None,
+    fname: Union[os.PathLike, str] = None,
+    dpi: int = None,
+    title: str = 'Hydrograph',
+    discharge_units: str = 'm$^3$ s$^{-1}$',
+    precipitation_units: str = 'mm day$^{-1}$',
+) -> plt.Axes:
     """Plot a hydrograph.
 
     Parameters
@@ -56,18 +45,19 @@ def hydrograph(
         nrows=2,
         ncols=1,
         dpi=dpi,
-        figsize=(10,10),
-        gridspec_kw={'height_ratios': [3, 1]}
+        figsize=(10, 10),
+        gridspec_kw={'height_ratios': [3, 1]},
     )
+
+    ax.set_title(title)
+    ax.set_ylabel(f'Discharge ({discharge_units})')
 
     y_obs.plot(ax=ax)
     y_sim.plot(ax=ax)
 
     handles, labels = ax.get_legend_handles_labels()
 
-    ax.set_title(title)
-    ax.set_ylabel(f'Discharge ({discharge_units})')
-
+    # Add precipitation as bar plot to the top if specified
     if precipitation is not None:
         ax_pr = ax.twinx()
         ax_pr.invert_yaxis()
@@ -82,8 +72,8 @@ def hydrograph(
             )
 
         # tweak ylim to make space at bottom and top
-        ax_pr.set_ylim(ax_pr.get_ylim()[0] * (7/2), 0)
-        ax.set_ylim(0, ax.get_ylim()[1] * (7/5))
+        ax_pr.set_ylim(ax_pr.get_ylim()[0] * (7 / 2), 0)
+        ax.set_ylim(0, ax.get_ylim()[1] * (7 / 5))
 
         # prepend handles/labels so they appear at the top
         handles_pr, labels_pr = ax_pr.get_legend_handles_labels()
@@ -98,6 +88,7 @@ def hydrograph(
     ax.xaxis.set_major_formatter(date_fmt)
     ax.tick_params(axis='x', rotation=30)
 
+    # calculate metrics for data table underneath plot
     def calc_metric(metric) -> float:
         return y_sim.apply(metric, observed_array=y_obs)
 
@@ -109,18 +100,19 @@ def hydrograph(
     })
 
     # convert data in dataframe to strings
-    cell_text = [[f'{item:.2f}' for item in row[1]] for row in metrs.iterrows()]
+    cell_text = [[f'{item:.2f}' for item in row[1]]
+                 for row in metrs.iterrows()]
 
-    # Add table with metrics underneath the plot
     table = ax_tbl.table(
         cellText=cell_text,
         rowLabels=metrs.index,
         colLabels=metrs.columns,
-        loc='center'
+        loc='center',
     )
-
-    table.scale(1, 1.5)
     ax_tbl.set_axis_off()
+
+    # give more vertical space in cells
+    table.scale(1, 1.5)
 
     if fname is not None:
         fig.savefig(fname, bbox_inches='tight', dpi=dpi)
