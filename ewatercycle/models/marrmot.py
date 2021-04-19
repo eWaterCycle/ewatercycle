@@ -27,6 +27,20 @@ class Solver:
     resnorm_maxiter: float = 6.0
 
 
+def _generate_work_dir(work_dir: PathLike = None):
+    """
+    Args:
+        work_dir: If work dir is None then create sub-directory in CFG['output_dir']
+    """
+    if work_dir is None:
+        scratch_dir = CFG['output_dir']
+        # TODO this timestamp isnot safe for parallel processing
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        work_dir = Path(scratch_dir) / f'marrmot_{timestamp}'
+        work_dir.mkdir(parents=True, exist_ok=True)
+    return work_dir
+
+
 class MarrmotM01(AbstractModel):
     """eWaterCycle implementation of Marrmot Collie River 1 (traditional bucket) hydrological model.
 
@@ -98,19 +112,6 @@ class MarrmotM01(AbstractModel):
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
         return config_file, self.work_dir
-
-    def _check_work_dir(self, work_dir):
-        """
-        Args:
-            work_dir: If work dir is None then create sub-directory in CFG['output_dir']
-        """
-        if work_dir is None:
-            scratch_dir = CFG['output_dir']
-            # TODO this timestamp isnot safe for parallel processing
-            timestamp = time.strftime("%Y%m%d_%H%M%S")
-            work_dir = Path(scratch_dir) / f'marrmot_{timestamp}'
-            work_dir.mkdir(parents=True, exist_ok=True)
-        return work_dir
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
