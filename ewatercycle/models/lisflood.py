@@ -332,6 +332,7 @@ class Lisflood(AbstractModel):
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the parameters for this model."""
+        #TODO fix issue #60
         if self.forcing_dir and self.work_dir:
             return {
                 'forcing_dir': self.forcing_dir,
