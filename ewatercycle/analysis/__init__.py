@@ -16,7 +16,7 @@ def hydrograph(
     title: str = 'Hydrograph',
     discharge_units: str = 'm$^3$ s$^{-1}$',
     precipitation_units: str = 'mm day$^{-1}$',
-) -> plt.Axes:
+) -> plt.Figure:
     """Plot a hydrograph.
 
     This utility function makes it convenient to create a hydrograph from
@@ -96,7 +96,7 @@ def hydrograph(
         handles = handles_pr + handles
         labels = labels_pr + labels
 
-    # Put the legend outside the plot, at the bottom
+    # Put the legend outside the plot
     ax.legend(handles, labels, bbox_to_anchor=(1.10, 1), loc='upper left')
 
     # set formatting for xticks
@@ -133,4 +133,4 @@ def hydrograph(
     if fname is not None:
         fig.savefig(fname, bbox_inches='tight', dpi=dpi)
 
-    return ax
+    return fig
