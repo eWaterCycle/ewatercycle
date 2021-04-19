@@ -100,3 +100,10 @@ class TestWithDefaultsAndExampleData:
             attrs={"units": 'mm day'},
         )
         assert_allclose(actual, expected)
+
+    def test_setup_with_own_work_dir(self, tmp_path, mocked_config, model: MarrmotM01, forcing_file: Path):
+        cfg_file, cfg_dir = model.setup(
+            forcing=forcing_file,
+            work_dir=tmp_path
+        )
+        assert cfg_dir == tmp_path
