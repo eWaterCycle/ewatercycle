@@ -22,60 +22,76 @@ class PCRGlobWB(AbstractModel):
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
     def setup(  # type: ignore
-            self, cfg_dir: PathLike, cfg_file: PathLike,
+            self,
+            input_dir: PathLike,
+            cfg_file: PathLike,
+            additional_input_dirs: Iterable[PathLike] = [],
             **kwargs) -> Tuple[PathLike, PathLike]:
-        """Start the model inside a container and return a valid config file.
+        """Start model inside container and return config file and work dir.
 
         Args:
 
-            - cfg_dir: path to a valid pcrglobwb model spec.
+            - input_dir: main input directory. Relative paths in the cfg_file
+            should start from this directory.
 
-            - cfg_file: path to the configuration file, typically somethig like
-            `setup.ini`. This overwrites any existing files in cfg_dir with
-            the same filename.
+            - cfg_file: path to a valid pcrglobwb configuration file,
+            typically somethig like `setup.ini`.
 
-            - **kwargs (optional, dict): any settings in the cfg_file that you want
-            to overwrite programmatically. Should be passed as a dict, e.g.
-            `meteoOptions = {"temperatureNC": "era5_tas_1990_2000.nc"}` where meteoOptions is the
-            section in which the temperatureNC option may be found.
+            - additional_input_dirs: one or more additional data directories
+            that the model will have access to.
 
-        Returns: Path to config file and config dir
+            - **kwargs (optional, dict): any settings in the cfg_file that you
+            want to overwrite programmatically. Should be passed as a dict,
+            e.g. `meteoOptions = {"temperatureNC": "era5_tas_1990_2000.nc"}`
+            where meteoOptions is the section in which the temperatureNC option
+            may be found.
+
+        Returns: Path to config file and work dir
         """
-        self._setup_cfg_dir(cfg_dir=cfg_dir)
-        self._setup_cfg_file(cfg_file=cfg_file, **kwargs)
-        self._start_container()
+        self._setup_work_dir()
+        self._setup_config(cfg_file, input_dir, **kwargs)
+        self._start_container(input_dir, additional_input_dirs)
 
-        return self.cfg_file, self.cfg_dir,
+        return self.cfg_file, self.work_dir,
 
-    def _setup_cfg_dir(self, cfg_dir: PathLike):
+    def _setup_work_dir(self):
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         work_dir = Path(CFG["output_dir"]) / f'pcrglobwb_{timestamp}'
-        shutil.copytree(src=cfg_dir, dst=work_dir)
-        self.cfg_dir = work_dir.resolve()
-        print(f"Working directory created: {work_dir}")
+        work_dir.mkdir()
+        self.work_dir = work_dir.resolve()
+        print(f"Created working directory: {work_dir}")
 
-    def _setup_cfg_file(self, cfg_file: PathLike, **kwargs):
+    def _setup_config(self, cfg_file: PathLike, input_dir: PathLike, **kwargs):
         cfg = CaseConfigParser()
         cfg.read(cfg_file)
         self.cfg = cfg
+
+        full_input_path = Path(input_dir).resolve()
+        cfg.set('globalOptions', 'inputDir', str(full_input_path))
+        cfg.set('globalOptions', 'outputDir', str(self.work_dir))
 
         for section, options in kwargs.items():
             for option, value in options.items():
                 cfg.set(section, option, value)
 
-        new_cfg_file = Path(self.cfg_dir) / "pcrglobwb_ewatercycle.ini"
+        new_cfg_file = Path(self.work_dir) / "pcrglobwb_ewatercycle.ini"
         with new_cfg_file.open("w") as filename:
             cfg.write(filename)
 
         self.cfg_file = new_cfg_file.resolve()
-        print(f"Created {self.cfg_file}.")
+        print(f"Created config file {self.cfg_file} with inputDir {input_dir} "
+              "and outputDir {self.work_dir}.")
 
-    def _start_container(self):
+    def _start_container(self, input_dir: PathLike,
+                         additional_input_dirs: Iterable[PathLike]):
+        input_dirs = [input_dir] + additional_input_dirs
+
         if CFG["container_engine"] == "docker":
             self.bmi = BmiClientDocker(
                 image=CFG["pcrglobwb.docker_image"],
                 image_port=55555,
-                work_dir=str(self.cfg_dir),
+                work_dir=str(self.work_dir),
+                input_dirs=[str(input_dir) for input_dir in input_dirs],
                 timeout=10,
             )
         elif CFG["container_engine"] == "singularity":
@@ -86,14 +102,18 @@ class PCRGlobWB(AbstractModel):
 
             self.bmi = BmiClientSingularity(
                 image=image,
-                work_dir=str(self.cfg_dir),
+                work_dir=str(self.work_dir),
+                input_dirs=[str(input_dir) for input_dir in input_dirs],
                 timeout=10,
             )
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        print(f"Started pcrglobwb container with working directory {self.cfg_dir}")
+
+        print(
+            f"Started pcrglobwb container with working directory {self.work_dir}"
+            f"and access to the following input directories: {input_dirs}.")
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
