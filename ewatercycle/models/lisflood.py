@@ -90,7 +90,7 @@ class Lisflood(AbstractModel):
         #TODO add a start time argument that must be in forcing time range
         singularity_image = CFG['lisflood.singularity_image']
         docker_image = CFG['lisflood.docker_image']
-        self._check_work_dir(work_dir)
+        self.work_dir = _generate_workdir(work_dir)
         self._check_forcing(forcing)
         self.parameterset = parameterset
 
@@ -122,10 +122,6 @@ class Lisflood(AbstractModel):
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
         return Path(config_file), self.work_dir
-
-    def _check_work_dir(self, work_dir):
-        """Check and optionally create the work directory."""
-        self.work_dir = _generate_workdir(work_dir)
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
