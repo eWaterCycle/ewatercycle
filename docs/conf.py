@@ -211,4 +211,5 @@ autodoc_mock_imports = [
     'pandas',
     'ruamel.yaml',
     'pyoos',
+    'grpc4bmi',
 ]

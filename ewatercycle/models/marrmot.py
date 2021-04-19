@@ -163,7 +163,7 @@ class MarrmotM01(AbstractModel):
                     self.end_time_as_dt.second,
                 ]
             else:
-                raise ValueError('start_time outside forcing time range')
+                raise ValueError('end_time outside forcing time range')
 
         # combine forcing and model parameters
         forcing_data.update(
