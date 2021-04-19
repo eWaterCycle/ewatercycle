@@ -44,6 +44,7 @@ class MarrmotM01(AbstractModel):
         self._parameters = [1000.0]
         self.store_ini = [900.0]
         self.solver = Solver()
+        self.forcing_file: PathLike = None
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
@@ -75,21 +76,19 @@ class MarrmotM01(AbstractModel):
         self.solver = solver
         self.start_time_as_dt = start_time
         self.end_time_as_dt = end_time
-        self._check_work_dir(work_dir)
+        self.work_dir = self._check_work_dir(work_dir)
         self._check_forcing(forcing)
 
         config_file = self._create_marrmot_config()
 
-        singularity_image = CFG['marrmot.singularity_image']
-        docker_image = CFG['marrmot.docker_image']
         if CFG['container_engine'].lower() == 'singularity':
             self.bmi = BmiClientSingularity(
-                image=singularity_image,
+                image=CFG['marrmot.singularity_image'],
                 work_dir=str(self.work_dir),
             )
         elif CFG['container_engine'].lower() == 'docker':
             self.bmi = BmiClientDocker(
-                image=docker_image,
+                image=CFG['marrmot.docker_image'],
                 image_port=55555,
                 work_dir=str(self.work_dir),
             )
@@ -110,7 +109,7 @@ class MarrmotM01(AbstractModel):
             timestamp = time.strftime("%Y%m%d_%H%M%S")
             work_dir = Path(scratch_dir) / f'marrmot_{timestamp}'
             work_dir.mkdir(parents=True, exist_ok=True)
-        self.work_dir = work_dir
+        return work_dir
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
@@ -124,8 +123,10 @@ class MarrmotM01(AbstractModel):
             )
         # parse start/end time
         forcing_data = sio.loadmat(self.forcing_file, mat_dtype=True)
-        self.forcing_start_time = datetime(*forcing_data["time_start"], tzinfo=timezone.utc)
-        self.forcing_end_time = datetime(*forcing_data["time_end"], tzinfo=timezone.utc)
+        time_start_parts = [int(d) for d in forcing_data["time_start"][0]]
+        self.forcing_start_time = datetime(*time_start_parts, tzinfo=timezone.utc)
+        time_end_parts = [int(d) for d in forcing_data["time_end"][0]]
+        self.forcing_end_time = datetime(*time_end_parts, tzinfo=timezone.utc)
 
     def _create_marrmot_config(self) -> PathLike:
         """Write model configuration file.
@@ -139,7 +140,7 @@ class MarrmotM01(AbstractModel):
         # overwrite dates if given
         if self.start_time_as_dt is not None:
             if self.forcing_start_time <= self.start_time_as_dt <= self.forcing_end_time:
-                forcing_data["time_start"][0:3] = [
+                forcing_data["time_start"][0][0:6] = [
                     self.start_time_as_dt.year,
                     self.start_time_as_dt.month,
                     self.start_time_as_dt.day,
@@ -151,7 +152,7 @@ class MarrmotM01(AbstractModel):
                 raise ValueError('start_time outside forcing time range')
         if self.end_time_as_dt is not None:
             if self.forcing_start_time <= self.end_time_as_dt <= self.forcing_end_time:
-                forcing_data["time_end"][0:3] = [
+                forcing_data["time_end"][0][0:6] = [
                     self.end_time_as_dt.year,
                     self.end_time_as_dt.month,
                     self.end_time_as_dt.day,
