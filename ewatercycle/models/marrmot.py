@@ -37,7 +37,8 @@ class MarrmotM01(AbstractModel):
     Example:
         See examples/marrmotM01.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
-    model_name="m_01_collie1_1p_1s"
+    model_name = "m_01_collie1_1p_1s"
+    """Name of model in Matlab code"""
 
     def __init__(self):
         super().__init__()
@@ -122,7 +123,7 @@ class MarrmotM01(AbstractModel):
                 f"Unknown forcing type: {forcing}. Please supply either a Path or ForcingData object."
             )
         # parse start/end time
-        forcing_data = sio.loadmat(self.forcing_file, mat_dtype=True)
+        forcing_data = sio.loadmat(str(self.forcing_file), mat_dtype=True)
         time_start_parts = [int(d) for d in forcing_data["time_start"][0]]
         self.forcing_start_time = datetime(*time_start_parts, tzinfo=timezone.utc)
         time_end_parts = [int(d) for d in forcing_data["time_end"][0]]
@@ -135,7 +136,7 @@ class MarrmotM01(AbstractModel):
         and writes this information to a model configuration file.
         """
         # get the forcing that was created with ESMValTool
-        forcing_data = sio.loadmat(self.forcing_file, mat_dtype=True)
+        forcing_data = sio.loadmat(str(self.forcing_file), mat_dtype=True)
 
         # overwrite dates if given
         if self.start_time_as_dt is not None:
