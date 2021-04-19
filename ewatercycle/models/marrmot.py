@@ -1,27 +1,27 @@
-import os
-import subprocess
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from os import PathLike
 from pathlib import Path
-
+from typing import Any, Iterable, Tuple, Union
 
 import numpy as np
+import scipy.io as sio
 import xarray as xr
 from cftime import num2date
 from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
-from typing import Any, Iterable, Optional, Tuple, Union
-import scipy.io as sio
 
 from ewatercycle import CFG
 from ewatercycle.forcing.forcing_data import ForcingData
 from ewatercycle.models.abstract import AbstractModel
-from ewatercycle.parametersetdb.config import AbstractConfig
+
 
 @dataclass
 class Solver:
+    """Solver, for current implementations see
+    _`here <https://github.com/wknoben/MARRMoT/tree/master/MARRMoT/Functions/Time%20stepping>`.
+    """
     name: str = 'createOdeApprox_IE'
     resnorm_tolerance: float = 0.1
     resnorm_maxiter: float = 6.0
@@ -29,9 +29,11 @@ class Solver:
 
 class MarrmotM01(AbstractModel):
     """eWaterCycle implementation of Marrmot Collie River 1 (traditional bucket) hydrological model.
+
     Attributes:
         bmi (Bmi): Basic Modeling Interface object
         work_dir (PathLike): Working directory for the model where it can read/write files
+
     Example:
         See examples/marrmotM01.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
@@ -39,7 +41,7 @@ class MarrmotM01(AbstractModel):
 
     def __init__(self):
         super().__init__()
-        self.parameters = [1000.0]
+        self._parameters = [1000.0]
         self.store_ini = [900.0]
         self.solver = Solver()
 
@@ -68,11 +70,11 @@ class MarrmotM01(AbstractModel):
         Returns:
             Path to config file and path to config directory
         """
-        self.parameters = [maximum_soil_moisture_storage]
+        self._parameters = [maximum_soil_moisture_storage]
         self.store_ini = [initial_soil_moisture_storage]
         self.solver = solver
-        self.start_time = start_time
-        self.end_time = end_time
+        self.start_time_as_dt = start_time
+        self.end_time_as_dt = end_time
         self._check_work_dir(work_dir)
         self._check_forcing(forcing)
 
@@ -134,22 +136,28 @@ class MarrmotM01(AbstractModel):
         # get the forcing that was created with ESMValTool
         forcing_data = sio.loadmat(self.forcing_file, mat_dtype=True)
 
-        # overwrite dates
-        if self.start_time is None:
-            if self.forcing_start_time <= self.start_time <= self.forcing_end_time:
+        # overwrite dates if given
+        if self.start_time_as_dt is not None:
+            if self.forcing_start_time <= self.start_time_as_dt <= self.forcing_end_time:
                 forcing_data["time_start"][0:3] = [
-                    self.start_time.year,
-                    self.start_time.month,
-                    self.start_time.day,
+                    self.start_time_as_dt.year,
+                    self.start_time_as_dt.month,
+                    self.start_time_as_dt.day,
+                    self.start_time_as_dt.hour,
+                    self.start_time_as_dt.minute,
+                    self.start_time_as_dt.second,
                 ]
             else:
                 raise ValueError('start_time outside forcing time range')
-        if self.end_time is None:
-            if self.forcing_start_time <= self.end_time <= self.forcing_end_time:
+        if self.end_time_as_dt is not None:
+            if self.forcing_start_time <= self.end_time_as_dt <= self.forcing_end_time:
                 forcing_data["time_end"][0:3] = [
-                    self.end_time.year,
-                    self.end_time.month,
-                    self.end_time.day,
+                    self.end_time_as_dt.year,
+                    self.end_time_as_dt.month,
+                    self.end_time_as_dt.day,
+                    self.end_time_as_dt.hour,
+                    self.end_time_as_dt.minute,
+                    self.end_time_as_dt.second,
                 ]
             else:
                 raise ValueError('start_time outside forcing time range')
@@ -157,7 +165,7 @@ class MarrmotM01(AbstractModel):
         # combine forcing and model parameters
         forcing_data.update(
             model_name=self.model_name,
-            parameters=self.parameters,
+            parameters=self._parameters,
             solver=asdict(self.solver),
             store_ini=self.store_ini,
         )
@@ -191,7 +199,7 @@ class MarrmotM01(AbstractModel):
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the parameters for this model."""
         p = [
-            ('maximum_soil_moisture_storage', self.parameters[0]),
+            ('maximum_soil_moisture_storage', self._parameters[0]),
             ('initial_soil_moisture_storage', self.store_ini[0]),
             ('solver', self.solver),
         ]
