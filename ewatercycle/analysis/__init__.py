@@ -49,6 +49,10 @@ def hydrograph(
         Units for the discharge data.
     precipitation_units : str, optional
         Units for the precipitation data.
+    figsize : (float, float), optional
+        With, height of the plot in inches.
+    **kwargs:
+        Options to pass to the matplotlib plotting function
 
     Returns
     -------
@@ -63,15 +67,15 @@ def hydrograph(
         nrows=2,
         ncols=1,
         dpi=dpi,
-        figsize=(10, 10),
+        figsize=figsize,
         gridspec_kw={'height_ratios': [3, 1]},
     )
 
     ax.set_title(title)
     ax.set_ylabel(f'Discharge ({discharge_units})')
 
-    y_obs.plot(ax=ax)
-    y_sim.plot(ax=ax)
+    y_obs.plot(ax=ax, **kwargs)
+    y_sim.plot(ax=ax, **kwargs)
 
     handles, labels = ax.get_legend_handles_labels()
 
