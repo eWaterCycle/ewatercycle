@@ -202,6 +202,7 @@ texinfo_documents = [
 ]
 
 autodoc_mock_imports = [
+    'cftime',
     'esmvalcore',
     'dask',
     'xarray',
