@@ -91,7 +91,7 @@ class MarrmotM01(AbstractModel):
         self.solver = solver
         self.start_time_as_dt = start_time
         self.end_time_as_dt = end_time
-        self.work_dir = self._check_work_dir(work_dir)
+        self.work_dir = _generate_work_dir(work_dir)
         self._check_forcing(forcing)
 
         config_file = self._create_marrmot_config()
