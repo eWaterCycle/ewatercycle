@@ -79,11 +79,11 @@ class PCRGlobWB(AbstractModel):
             cfg.write(filename)
 
         self.cfg_file = new_cfg_file.resolve()
-        print(f"Created config file {self.cfg_file} with inputDir {input_dir} "
-              "and outputDir {self.work_dir}.")
+        print(f"Created config file {self.cfg_file} with inputDir "
+              f"{full_input_path} and outputDir {self.work_dir}.")
 
     def _start_container(self, input_dir: PathLike,
-                         additional_input_dirs: Iterable[PathLike]):
+                         additional_input_dirs: Iterable[PathLike]=[]):
         input_dirs = [input_dir] + additional_input_dirs
 
         if CFG["container_engine"] == "docker":
@@ -103,7 +103,7 @@ class PCRGlobWB(AbstractModel):
             self.bmi = BmiClientSingularity(
                 image=image,
                 work_dir=str(self.work_dir),
-                input_dirs=[str(input_dir) for input_dir in input_dirs],
+                input_dirs=[str(input_path) for input_path in input_dirs],
                 timeout=10,
             )
         else:
@@ -111,9 +111,10 @@ class PCRGlobWB(AbstractModel):
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
 
+        inputs = "\n".join([str(Path(p).resolve()) for p in input_dirs])
         print(
-            f"Started pcrglobwb container with working directory {self.work_dir}"
-            f"and access to the following input directories: {input_dirs}.")
+            f"Started model container with working directory {self.work_dir} "
+            f"and access to the following input directories:\n{inputs}.")
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
