@@ -82,9 +82,10 @@ class PCRGlobWB(AbstractModel):
         print(f"Created config file {self.cfg_file} with inputDir "
               f"{full_input_path} and outputDir {self.work_dir}.")
 
-    def _start_container(self, input_dir: PathLike,
-                         additional_input_dirs: Iterable[PathLike]=[]):
-        input_dirs = [input_dir] + additional_input_dirs
+    def _start_container(self,
+                         input_dir: PathLike,
+                         additional_input_dirs: Iterable[PathLike] = []):
+        input_dirs = [input_dir] + list(additional_input_dirs)
 
         if CFG["container_engine"] == "docker":
             self.bmi = BmiClientDocker(
