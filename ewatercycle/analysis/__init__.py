@@ -59,7 +59,7 @@ def hydrograph(
     fig : `matplotlib.figure.Figure`
     ax, ax_tbl : tuple of `matplotlib.axes.Axes`
     """
-    discharge_cols = discharge.columns.drop('reference')
+    discharge_cols = discharge.columns.drop(reference)
     y_obs = discharge[reference]
     y_sim = discharge[discharge_cols]
 
