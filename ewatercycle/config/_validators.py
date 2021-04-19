@@ -141,4 +141,7 @@ _validators = {
     # lisflood specific
     'lisflood.singularity_image': validate_string_or_none,
     'lisflood.docker_image': validate_string_or_none,
+    # pcrglobwb specific
+    'pcrglobwb.singularity_image': validate_string_or_none,
+    'pcrglobwb.docker_image': validate_string_or_none,
 }
