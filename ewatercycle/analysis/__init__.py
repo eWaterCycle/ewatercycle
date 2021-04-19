@@ -11,7 +11,7 @@ def hydrograph(
     *,
     reference: str,
     precipitation: pd.DataFrame = None,
-    fname: Union[os.PathLike, str] = None,
+    filename: Union[os.PathLike, str] = None,
     dpi: int = None,
     title: str = 'Hydrograph',
     discharge_units: str = 'm$^3$ s$^{-1}$',
@@ -37,7 +37,7 @@ def hydrograph(
     precipitation : pd.DataFrame, optional
         Optional dataframe containing time series of precipitation data to be
         plotted from the top of the hydrograph.
-    fname : str, Path
+    filename : str or Path, optional
         If specified, a copy of the plot will be saved to this path.
     dpi : int, optional
         DPI for the plot.
@@ -133,7 +133,7 @@ def hydrograph(
     # give more vertical space in cells
     table.scale(1, 1.5)
 
-    if fname is not None:
-        fig.savefig(fname, bbox_inches='tight', dpi=dpi)
+    if filename is not None:
+        fig.savefig(filename, bbox_inches='tight', dpi=dpi)
 
-    return fig
+    return fig, (ax, ax_tbl)
