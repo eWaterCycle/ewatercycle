@@ -87,6 +87,7 @@ class Lisflood(AbstractModel):
             Path to config file and path to config directory
         """
         #TODO forcing can be a part of parameterset
+        #TODO add a start time argument that must be in forcing time range
         singularity_image = CFG['lisflood.singularity_image']
         docker_image = CFG['lisflood.docker_image']
         self._check_work_dir(work_dir)
