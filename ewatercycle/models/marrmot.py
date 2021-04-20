@@ -118,7 +118,7 @@ class MarrmotM01(AbstractModel):
         if isinstance(forcing, PathLike):
             self.forcing_file = forcing
         elif isinstance(forcing, ForcingData):
-            self.forcing_file = list(forcing.recipe_output.values())[0].data_files[0].path
+            self.forcing_file = list(forcing.recipe_output.values())[0].files[0].filename
         else:
             raise TypeError(
                 f"Unknown forcing type: {forcing}. Please supply either a Path or ForcingData object."
