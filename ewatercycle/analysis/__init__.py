@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-from typing import Union
+from typing import Union, Tuple
 from hydrostats import metrics
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
@@ -15,10 +15,10 @@ def hydrograph(
     title: str = 'Hydrograph',
     discharge_units: str = 'm$^3$ s$^{-1}$',
     precipitation_units: str = 'mm day$^{-1}$',
-    figsize: tuple[float, float] = (10, 10),
+    figsize: Tuple[float, float] = (10, 10),
     filename: Union[os.PathLike, str] = None,
     **kwargs,
-) -> tuple[plt.Figure, tuple[plt.Axes, plt.Axes]]:
+) -> Tuple[plt.Figure, Tuple[plt.Axes, plt.Axes]]:
     """Plot a hydrograph.
 
     This utility function makes it convenient to create a hydrograph from
