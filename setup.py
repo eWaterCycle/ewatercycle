@@ -22,6 +22,8 @@ setup(
         'basic_modeling_interface',
         'esmvaltool',
         'grpc4bmi>=0.2.12,<0.3',
+        'hydrostats',
+        'matplotlib',
         'numpy',
         'pandas',
         'pyoos',
