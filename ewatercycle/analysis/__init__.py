@@ -11,12 +11,12 @@ def hydrograph(
     *,
     reference: str,
     precipitation: pd.DataFrame = None,
-    filename: Union[os.PathLike, str] = None,
     dpi: int = None,
     title: str = 'Hydrograph',
     discharge_units: str = 'm$^3$ s$^{-1}$',
     precipitation_units: str = 'mm day$^{-1}$',
     figsize: tuple[float, float] = (10, 10),
+    filename: Union[os.PathLike, str] = None,
     **kwargs,
 ) -> tuple[plt.Figure, tuple[plt.Axes, plt.Axes]]:
     """Plot a hydrograph.
@@ -39,8 +39,6 @@ def hydrograph(
     precipitation : pd.DataFrame, optional
         Optional dataframe containing time series of precipitation data to be
         plotted from the top of the hydrograph.
-    filename : str or Path, optional
-        If specified, a copy of the plot will be saved to this path.
     dpi : int, optional
         DPI for the plot.
     title : str, optional
@@ -51,6 +49,8 @@ def hydrograph(
         Units for the precipitation data.
     figsize : (float, float), optional
         With, height of the plot in inches.
+    filename : str or Path, optional
+        If specified, a copy of the plot will be saved to this path.
     **kwargs:
         Options to pass to the matplotlib plotting function
 
