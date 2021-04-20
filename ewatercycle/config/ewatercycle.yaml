@@ -5,5 +5,7 @@ singularity_dir: null
 output_dir: null
 wflow.singularity_image: null
 wflow.docker_image: null
+lisflood.singularity_image: null
+lisflood.docker_image: null
 pcrglobwb.singularity_image: null
 pcrglobwb.docker_image: null
