@@ -20,7 +20,8 @@ setup(
     url='https://github.com/eWaterCycle/ewatercycle',
     install_requires=[
         'basic_modeling_interface',
-        'esmvaltool',
+        'esmvaltool'
+        'grpc4bmi>=0.2.12,<0.3',
         'hydrostats',
         'matplotlib',
         'numpy',
@@ -28,8 +29,6 @@ setup(
         'pyoos',
         'ruamel.yaml',
         'xarray',
-        # TODO subclosses of ewatercycle.models.abstract.AbstractModel will need
-        # 'grpc4bmi>=0.2.12,<0.3',
     ],
     packages=find_packages(),
     package_data={

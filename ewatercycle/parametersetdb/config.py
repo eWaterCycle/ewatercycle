@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import configparser
+from configparser import ConfigParser
 from abc import ABC, abstractmethod
 from urllib.request import urlopen
 from typing import Any, Type, Dict
@@ -7,7 +7,7 @@ from typing import Any, Type, Dict
 from ruamel.yaml import YAML
 
 
-class CaseConfigParser(configparser.ConfigParser):
+class CaseConfigParser(ConfigParser):
     """Case sensitive config parser
     See https://stackoverflow.com/questions/1611799/preserve-case-in-configparser
     """
