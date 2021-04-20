@@ -21,10 +21,12 @@ setup(
     install_requires=[
         'basic_modeling_interface',
         'esmvaltool',
+        'grpc4bmi>=0.2.12,<0.3',
+        'hydrostats',
+        'matplotlib',
         'numpy',
         'pandas',
         'pyoos',
-        'grpc4bmi>=0.2.12,<0.3',
         'ruamel.yaml',
         'xarray',
     ],
