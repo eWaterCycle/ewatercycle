@@ -89,11 +89,35 @@ def test_get_value(bmi, model: MockedModel):
     assert_array_equal(value, expected)
 
 
+def test_get_value_at_indices(bmi, model: MockedModel):
+    expected = np.array([1.0, 2.0])
+    bmi.get_value_at_indices.return_value = expected
+    indices = np.array([2, 4])
+
+    value = model.get_value_at_indices('discharge', indices)
+
+    assert_array_equal(value, expected)
+    called_args = bmi.get_value_at_indices.call_args[0]
+    assert called_args[0] == 'discharge'
+    assert_array_equal(called_args[1], indices)
+
+
 def test_set_value(model: MockedModel, bmi):
     value = np.array([1.0, 2.0])
     model.set_value('precipitation', value)
 
     bmi.set_value.assert_called_once_with('precipitation', value)
+
+
+def test_set_value_at_indices(model: MockedModel, bmi):
+    indices = np.array([2, 4])
+    value = np.array([1.0, 2.0])
+    model.set_value_at_indices('discharge', indices, value)
+
+    called_args = bmi.set_value_at_indices.call_args[0]
+    assert called_args[0] == 'discharge'
+    assert_array_equal(called_args[1], indices)
+    assert_array_equal(called_args[2], value)
 
 
 def test_start_time(bmi, model: MockedModel):

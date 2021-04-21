@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from os import PathLike
-from typing import Tuple, Iterable, Any
+from typing import Tuple, Iterable, Any, Union, List
 
 import numpy as np
 import xarray as xr
@@ -58,6 +58,15 @@ class AbstractModel(metaclass=ABCMeta):
         """
         return self.bmi.get_value(name)
 
+    def get_value_at_indices(self, name: str, indices: Union[np.ndarray, List[int]]) -> np.ndarray:
+        """Get values at particular indices.
+
+        Args:
+            name: An input or output variable name
+            indices: The indices into the variable array.
+        """
+        return self.bmi.get_value_at_indices(name, indices)
+
     def set_value(self, name: str, value: np.ndarray) -> None:
         """Specify a new value for a model variable.
 
@@ -67,6 +76,16 @@ class AbstractModel(metaclass=ABCMeta):
 
         """
         self.bmi.set_value(name, value)
+
+    def set_value_at_indices(self, name: str, indices: Union[np.ndarray, List[int]], value: np.ndarray):
+        """Specify a new value for a model variable at particular indices.
+
+        Args:
+            name: An input or output variable name
+            indices: The indices into the variable array.
+            value: The new value for the specified variable.
+        """
+        return self.bmi.set_value_at_indices(name, indices, value)
 
     @abstractmethod
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
