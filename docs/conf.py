@@ -202,6 +202,7 @@ texinfo_documents = [
 ]
 
 autodoc_mock_imports = [
+    'basic_modeling_interface',
     'cftime',
     'dask',
     'esmvalcore',
