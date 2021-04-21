@@ -202,6 +202,7 @@ texinfo_documents = [
 ]
 
 autodoc_mock_imports = [
+    'cftime',
     'dask',
     'esmvalcore',
     'hydrostats',
@@ -209,7 +210,9 @@ autodoc_mock_imports = [
     'numpy',
     'pandas',
     'pyoos',
+    'grpc4bmi',
     'ruamel.yaml',
     'scipy',
     'xarray',
+
 ]
