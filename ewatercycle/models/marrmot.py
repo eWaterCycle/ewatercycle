@@ -179,31 +179,29 @@ class MarrmotM01(AbstractModel):
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
-        # Get time information
-        marrmot_vars = ['S(t)', 'flux_out_Q', 'flux_out_Ea', 'wb']
-        if name in marrmot_vars:
-            time_units = self.bmi.get_time_units()
-            grid = self.bmi.get_var_grid(name)
-            shape = self.bmi.get_grid_shape(grid)
-
-            # Extract the data and store it in an xarray DataArray
-            da = xr.DataArray(
-                data=np.reshape(self.bmi.get_value(name), shape),
-                coords={
-                    "longitude": self.bmi.get_grid_x(grid),
-                    "latitude": self.bmi.get_grid_y(grid),
-                    "time": num2date(self.bmi.get_current_time(), time_units)
-                },
-                dims=["latitude", "longitude"],
-                name=name,
-                attrs={"units": self.bmi.get_var_units(name)},
-            )
-        # TODO fix issue #66
-        else:
+        marrmot_vars = {'S(t)', 'flux_out_Q', 'flux_out_Ea', 'wb'}
+        if name not in marrmot_vars:
             raise NotImplementedError(
                 "Variable '{}' is not implemented. "
                 "Please choose one of {}.".format(name, marrmot_vars))
-        return da
+
+        # Get time information
+        time_units = self.bmi.get_time_units()
+        grid = self.bmi.get_var_grid(name)
+        shape = self.bmi.get_grid_shape(grid)
+
+        # Extract the data and store it in an xarray DataArray
+        return xr.DataArray(
+            data=np.reshape(self.bmi.get_value(name), shape),
+            coords={
+                "longitude": self.bmi.get_grid_x(grid),
+                "latitude": self.bmi.get_grid_y(grid),
+                "time": num2date(self.bmi.get_current_time(), time_units)
+            },
+            dims=["latitude", "longitude"],
+            name=name,
+            attrs={"units": self.bmi.get_var_units(name)},
+        )
 
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
