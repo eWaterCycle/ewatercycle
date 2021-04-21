@@ -203,7 +203,6 @@ class MarrmotM01(AbstractModel):
             raise NotImplementedError(
                 "Variable '{}' is not implemented. "
                 "Please choose one of {}.".format(name, marrmot_vars))
-            da = xr.DataArray()
         return da
 
     @property
