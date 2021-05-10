@@ -53,6 +53,8 @@ class MarrmotM01(AbstractModel):
     """
     model_name = "m_01_collie1_1p_1s"
     """Name of model in Matlab code"""
+    available_versions = ["2020.11"]
+    """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     def __init__(self):
         super().__init__()
