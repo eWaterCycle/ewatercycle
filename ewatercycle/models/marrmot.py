@@ -3,7 +3,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from os import PathLike
 from pathlib import Path
-from typing import Any, Iterable, Tuple, Union
+from typing import Any, Iterable, Tuple, Union, Optional
 
 import numpy as np
 import scipy.io as sio
@@ -56,16 +56,24 @@ class MarrmotM01(AbstractModel):
     available_versions = ["2020.11"]
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
-    def __init__(self):
+    def __init__(self, version: str, parameter_set: PathLike, forcing: Optional[PathLike]=None):
         super().__init__()
-        self._parameters = [1000.0]
-        self.store_ini = [900.0]
-        self.solver = Solver()
-        self.forcing_file: PathLike = None
+        self.version = version
+        self.parameter_set = sio.loadmat(str(parameter_set), mat_dtype=True)
+        if forcing:
+            self.forcing = forcing
+        else:
+            self.forcing = parameter_set
+        self._check_forcing(self.forcing)
+
+        self._parameters = self.parameter_set['parameters']
+        self.store_ini = self.parameter_set['store_ini']
+        self.solver = self.parameter_set['solver']
+        self.start_time_as_dt = self.parameter_set['time_end']
+        self.end_time_as_dt = self.parameter_set['time_start']
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
-              forcing: Union[ForcingData, PathLike],
               maximum_soil_moisture_storage: float = 1000.0,
               initial_soil_moisture_storage: float = 900.0,
               start_time: datetime = None,
@@ -94,7 +102,6 @@ class MarrmotM01(AbstractModel):
         self.start_time_as_dt = start_time
         self.end_time_as_dt = end_time
         self.work_dir = _generate_work_dir(work_dir)
-        self._check_forcing(forcing)
 
         config_file = self._create_marrmot_config()
 
