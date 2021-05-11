@@ -3,7 +3,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from os import PathLike
 from pathlib import Path
-from typing import Any, Iterable, Tuple, Union
+from typing import Any, Iterable, Tuple
 
 import numpy as np
 import scipy.io as sio
@@ -46,7 +46,6 @@ class MarrmotM01(AbstractModel):
 
     Attributes:
         bmi (Bmi): Basic Modeling Interface object
-        work_dir (PathLike): Working directory for the model where it can read/write files
 
     Example:
         See examples/marrmotM01.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
@@ -88,7 +87,7 @@ class MarrmotM01(AbstractModel):
 
     def _set_singularity_image(self):
         images = {
-            "2020.11": "ewatercycle-marrmot-grpc4bmi.sif"
+            "2020.11": "ewatercycle-marrmot-grpc4bmi_2020.11.sif"
         }
         self.singularity_image = CFG['singularity_dir'] / images[self.version]
 
@@ -118,24 +117,22 @@ class MarrmotM01(AbstractModel):
         self._parameters = [maximum_soil_moisture_storage]
         self.store_ini = [initial_soil_moisture_storage]
         self.solver = solver
-        self.start_time_as_dt = start_time
-        self.end_time_as_dt = end_time
-        self.work_dir = _generate_work_dir(work_dir)
+        work_dir = _generate_work_dir(work_dir)
 
-        config_file = self._create_marrmot_config()
+        config_file = self._create_marrmot_config(work_dir, start_time, end_time)
 
         if CFG['container_engine'].lower() == 'singularity':
             self.bmi = BmiClientSingularity(
-                image= str(self.singularity_image),
-                work_dir=str(self.work_dir),
+                image=str(self.singularity_image),
+                work_dir=str(work_dir),
             )
         else:
             self.bmi = BmiClientDocker(
-                image= self.docker_image,
+                image=self.docker_image,
                 image_port=55555,
-                work_dir=str(self.work_dir),
+                work_dir=str(work_dir),
             )
-        return config_file, self.work_dir
+        return config_file, work_dir
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
@@ -154,45 +151,56 @@ class MarrmotM01(AbstractModel):
         time_end_parts = [int(d) for d in forcing_data["time_end"][0]]
         self.forcing_end_time = datetime(*time_end_parts, tzinfo=timezone.utc)
 
-        self._parameters = forcing_data.get('parameters')
-        self.store_ini = forcing_data.get('store_ini')
-        if forcing_data.get('solver'):
+        if 'parameters' in forcing_data:
+            self._parameters = forcing_data['parameters'][0]
+        if 'store_ini' in forcing_data:
+            self.store_ini = forcing_data['store_ini'][0]
+        if 'solver' in forcing_data:
             self.solver = Solver()
-            self.solver.name = forcing_data.get('solver')['name'][0][0][0]
-            self.solver.resnorm_tolerance = forcing_data.get('solver')['resnorm_tolerance'][0][0][0]
-            self.solver.resnorm_maxiter = forcing_data.get('solver')['resnorm_maxiter'][0][0][0]
+            forcing_solver = forcing_data['solver']
+            self.solver.name = forcing_solver['name'][0][0][0]
+            self.solver.resnorm_tolerance = forcing_solver['resnorm_tolerance'][0][0][0]
+            self.solver.resnorm_maxiter = forcing_solver['resnorm_maxiter'][0][0][0]
 
-    def _create_marrmot_config(self) -> PathLike:
+    def _create_marrmot_config(self, work_dir: PathLike, start_time: datetime, end_time: datetime) -> PathLike:
         """Write model configuration file.
 
         Adds the model parameters to forcing file for the given period
         and writes this information to a model configuration file.
+
+        Args:
+            start_time: Start time of model, if not given then forcing start time is used.
+            end_time: End time of model, if not given then forcing end time is used.
+            work_dir: a working directory given by user or created for user.
+
+        Returns:
+            Path for Marrmot config file
         """
         # get the forcing that was created with ESMValTool
         forcing_data = sio.loadmat(str(self.forcing_file), mat_dtype=True)
 
         # overwrite dates if given
-        if self.start_time_as_dt is not None:
-            if self.forcing_start_time <= self.start_time_as_dt <= self.forcing_end_time:
+        if start_time is not None:
+            if self.forcing_start_time <= start_time <= self.forcing_end_time:
                 forcing_data["time_start"][0][0:6] = [
-                    self.start_time_as_dt.year,
-                    self.start_time_as_dt.month,
-                    self.start_time_as_dt.day,
-                    self.start_time_as_dt.hour,
-                    self.start_time_as_dt.minute,
-                    self.start_time_as_dt.second,
+                    start_time.year,
+                    start_time.month,
+                    start_time.day,
+                    start_time.hour,
+                    start_time.minute,
+                    start_time.second,
                 ]
             else:
                 raise ValueError('start_time outside forcing time range')
-        if self.end_time_as_dt is not None:
-            if self.forcing_start_time <= self.end_time_as_dt <= self.forcing_end_time:
+        if end_time is not None:
+            if self.forcing_start_time <= end_time <= self.forcing_end_time:
                 forcing_data["time_end"][0][0:6] = [
-                    self.end_time_as_dt.year,
-                    self.end_time_as_dt.month,
-                    self.end_time_as_dt.day,
-                    self.end_time_as_dt.hour,
-                    self.end_time_as_dt.minute,
-                    self.end_time_as_dt.second,
+                    end_time.year,
+                    end_time.month,
+                    end_time.day,
+                    end_time.hour,
+                    end_time.minute,
+                    end_time.second,
                 ]
             else:
                 raise ValueError('end_time outside forcing time range')
@@ -205,7 +213,7 @@ class MarrmotM01(AbstractModel):
             store_ini=self.store_ini,
         )
 
-        config_file = self.work_dir / 'marrmot-m01_config.mat'
+        config_file = work_dir / 'marrmot-m01_config.mat'
         sio.savemat(config_file, forcing_data)
         return config_file
 

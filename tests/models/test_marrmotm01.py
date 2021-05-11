@@ -13,30 +13,10 @@ from ewatercycle.models import MarrmotM01
 from ewatercycle.models.marrmot import Solver
 
 
-def test_parameters():
-    model = MarrmotM01()
-    expected = [
-        ('maximum_soil_moisture_storage', 1000.0),
-        ('initial_soil_moisture_storage', 900.0),
-        ('solver', Solver()),
-    ]
-    assert model.parameters == expected
-
-
 @pytest.fixture
 def mocked_config(tmp_path):
     CFG['output_dir'] = tmp_path
     CFG['container_engine'] = 'docker'
-    CFG['marrmot.docker_image'] = 'ewatercycle/marrmot-grpc4bmi:2020.11'
-
-
-@pytest.fixture
-def model():
-    m = MarrmotM01()
-    yield m
-    if m.bmi:
-        # Clean up container
-        del m.bmi
 
 
 class TestWithDefaultsAndExampleData:
@@ -47,11 +27,26 @@ class TestWithDefaultsAndExampleData:
         return Path(__file__).parent / 'data' / 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
 
     @pytest.fixture
-    def model_with_setup(self, mocked_config, model: MarrmotM01, forcing_file: Path):
-        cfg_file, cfg_dir = model.setup(
-            forcing=forcing_file
-        )
+    def model(self, forcing_file: Path, mocked_config):
+        m = MarrmotM01(version="2020.11", forcing=forcing_file)
+        yield m
+        if m.bmi:
+            # Clean up container
+            del m.bmi
+
+    @pytest.fixture
+    def model_with_setup(self, model: MarrmotM01):
+        cfg_file, cfg_dir = model.setup()
         return model, cfg_file, cfg_dir
+
+    def test_parameters(self, model, forcing_file):
+        expected = [
+            ('maximum_soil_moisture_storage', 10.0),
+            ('initial_soil_moisture_storage', 5.0),
+            ('solver', Solver()),
+            ('forcing_file', forcing_file)
+        ]
+        assert model.parameters == expected
 
     def test_setup(self, model_with_setup, forcing_file):
         model, cfg_file, cfg_dir = model_with_setup
@@ -101,9 +96,76 @@ class TestWithDefaultsAndExampleData:
         )
         assert_allclose(actual, expected)
 
-    def test_setup_with_own_work_dir(self, tmp_path, mocked_config, model: MarrmotM01, forcing_file: Path):
+    def test_setup_with_own_work_dir(self, tmp_path, mocked_config, model: MarrmotM01):
         cfg_file, cfg_dir = model.setup(
-            forcing=forcing_file,
             work_dir=tmp_path
         )
         assert cfg_dir == tmp_path
+
+
+class TestWithCustomSetupAndExampleData:
+    @pytest.fixture
+    def forcing_file(self):
+        # Downloaded from
+        # https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
+        return Path(__file__).parent / 'data' / 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
+
+    @pytest.fixture
+    def model(self, forcing_file: Path, mocked_config):
+        m = MarrmotM01(version="2020.11", forcing=forcing_file)
+        yield m
+        if m.bmi:
+            # Clean up container
+            del m.bmi
+
+    @pytest.fixture
+    def model_with_setup(self, model: MarrmotM01):
+        cfg_file, cfg_dir = model.setup(
+            maximum_soil_moisture_storage=1234,
+            initial_soil_moisture_storage=4321,
+            start_time=datetime(1990, 1, 1, tzinfo=timezone.utc),
+            end_time=datetime(1991, 12, 31, tzinfo=timezone.utc),
+        )
+        return model, cfg_file, cfg_dir
+
+    def test_setup(self, model_with_setup):
+        model, cfg_file, cfg_dir = model_with_setup
+
+        actual = loadmat(str(cfg_file))
+        assert cfg_file.name == 'marrmot-m01_config.mat'
+        assert model.bmi
+        assert actual['model_name'] == "m_01_collie1_1p_1s"
+        assert actual['parameters'] == [[1234]]
+        assert actual['store_ini'] == [[4321]]
+        assert_almost_equal(actual['time_start'], [[1990,   1,   1,    0,    0,    0]])
+        assert_almost_equal(actual['time_end'], [[1991,   12,   31,    0,    0,    0]])
+
+
+class TestWithDatesOutsideRangeSetupAndExampleData:
+    @pytest.fixture
+    def forcing_file(self):
+        # Downloaded from
+        # https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
+        return Path(__file__).parent / 'data' / 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
+
+    @pytest.fixture
+    def model(self, forcing_file: Path, mocked_config):
+        m = MarrmotM01(version="2020.11", forcing=forcing_file)
+        yield m
+        if m.bmi:
+            # Clean up container
+            del m.bmi
+
+    def test_setup_with_earlystart(self, model: MarrmotM01):
+        with pytest.raises(ValueError) as excinfo:
+            model.setup(
+                start_time=datetime(1980, 1, 1, tzinfo=timezone.utc),
+            )
+        assert 'start_time outside forcing time range' in str(excinfo.value)
+
+    def test_setup_with_lateend(self, model: MarrmotM01):
+        with pytest.raises(ValueError) as excinfo:
+            model.setup(
+                end_time=datetime(2000, 1, 1, tzinfo=timezone.utc),
+            )
+        assert 'end_time outside forcing time range' in str(excinfo.value)
