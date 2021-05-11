@@ -132,7 +132,6 @@ class Wflow(AbstractModel):
         Returns:
             Path to config file and working directory
         """
-        # TODO think about what to do when a path to a mapfile is changed.
         self._setup_working_directory()
         config_file = self._update_config(**kwargs)
         self._start_container()
@@ -155,6 +154,10 @@ class Wflow(AbstractModel):
         for section, options in kwargs.items():
             for option, value in options.items():
                 cfg.set(section, option, value)
+                # TODO think about what to do when a path to a mapfile is
+                # changed. perhaps smt like if isinstance(PathLike, value) and
+                # not parent == parameterset.input_files, copy value to working
+                # dir?
 
         updated_cfg_file = self.work_dir / "wflow_ewatercycle.ini"
         with updated_cfg_file.open("w") as filename:
