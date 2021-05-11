@@ -57,6 +57,12 @@ class MarrmotM01(AbstractModel):
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     def __init__(self, version: str, forcing: PathLike):
+        """Construct MarrmotM01 with initial values.
+
+        Args:
+            version: pick a versions for which ewatercycle grpc4bmi docker images are available.
+            forcing: a forcing file or a forcing data object. See format forcing file in _`model implementation <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`.
+        """
         super().__init__()
         self.version = version
         if CFG['container_engine'].lower() == 'singularity':
@@ -102,7 +108,6 @@ class MarrmotM01(AbstractModel):
         2. Start bmi container and store as :py:attr:`bmi`
 
         Args:
-            forcing: a forcing file or a forcing data object. See format forcing file in _`model implementation <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`.
             maximum_soil_moisture_storage: in mm. Range is specfied in _`model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`.
             initial_soil_moisture_storage: in mm.
             start_time: Start time of model, if not given then forcing start time is used.
