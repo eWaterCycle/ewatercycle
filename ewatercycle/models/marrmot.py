@@ -56,21 +56,17 @@ class MarrmotM01(AbstractModel):
     available_versions = ["2020.11"]
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
-    def __init__(self, version: str, parameter_set: PathLike, forcing: Optional[PathLike]=None):
+    def __init__(self, version: str, forcing: PathLike):
         super().__init__()
         self.version = version
-        self.parameter_set = sio.loadmat(str(parameter_set), mat_dtype=True)
-        if forcing:
-            self.forcing = forcing
-        else:
-            self.forcing = parameter_set
+        self.forcing = forcing
         self._check_forcing(self.forcing)
-
-        self._parameters = self.parameter_set['parameters']
-        self.store_ini = self.parameter_set['store_ini']
-        self.solver = self.parameter_set['solver']
-        self.start_time_as_dt = self.parameter_set['time_end']
-        self.end_time_as_dt = self.parameter_set['time_start']
+        if self._parameters is None:
+            self._parameters = [1000.0]
+        if self.store_ini is None:
+            self.store_ini = [900.0]
+        if self.solver is None:
+            self.solver = Solver()
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
@@ -138,6 +134,14 @@ class MarrmotM01(AbstractModel):
         self.forcing_start_time = datetime(*time_start_parts, tzinfo=timezone.utc)
         time_end_parts = [int(d) for d in forcing_data["time_end"][0]]
         self.forcing_end_time = datetime(*time_end_parts, tzinfo=timezone.utc)
+
+        self._parameters = forcing_data.get('parameters')
+        self.store_ini = forcing_data.get('store_ini')
+        if forcing_data.get('solver'):
+            self.solver = Solver()
+            self.solver.name = forcing_data.get('solver')['name'][0][0][0]
+            self.solver.resnorm_tolerance = forcing_data.get('solver')['resnorm_tolerance'][0][0][0]
+            self.solver.resnorm_maxiter = forcing_data.get('solver')['resnorm_maxiter'][0][0][0]
 
     def _create_marrmot_config(self) -> PathLike:
         """Write model configuration file.
