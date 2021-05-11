@@ -27,7 +27,7 @@ class Solver:
     resnorm_maxiter: float = 6.0
 
 
-def _generate_work_dir(work_dir: PathLike = None):
+def _generate_work_dir(work_dir: PathLike = None) -> PathLike:
     """
     Args:
         work_dir: If work dir is None then create sub-directory in CFG['output_dir']
@@ -162,16 +162,16 @@ class MarrmotM01(AbstractModel):
             self.solver.resnorm_tolerance = forcing_solver['resnorm_tolerance'][0][0][0]
             self.solver.resnorm_maxiter = forcing_solver['resnorm_maxiter'][0][0][0]
 
-    def _create_marrmot_config(self, work_dir: PathLike, start_time: datetime, end_time: datetime) -> PathLike:
+    def _create_marrmot_config(self, work_dir: PathLike, start_time: datetime = None, end_time: datetime = None) -> PathLike:
         """Write model configuration file.
 
         Adds the model parameters to forcing file for the given period
         and writes this information to a model configuration file.
 
         Args:
+            work_dir: a working directory given by user or created for user.
             start_time: Start time of model, if not given then forcing start time is used.
             end_time: End time of model, if not given then forcing end time is used.
-            work_dir: a working directory given by user or created for user.
 
         Returns:
             Path for Marrmot config file
@@ -213,7 +213,7 @@ class MarrmotM01(AbstractModel):
             store_ini=self.store_ini,
         )
 
-        config_file = work_dir / 'marrmot-m01_config.mat'
+        config_file = work_dir / Path('marrmot-m01_config.mat')
         sio.savemat(config_file, forcing_data)
         return config_file
 
