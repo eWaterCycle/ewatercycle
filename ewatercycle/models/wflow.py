@@ -24,7 +24,7 @@ class WflowForcing:
 
     Example:
 
-    To run the example case `wflow_rhine_sbm_nc <https://github.com/openstreams/wflow/tree/master/examples/wflow_rhine_sbm_nc>`_ one would use:
+        To run the example case `wflow_rhine_sbm_nc <https://github.com/openstreams/wflow/tree/master/examples/wflow_rhine_sbm_nc>`_ one would use:
 
     .. code-block::
 
@@ -47,14 +47,27 @@ class WflowForcing:
     """Variable name of Inflow data in input file."""
 
 
+@dataclass
+class WflowParameterSet:
+    """Parameter set for the Wflow model class.
+
+    A valid wflow parameter set consists of a input data files
+    and should always include a default configuration file.
+    """
+    input_data: PathLike
+    """Input folder path."""
+    default_config: PathLike
+    """Path to (default) model configuration file consistent with `input_data`."""
+
+
 class Wflow(AbstractModel):
     """Create an instance of the Wflow model class.
 
     Args:
         version: pick a version from :py:attr:`~available_versions`
-        parameter_set: directory that contains all parameters including a
-            default/template config file which must be called "wflow_sbm.ini".
-        forcing: for now it is assumed the forcing is part of the parameter_set.
+        parameter_set: instance of :py:class:`~WflowParameterSet`.
+        forcing: instance of :py:class:`~WflowForcing` or None.
+            If None, it is assumed that forcing is included with the parameter_set.
 
     Attributes:
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
@@ -64,12 +77,12 @@ class Wflow(AbstractModel):
     """Show supported WFlow versions in eWaterCycle"""
     def __init__(self,
                  version: str,
-                 parameter_set: PathLike,
+                 parameter_set: WflowParameterSet,
                  forcing: Optional[WflowForcing] = None):
 
         super().__init__()
         self.version = version
-        self.parameter_set = Path(parameter_set)
+        self.parameter_set = parameter_set
         self.forcing = forcing
 
         self._set_docker_image()
@@ -92,9 +105,7 @@ class Wflow(AbstractModel):
         self.singularity_image = CFG['singularity_dir'] / images[self.version]
 
     def _setup_default_config(self):
-        # TODO need to identify cfg_file. For now assume it is present under
-        # default name "wflow_sbm.ini"
-        config_file = self.parameter_set / "wflow_sbm.ini"
+        config_file = self.parameter_set.default_config
 
         cfg = CaseConfigParser()
         cfg.read(config_file)
@@ -133,7 +144,8 @@ class Wflow(AbstractModel):
         working_directory = CFG["output_dir"] / f'wflow_{timestamp}'
         self.work_dir = working_directory.resolve()
 
-        shutil.copytree(src=self.parameter_set, dst=working_directory)
+        shutil.copytree(src=self.parameter_set.input_data,
+                        dst=working_directory)
         if self.forcing is not None:
             shutil.copy(src=self.forcing.netcdfinput, dst=working_directory)
 
