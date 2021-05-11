@@ -21,17 +21,33 @@ class Wflow(AbstractModel):
     Attributes
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
-    available_versions = ["2019.1", "2020.1"]
+    available_versions = ("2019.1", "2020.1")
     """Show supported WFlow versions in eWaterCycle"""
+    def __init__(self,
+                 version: str,
+                 parameter_set: PathLike,
+                 forcing: Optional[PathLike] = None):
+        """Create an instance of the Wflow model class.
 
-    def __init__(self, version: str, parameter_set: PathLike, forcing: Optional[PathLike]=None):
+        Args:
+            version: pick a version from :py:attribute:`Wflow.available_versions`
+            parameter_set: directory that contains all parameters including a
+                default/template config file which must be called "wflow_sbm.ini".
+            forcing: for now it is assumed the forcing is part of the parameter_set.
+        """
+
         super().__init__()
         self.version = version
+        self.parameter_set = Path(parameter_set)
         self._set_docker_image()
         self._set_singularity_image()
-
-        self._setup_working_directory(parameterset=parameter_set)
         self._setup_default_config()
+
+        if forcing is not None:
+            raise NotImplementedError(
+                "Support for custom forcing is not supported yet. "
+                "It is assumed that forcing is part of the parameter_set already"
+            )
 
     def _set_docker_image(self):
         images = {
@@ -47,23 +63,16 @@ class Wflow(AbstractModel):
         }
         self.singularity_image = CFG['singularity_dir'] / images[self.version]
 
-    def _setup_working_directory(self, parameterset: PathLike):
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        working_directory = Path(CFG["output_dir"]) / f'wflow_{timestamp}'
-
-        shutil.copytree(src=parameterset, dst=working_directory)
-        self.work_dir = working_directory.resolve()
-
     def _setup_default_config(self):
         # TODO need to identify cfg_file. For now assume it is present under
         # default name "wflow_sbm.ini"
-        config_file = self.work_dir / "wflow_sbm.ini"
+        config_file = self.parameter_set / "wflow_sbm.ini"
 
         cfg = CaseConfigParser()
         cfg.read(config_file)
         self.config = cfg
 
-    def setup(self, **kwargs) -> Tuple[PathLike, PathLike]:
+    def setup(self, **kwargs) -> Tuple[PathLike, PathLike]: # type: ignore
         """Start the model inside a container and return a valid config file.
 
         Args:
@@ -76,13 +85,22 @@ class Wflow(AbstractModel):
         Returns:
             Path to config file and working directory
         """
+        # TODO think about what to do when a path to a mapfile is changed.
+        self._setup_working_directory()
         config_file = self._update_config(**kwargs)
         self._start_container()
 
         return config_file, self.work_dir,
 
+    def _setup_working_directory(self):
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        working_directory = CFG["output_dir"] / f'wflow_{timestamp}'
 
-    def _update_config(self, **kwargs) -> str:
+        shutil.copytree(src=self.parameter_set, dst=working_directory)
+
+        self.work_dir = working_directory.resolve()
+
+    def _update_config(self, **kwargs) -> PathLike:
         cfg = self.config
 
         for section, options in kwargs.items():
@@ -142,6 +160,7 @@ class Wflow(AbstractModel):
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the configurable parameters for this model."""
+        # TODO make this consistent with how it should be passed to setup (section, {option: value})
         return [(f"{section}.{option}", f"{self.config.get(section, option)}")
                 for section in self.config.sections()
                 for option in self.config.options(section)]
