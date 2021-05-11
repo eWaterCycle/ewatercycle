@@ -3,7 +3,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from os import PathLike
 from pathlib import Path
-from typing import Any, Iterable, Tuple, Union, Optional
+from typing import Any, Iterable, Tuple, Union
 
 import numpy as np
 import scipy.io as sio
@@ -59,6 +59,14 @@ class MarrmotM01(AbstractModel):
     def __init__(self, version: str, forcing: PathLike):
         super().__init__()
         self.version = version
+        if CFG['container_engine'].lower() == 'singularity':
+            self._set_singularity_image()
+        elif CFG['container_engine'].lower() == 'docker':
+            self._set_docker_image()
+        else:
+            raise ValueError(
+                f"Unknown container technology in CFG: {CFG['container_engine']}"
+            )
         self.forcing = forcing
         self._check_forcing(self.forcing)
         if self._parameters is None:
@@ -67,6 +75,18 @@ class MarrmotM01(AbstractModel):
             self.store_ini = [900.0]
         if self.solver is None:
             self.solver = Solver()
+
+    def _set_docker_image(self):
+        images = {
+            "2020.11": "ewatercycle/marrmot-grpc4bmi:2020.11"
+        }
+        self.docker_image = images[self.version]
+
+    def _set_singularity_image(self):
+        images = {
+            "2020.11": "ewatercycle-marrmot-grpc4bmi.sif"
+        }
+        self.singularity_image = CFG['singularity_dir'] / images[self.version]
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
@@ -103,18 +123,14 @@ class MarrmotM01(AbstractModel):
 
         if CFG['container_engine'].lower() == 'singularity':
             self.bmi = BmiClientSingularity(
-                image=CFG['marrmot.singularity_image'],
-                work_dir=str(self.work_dir),
-            )
-        elif CFG['container_engine'].lower() == 'docker':
-            self.bmi = BmiClientDocker(
-                image=CFG['marrmot.docker_image'],
-                image_port=55555,
+                image= str(self.singularity_image),
                 work_dir=str(self.work_dir),
             )
         else:
-            raise ValueError(
-                f"Unknown container technology in CFG: {CFG['container_engine']}"
+            self.bmi = BmiClientDocker(
+                image= self.docker_image,
+                image_port=55555,
+                work_dir=str(self.work_dir),
             )
         return config_file, self.work_dir
 
