@@ -73,14 +73,12 @@ class MarrmotM01(AbstractModel):
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
+        self._parameters = [1000.0]
+        self.store_ini = [900.0]
+        self.solver = Solver()
+
         self.forcing = forcing
         self._check_forcing(self.forcing)
-        if self._parameters is None:
-            self._parameters = [1000.0]
-        if self.store_ini is None:
-            self.store_ini = [900.0]
-        if self.solver is None:
-            self.solver = Solver()
 
     def _set_docker_image(self):
         images = {
