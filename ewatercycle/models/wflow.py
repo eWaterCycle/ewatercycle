@@ -1,5 +1,6 @@
 import shutil
 import time
+from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple
@@ -13,6 +14,37 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 from ewatercycle import CFG
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import CaseConfigParser
+
+
+@dataclass
+class WflowForcing:
+    """Forcing data for the Wflow model class.
+
+    Default variable names follow CMOR standards.
+
+    Example:
+
+    To run the example case `wflow_rhine_sbm_nc <https://github.com/openstreams/wflow/tree/master/examples/wflow_rhine_sbm_nc>`_ one would use:
+
+    .. code-block::
+
+        forcing = WflowForcing(
+            netcdfinput=Path('inmaps.nc'),
+            Precipitation = "/P",
+            EvapoTranspiration = "/PET",
+            Temperature = "/TEMP",
+        )
+    """
+    netcdfinput: PathLike
+    """Input file path."""
+    Precipitation: str = "/pr"
+    """Variable name of Precipitation data in input file."""
+    EvapoTranspiration: str = "/pet"
+    """Variable name of EvapoTranspiration data in input file."""
+    Temperature: str = "/tas"
+    """Variable name of Temperature data in input file."""
+    Inflow: Optional[str] = None
+    """Variable name of Inflow data in input file."""
 
 
 class Wflow(AbstractModel):
@@ -33,20 +65,17 @@ class Wflow(AbstractModel):
     def __init__(self,
                  version: str,
                  parameter_set: PathLike,
-                 forcing: Optional[PathLike] = None):
+                 forcing: Optional[WflowForcing] = None):
 
         super().__init__()
         self.version = version
         self.parameter_set = Path(parameter_set)
+        self.forcing = forcing
+
         self._set_docker_image()
         self._set_singularity_image()
         self._setup_default_config()
-
-        if forcing is not None:
-            raise NotImplementedError(
-                "Support for custom forcing is not supported yet. "
-                "It is assumed that forcing is part of the parameter_set already"
-            )
+        self._parse_forcing()
 
     def _set_docker_image(self):
         images = {
@@ -71,6 +100,18 @@ class Wflow(AbstractModel):
         cfg.read(config_file)
         self.config = cfg
 
+    def _parse_forcing(self):
+        if self.forcing is None:
+            return
+
+        cfg = self.config
+        forcing = self.forcing
+        cfg.set("framework", "netcdfinput", forcing.netcdfinput.name)
+        cfg.set("inputmapstacks", "Precipitation", forcing.Precipitation)
+        cfg.set("inputmapstacks", "EvapoTranspiration",
+                forcing.EvapoTranspiration)
+        cfg.set("inputmapstacks", "Temperature", forcing.Temperature)
+
     def setup(self, **kwargs) -> Tuple[PathLike, PathLike]:  # type: ignore
         """Start the model inside a container and return a valid config file.
 
@@ -90,10 +131,11 @@ class Wflow(AbstractModel):
     def _setup_working_directory(self):
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         working_directory = CFG["output_dir"] / f'wflow_{timestamp}'
+        self.work_dir = working_directory.resolve()
 
         shutil.copytree(src=self.parameter_set, dst=working_directory)
-
-        self.work_dir = working_directory.resolve()
+        if self.forcing is not None:
+            shutil.copy(src=self.forcing.netcdfinput, dst=working_directory)
 
     def _update_config(self, **kwargs) -> PathLike:
         cfg = self.config
