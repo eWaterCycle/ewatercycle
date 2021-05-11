@@ -72,7 +72,7 @@ class Wflow(AbstractModel):
         cfg.read(config_file)
         self.config = cfg
 
-    def setup(self, **kwargs) -> Tuple[PathLike, PathLike]: # type: ignore
+    def setup(self, **kwargs) -> Tuple[PathLike, PathLike]:  # type: ignore
         """Start the model inside a container and return a valid config file.
 
         Args:
@@ -160,7 +160,5 @@ class Wflow(AbstractModel):
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the configurable parameters for this model."""
-        # TODO make this consistent with how it should be passed to setup (section, {option: value})
-        return [(f"{section}.{option}", f"{self.config.get(section, option)}")
-                for section in self.config.sections()
-                for option in self.config.options(section)]
+        return [(section, dict(self.config[section]))
+                for section in self.config.sections()]
