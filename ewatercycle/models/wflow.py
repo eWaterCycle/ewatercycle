@@ -16,25 +16,24 @@ from ewatercycle.parametersetdb.config import CaseConfigParser
 
 
 class Wflow(AbstractModel):
-    """eWaterCycle implementation of WFLOW hydrological model.
+    """Create an instance of the Wflow model class.
 
-    Attributes
+    Args:
+        version: pick a version from :py:attr:`~available_versions`
+        parameter_set: directory that contains all parameters including a
+            default/template config file which must be called "wflow_sbm.ini".
+        forcing: for now it is assumed the forcing is part of the parameter_set.
+
+    Attributes:
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
+
     available_versions = ("2019.1", "2020.1")
     """Show supported WFlow versions in eWaterCycle"""
     def __init__(self,
                  version: str,
                  parameter_set: PathLike,
                  forcing: Optional[PathLike] = None):
-        """Create an instance of the Wflow model class.
-
-        Args:
-            version: pick a version from :py:attribute:`Wflow.available_versions`
-            parameter_set: directory that contains all parameters including a
-                default/template config file which must be called "wflow_sbm.ini".
-            forcing: for now it is assumed the forcing is part of the parameter_set.
-        """
 
         super().__init__()
         self.version = version
@@ -76,11 +75,7 @@ class Wflow(AbstractModel):
         """Start the model inside a container and return a valid config file.
 
         Args:
-            **kwargs (optional, dict): any settings in the cfg_file that you
-            want to overwrite programmatically. Should be passed as a dict, e.g.
-            `run = {"starttime": "1995-01-31 00:00:00 GMT"}` where run is the
-            section in which the starttime option may be found. To see all
-            available settings see `parameters` property.
+            **kwargs (optional, dict): see :py:attr:`~parameters` for all available settings
 
         Returns:
             Path to config file and working directory
