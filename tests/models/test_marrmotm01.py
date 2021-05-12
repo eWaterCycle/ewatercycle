@@ -57,8 +57,6 @@ class TestWithDefaultsAndExampleData:
         assert cfg_file.name == 'marrmot-m01_config.mat'
         assert model.bmi
         assert actual['model_name'] == "m_01_collie1_1p_1s"
-        assert actual['parameters'] == [[1000]]
-        assert actual['store_ini'] == [[900]]
         assert_almost_equal(actual['time_start'], expected_forcing['time_start'])
         assert_almost_equal(actual['time_end'], expected_forcing['time_end'])
         # TODO compare forcings
@@ -69,8 +67,8 @@ class TestWithDefaultsAndExampleData:
     def test_parameters_after_setup(self, model_with_setup, forcing_file):
         model = model_with_setup[0]
         expected = [
-            ('maximum_soil_moisture_storage', 1000.0),
-            ('initial_soil_moisture_storage', 900.0),
+            ('maximum_soil_moisture_storage', 10.0),
+            ('initial_soil_moisture_storage', 5.0),
             ('solver', Solver()),
             ('forcing_file', forcing_file)
         ]
@@ -84,7 +82,7 @@ class TestWithDefaultsAndExampleData:
         actual = model.get_value_as_xarray('flux_out_Q')
 
         expected = xr.DataArray(
-            data=[[0.552961]],
+            data=[[11.91879913]],
             coords={
                 "longitude": [87.49],
                 "latitude": [35.29],
