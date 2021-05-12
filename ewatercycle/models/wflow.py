@@ -17,10 +17,10 @@ from ewatercycle.parametersetdb.config import CaseConfigParser
 
 class PathParser:
     """Descriptor that converts input to pathlib.Path objects."""
-    def __set_name__(self, owner, name):
+    def __set_name__(self, owner: object, name: str):
         self.name = name
 
-    def __set__(self, instance, value):
+    def __set__(self, instance: object, value: Union[str, PathLike]):
         instance.__dict__[self.name] = Path(value).expanduser().resolve()
 
 
@@ -43,7 +43,7 @@ class WflowForcing:
             Temperature = "/TEMP",
         )
     """
-    netcdfinput: Union[str, PathLike] = PathParser()
+    netcdfinput: PathParser = PathParser()
     """Input file path."""
     Precipitation: str = "/pr"
     """Variable name of Precipitation data in input file."""
@@ -67,7 +67,7 @@ class WflowParameterSet:
     default_config: Union[str, PathLike]
     """Path to (default) model configuration file consistent with `input_data`."""
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Union[str, PathLike]):
         self.__dict__[name] = Path(value).expanduser().resolve()
 
 
@@ -84,7 +84,7 @@ class Wflow(AbstractModel):
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
 
-    available_versions = ("2019.1", "2020.1")
+    available_versions = ("2020.1.1")
     """Show supported WFlow versions in eWaterCycle"""
     def __init__(self,
                  version: str,
@@ -103,15 +103,16 @@ class Wflow(AbstractModel):
 
     def _set_docker_image(self):
         images = {
-            "2019.1": "ewatercycle/wflow-grpc4bmi:latest",
-            "2020.1": "ewatercycle/wflow-grpc4bmi:latest",
+            # "2019.1": "ewatercycle/wflow-grpc4bmi:2019.1", # no good ini file
+            "2020.1.1": "ewatercycle/wflow-grpc4bmi:2020.1.1",
         }
         self.docker_image = images[self.version]
 
     def _set_singularity_image(self):
+        # TODO auto detect sif file based on docker image and singularity dir.
         images = {
-            "2019.1": "ewatercycle-wflow-grpc4bmi.sif",
-            "2020.1": "ewatercycle-wflow-grpc4bmi.sif",
+            # "2019.1": "ewatercycle-wflow-grpc4bmi.sif",
+            "2020.1.1": "ewatercycle-wflow-grpc4bmi.sif",
         }
         self.singularity_image = CFG['singularity_dir'] / images[self.version]
 
