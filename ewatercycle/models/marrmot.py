@@ -20,7 +20,7 @@ from ewatercycle.models.abstract import AbstractModel
 @dataclass
 class Solver:
     """Solver, for current implementations see
-    _`here <https://github.com/wknoben/MARRMoT/tree/master/MARRMoT/Functions/Time%20stepping>`.
+    `here <https://github.com/wknoben/MARRMoT/tree/master/MARRMoT/Functions/Time%20stepping>`_.
     """
     name: str = 'createOdeApprox_IE'
     resnorm_tolerance: float = 0.1
@@ -42,7 +42,12 @@ def _generate_work_dir(work_dir: PathLike = None) -> PathLike:
 
 
 class MarrmotM01(AbstractModel):
-    """eWaterCycle implementation of Marrmot Collie River 1 (traditional bucket) hydrological model.
+    """eWaterCycle implementation of Marrmot Collie River 1 (traditional bucket) hydrological model. It sets MarrmotM01 parameter with an initial value that is the mean value of the range specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
+
+    Args:
+        version: pick a version for which an ewatercycle grpc4bmi docker image is available.
+        forcing: a forcing file or a forcing data object. See format forcing file in `model implementation <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`_.
+            If forcing file contains parameter and other settings, those are used and can be changed in :py:meth:`steup`.
 
     Attributes:
         bmi (Bmi): Basic Modeling Interface object
@@ -51,17 +56,12 @@ class MarrmotM01(AbstractModel):
         See examples/marrmotM01.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
     model_name = "m_01_collie1_1p_1s"
-    """Name of model in Matlab code"""
+    """Name of model in Matlab code."""
     available_versions = ["2020.11"]
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     def __init__(self, version: str, forcing: PathLike):
-        """Construct MarrmotM01 with initial values.
-
-        Args:
-            version: pick a versions for which ewatercycle grpc4bmi docker images are available.
-            forcing: a forcing file or a forcing data object. See format forcing file in _`model implementation <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`.
-        """
+        """Construct MarrmotM01 with initial values. """
         super().__init__()
         self.version = version
         if CFG['container_engine'].lower() == 'singularity':
@@ -81,13 +81,13 @@ class MarrmotM01(AbstractModel):
 
     def _set_docker_image(self):
         images = {
-            "2020.11": "ewatercycle/marrmot-grpc4bmi:2020.11"
+            '2020.11': 'ewatercycle/marrmot-grpc4bmi:2020.11'
         }
         self.docker_image = images[self.version]
 
     def _set_singularity_image(self):
         images = {
-            "2020.11": "ewatercycle-marrmot-grpc4bmi_2020.11.sif"
+            '2020.11': 'ewatercycle-marrmot-grpc4bmi_2020.11.sif'
         }
         self.singularity_image = CFG['singularity_dir'] / images[self.version]
 
@@ -99,13 +99,13 @@ class MarrmotM01(AbstractModel):
               end_time: datetime = None,
               solver: Solver = None,
               work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
-        """Configure model run
+        """Configure model run.
 
         1. Creates config file and config directory based on the forcing variables and time range
         2. Start bmi container and store as :py:attr:`bmi`
 
         Args:
-            maximum_soil_moisture_storage: in mm. Range is specfied in _`model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`.
+            maximum_soil_moisture_storage: in mm. Range is specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
             initial_soil_moisture_storage: in mm.
             start_time: Start time of model, if not given then forcing start time is used.
             end_time: End time of model, if not given then forcing end time is used.
@@ -149,9 +149,9 @@ class MarrmotM01(AbstractModel):
             )
         # parse start/end time
         forcing_data = sio.loadmat(str(self.forcing_file), mat_dtype=True)
-        time_start_parts = [int(d) for d in forcing_data["time_start"][0]]
+        time_start_parts = [int(d) for d in forcing_data['time_start'][0]]
         self.forcing_start_time = datetime(*time_start_parts, tzinfo=timezone.utc)
-        time_end_parts = [int(d) for d in forcing_data["time_end"][0]]
+        time_end_parts = [int(d) for d in forcing_data['time_end'][0]]
         self.forcing_end_time = datetime(*time_end_parts, tzinfo=timezone.utc)
 
         if 'parameters' in forcing_data:
@@ -179,13 +179,12 @@ class MarrmotM01(AbstractModel):
         Returns:
             Path for Marrmot config file
         """
-        # get the forcing that was created with ESMValTool
         forcing_data = sio.loadmat(str(self.forcing_file), mat_dtype=True)
 
         # overwrite dates if given
         if start_time is not None:
             if self.forcing_start_time <= start_time <= self.forcing_end_time:
-                forcing_data["time_start"][0][0:6] = [
+                forcing_data['time_start'][0][0:6] = [
                     start_time.year,
                     start_time.month,
                     start_time.day,
@@ -197,7 +196,7 @@ class MarrmotM01(AbstractModel):
                 raise ValueError('start_time outside forcing time range')
         if end_time is not None:
             if self.forcing_start_time <= end_time <= self.forcing_end_time:
-                forcing_data["time_end"][0][0:6] = [
+                forcing_data['time_end'][0][0:6] = [
                     end_time.year,
                     end_time.month,
                     end_time.day,
