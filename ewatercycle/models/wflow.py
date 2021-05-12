@@ -3,7 +3,7 @@ import time
 from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
-from typing import Any, Iterable, Optional, Tuple
+from typing import Any, Iterable, Optional, Tuple, Union
 
 import numpy as np
 import xarray as xr
@@ -14,6 +14,14 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 from ewatercycle import CFG
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import CaseConfigParser
+
+class PathParser:
+    """Descriptor that converts input to pathlib.Path objects."""
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def __set__(self, instance, value):
+        instance.__dict__[self.name] = Path(value).expanduser().resolve()
 
 
 @dataclass
@@ -29,13 +37,13 @@ class WflowForcing:
     .. code-block::
 
         forcing = WflowForcing(
-            netcdfinput=Path('inmaps.nc'),
+            netcdfinput='inmaps.nc',
             Precipitation = "/P",
             EvapoTranspiration = "/PET",
             Temperature = "/TEMP",
         )
     """
-    netcdfinput: PathLike
+    netcdfinput: Union[str, PathLike] = PathParser()
     """Input file path."""
     Precipitation: str = "/pr"
     """Variable name of Precipitation data in input file."""
@@ -54,10 +62,13 @@ class WflowParameterSet:
     A valid wflow parameter set consists of a input data files
     and should always include a default configuration file.
     """
-    input_data: PathLike
+    input_data: Union[str, PathLike]
     """Input folder path."""
-    default_config: PathLike
+    default_config: Union[str, PathLike]
     """Path to (default) model configuration file consistent with `input_data`."""
+
+    def __setattr__(self, name, value):
+        self.__dict__[name] = Path(value).expanduser().resolve()
 
 
 class Wflow(AbstractModel):
