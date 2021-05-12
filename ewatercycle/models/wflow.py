@@ -127,7 +127,10 @@ class Wflow(AbstractModel):
         """Start the model inside a container and return a valid config file.
 
         Args:
-            **kwargs (optional, dict): see :py:attr:`~parameters` for all available settings
+            **kwargs (optional, dict): see :py:attr:`~parameters` for all
+                available settings. It is possible to overwrite paths. If an
+                absolute path is given, it will be converted to a path relative
+                to the working directory, and the content will be copied there.
 
         Returns:
             Path to config file and working directory
@@ -153,11 +156,15 @@ class Wflow(AbstractModel):
 
         for section, options in kwargs.items():
             for option, value in options.items():
-                cfg.set(section, option, value)
-                # TODO think about what to do when a path to a mapfile is
-                # changed. perhaps smt like if isinstance(PathLike, value) and
-                # not parent == parameterset.input_files, copy value to working
-                # dir?
+                if Path(value).exists():
+                    # Absolute paths must be copied to work dir
+                    if Path(value).is_file():
+                        shutil.copy(value, self.work_dir)
+                    else:
+                        shutil.copytree(value, self.work_dir)
+                    cfg.set(section, option, Path(value).name)
+                else:
+                    cfg.set(section, option, value)
 
         updated_cfg_file = self.work_dir / "wflow_ewatercycle.ini"
         with updated_cfg_file.open("w") as filename:
