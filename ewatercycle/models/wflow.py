@@ -155,6 +155,9 @@ class Wflow(AbstractModel):
         cfg = self.config
 
         for section, options in kwargs.items():
+            if not cfg.has_section(section):
+                cfg.add_section(section)
+
             for option, value in options.items():
                 if Path(value).exists():
                     # Absolute paths must be copied to work dir
