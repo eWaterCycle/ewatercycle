@@ -93,11 +93,11 @@ class MarrmotM01(AbstractModel):
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
-              maximum_soil_moisture_storage: float = 1000.0,
-              initial_soil_moisture_storage: float = 900.0,
+              maximum_soil_moisture_storage: float = None,
+              initial_soil_moisture_storage: float = None,
               start_time: datetime = None,
               end_time: datetime = None,
-              solver: Solver = Solver(),
+              solver: Solver = None,
               work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
         """Configure model run
 
@@ -114,11 +114,14 @@ class MarrmotM01(AbstractModel):
         Returns:
             Path to config file and path to config directory
         """
-        self._parameters = [maximum_soil_moisture_storage]
-        self.store_ini = [initial_soil_moisture_storage]
-        self.solver = solver
-        work_dir = _generate_work_dir(work_dir)
+        if maximum_soil_moisture_storage:
+            self._parameters = [maximum_soil_moisture_storage]
+        if initial_soil_moisture_storage:
+            self.store_ini = [initial_soil_moisture_storage]
+        if solver:
+            self.solver = solver
 
+        work_dir = _generate_work_dir(work_dir)
         config_file = self._create_marrmot_config(work_dir, start_time, end_time)
 
         if CFG['container_engine'].lower() == 'singularity':
