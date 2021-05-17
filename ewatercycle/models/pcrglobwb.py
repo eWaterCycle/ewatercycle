@@ -1,10 +1,10 @@
 import shutil
 import time
+from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple, Union
 
-from dataclasses import dataclass
 import numpy as np
 import xarray as xr
 from cftime import num2date
@@ -27,7 +27,6 @@ class PCRGlobWBParameterSet:
     """Input folder path."""
     default_config: Union[str, PathLike]
     """Path to (default) model configuration file consistent with `input_data`."""
-
     def __setattr__(self, name: str, value: Union[str, PathLike]):
         self.__dict__[name] = Path(value).expanduser().resolve()
 
@@ -45,12 +44,13 @@ class PCRGlobWB(AbstractModel):
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
     available_versions = ('setters')
+
     def __init__(self, version: str, parameter_set: PCRGlobWBParameterSet):
         super().__init__()
 
-        self.version=version
+        self.version = version
         self.parameter_set = parameter_set
-        self.additional_input_dirs = []
+        self._additional_input_dirs: Iterable[PathLike] = []
 
         self._set_docker_image()
         self._set_singularity_image()
@@ -90,8 +90,7 @@ class PCRGlobWB(AbstractModel):
         self.config = cfg
 
     def setup(  # type: ignore
-            self,
-            **kwargs) -> Tuple[PathLike, PathLike]:
+            self, **kwargs) -> Tuple[PathLike, PathLike]:
         """Start model inside container and return config file and work dir.
 
         Args:
@@ -127,9 +126,10 @@ class PCRGlobWB(AbstractModel):
                     if default_input_dir in inputpath.parents:
                         pass
                     elif inputpath.is_dir():
-                        self.additional_input_dirs.append(str(inputpath))
+                        self._additional_input_dirs.append(str(inputpath))
                     else:
-                        self.additional_input_dirs.append(str(inputpath.parent))
+                        self._additional_input_dirs.append(
+                            str(inputpath.parent))
                     cfg.set(section, option, str(inputpath))
                 else:
                     cfg.set(section, option, value)
@@ -142,7 +142,8 @@ class PCRGlobWB(AbstractModel):
         return self.cfg_file
 
     def _start_container(self):
-        input_dirs = [self.parameter_set.input_dir] + self.additional_input_dirs
+        input_dirs = [self.parameter_set.input_dir
+                      ] + self._additional_input_dirs
 
         if CFG["container_engine"] == "docker":
             self.bmi = BmiClientDocker(
