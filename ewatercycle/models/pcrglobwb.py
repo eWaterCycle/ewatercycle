@@ -45,7 +45,6 @@ class PCRGlobWB(AbstractModel):
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
     available_versions = ('setters')
-    # TODO add available_versions
     def __init__(self, version: str, parameter_set: PCRGlobWBParameterSet):
         super().__init__()
 
