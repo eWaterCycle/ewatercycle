@@ -1,6 +1,7 @@
 import os
 import subprocess
 import time
+from pathlib import Path
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import datetime
@@ -22,27 +23,27 @@ from ewatercycle.parametersetdb.config import AbstractConfig
 
 @dataclass
 class LisfloodParameterSet:
-    """Input files specific for parameterset, model boundaries, and configuration template files
+    """Input files specific for parameter_set, model boundaries, and configuration template files
 
     Example:
 
     .. code-block::
 
-        parameterset = LisfloodParameterSet(
-            root=Path('/projects/0/wtrcycle/comparison/lisflood_input/Lisflood01degree_masked'),
-            mask=Path('/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD/model_mask.nc'),
-            config_template=Path('/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml'),
-            lisvap_config_template=Path('/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisvap.xml'),
+        parameter_set = LisfloodParameterSet(
+            root='/projects/0/wtrcycle/comparison/lisflood_input/Lisflood01degree_masked',
+            mask='/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD/model_mask.nc',
+            config_template='/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml',
         )
     """
-    root: PathLike
+    root: Union[str, PathLike]
     """Directory with input files"""
-    mask: Path
+    mask: Union[str, PathLike]
     """A NetCDF file with model boundaries"""
-    config_template: PathLike
+    config_template: Union[str, PathLike]
     """Config file used as template for a lisflood run"""
-    lisvap_config_template: Optional[PathLike] = None
-    """Config file used as template for a lisvap run"""
+
+    def __setattr__(self, name: str, value: Union[str, PathLike]):
+        self.__dict__[name] = Path(value).expanduser().resolve()
 
 
 # Mapping from lisvap output to lisflood input files. MAPS_PREFIXES dictionary
@@ -68,12 +69,12 @@ class Lisflood(AbstractModel):
     available_versions = ["20.10"]
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
-    def __init__(self, version: str, parameter_set: LisfloodParameterSet, forcing: PathLike):
+    def __init__(self, version: str, parameter_set: LisfloodParameterSet, forcing: Union[str, PathLike]):
         """Construct MarrmotM01 with initial values. """
         super().__init__()
         self.version = version
         self._check_forcing(forcing)
-        self.parameterset = parameter_set
+        self.parameter_set = parameter_set
         
         if CFG['container_engine'].lower() == 'singularity':
             self._set_singularity_image()
@@ -97,7 +98,7 @@ class Lisflood(AbstractModel):
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
-              parameterset: LisfloodParameterSet,
+              parameter_set: LisfloodParameterSet= None,
               work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
         """Configure model run
 
@@ -108,26 +109,26 @@ class Lisflood(AbstractModel):
 
         Args:
             forcing: a forcing directory or a forcing data object.
-            parameterset: LISFLOOD input files. Any included forcing data will be ignored.
+            parameter_set: LISFLOOD input files. Any included forcing data will be ignored.
             work_dir: a working directory given by user or created for user.
 
         Returns:
             Path to config file and path to config directory
         """
-        #TODO forcing can be a part of parameterset
+        #TODO forcing can be a part of parameter_set
         #TODO add a start time argument that must be in forcing time range
-        singularity_image = CFG['lisflood.singularity_image']
-        docker_image = CFG['lisflood.docker_image']
+        if parameter_set:
+            self.parameter_set = parameter_set
         self.work_dir = _generate_workdir(work_dir)
 
         config_file = self._create_lisflood_config()
 
         if CFG['container_engine'].lower() == 'singularity':
             self.bmi = BmiClientSingularity(
-                image=self.singularity_image,
+                image=str(self.singularity_image),
                 input_dirs=[
-                    str(parameterset.root),
-                    str(parameterset.mask.parent),
+                    str(self.parameter_set.root),
+                    str(self.parameter_set.mask.parent),
                     str(self.forcing_dir)
                 ],
                 work_dir=str(self.work_dir),
@@ -137,8 +138,8 @@ class Lisflood(AbstractModel):
                 image=self.docker_image,
                 image_port=55555,
                 input_dirs=[
-                    str(parameterset.root),
-                    str(parameterset.mask.parent),
+                    str(self.parameter_set.root),
+                    str(self.parameter_set.mask.parent),
                     str(self.forcing_dir)
                 ],
                 work_dir=str(self.work_dir),
@@ -149,8 +150,8 @@ class Lisflood(AbstractModel):
         """"Check forcing argument and get path, start and end time of forcing data."""
         # TODO check if mask has same grid as forcing files,
         # if not warn users to run reindex_forcings
-        if isinstance(forcing, PathLike):
-            self.forcing_dir = forcing.expanduser().resolve()
+        if isinstance(forcing, (str, PathLike)):
+            self.forcing_dir = Path(forcing).expanduser().resolve()
             self.forcing_files = dict()
             for forcing_file in self.forcing_dir.glob('*.nc'):
                 dataset = xr.open_dataset(forcing_file)
@@ -181,14 +182,14 @@ class Lisflood(AbstractModel):
 
     def _create_lisflood_config(self) -> str:
         """Create lisflood config file"""
-        cfg = XmlConfig(self.parameterset.config_template)
+        cfg = XmlConfig(self.parameter_set.config_template)
 
         settings = {
             "CalendarDayStart": self.start.strftime("%d/%m/%Y 00:00"),
             "StepStart": "1",
             "StepEnd": str((self.end - self.start).days),
-            "PathRoot": f"{self.parameterset.root}",
-            "MaskMap": f"{self.parameterset.mask}".rstrip('.nc'),
+            "PathRoot": f"{self.parameter_set.root}",
+            "MaskMap": f"{self.parameter_set.mask}".rstrip('.nc'),
             "PathMeteo": f"{self.forcing_dir}",
             "PathOut": f"{self.work_dir}",
         }
@@ -226,7 +227,7 @@ class Lisflood(AbstractModel):
 
     def _create_lisvap_config(self) -> str:
         """Update lisvap setting file"""
-        cfg = XmlConfig(self.parameterset.lisvap_config_template)
+        cfg = XmlConfig(self.parameter_set.lisvap_config_template)
         # Make a dictionary for settings
         maps = "/data/lisflood_input/maps_netcdf"
         settings = {
@@ -295,8 +296,8 @@ class Lisflood(AbstractModel):
         lisvap_file = self._create_lisvap_config()
 
         mount_points = {
-            f'{self.parameterset.root}': '/data/lisflood_input',
-            f'{self.parameterset.mask}': '/data/model_mask.nc',
+            f'{self.parameter_set.root}': '/data/lisflood_input',
+            f'{self.parameter_set.mask}': '/data/model_mask.nc',
             f'{self.forcing_dir}': '/data/forcing',
             f'{self.work_dir}': '/output',
         }
@@ -355,12 +356,17 @@ class Lisflood(AbstractModel):
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the parameters for this model."""
         #TODO fix issue #60
-        if self.forcing_dir and self.work_dir:
-            return {
-                'forcing_dir': self.forcing_dir,
-                'work_dir': self.work_dir,
-            }.items()
-        return []
+        parameters = [
+            ('Input files specific for parameter_set', str(self.parameter_set.root)),
+            ('model boundaries', str(self.parameter_set.mask.parent)),
+            ('configuration template', self.parameter_set.config_template),
+        ]
+        if self.forcing_dir:
+            parameters += [
+                ('forcing directory',  str(self.forcing_dir)),
+            ]
+
+        return parameters
 
 
 def reindex_forcings(mask_map: PathLike, forcing: ForcingData, output_dir: PathLike = None) -> PathLike:
