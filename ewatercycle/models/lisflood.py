@@ -68,9 +68,35 @@ class Lisflood(AbstractModel):
     available_versions = ["20.10"]
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
+    def __init__(self, version: str, parameter_set: LisfloodParameterSet, forcing: PathLike):
+        """Construct MarrmotM01 with initial values. """
+        super().__init__()
+        self.version = version
+        self._check_forcing(forcing)
+        self.parameterset = parameter_set
+        
+        if CFG['container_engine'].lower() == 'singularity':
+            self._set_singularity_image()
+        elif CFG['container_engine'].lower() == 'docker':
+            self._set_docker_image()
+        else:
+            raise ValueError(
+                f"Unknown container technology in CFG: {CFG['container_engine']}"
+            )
+    def _set_docker_image(self):
+        images = {
+            '20.10': 'ewatercycle/lisflood-grpc4bmi:20.10'
+        }
+        self.docker_image = images[self.version]
+
+    def _set_singularity_image(self):
+        images = {
+            '20.10': 'ewatercycle-lisflood-grpc4bmi_20.10.sif'
+        }
+        self.singularity_image = CFG['singularity_dir'] / images[self.version]
+
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
-              forcing: Union[ForcingData, PathLike],
               parameterset: LisfloodParameterSet,
               work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
         """Configure model run
@@ -93,25 +119,12 @@ class Lisflood(AbstractModel):
         singularity_image = CFG['lisflood.singularity_image']
         docker_image = CFG['lisflood.docker_image']
         self.work_dir = _generate_workdir(work_dir)
-        self._check_forcing(forcing)
-        self.parameterset = parameterset
 
         config_file = self._create_lisflood_config()
 
         if CFG['container_engine'].lower() == 'singularity':
             self.bmi = BmiClientSingularity(
-                image=singularity_image,
-                input_dirs=[
-                    str(parameterset.root),
-                    str(parameterset.mask.parent),
-                    str(self.forcing_dir)
-                ],
-                work_dir=str(self.work_dir),
-            )
-        elif CFG['container_engine'].lower() == 'docker':
-            self.bmi = BmiClientDocker(
-                image=docker_image,
-                image_port=55555,
+                image=self.singularity_image,
                 input_dirs=[
                     str(parameterset.root),
                     str(parameterset.mask.parent),
@@ -120,8 +133,15 @@ class Lisflood(AbstractModel):
                 work_dir=str(self.work_dir),
             )
         else:
-            raise ValueError(
-                f"Unknown container technology in CFG: {CFG['container_engine']}"
+            self.bmi = BmiClientDocker(
+                image=self.docker_image,
+                image_port=55555,
+                input_dirs=[
+                    str(parameterset.root),
+                    str(parameterset.mask.parent),
+                    str(self.forcing_dir)
+                ],
+                work_dir=str(self.work_dir),
             )
         return Path(config_file), self.work_dir
 
