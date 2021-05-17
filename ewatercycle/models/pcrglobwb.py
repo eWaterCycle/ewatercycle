@@ -79,7 +79,7 @@ class PCRGlobWB(AbstractModel):
         work_dir.mkdir()
         self.work_dir = work_dir.expanduser().resolve()
 
-    def _setup_default_config(self, cfg_file: PathLike, input_dir: PathLike, **kwargs):
+    def _setup_default_config(self):
         config_file = self.parameter_set.default_config
         input_dir = self.parameter_set.input_dir
 
@@ -105,13 +105,13 @@ class PCRGlobWB(AbstractModel):
         Returns: Path to config file and work dir
         """
         work_dir = self.work_dir
-        cfg_file = self.update_config(**kwargs)
+        cfg_file = self._update_config(**kwargs)
 
-        self._start_container(input_dir, additional_input_dirs)
+        self._start_container()
 
         return cfg_file, work_dir
 
-    def _update_config(self):
+    def _update_config(self, **kwargs):
         cfg = self.config
 
         default_input_dir = self.parameter_set.input_dir
@@ -167,11 +167,6 @@ class PCRGlobWB(AbstractModel):
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
 
-        inputs = "\n".join([str(Path(p).resolve()) for p in input_dirs])
-        print(
-            f"Started model container with working directory {self.work_dir} "
-            f"and access to the following input directories:\n{inputs}.")
-
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
         # Get time information
@@ -197,10 +192,5 @@ class PCRGlobWB(AbstractModel):
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the configurable parameters for this model."""
-        if not hasattr(self, "cfg"):
-            raise NotImplementedError(
-                "No default parameters available for pcrglobwb. To see the "
-                "parameters, first run setup with a valid .ini file.")
-
         return [(section, dict(self.config[section]))
                 for section in self.config.sections()]
