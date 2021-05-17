@@ -65,6 +65,8 @@ class Lisflood(AbstractModel):
     Example:
         See examples/lisflood.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
+    available_versions = ["20.10"]
+    """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
