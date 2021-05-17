@@ -4,6 +4,7 @@ from os import PathLike
 from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple
 
+from dataclasses import dataclass
 import numpy as np
 import xarray as xr
 from cftime import num2date
@@ -13,6 +14,22 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 from ewatercycle import CFG
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import CaseConfigParser
+
+
+@dataclass
+class PCRGlobWBParameterSet:
+    """Parameter set for the PCRGlobWB model class.
+
+    A valid pcrglobwb parameter set consists of a folder with input data files
+    and should always include a default configuration file.
+    """
+    input_dir: Union[str, PathLike]
+    """Input folder path."""
+    default_config: Union[str, PathLike]
+    """Path to (default) model configuration file consistent with `input_data`."""
+
+    def __setattr__(self, name: str, value: Union[str, PathLike]):
+        self.__dict__[name] = Path(value).expanduser().resolve()
 
 
 class PCRGlobWB(AbstractModel):
