@@ -44,6 +44,7 @@ class PCRGlobWB(AbstractModel):
 
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
+    available_versions = ('setters')
     # TODO add available_versions
     def __init__(self, version: str, parameter_set: PCRGlobWBParameterSet):
         super().__init__()
@@ -52,8 +53,24 @@ class PCRGlobWB(AbstractModel):
         self.parameter_set = parameter_set
         self.additional_input_dirs = []
 
+        self._set_docker_image()
+        self._set_singularity_image()
+
         self._setup_work_dir()
         self._setup_default_config()
+
+    def _set_docker_image(self):
+        images = {
+            "setters": "ewatercycle/pcrg-grpc4bmi:setters",
+        }
+        self.docker_image = images[self.version]
+
+    def _set_singularity_image(self):
+        # TODO auto detect sif file based on docker image and singularity dir.
+        images = {
+            "setters": "ewatercycle/pcrg-grpc4bmi:setters",
+        }
+        self.singularity_image = CFG['singularity_dir'] / images[self.version]
 
     def _setup_work_dir(self):
         # Must exist before setting up default config
@@ -129,20 +146,18 @@ class PCRGlobWB(AbstractModel):
 
         if CFG["container_engine"] == "docker":
             self.bmi = BmiClientDocker(
-                image=CFG["pcrglobwb.docker_image"],
+                image=self.docker_image,
                 image_port=55555,
                 work_dir=str(self.work_dir),
                 input_dirs=[str(input_dir) for input_dir in input_dirs],
                 timeout=10,
             )
         elif CFG["container_engine"] == "singularity":
-            image = CFG["pcrglobwb.singularity_image"]
-
             message = f"No singularity image found at {image}"
-            assert Path(image).exists(), message
+            assert self.singularity_image.exists(), message
 
             self.bmi = BmiClientSingularity(
-                image=image,
+                image=str(self.singularity_image),
                 work_dir=str(self.work_dir),
                 input_dirs=[str(input_path) for input_path in input_dirs],
                 timeout=10,
