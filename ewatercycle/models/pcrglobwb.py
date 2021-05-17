@@ -121,7 +121,6 @@ class PCRGlobWB(AbstractModel):
                 cfg.add_section(section)
 
             for option, value in options.items():
-                cfg.set(section, option, value)
 
                 if Path(value).exists():
                     # New data paths must be mounted on the container
@@ -132,7 +131,9 @@ class PCRGlobWB(AbstractModel):
                         self.additional_input_dirs.append(str(inputpath))
                     else:
                         self.additional_input_dirs.append(str(inputpath.parent))
-
+                    cfg.set(section, option, str(inputpath))
+                else:
+                    cfg.set(section, option, value)
 
         new_cfg_file = Path(self.work_dir) / "pcrglobwb_ewatercycle.ini"
         with new_cfg_file.open("w") as filename:
