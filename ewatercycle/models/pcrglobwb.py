@@ -2,7 +2,7 @@ import shutil
 import time
 from os import PathLike
 from pathlib import Path
-from typing import Any, Iterable, Optional, Tuple
+from typing import Any, Iterable, Optional, Tuple, Union
 
 from dataclasses import dataclass
 import numpy as np
@@ -35,74 +35,97 @@ class PCRGlobWBParameterSet:
 class PCRGlobWB(AbstractModel):
     """eWaterCycle implementation of PCRGlobWB hydrological model.
 
-    Attributes
+    Args:
+
+        version: pick a version from :py:attr:`~available_versions`
+        parameter_set: instance of :py:class:`~PCRGlobWBParameterSet`.
+
+    Attributes:
+
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
+    # TODO add available_versions
+    def __init__(self, version: str, parameter_set: PCRGlobWBParameterSet):
+        super().__init__()
+
+        self.version=version
+        self.parameter_set = parameter_set
+        self.additional_input_dirs = []
+
+        self._setup_work_dir()
+        self._setup_default_config()
+
+    def _setup_work_dir(self):
+        # Must exist before setting up default config
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        work_dir = Path(CFG["output_dir"]) / f'pcrglobwb_{timestamp}'
+        work_dir.mkdir()
+        self.work_dir = work_dir.expanduser().resolve()
+
+    def _setup_default_config(self, cfg_file: PathLike, input_dir: PathLike, **kwargs):
+        config_file = self.parameter_set.default_config
+        input_dir = self.parameter_set.input_dir
+
+        cfg = CaseConfigParser()
+        cfg.read(config_file)
+        cfg.set('globalOptions', 'inputDir', str(input_dir))
+        cfg.set('globalOptions', 'outputDir', str(self.work_dir))
+
+        self.config = cfg
+
     def setup(  # type: ignore
             self,
-            input_dir: PathLike,
-            cfg_file: PathLike,
-            additional_input_dirs: Iterable[PathLike] = [],
             **kwargs) -> Tuple[PathLike, PathLike]:
         """Start model inside container and return config file and work dir.
 
         Args:
 
-            - input_dir: main input directory. Relative paths in the cfg_file
-            should start from this directory.
-
-            - cfg_file: path to a valid pcrglobwb configuration file,
-            typically somethig like `setup.ini`.
-
-            - additional_input_dirs: one or more additional data directories
-            that the model will have access to.
-
-            - **kwargs (optional, dict): any settings in the cfg_file that you
-            want to overwrite programmatically. Should be passed as a dict,
+            - **kwargs (optional, dict): Should be passed as a dict,
             e.g. `meteoOptions = {"temperatureNC": "era5_tas_1990_2000.nc"}`
             where meteoOptions is the section in which the temperatureNC option
-            may be found.
+            may be found. See :py:attr:`~parameters` for all available settings.
 
         Returns: Path to config file and work dir
         """
-        self._setup_work_dir()
-        self._setup_config(cfg_file, input_dir, **kwargs)
+        work_dir = self.work_dir
+        cfg_file = self.update_config(**kwargs)
+
         self._start_container(input_dir, additional_input_dirs)
 
-        return self.cfg_file, self.work_dir,
+        return cfg_file, work_dir
 
-    def _setup_work_dir(self):
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        work_dir = Path(CFG["output_dir"]) / f'pcrglobwb_{timestamp}'
-        work_dir.mkdir()
-        self.work_dir = work_dir.resolve()
-        print(f"Created working directory: {work_dir}")
+    def _update_config(self):
+        cfg = self.config
 
-    def _setup_config(self, cfg_file: PathLike, input_dir: PathLike, **kwargs):
-        cfg = CaseConfigParser()
-        cfg.read(cfg_file)
-        self.cfg = cfg
-
-        full_input_path = Path(input_dir).resolve()
-        cfg.set('globalOptions', 'inputDir', str(full_input_path))
-        cfg.set('globalOptions', 'outputDir', str(self.work_dir))
+        default_input_dir = self.parameter_set.input_dir
 
         for section, options in kwargs.items():
+            if not cfg.has_section(section):
+                cfg.add_section(section)
+
             for option, value in options.items():
                 cfg.set(section, option, value)
+
+                if Path(value).exists():
+                    # New data paths must be mounted on the container
+                    inputpath = Path(value).expanduser().resolve()
+                    if default_input_dir in inputpath.parents:
+                        pass
+                    elif inputpath.is_dir():
+                        self.additional_input_dirs.append(str(inputpath))
+                    else:
+                        self.additional_input_dirs.append(str(inputpath.parent))
+
 
         new_cfg_file = Path(self.work_dir) / "pcrglobwb_ewatercycle.ini"
         with new_cfg_file.open("w") as filename:
             cfg.write(filename)
 
-        self.cfg_file = new_cfg_file.resolve()
-        print(f"Created config file {self.cfg_file} with inputDir "
-              f"{full_input_path} and outputDir {self.work_dir}.")
+        self.cfg_file = new_cfg_file.expanduser().resolve()
+        return self.cfg_file
 
-    def _start_container(self,
-                         input_dir: PathLike,
-                         additional_input_dirs: Iterable[PathLike] = []):
-        input_dirs = [input_dir] + list(additional_input_dirs)
+    def _start_container(self):
+        input_dirs = [self.parameter_set.input_dir] + self.additional_input_dirs
 
         if CFG["container_engine"] == "docker":
             self.bmi = BmiClientDocker(
@@ -164,6 +187,5 @@ class PCRGlobWB(AbstractModel):
                 "No default parameters available for pcrglobwb. To see the "
                 "parameters, first run setup with a valid .ini file.")
 
-        return [(f"{section}.{option}", f"{self.cfg.get(section, option)}")
-                for section in self.cfg.sections()
-                for option in self.cfg.options(section)]
+        return [(section, dict(self.config[section]))
+                for section in self.config.sections()]
