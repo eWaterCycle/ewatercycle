@@ -168,7 +168,7 @@ class MarrmotM01(AbstractModel):
             self.solver.resnorm_tolerance = forcing_solver['resnorm_tolerance'][0][0][0]
             self.solver.resnorm_maxiter = forcing_solver['resnorm_maxiter'][0][0][0]
 
-    def _create_marrmot_config(self, work_dir: PathLike, start_time: str = None, end_time: str = None) -> PathLike:
+    def _create_marrmot_config(self, work_dir: PathLike, start_time_iso: str = None, end_time_iso: str = None) -> PathLike:
         """Write model configuration file.
 
         Adds the model parameters to forcing file for the given period
@@ -185,8 +185,8 @@ class MarrmotM01(AbstractModel):
         forcing_data = sio.loadmat(str(self.forcing_file), mat_dtype=True)
 
         # overwrite dates if given
-        if start_time is not None:
-            start_time = datetime.fromisoformat(start_time)
+        if start_time_iso is not None:
+            start_time = datetime.fromisoformat(start_time_iso)
             if self.forcing_start_time <= start_time <= self.forcing_end_time:
                 forcing_data['time_start'][0][0:6] = [
                     start_time.year,
@@ -199,8 +199,8 @@ class MarrmotM01(AbstractModel):
                 self.forcing_start_time = start_time
             else:
                 raise ValueError('start_time outside forcing time range')
-        if end_time is not None:
-            end_time = datetime.fromisoformat(end_time)
+        if end_time_iso is not None:
+            end_time = datetime.fromisoformat(end_time_iso)
             if self.forcing_start_time <= end_time <= self.forcing_end_time:
                 forcing_data['time_end'][0][0:6] = [
                     end_time.year,
@@ -222,7 +222,7 @@ class MarrmotM01(AbstractModel):
             store_ini=self.store_ini,
         )
 
-        config_file = work_dir / 'marrmot-m01_config.mat'
+        config_file = work_dir / Path('marrmot-m01_config.mat')
         sio.savemat(config_file, forcing_data)
         return config_file
 
