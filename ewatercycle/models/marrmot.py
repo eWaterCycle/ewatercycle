@@ -66,20 +66,15 @@ class MarrmotM01(AbstractModel):
         """Construct MarrmotM01 with initial values. """
         super().__init__()
         self.version = version
-        if CFG['container_engine'].lower() == 'singularity':
-            self._set_singularity_image()
-        elif CFG['container_engine'].lower() == 'docker':
-            self._set_docker_image()
-        else:
-            raise ValueError(
-                f"Unknown container technology in CFG: {CFG['container_engine']}"
-            )
         self._parameters = [1000.0]
         self.store_ini = [900.0]
         self.solver = Solver()
 
         self.forcing = forcing
         self._check_forcing(self.forcing)
+
+        self._set_singularity_image()
+        self._set_docker_image()
 
     def _set_docker_image(self):
         images = {
@@ -92,6 +87,10 @@ class MarrmotM01(AbstractModel):
             '2020.11': 'ewatercycle-marrmot-grpc4bmi_2020.11.sif'
         }
         self.singularity_image = CFG['singularity_dir'] / images[self.version]
+        if not self.singularity_image.exists():
+            raise FileNotFoundError(
+                f"The singularity image {images[self.version]} does not exist in {CFG['singularity_dir']}"
+            )
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
@@ -131,11 +130,15 @@ class MarrmotM01(AbstractModel):
                 image=str(self.singularity_image),
                 work_dir=str(work_dir),
             )
-        else:
+        elif CFG['container_engine'].lower() == 'docker':
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
                 work_dir=str(work_dir),
+            )
+        else:
+            raise ValueError(
+                f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
         return config_file, work_dir
 
