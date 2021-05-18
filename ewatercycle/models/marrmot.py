@@ -195,6 +195,7 @@ class MarrmotM01(AbstractModel):
                     start_time.minute,
                     start_time.second,
                 ]
+                self.forcing_start_time = start_time
             else:
                 raise ValueError('start_time outside forcing time range')
         if end_time is not None:
@@ -208,6 +209,7 @@ class MarrmotM01(AbstractModel):
                     end_time.minute,
                     end_time.second,
                 ]
+                self.forcing_end_time = end_time
             else:
                 raise ValueError('end_time outside forcing time range')
 
@@ -256,6 +258,8 @@ class MarrmotM01(AbstractModel):
             ('maximum_soil_moisture_storage', self._parameters[0]),
             ('initial_soil_moisture_storage', self.store_ini[0]),
             ('solver', self.solver),
+            ('start time', self.forcing_start_time.isoformat()),
+            ('end time', self.forcing_end_time.isoformat()),
         ]
         if self.forcing_file:
             p += [
