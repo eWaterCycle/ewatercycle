@@ -42,8 +42,8 @@ def _generate_work_dir(work_dir: PathLike = None) -> PathLike:
 
 
 class MarrmotM01(AbstractModel):
-    """eWaterCycle implementation of Marrmot Collie River 1 (traditional bucket) hydrological model. 
-    
+    """eWaterCycle implementation of Marrmot Collie River 1 (traditional bucket) hydrological model.
+
     It sets MarrmotM01 parameter with an initial value that is the mean value of the range specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
 
     Args:
@@ -97,8 +97,8 @@ class MarrmotM01(AbstractModel):
     def setup(self,  # type: ignore
               maximum_soil_moisture_storage: float = None,
               initial_soil_moisture_storage: float = None,
-              start_time: datetime = None,
-              end_time: datetime = None,
+              start_time: str = None,
+              end_time: str = None,
               solver: Solver = None,
               work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
         """Configure model run.
@@ -109,8 +109,8 @@ class MarrmotM01(AbstractModel):
         Args:
             maximum_soil_moisture_storage: in mm. Range is specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
             initial_soil_moisture_storage: in mm.
-            start_time: Start time of model, if not given then forcing start time is used.
-            end_time: End time of model, if not given then forcing end time is used.
+            start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SS+00:00'. If not given then forcing start time is used.
+            end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SS+00:00'. If not given then forcing end time is used.
             solver: Solver settings
             work_dir: a working directory given by user or created for user.
         Returns:
@@ -167,7 +167,7 @@ class MarrmotM01(AbstractModel):
             self.solver.resnorm_tolerance = forcing_solver['resnorm_tolerance'][0][0][0]
             self.solver.resnorm_maxiter = forcing_solver['resnorm_maxiter'][0][0][0]
 
-    def _create_marrmot_config(self, work_dir: PathLike, start_time: datetime = None, end_time: datetime = None) -> PathLike:
+    def _create_marrmot_config(self, work_dir: PathLike, start_time: str = None, end_time: str = None) -> PathLike:
         """Write model configuration file.
 
         Adds the model parameters to forcing file for the given period
@@ -185,6 +185,7 @@ class MarrmotM01(AbstractModel):
 
         # overwrite dates if given
         if start_time is not None:
+            start_time = datetime.fromisoformat(start_time)
             if self.forcing_start_time <= start_time <= self.forcing_end_time:
                 forcing_data['time_start'][0][0:6] = [
                     start_time.year,
@@ -197,6 +198,7 @@ class MarrmotM01(AbstractModel):
             else:
                 raise ValueError('start_time outside forcing time range')
         if end_time is not None:
+            end_time = datetime.fromisoformat(end_time)
             if self.forcing_start_time <= end_time <= self.forcing_end_time:
                 forcing_data['time_end'][0][0:6] = [
                     end_time.year,
