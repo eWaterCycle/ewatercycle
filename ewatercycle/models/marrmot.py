@@ -42,7 +42,9 @@ def _generate_work_dir(work_dir: PathLike = None) -> PathLike:
 
 
 class MarrmotM01(AbstractModel):
-    """eWaterCycle implementation of Marrmot Collie River 1 (traditional bucket) hydrological model. It sets MarrmotM01 parameter with an initial value that is the mean value of the range specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
+    """eWaterCycle implementation of Marrmot Collie River 1 (traditional bucket) hydrological model. 
+    
+    It sets MarrmotM01 parameter with an initial value that is the mean value of the range specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
 
     Args:
         version: pick a version for which an ewatercycle grpc4bmi docker image is available.
