@@ -87,10 +87,6 @@ class MarrmotM01(AbstractModel):
             '2020.11': 'ewatercycle-marrmot-grpc4bmi_2020.11.sif'
         }
         self.singularity_image = CFG['singularity_dir'] / images[self.version]
-        if not self.singularity_image.exists():
-            raise FileNotFoundError(
-                f"The singularity image {images[self.version]} does not exist in {CFG['singularity_dir']}"
-            )
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
@@ -126,6 +122,8 @@ class MarrmotM01(AbstractModel):
         config_file = self._create_marrmot_config(work_dir, start_time, end_time)
 
         if CFG['container_engine'].lower() == 'singularity':
+            message = f"The singularity image {self.singularity_image} does not exist."
+            assert self.singularity_image.exists(), message
             self.bmi = BmiClientSingularity(
                 image=str(self.singularity_image),
                 work_dir=str(work_dir),
