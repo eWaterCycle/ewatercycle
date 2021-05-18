@@ -217,7 +217,7 @@ class MarrmotM01(AbstractModel):
             store_ini=self.store_ini,
         )
 
-        config_file = work_dir / Path('marrmot-m01_config.mat')
+        config_file = work_dir / 'marrmot-m01_config.mat'
         sio.savemat(config_file, forcing_data)
         return config_file
 
