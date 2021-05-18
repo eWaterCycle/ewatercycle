@@ -86,7 +86,8 @@ class MarrmotM01(AbstractModel):
         images = {
             '2020.11': 'ewatercycle-marrmot-grpc4bmi_2020.11.sif'
         }
-        self.singularity_image = CFG['singularity_dir'] / images[self.version]
+        if CFG.get('singularity_dir'):
+            self.singularity_image = CFG['singularity_dir'] / images[self.version]
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
