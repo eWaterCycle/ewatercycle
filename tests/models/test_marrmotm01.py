@@ -44,6 +44,8 @@ class TestWithDefaultsAndExampleData:
             ('maximum_soil_moisture_storage', 10.0),
             ('initial_soil_moisture_storage', 5.0),
             ('solver', Solver()),
+            ('start time', '1989-01-01T00:00:00+00:00'),
+            ('end time', '1992-12-31T00:00:00+00:00'),
             ('forcing_file', forcing_file)
         ]
         assert model.parameters == expected
@@ -70,6 +72,8 @@ class TestWithDefaultsAndExampleData:
             ('maximum_soil_moisture_storage', 10.0),
             ('initial_soil_moisture_storage', 5.0),
             ('solver', Solver()),
+            ('start time', '1989-01-01T00:00:00+00:00'),
+            ('end time', '1992-12-31T00:00:00+00:00'),
             ('forcing_file', forcing_file)
         ]
         assert model.parameters == expected
@@ -121,8 +125,8 @@ class TestWithCustomSetupAndExampleData:
         cfg_file, cfg_dir = model.setup(
             maximum_soil_moisture_storage=1234,
             initial_soil_moisture_storage=4321,
-            start_time=datetime(1990, 1, 1, tzinfo=timezone.utc),
-            end_time=datetime(1991, 12, 31, tzinfo=timezone.utc),
+            start_time='1990-01-01T00:00:00+00:00',
+            end_time='1991-12-31T00:00:00+00:00',
         )
         return model, cfg_file, cfg_dir
 
@@ -157,13 +161,13 @@ class TestWithDatesOutsideRangeSetupAndExampleData:
     def test_setup_with_earlystart(self, model: MarrmotM01):
         with pytest.raises(ValueError) as excinfo:
             model.setup(
-                start_time=datetime(1980, 1, 1, tzinfo=timezone.utc),
+                start_time='1980-01-01T00:00:00+00:00',
             )
         assert 'start_time outside forcing time range' in str(excinfo.value)
 
     def test_setup_with_lateend(self, model: MarrmotM01):
         with pytest.raises(ValueError) as excinfo:
             model.setup(
-                end_time=datetime(2000, 1, 1, tzinfo=timezone.utc),
+                end_time='2000-01-01T00:00:00+00:00',
             )
         assert 'end_time outside forcing time range' in str(excinfo.value)
