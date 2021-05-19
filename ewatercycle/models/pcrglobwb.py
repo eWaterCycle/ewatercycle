@@ -1,5 +1,6 @@
 import shutil
 import time
+import warnings
 from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
@@ -31,6 +32,24 @@ class PCRGlobWBParameterSet:
         self.__dict__[name] = Path(value).expanduser().resolve()
 
 
+@dataclass
+class PCRGlobWBForcing:
+    """Forcing data for the PCRGlobWB model class."""
+    precipitationNC: Optional[Union[str, PathLike]] = None
+    """Input file for precipitation data."""
+    temperatureNC: Optional[Union[str, PathLike]] = None
+    """Input file for temperature data."""
+    refETPotFileNC: Optional[Union[str, PathLike]] = None
+    """Input file for reference potential evapotranspiration data."""
+    def __setattr__(self, name: str, value: Union[str, PathLike, None]):
+        if value is not None and Path(value).exists():
+            self.__dict__[name] = Path(value).expanduser().resolve()
+        else:
+            warnings.warn(
+                f"No valid input path received for {name}, defaulting to ''.")
+            self.__dict__[name] = ''
+
+
 class PCRGlobWB(AbstractModel):
     """eWaterCycle implementation of PCRGlobWB hydrological model.
 
@@ -45,7 +64,10 @@ class PCRGlobWB(AbstractModel):
     """
     available_versions = ('setters')
 
-    def __init__(self, version: str, parameter_set: PCRGlobWBParameterSet):
+    def __init__(self,
+                 version: str,
+                 parameter_set: PCRGlobWBParameterSet,
+                 forcing: Optional[PCRGlobWBForcing] = None):
         super().__init__()
 
         self.version = version
@@ -57,6 +79,9 @@ class PCRGlobWB(AbstractModel):
 
         self._setup_work_dir()
         self._setup_default_config()
+
+        if forcing is not None:
+            self._update_config(meteoOptions=forcing.__dict__)
 
     def _set_docker_image(self):
         images = {
@@ -102,8 +127,9 @@ class PCRGlobWB(AbstractModel):
 
         Returns: Path to config file and work dir
         """
+        self._update_config(**kwargs)
+        cfg_file = self._export_config()
         work_dir = self.work_dir
-        cfg_file = self._update_config(**kwargs)
 
         self._start_container()
 
@@ -134,9 +160,10 @@ class PCRGlobWB(AbstractModel):
                 else:
                     cfg.set(section, option, value)
 
+    def _export_config(self) -> PathLike:
         new_cfg_file = Path(self.work_dir) / "pcrglobwb_ewatercycle.ini"
         with new_cfg_file.open("w") as filename:
-            cfg.write(filename)
+            self.config.write(filename)
 
         self.cfg_file = new_cfg_file.expanduser().resolve()
         return self.cfg_file
