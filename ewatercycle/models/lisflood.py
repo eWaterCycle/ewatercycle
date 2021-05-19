@@ -217,117 +217,12 @@ class Lisflood(AbstractModel):
                         f"lisflood_{prefix['value']}_{timestamp}",
                     )
                 if map_var in textvar_name:
-                    textvar.set('value', f"$(PathOut)/$({prefix['name']})")
+                    textvar.set('value', f"$(PathMeteo)/$({prefix['name']})")
 
         # Write to new setting file
         lisflood_file = f"{self.work_dir}/lisflood_setting.xml"
         cfg.save(lisflood_file)
         return lisflood_file
-
-    def _create_lisvap_config(self) -> str:
-        """Update lisvap setting file"""
-        cfg = XmlConfig(self.parameter_set.lisvap_config_template)
-        # Make a dictionary for settings
-        maps = "/data/lisflood_input/maps_netcdf"
-        settings = {
-            "CalendarDayStart": self.start.strftime("%d/%m/%Y 00:00"),
-            "StepStart": self.start.strftime("%d/%m/%Y 00:00"),
-            "StepEnd": self.end.strftime("%d/%m/%Y 00:00"),
-            "PathOut": "/output",
-            "PathBaseMapsIn": maps,
-            "MaskMap": "/data/model_mask",
-            "PathMeteoIn": "/data/forcing",
-        }
-
-        timestamp = f"{self.start.year}_{self.end.year}"
-
-        # Mapping lisvap input varnames to cmor varnames
-        INPUT_NAMES = {
-            'TAvgMaps': 'tas',
-            'TMaxMaps': 'tasmax',
-            'TMinMaps': 'tasmin',
-            'EActMaps': 'e',
-            'WindMaps': 'sfcWind',
-            'RgdMaps': 'rsds',
-        }
-        for textvar in cfg.config.iter("textvar"):
-            textvar_name = textvar.attrib["name"]
-
-            # general settings
-            for key, value in settings.items():
-                if key in textvar_name:
-                    textvar.set("value", value)
-
-            # lisvap input files
-            for lisvap_var, cmor_var in INPUT_NAMES.items():
-                if lisvap_var in textvar_name:
-                    filename = self.forcing_files[cmor_var]
-                    textvar.set(
-                        "value", f"$(PathMeteoIn)/{filename}",
-                    )
-
-            # lisvap output files
-            for prefix in MAPS_PREFIXES.values():
-                if prefix['name'] in textvar_name:
-                    textvar.set(
-                        "value",
-                        f"lisflood_{prefix['value']}_{timestamp}",
-                    )
-
-        # Write to new setting file
-        lisvap_file = f"{self.work_dir}/lisvap_setting.xml"
-        cfg.save(lisvap_file)
-        return lisvap_file
-
-    # TODO take this out of the class?
-    def run_lisvap(self, forcing: PathLike) -> Tuple[int, bytes, bytes]:
-        """Run lisvap to generate evaporation input files
-
-        Args:
-            forcing: Path to forcing data
-
-        Returns:
-            Tuple with exit code, stdout and stderr
-        """
-        singularity_image = CFG['lisflood.singularity_image']
-        docker_image = CFG['lisflood.docker_image']
-        self._check_forcing(forcing)
-        lisvap_file = self._create_lisvap_config()
-
-        mount_points = {
-            f'{self.parameter_set.root}': '/data/lisflood_input',
-            f'{self.parameter_set.mask}': '/data/model_mask.nc',
-            f'{self.forcing_dir}': '/data/forcing',
-            f'{self.work_dir}': '/output',
-        }
-
-        if CFG['container_engine'].lower() == 'singularity':
-            args = [
-                "singularity",
-                "exec",
-            ]
-            args += ["--bind", ','.join([hp + ':' + ip for hp, ip in mount_points.items()])]
-            args.append(singularity_image)
-
-        elif CFG['container_engine'].lower() == 'docker':
-            args = [
-                "docker",
-                "run -ti",
-            ]
-            args += ["--volume", ','.join([hp + ':' + ip for hp, ip in mount_points.items()])]
-            args.append(docker_image)
-
-        else:
-            raise ValueError(
-                f"Unknown container technology in CFG: {CFG['container_engine']}"
-            )
-
-        lisvap_filename = Path(lisvap_file).name
-        args += ['python3', '/opt/Lisvap/src/lisvap1.py', f"/output/{lisvap_filename}"]
-        container = subprocess.Popen(args, preexec_fn=os.setsid, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        exit_code = container.wait()
-        stdout, stderr = container.communicate()
-        return exit_code, stdout, stderr
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
@@ -358,7 +253,7 @@ class Lisflood(AbstractModel):
         parameters = [
             ('Input files specific for parameter_set', str(self.parameter_set.root)),
             ('model boundaries', str(self.parameter_set.mask.parent)),
-            ('configuration template', self.parameter_set.config_template),
+            ('configuration template', str(self.parameter_set.config_template)),
         ]
         if self.forcing_dir:
             parameters += [
