@@ -28,6 +28,7 @@ setup(
         'pandas',
         'pyoos',
         'ruamel.yaml',
+        'warnings',
         'xarray',
     ],
     packages=find_packages(),
