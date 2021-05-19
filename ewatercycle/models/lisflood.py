@@ -1,6 +1,7 @@
 import os
 import subprocess
 import time
+import dateutil
 from pathlib import Path
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
@@ -158,9 +159,8 @@ class Lisflood(AbstractModel):
                 var_name = list(dataset.data_vars.keys())[0]
                 self.forcing_files[var_name] = forcing_file.name
                 # get start and end date of time dimension
-                # TODO converting numpy.datetime64 to datetime object is ugly, find better way
-                self.start = datetime.utcfromtimestamp(dataset.coords['time'][0].values.astype('O') / 1e9)
-                self.end = datetime.utcfromtimestamp(dataset.coords['time'][-1].values.astype('O') / 1e9)
+                self.start = _convert_timearray_to_datetime(dataset.coords['time'][0])
+                self.end = _convert_timearray_to_datetime(dataset.coords['time'][-1])
         elif isinstance(forcing, ForcingData):
             # key is cmor var name and value is path to NetCDF file
             self.forcing_files = dict()
@@ -171,9 +171,8 @@ class Lisflood(AbstractModel):
                 self.forcing_files[var_name] = data_file.filename.name
                 self.forcing_dir = data_file.filename.parent
                 # get start and end date of time dimension
-                # TODO converting numpy.datetime64 to datetime object is ugly, find better way
-                self.start = datetime.utcfromtimestamp(dataset.coords['time'][0].values.astype('O') / 1e9)
-                self.end = datetime.utcfromtimestamp(dataset.coords['time'][-1].values.astype('O') / 1e9)
+                self.start = _convert_timearray_to_datetime(dataset.coords['time'][0])
+                self.end = _convert_timearray_to_datetime(dataset.coords['time'][-1])
         else:
             raise TypeError(
                 f"Unknown forcing type: {forcing}. Please supply either a Path or ForcingData object."
@@ -304,6 +303,16 @@ def _generate_workdir(work_dir: PathLike = None) -> PathLike:
         work_dir = Path(scratch_dir) / f'lisflood_{timestamp}'
         work_dir.mkdir(parents=True, exist_ok=True)
     return work_dir
+
+
+def _convert_timearray_to_datetime(timearray: xr.DataArray) -> datetime:
+    """Convert an array of datetimes into an datetime objetct.
+
+    First convert an array of datetimes into an array of strings.
+    Then, convert an array of strings (ISO format) to a datetime.
+    """
+    datetime_as_string = np.datetime_as_string(timearray, timezone='UTC')
+    return dateutil.parser.parse(datetime_as_string)
 
 
 class XmlConfig(AbstractConfig):
