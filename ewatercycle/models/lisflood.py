@@ -1,7 +1,7 @@
 import os
 import subprocess
 import time
-import dateutil
+from dateutil.parser import parse
 from pathlib import Path
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
@@ -312,7 +312,7 @@ def _convert_timearray_to_datetime(timearray: xr.DataArray) -> datetime:
     Then, convert an array of strings (ISO format) to a datetime.
     """
     datetime_as_string = np.datetime_as_string(timearray, timezone='UTC')
-    return dateutil.parser.parse(datetime_as_string)
+    return parse(datetime_as_string)
 
 
 class XmlConfig(AbstractConfig):
