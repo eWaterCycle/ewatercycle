@@ -75,15 +75,9 @@ class Lisflood(AbstractModel):
         self.version = version
         self._check_forcing(forcing)
         self.parameter_set = parameter_set
-        
-        if CFG['container_engine'].lower() == 'singularity':
-            self._set_singularity_image()
-        elif CFG['container_engine'].lower() == 'docker':
-            self._set_docker_image()
-        else:
-            raise ValueError(
-                f"Unknown container technology in CFG: {CFG['container_engine']}"
-            )
+        self._set_singularity_image()
+        self._set_docker_image()
+
     def _set_docker_image(self):
         images = {
             '20.10': 'ewatercycle/lisflood-grpc4bmi:20.10'
@@ -94,7 +88,8 @@ class Lisflood(AbstractModel):
         images = {
             '20.10': 'ewatercycle-lisflood-grpc4bmi_20.10.sif'
         }
-        self.singularity_image = CFG['singularity_dir'] / images[self.version]
+        if CFG.get('singularity_dir'):
+            self.singularity_image = CFG['singularity_dir'] / images[self.version]
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
@@ -133,7 +128,7 @@ class Lisflood(AbstractModel):
                 ],
                 work_dir=str(self.work_dir),
             )
-        else:
+        elif CFG['container_engine'].lower() == 'docker':
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
@@ -143,6 +138,10 @@ class Lisflood(AbstractModel):
                     str(self.forcing_dir)
                 ],
                 work_dir=str(self.work_dir),
+            )
+        else:
+            raise ValueError(
+                f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
         return Path(config_file), self.work_dir
 
