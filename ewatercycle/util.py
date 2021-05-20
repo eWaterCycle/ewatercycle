@@ -85,7 +85,7 @@ def lat_lon_boundingbox_to_variable_indices(model, variable, latMin, latMax, lon
 def get_time(time_iso: str) -> datetime:
     """Return a datetime in UTC.
 
-    Convert an array of strings (ISO format) to a datetime
+    Convert a date string in ISO format to a datetime
     and check if it is in UTC.
     """
     time = parse(time_iso)
