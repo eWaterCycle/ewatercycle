@@ -15,6 +15,7 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 from ewatercycle import CFG
 from ewatercycle.forcing.forcing_data import ForcingData
 from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.util import get_time
 
 
 @dataclass
@@ -105,8 +106,8 @@ class MarrmotM01(AbstractModel):
         Args:
             maximum_soil_moisture_storage: in mm. Range is specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
             initial_soil_moisture_storage: in mm.
-            start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SS+00:00'. If not given then forcing start time is used.
-            end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SS+00:00'. If not given then forcing end time is used.
+            start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
+            end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
             solver: Solver settings
             work_dir: a working directory given by user or created for user.
         Returns:
@@ -177,8 +178,8 @@ class MarrmotM01(AbstractModel):
 
         Args:
             work_dir: a working directory given by user or created for user.
-            start_time: Start time of model, if not given then forcing start time is used.
-            end_time: End time of model, if not given then forcing end time is used.
+            start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
+            end_time: End time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
 
         Returns:
             Path for Marrmot config file
@@ -187,7 +188,7 @@ class MarrmotM01(AbstractModel):
 
         # overwrite dates if given
         if start_time_iso is not None:
-            start_time = datetime.fromisoformat(start_time_iso)
+            start_time = get_time(start_time_iso)
             if self.forcing_start_time <= start_time <= self.forcing_end_time:
                 forcing_data['time_start'][0][0:6] = [
                     start_time.year,
@@ -201,7 +202,7 @@ class MarrmotM01(AbstractModel):
             else:
                 raise ValueError('start_time outside forcing time range')
         if end_time_iso is not None:
-            end_time = datetime.fromisoformat(end_time_iso)
+            end_time = get_time(end_time_iso)
             if self.forcing_start_time <= end_time <= self.forcing_end_time:
                 forcing_data['time_end'][0][0:6] = [
                     end_time.year,

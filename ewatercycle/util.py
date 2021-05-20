@@ -1,5 +1,7 @@
 import numpy as np
 import xarray as xr
+from datetime import datetime
+from dateutil.parser import parse
 
 from ewatercycle.models.abstract import AbstractModel
 
@@ -78,3 +80,17 @@ def lat_lon_boundingbox_to_variable_indices(model, variable, latMin, latMax, lon
             output.append(x + nx*y)
 
     return np.array(output)
+
+
+def get_time(time_iso: str) -> datetime:
+    """Return a datetime in UTC.
+
+    Convert an array of strings (ISO format) to a datetime
+    and check if it is in UTC.
+    """
+    time = parse(time_iso)
+    if not time.tzname() == 'UTC':
+        raise ValueError(
+            f"The time isnot in UTC. The ISO format for a UTC time is 'YYYY-MM-DDTHH:MM:SSZ'"
+        )
+    return time
