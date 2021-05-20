@@ -36,14 +36,14 @@ class LisfloodParameterSet:
             config_template='/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml',
         )
     """
-    root: Union[str, PathLike]
+    root: Path
     """Directory with input files"""
-    mask: Union[str, PathLike]
+    mask: Path
     """A NetCDF file with model boundaries"""
-    config_template: Union[str, PathLike]
+    config_template: Path
     """Config file used as template for a lisflood run"""
 
-    def __setattr__(self, name: str, value: Union[str, PathLike]):
+    def __setattr__(self, name: str, value: Union[str, Path]):
         self.__dict__[name] = Path(value).expanduser().resolve()
 
 
