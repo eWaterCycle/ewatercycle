@@ -1,7 +1,7 @@
 import numpy as np
 import xarray as xr
-
-from ewatercycle.models.abstract import AbstractModel
+from datetime import datetime
+from dateutil.parser import parse
 
 
 def var_to_xarray(model, variable):
@@ -33,7 +33,7 @@ def var_to_xarray(model, variable):
     return da.where(da != -999)
 
 
-def lat_lon_to_closest_variable_indices(model: AbstractModel, variable, lats, lons):
+def lat_lon_to_closest_variable_indices(model, variable, lats, lons):
     """Translate lat, lon coordinates into BMI model
     indices, which are used to get and set variable values.
     """
@@ -78,3 +78,17 @@ def lat_lon_boundingbox_to_variable_indices(model, variable, latMin, latMax, lon
             output.append(x + nx*y)
 
     return np.array(output)
+
+
+def get_time(time_iso: str) -> datetime:
+    """Return a datetime in UTC.
+
+    Convert a date string in ISO format to a datetime
+    and check if it is in UTC.
+    """
+    time = parse(time_iso)
+    if not time.tzname() == 'UTC':
+        raise ValueError(
+            f"The time is not in UTC. The ISO format for a UTC time is 'YYYY-MM-DDTHH:MM:SSZ'"
+        )
+    return time
