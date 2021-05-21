@@ -3,8 +3,6 @@ import xarray as xr
 from datetime import datetime
 from dateutil.parser import parse
 
-from ewatercycle.models.abstract import AbstractModel
-
 
 def var_to_xarray(model, variable):
     """Get grid properties from model (x = latitude !!)
@@ -35,7 +33,7 @@ def var_to_xarray(model, variable):
     return da.where(da != -999)
 
 
-def lat_lon_to_closest_variable_indices(model: AbstractModel, variable, lats, lons):
+def lat_lon_to_closest_variable_indices(model, variable, lats, lons):
     """Translate lat, lon coordinates into BMI model
     indices, which are used to get and set variable values.
     """
