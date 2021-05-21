@@ -115,9 +115,9 @@ class Lisflood(AbstractModel):
         #TODO add a start time argument that must be in forcing time range
         if parameter_set:
             self.parameter_set = parameter_set
-        self.work_dir = _generate_workdir(work_dir)
 
         config_file = self._create_lisflood_config()
+        self.work_dir = _generate_workdir(work_dir)
 
         if CFG['container_engine'].lower() == 'singularity':
             self.bmi = BmiClientSingularity(
@@ -144,7 +144,7 @@ class Lisflood(AbstractModel):
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        return Path(config_file), self.work_dir
+        return config_file, self.work_dir
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
@@ -178,7 +178,7 @@ class Lisflood(AbstractModel):
                 f"Unknown forcing type: {forcing}. Please supply either a Path or ForcingData object."
             )
 
-    def _create_lisflood_config(self) -> str:
+    def _create_lisflood_config(self) -> Path:
         """Create lisflood config file"""
         cfg = XmlConfig(self.parameter_set.config_template)
 
@@ -221,7 +221,7 @@ class Lisflood(AbstractModel):
         # Write to new setting file
         lisflood_file = f"{self.work_dir}/lisflood_setting.xml"
         cfg.save(lisflood_file)
-        return lisflood_file
+        return Path(lisflood_file)
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
