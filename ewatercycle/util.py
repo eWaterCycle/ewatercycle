@@ -35,7 +35,7 @@ def var_to_xarray(model, variable):
     return da.where(da != -999)
 
 
-def lat_lon_to_closest_variable_indices(model: AbstractModel, variable, lats, lons):
+def lat_lon_to_closest_variable_indices(model, variable, lats, lons):
     """Translate lat, lon coordinates into BMI model
     indices, which are used to get and set variable values.
     """
@@ -90,3 +90,17 @@ def convert_timearray_to_datetime(timearray: xr.DataArray) -> datetime:
     """
     datetime_as_string = np.datetime_as_string(timearray, timezone='UTC')
     return parse(datetime_as_string)
+
+
+def get_time(time_iso: str) -> datetime:
+    """Return a datetime in UTC.
+
+    Convert a date string in ISO format to a datetime
+    and check if it is in UTC.
+    """
+    time = parse(time_iso)
+    if not time.tzname() == 'UTC':
+        raise ValueError(
+            f"The time is not in UTC. The ISO format for a UTC time is 'YYYY-MM-DDTHH:MM:SSZ'"
+        )
+    return time
