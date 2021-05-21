@@ -96,7 +96,7 @@ class TestLFlatlonUseCase:
         config_file, config_dir, mocked_constructor = model_with_setup
 
         mocked_constructor.assert_called_once_with(
-            image='docker://ewatercycle/lisflood-grpc4bmi:20.10',
+            image=f'{tmp_path}/ewatercycle-lisflood-grpc4bmi_20.10.sif',
             input_dirs=[
                 f'{tmp_path}/input',
                 f'{tmp_path}/mask',
