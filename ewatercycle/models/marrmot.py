@@ -178,8 +178,8 @@ class MarrmotM01(AbstractModel):
 
         Args:
             work_dir: a working directory given by user or created for user.
-            start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
-            end_time: End time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
+            start_time_iso: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
+            end_time_iso: End time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
 
         Returns:
             Path for Marrmot config file
