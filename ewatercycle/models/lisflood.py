@@ -60,9 +60,13 @@ MAPS_PREFIXES = {
 class Lisflood(AbstractModel):
     """eWaterCycle implementation of Lisflood hydrological model.
 
+    Args:
+    version: pick a version for which an ewatercycle grpc4bmi docker image is available.
+    parameter_set: LISFLOOD input files. Any included forcing data will be ignored.
+    forcing: a forcing directory or a forcing data object.
+
     Attributes:
         bmi (Bmi): Basic Modeling Interface object
-        work_dir (PathLike): Working directory for the model where it can read/write files
 
     Example:
         See examples/lisflood.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
@@ -106,7 +110,6 @@ class Lisflood(AbstractModel):
         2. Start bmi container and store as :py:attr:`bmi`
 
         Args:
-            forcing: a forcing directory or a forcing data object.
             parameter_set: LISFLOOD input files. Any included forcing data will be ignored.
             start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
             end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
