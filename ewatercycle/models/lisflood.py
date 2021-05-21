@@ -19,7 +19,7 @@ from ewatercycle import CFG
 from ewatercycle.forcing.forcing_data import ForcingData
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import AbstractConfig
-from ewatercycle.util import convert_timearray_to_datetime
+from ewatercycle.util import convert_timearray_to_datetime, get_time
 
 
 @dataclass
@@ -95,6 +95,8 @@ class Lisflood(AbstractModel):
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
               parameter_set: LisfloodParameterSet= None,
+              start_time: str = None,
+              end_time: str = None,
               work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
         """Configure model run
 
@@ -106,6 +108,8 @@ class Lisflood(AbstractModel):
         Args:
             forcing: a forcing directory or a forcing data object.
             parameter_set: LISFLOOD input files. Any included forcing data will be ignored.
+            start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
+            end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
             work_dir: a working directory given by user or created for user.
 
         Returns:
@@ -116,8 +120,8 @@ class Lisflood(AbstractModel):
         if parameter_set:
             self.parameter_set = parameter_set
 
-        config_file = self._create_lisflood_config()
-        self.work_dir = _generate_workdir(work_dir)
+        work_dir = _generate_workdir(work_dir)
+        config_file = self._create_lisflood_config(work_dir, start_time, end_time)
 
         if CFG['container_engine'].lower() == 'singularity':
             self.bmi = BmiClientSingularity(
@@ -127,7 +131,7 @@ class Lisflood(AbstractModel):
                     str(self.parameter_set.mask.parent),
                     str(self.forcing_dir)
                 ],
-                work_dir=str(self.work_dir),
+                work_dir=str(work_dir),
             )
         elif CFG['container_engine'].lower() == 'docker':
             self.bmi = BmiClientDocker(
@@ -138,13 +142,13 @@ class Lisflood(AbstractModel):
                     str(self.parameter_set.mask.parent),
                     str(self.forcing_dir)
                 ],
-                work_dir=str(self.work_dir),
+                work_dir=str(work_dir),
             )
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        return config_file, self.work_dir
+        return config_file, work_dir
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
@@ -159,8 +163,8 @@ class Lisflood(AbstractModel):
                 var_name = list(dataset.data_vars.keys())[0]
                 self.forcing_files[var_name] = forcing_file.name
                 # get start and end date of time dimension
-                self.start = convert_timearray_to_datetime(dataset.coords['time'][0])
-                self.end = convert_timearray_to_datetime(dataset.coords['time'][-1])
+                self.forcing_start_time = convert_timearray_to_datetime(dataset.coords['time'][0])
+                self.forcing_end_time = convert_timearray_to_datetime(dataset.coords['time'][-1])
         elif isinstance(forcing, ForcingData):
             # key is cmor var name and value is path to NetCDF file
             self.forcing_files = dict()
@@ -171,28 +175,42 @@ class Lisflood(AbstractModel):
                 self.forcing_files[var_name] = data_file.filename.name
                 self.forcing_dir = data_file.filename.parent
                 # get start and end date of time dimension
-                self.start = convert_timearray_to_datetime(dataset.coords['time'][0])
-                self.end = convert_timearray_to_datetime(dataset.coords['time'][-1])
+                self.forcing_start_time = convert_timearray_to_datetime(dataset.coords['time'][0])
+                self.forcing_end_time = convert_timearray_to_datetime(dataset.coords['time'][-1])
         else:
             raise TypeError(
                 f"Unknown forcing type: {forcing}. Please supply either a Path or ForcingData object."
             )
 
-    def _create_lisflood_config(self) -> Path:
+    def _create_lisflood_config(self, work_dir: Path, start_time_iso: str = None, end_time_iso: str = None) -> Path:
         """Create lisflood config file"""
         cfg = XmlConfig(self.parameter_set.config_template)
 
+        # overwrite dates if given
+        if start_time_iso is not None:
+            start_time = get_time(start_time_iso)
+            if self.forcing_start_time <= start_time <= self.forcing_end_time:
+                self.start_time = start_time
+            else:
+                raise ValueError('start_time outside forcing time range')
+        if end_time_iso is not None:
+            end_time = get_time(end_time_iso)
+            if self.forcing_start_time <= end_time <= self.forcing_end_time:
+                self.end_time = end_time
+            else:
+                raise ValueError('end_time outside forcing time range')
+
         settings = {
-            "CalendarDayStart": self.start.strftime("%d/%m/%Y 00:00"),
+            "CalendarDayStart": self.start_time.strftime("%d/%m/%Y 00:00"),
             "StepStart": "1",
-            "StepEnd": str((self.end - self.start).days),
+            "StepEnd": str((self.end_time - self.start_time).days),
             "PathRoot": f"{self.parameter_set.root}",
             "MaskMap": f"{self.parameter_set.mask}".rstrip('.nc'),
             "PathMeteo": f"{self.forcing_dir}",
-            "PathOut": f"{self.work_dir}",
+            "PathOut": f"{work_dir}",
         }
 
-        timestamp = f"{self.start.year}_{self.end.year}"
+        timestamp = f"{self.start_time.year}_{self.end_time.year}"
 
         for textvar in cfg.config.iter("textvar"):
             textvar_name = textvar.attrib["name"]
@@ -219,9 +237,9 @@ class Lisflood(AbstractModel):
                     textvar.set('value', f"$(PathMeteo)/$({prefix['name']})")
 
         # Write to new setting file
-        lisflood_file = f"{self.work_dir}/lisflood_setting.xml"
-        cfg.save(lisflood_file)
-        return Path(lisflood_file)
+        lisflood_file = work_dir / "lisflood_setting.xml"
+        cfg.save(str(lisflood_file))
+        return lisflood_file
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
@@ -253,6 +271,8 @@ class Lisflood(AbstractModel):
             ('Input files specific for parameter_set', str(self.parameter_set.root)),
             ('model boundaries', str(self.parameter_set.mask.parent)),
             ('configuration template', str(self.parameter_set.config_template)),
+            ('start time', self.start_time.isoformat()),
+            ('end time', self.end_time.isoformat()),
         ]
         if self.forcing_dir:
             parameters += [
