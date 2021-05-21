@@ -91,6 +91,6 @@ def get_time(time_iso: str) -> datetime:
     time = parse(time_iso)
     if not time.tzname() == 'UTC':
         raise ValueError(
-            f"The time isnot in UTC. The ISO format for a UTC time is 'YYYY-MM-DDTHH:MM:SSZ'"
+            f"The time is not in UTC. The ISO format for a UTC time is 'YYYY-MM-DDTHH:MM:SSZ'"
         )
     return time
