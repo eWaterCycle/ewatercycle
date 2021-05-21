@@ -38,8 +38,8 @@ class TestLFlatlonUseCase:
             mask_dir / 'model_mask',
         )
         return LisfloodParameterSet(
-            root=root,
-            mask=mask_dir / 'model_mask',
+            PathRoot=root,
+            MaskMap=mask_dir / 'model_mask',
             config_template=root / 'settings_lat_lon-Run.xml',
         )
 
@@ -48,7 +48,7 @@ class TestLFlatlonUseCase:
     def forcing(self, tmp_path, parameterset):
         forcing_dir = tmp_path / 'forcing'
         forcing_dir.mkdir()
-        meteo_dir = Path(parameterset.root) / 'meteo'
+        meteo_dir = Path(parameterset.PathRoot) / 'meteo'
         meteo_files = {
             'ta.nc': {'ta': 'tas'},
             'e0.nc': False,
@@ -84,6 +84,18 @@ class TestLFlatlonUseCase:
             # Clean up container
             del m.bmi
 
+    def test_default_parameters(self, model: Lisflood, tmp_path):
+        expected_parameters = [
+            ('IrrigationEfficiency', '0.75'),
+            ('PathRoot', f'{tmp_path}/input'),
+            ('MaskMap', f'{tmp_path}/mask'),
+            ('config_template',  f'{tmp_path}/input/settings_lat_lon-Run.xml'),
+            ('start_time', '1986-01-02T00:00:00+00:00'),
+            ('end_time', '2018-01-02T00:00:00+00:00'),
+            ('forcing directory', f'{tmp_path}/forcing'),
+        ]
+        assert model.parameters == expected_parameters
+
 
     @pytest.fixture
     def model_with_setup(self, mocked_config, model: Lisflood):
@@ -104,3 +116,5 @@ class TestLFlatlonUseCase:
             work_dir=f'{tmp_path}/lisflood_42')
         assert 'lisflood_42' in str(config_dir)
         assert config_file.name == 'lisflood_setting.xml'
+
+

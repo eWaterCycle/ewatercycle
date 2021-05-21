@@ -30,14 +30,14 @@ class LisfloodParameterSet:
     .. code-block::
 
         parameter_set = LisfloodParameterSet(
-            root='/projects/0/wtrcycle/comparison/lisflood_input/Lisflood01degree_masked',
-            mask='/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD/model_mask.nc',
+            PathRoot='/projects/0/wtrcycle/comparison/lisflood_input/Lisflood01degree_masked',
+            MaskMap='/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD/model_mask.nc',
             config_template='/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml',
         )
     """
-    root: Path
+    PathRoot: Path
     """Directory with input files"""
-    mask: Path
+    MaskMap: Path
     """A NetCDF file with model boundaries"""
     config_template: Path
     """Config file used as template for a lisflood run"""
@@ -81,6 +81,7 @@ class Lisflood(AbstractModel):
         self.parameter_set = parameter_set
         self._set_singularity_image()
         self._set_docker_image()
+        self.cfg = XmlConfig(self.parameter_set.config_template)
 
     def _set_docker_image(self):
         images = {
@@ -95,9 +96,19 @@ class Lisflood(AbstractModel):
         if CFG.get('singularity_dir'):
             self.singularity_image = CFG['singularity_dir'] / images[self.version]
 
+    def _get_textvar_value(self, name):
+        for textvar in self.cfg.config.iter("textvar"):
+            textvar_name = textvar.attrib["name"]
+            if name == textvar_name:
+                return textvar.get('value')
+        raise KeyError(
+            f'Name {name} not found in the config file.'
+        )
+
+
     # unable to subclass with more specialized arguments so ignore type
+    # TODO add IrrigationEfficiency to setup
     def setup(self,  # type: ignore
-              parameter_set: LisfloodParameterSet= None,
               start_time: str = None,
               end_time: str = None,
               work_dir: Path = None) -> Tuple[Path, Path]:
@@ -109,7 +120,6 @@ class Lisflood(AbstractModel):
         2. Start bmi container and store as :py:attr:`bmi`
 
         Args:
-            parameter_set: LISFLOOD input files. Any included forcing data will be ignored.
             start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
             end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
             work_dir: a working directory given by user or created for user.
@@ -117,11 +127,11 @@ class Lisflood(AbstractModel):
         Returns:
             Path to config file and path to config directory
         """
+
+        # <textvar name="IrrigationEfficiency" value="0.75">
+        # Field application irrigation efficiency max 1, ~0.90 drip irrigation, ~0.75 sprinkling
         #TODO forcing can be a part of parameter_set
         #TODO add a start time argument that must be in forcing time range
-        if parameter_set:
-            self.parameter_set = parameter_set
-
         work_dir = _generate_workdir(work_dir)
         config_file = self._create_lisflood_config(work_dir, start_time, end_time)
 
@@ -129,8 +139,8 @@ class Lisflood(AbstractModel):
             self.bmi = BmiClientSingularity(
                 image=str(self.singularity_image),
                 input_dirs=[
-                    str(self.parameter_set.root),
-                    str(self.parameter_set.mask.parent),
+                    str(self.parameter_set.PathRoot),
+                    str(self.parameter_set.MaskMap.parent),
                     str(self.forcing_dir)
                 ],
                 work_dir=str(work_dir),
@@ -140,8 +150,8 @@ class Lisflood(AbstractModel):
                 image=self.docker_image,
                 image_port=55555,
                 input_dirs=[
-                    str(self.parameter_set.root),
-                    str(self.parameter_set.mask.parent),
+                    str(self.parameter_set.PathRoot),
+                    str(self.parameter_set.MaskMap.parent),
                     str(self.forcing_dir)
                 ],
                 work_dir=str(work_dir),
@@ -186,8 +196,6 @@ class Lisflood(AbstractModel):
 
     def _create_lisflood_config(self, work_dir: Path, start_time_iso: str = None, end_time_iso: str = None) -> Path:
         """Create lisflood config file"""
-        cfg = XmlConfig(self.parameter_set.config_template)
-
         # overwrite dates if given
         if start_time_iso is not None:
             start_time = get_time(start_time_iso)
@@ -206,15 +214,15 @@ class Lisflood(AbstractModel):
             "CalendarDayStart": self._start.strftime("%d/%m/%Y 00:00"),
             "StepStart": "1",
             "StepEnd": str((self._end - self._start).days),
-            "PathRoot": f"{self.parameter_set.root}",
-            "MaskMap": f"{self.parameter_set.mask}".rstrip('.nc'),
+            "PathRoot": f"{self.parameter_set.PathRoot}",
+            "MaskMap": f"{self.parameter_set.MaskMap}".rstrip('.nc'),
             "PathMeteo": f"{self.forcing_dir}",
             "PathOut": f"{work_dir}",
         }
 
         timestamp = f"{self._start.year}_{self._end.year}"
 
-        for textvar in cfg.config.iter("textvar"):
+        for textvar in self.cfg.config.iter("textvar"):
             textvar_name = textvar.attrib["name"]
 
             # general settings
@@ -240,7 +248,7 @@ class Lisflood(AbstractModel):
 
         # Write to new setting file
         lisflood_file = work_dir / "lisflood_setting.xml"
-        cfg.save(str(lisflood_file))
+        self.cfg.save(str(lisflood_file))
         return lisflood_file
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
@@ -270,11 +278,12 @@ class Lisflood(AbstractModel):
         """List the parameters for this model."""
         #TODO fix issue #60
         parameters = [
-            ('Input files specific for parameter_set', str(self.parameter_set.root)),
-            ('model boundaries', str(self.parameter_set.mask.parent)),
-            ('configuration template', str(self.parameter_set.config_template)),
-            ('start time', self._start.isoformat()),
-            ('end time', self._end.isoformat()),
+            ('IrrigationEfficiency', self._get_textvar_value('IrrigationEfficiency')),
+            ('PathRoot', str(self.parameter_set.PathRoot)),
+            ('MaskMap', str(self.parameter_set.MaskMap.parent)),
+            ('config_template', str(self.parameter_set.config_template)),
+            ('start_time', self._start.isoformat()),
+            ('end_time', self._end.isoformat()),
         ]
         if self.forcing_dir:
             parameters += [
