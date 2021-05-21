@@ -5,7 +5,6 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import datetime
-from os import PathLike
 from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple, Union
 
@@ -74,7 +73,7 @@ class Lisflood(AbstractModel):
     available_versions = ["20.10"]
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
-    def __init__(self, version: str, parameter_set: LisfloodParameterSet, forcing: Union[str, PathLike]):
+    def __init__(self, version: str, parameter_set: LisfloodParameterSet, forcing: Union[str, Path]):
         """Construct MarrmotM01 with initial values. """
         super().__init__()
         self.version = version
@@ -101,7 +100,7 @@ class Lisflood(AbstractModel):
               parameter_set: LisfloodParameterSet= None,
               start_time: str = None,
               end_time: str = None,
-              work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
+              work_dir: Path = None) -> Tuple[Path, Path]:
         """Configure model run
 
         If evaporation files (e0, es0, et0) are not included in the forcing, then :py:meth:`run_lisvap` function should be called before setup.
@@ -157,7 +156,7 @@ class Lisflood(AbstractModel):
         """"Check forcing argument and get path, start and end time of forcing data."""
         # TODO check if mask has same grid as forcing files,
         # if not warn users to run reindex_forcings
-        if isinstance(forcing, (str, PathLike)):
+        if isinstance(forcing, (str, Path)):
             self.forcing_dir = Path(forcing).expanduser().resolve()
             self.forcing_files = dict()
             for forcing_file in self.forcing_dir.glob('*.nc'):
@@ -285,7 +284,7 @@ class Lisflood(AbstractModel):
         return parameters
 
 
-def reindex_forcings(mask_map: PathLike, forcing: ForcingData, output_dir: PathLike = None) -> PathLike:
+def reindex_forcings(mask_map: Path, forcing: ForcingData, output_dir: Path = None) -> Path:
     """Reindex forcing files to match mask map grid
 
     Args:
@@ -312,7 +311,7 @@ def reindex_forcings(mask_map: PathLike, forcing: ForcingData, output_dir: PathL
     return output_dir
 
 
-def _generate_workdir(work_dir: PathLike = None) -> PathLike:
+def _generate_workdir(work_dir: Path = None) -> Path:
     """
 
     Args:
