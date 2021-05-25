@@ -1,8 +1,10 @@
 from datetime import datetime, timezone
 
 import pytest
+import numpy as np
+import xarray as xr
 
-from ewatercycle.util import get_time
+from ewatercycle.util import get_time, convert_timearray_to_datetime
 
 
 def test_get_time_with_utc():
@@ -22,4 +24,14 @@ def test_get_time_without_tz():
         get_time('1989-01-02T00:00:00')
 
     assert 'not in UTC' in str(excinfo.value)
+
+
+def test_convert_timearray_to_datetime():
+    da = xr.DataArray(
+        [[0.1]],
+        coords=[[np.datetime64('2021-05-25')],['x']],
+        dims=['time', 'lon'],
+        )
+    dt = convert_timearray_to_datetime(da.coords['time'][0])
+    assert dt == datetime(2021, 5, 25, tzinfo=timezone.utc)
 
