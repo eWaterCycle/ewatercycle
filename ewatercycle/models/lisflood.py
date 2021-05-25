@@ -96,7 +96,7 @@ class Lisflood(AbstractModel):
         if CFG.get('singularity_dir'):
             self.singularity_image = CFG['singularity_dir'] / images[self.version]
 
-    def _get_textvar_value(self, name):
+    def _get_textvar_value(self, name: str) -> str:
         for textvar in self.cfg.config.iter("textvar"):
             textvar_name = textvar.attrib["name"]
             if name == textvar_name:
@@ -109,6 +109,7 @@ class Lisflood(AbstractModel):
     # unable to subclass with more specialized arguments so ignore type
     # TODO add IrrigationEfficiency to setup
     def setup(self,  # type: ignore
+              IrrigationEfficiency: str = None,
               start_time: str = None,
               end_time: str = None,
               work_dir: Path = None) -> Tuple[Path, Path]:
@@ -133,7 +134,7 @@ class Lisflood(AbstractModel):
         #TODO forcing can be a part of parameter_set
         #TODO add a start time argument that must be in forcing time range
         work_dir = _generate_workdir(work_dir)
-        config_file = self._create_lisflood_config(work_dir, start_time, end_time)
+        config_file = self._create_lisflood_config(work_dir, start_time, end_time, IrrigationEfficiency)
 
         if CFG['container_engine'].lower() == 'singularity':
             self.bmi = BmiClientSingularity(
@@ -194,7 +195,7 @@ class Lisflood(AbstractModel):
                 f"Unknown forcing type: {forcing}. Please supply either a Path or ForcingData object."
             )
 
-    def _create_lisflood_config(self, work_dir: Path, start_time_iso: str = None, end_time_iso: str = None) -> Path:
+    def _create_lisflood_config(self, work_dir: Path, start_time_iso: str = None, end_time_iso: str = None, IrrigationEfficiency: str = None) -> Path:
         """Create lisflood config file"""
         # overwrite dates if given
         if start_time_iso is not None:
@@ -219,6 +220,9 @@ class Lisflood(AbstractModel):
             "PathMeteo": f"{self.forcing_dir}",
             "PathOut": f"{work_dir}",
         }
+
+        if IrrigationEfficiency is not None:
+            settings['IrrigationEfficiency'] = IrrigationEfficiency
 
         timestamp = f"{self._start.year}_{self._end.year}"
 

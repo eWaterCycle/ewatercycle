@@ -11,7 +11,7 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 from ewatercycle import CFG
 from ewatercycle.forcing.forcing_data import ForcingData
 from ewatercycle.parametersetdb.datafiles import SubversionCopier
-from ewatercycle.models.lisflood import Lisflood, LisfloodParameterSet
+from ewatercycle.models.lisflood import Lisflood, LisfloodParameterSet, XmlConfig
 
 
 @pytest.fixture
@@ -101,12 +101,14 @@ class TestLFlatlonUseCase:
     def model_with_setup(self, mocked_config, model: Lisflood):
         with patch.object(BmiClientSingularity, '__init__', return_value=None) as mocked_constructor, patch(
               'time.strftime', return_value='42'):
-            config_file, config_dir = model.setup()
+            config_file, config_dir = model.setup(
+                IrrigationEfficiency = '0.8',
+            )
         return config_file, config_dir, mocked_constructor
 
     def test_setup(self, model_with_setup, tmp_path):
         config_file, config_dir, mocked_constructor = model_with_setup
-
+        _cfg = XmlConfig(str(config_file))
         mocked_constructor.assert_called_once_with(
             image=f'{tmp_path}/ewatercycle-lisflood-grpc4bmi_20.10.sif',
             input_dirs=[
@@ -116,5 +118,10 @@ class TestLFlatlonUseCase:
             work_dir=f'{tmp_path}/lisflood_42')
         assert 'lisflood_42' in str(config_dir)
         assert config_file.name == 'lisflood_setting.xml'
+        for textvar in _cfg.config.iter("textvar"):
+            textvar_name = textvar.attrib["name"]
+            if textvar_name == 'IrrigationEfficiency':
+                assert textvar.get('value') == '0.8'
+
 
 
