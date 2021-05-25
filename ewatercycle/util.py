@@ -3,8 +3,6 @@ import xarray as xr
 from datetime import datetime
 from dateutil.parser import parse
 
-from ewatercycle.models.abstract import AbstractModel
-
 
 def var_to_xarray(model, variable):
     """Get grid properties from model (x = latitude !!)
