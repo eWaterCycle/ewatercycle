@@ -96,14 +96,17 @@ class Lisflood(AbstractModel):
         if CFG.get('singularity_dir'):
             self.singularity_image = CFG['singularity_dir'] / images[self.version]
 
-    def _get_textvar_value(self, name: str) -> str:
+    def _get_textvar_value(self, name: str):
+        name_found = None
         for textvar in self.cfg.config.iter("textvar"):
             textvar_name = textvar.attrib["name"]
             if name == textvar_name:
+                name_found == name
                 return textvar.get('value')
-        raise KeyError(
-            f'Name {name} not found in the config file.'
-        )
+        if name_found is None:
+            raise KeyError(
+                f'Name {name} not found in the config file.'
+            )
 
 
     # unable to subclass with more specialized arguments so ignore type
