@@ -1,8 +1,6 @@
 """Forcing related functionality for default models"""
 
 from dataclasses import dataclass
-
-from esmvalcore.experimental.recipe_output import RecipeOutput
 from ruamel.yaml import YAML
 
 
@@ -20,10 +18,9 @@ class DefaultForcing:
     end_time: str
 
     @classmethod
-    def from_recipe(recipe_output, **kwargs):
-        """Construct forcing data based on ESMValTool output"""
-        # potentially extract info from recipe and add to kwargs
-        return DefaultForcing(**kwargs)
+    def generate(**kwargs):
+        """Generate forcing data with ESMValTool."""
+        raise NotImplementedError("No default forcing generator available.")
 
     def save(self):
         """Export forcing data for later use."""
