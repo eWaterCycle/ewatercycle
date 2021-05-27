@@ -11,21 +11,27 @@ from .datasets import DATASETS
 
 @dataclass
 class MarrmotForcing(DefaultForcing):
-    """Container for marrmot forcing data.
+    """Container for marrmot forcing data."""
 
-    Attributes
-        directory: Location where the forcing data is stored
-        start_time: Start time of the forcing data
-        end_time: End time of the forcing data
+    # Overwrite (repeat) the defaults so that the docstrings are included
+    directory: str
+    """Location where the forcing data is stored."""
+    start_time: str
+    """Start time of the forcing data"""
+    end_time: str
+    """End time of the forcing data"""
 
-    """
+    # Model-specific attributes (preferably with default values):
+    # ...
+
     @classmethod
     def generate(
+        cls,
         dataset: str = None,
         startyear: int = None,
         endyear: int = None,
         shapefile: str = None,
-    ):
+    ) -> 'MarrmotForcing':
         """Generate MarrmotForcing data with ESMValTool.
 
         Args:

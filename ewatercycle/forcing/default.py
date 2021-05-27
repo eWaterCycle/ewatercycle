@@ -6,19 +6,20 @@ from ruamel.yaml import YAML
 
 @dataclass
 class DefaultForcing:
-    """Container for forcing data.
-
-    Attributes:
-        directory: Location where the forcing data is stored
-        start_time: Start time of the forcing data
-        end_time: End time of the forcing data
-    """
+    """Container for forcing data."""
+    # Default attributes that every forcing class should have:
     directory: str
+    """Location where the forcing data is stored."""
     start_time: str
+    """Start time of the forcing data"""
     end_time: str
+    """End time of the forcing data"""
+
+    # Model-specific attributes (preferably with default values):
+    # ...
 
     @classmethod
-    def generate(**kwargs):
+    def generate(cls, **kwargs) -> 'DefaultForcing':
         """Generate forcing data with ESMValTool."""
         raise NotImplementedError("No default forcing generator available.")
 

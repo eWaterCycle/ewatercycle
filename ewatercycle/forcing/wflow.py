@@ -11,28 +11,30 @@ from .datasets import DATASETS
 
 @dataclass
 class WflowForcing(DefaultForcing):
-    """Container for wflow forcing data.
+    """Container for wflow forcing data."""
 
-    Attributes:
-        directory: Location where the forcing data is stored
-        start_time: Start time of the forcing data
-        end_time: End time of the forcing data
-        netcdfinput: Input file path.
-        Precipitation: Variable name of precipitation data in input file.
-        EvapoTranspiration: Variable name of evapotranspiration data in input file.
-        Temperature: Variable name of temperature data in input file.
-        Inflow: Variable name of inflow data in input file.
+    # Overwrite (repeat) the defaults so that the docstrings are included.
+    directory: str
+    """Location where the forcing data is stored."""
+    start_time: str
+    """Start time of the forcing data"""
+    end_time: str
+    """End time of the forcing data"""
 
-    """
-    # Note: these will be added AFTER the parameters in DefaultForcing.
+    # Model-specific attributes (ideally should have defaults):
     netcdfinput: str = "inmaps.nc"
+    """Input file path."""
     Precipitation: str = "/pr"
+    """Variable name of precipitation data in input file."""
     EvapoTranspiration: str = "/pet"
+    """Variable name of evapotranspiration data in input file."""
     Temperature: str = "/tas"
+    """Variable name of temperature data in input file."""
     Inflow: Optional[str] = None
+    """Variable name of inflow data in input file."""
 
     @classmethod
-    def generate(dataset, startyear, endyear, extract_region=None, dem_file=None):
+    def generate(cls, dataset, startyear, endyear, extract_region=None, dem_file=None) -> 'WflowForcing':
         """Generate WflowForcing data with ESMValTool.
 
         Args:

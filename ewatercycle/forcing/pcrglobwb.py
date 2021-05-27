@@ -12,16 +12,21 @@ from .datasets import DATASETS
 
 @dataclass
 class PCRGlobWBForcing(DefaultForcing):
-    """Container for pcrglobwb forcing data.
+    """Container for pcrglobwb forcing data."""
 
-    Attributes
-        directory: Location where the forcing data is stored
-        start_time: Start time of the forcing data
-        end_time: End time of the forcing data
+    # Overwrite (repeat) the defaults so that the docstrings are included
+    directory: str
+    """Location where the forcing data is stored."""
+    start_time: str
+    """Start time of the forcing data"""
+    end_time: str
+    """End time of the forcing data"""
 
-    """
+    # Model-specific attributes (preferably with default values):
+    # ...
+
     @classmethod
-    def generate(dataset, startyear, endyear, extract_region=None, dem_file=None):
+    def generate(cls, dataset, startyear, endyear, extract_region=None, dem_file=None) -> 'PCRGlobWBForcing':
         """Generate WflowForcing data with ESMValTool.
 
         Attributes:
