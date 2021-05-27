@@ -1,13 +1,14 @@
 """Forcing related functionality for wflow"""
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 from esmvalcore.experimental import get_recipe
-from pathlib import Path
 
-from .default import DefaultForcing
 from .datasets import DATASETS
+from .default import DefaultForcing
+
 
 @dataclass
 class WflowForcing(DefaultForcing):
@@ -32,9 +33,14 @@ class WflowForcing(DefaultForcing):
     """Variable name of temperature data in input file."""
     Inflow: Optional[str] = None
     """Variable name of inflow data in input file."""
-
     @classmethod
-    def generate(cls, dataset, startyear, endyear, extract_region=None, dem_file=None) -> 'WflowForcing':
+    def generate(
+            cls,  # type: ignore
+            dataset: str,
+            startyear: str,
+            endyear: str,
+            extract_region: Optional[str] = None,
+            dem_file: Optional[str] = None) -> 'WflowForcing':
         """Generate WflowForcing data with ESMValTool.
 
         Args:
@@ -51,7 +57,8 @@ class WflowForcing(DefaultForcing):
 
         # model-specific updates
         if dem_file is not None:
-            script = recipe.data['diagnostics']['wflow_daily']['scripts']['script']
+            script = recipe.data['diagnostics']['wflow_daily']['scripts'][
+                'script']
             script['dem_file'] = dem_file
             script['basin'] = Path(dem_file).stem
 
@@ -60,7 +67,8 @@ class WflowForcing(DefaultForcing):
                 'extract_region'] = extract_region
 
         if dataset is not None:
-            recipe.data['diagnostics']['wflow_daily']['additional_datasets'] = [DATASETS[dataset]]
+            recipe.data['diagnostics']['wflow_daily'][
+                'additional_datasets'] = [DATASETS[dataset]]
 
         variables = recipe.data['diagnostics']['wflow_daily']['variables']
         var_names = 'tas', 'pr', 'psl', 'rsds', 'rsdt'
@@ -78,7 +86,10 @@ class WflowForcing(DefaultForcing):
         forcing_path = list(recipe_output['wflow_daily/script']).data_files[0]
 
         forcing_file = Path(forcing_path).name
-        directory = Path(forcing_path).dir
+        directory = str(Path(forcing_path).parent)
 
         # instantiate forcing object based on generated data
-        return WflowForcing(directory=directory, start_time=startyear, end_time=endyear, netcdfinput=forcing_file)
+        return WflowForcing(directory=directory,
+                            start_time=startyear,
+                            end_time=endyear,
+                            netcdfinput=forcing_file)

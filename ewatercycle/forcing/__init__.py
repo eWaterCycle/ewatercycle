@@ -1,21 +1,23 @@
-from collections import defaultdict
+from pathlib import Path
+from typing import Dict, TypeVar
+
 from ruamel.yaml import YAML
-from typing import TypeVar
 
 from . import default, hype, lisflood, marrmot, pcrglobwb, wflow
 from .datasets import DATASETS
 
-FORCING_CLASSES = defaultdict(
-    default.DefaultForcing,
-    hype=hype.HypeForcing,
-    lisflood=lisflood.LisfloodForcing,
-    marrmot=marrmot.MarrmotForcing,
-    pcrglobwb=pcrglobwb.PCRGlobWBForcing,
-    wflow=wflow.WflowForcing,
-    )
-
 # Return type for DefaultForcing including subtypes.
 Forcing = TypeVar('Forcing', bound=default.DefaultForcing)
+
+
+FORCING_CLASSES = {  # not sure how to annotate this
+    "hype": hype.HypeForcing,
+    "lisflood": lisflood.LisfloodForcing,
+    "marrmot": marrmot.MarrmotForcing,
+    "pcrglobwb": pcrglobwb.PCRGlobWBForcing,
+    "wflow": wflow.WflowForcing,
+}
+
 
 def generate(target_model: str, **kwargs) -> Forcing:
     """Generate forcing data with ESMValTool.
@@ -27,8 +29,8 @@ def generate(target_model: str, **kwargs) -> Forcing:
     Returns:
         Forcing object, e.g. :obj:`.lisflood.LisfloodForcing`
     """
-    Forcing = FORCING_CLASSES[target_model]
-    return Forcing.generate(**kwargs)
+    constructor = FORCING_CLASSES.get(target_model, default.DefaultForcing)
+    return constructor.generate(**kwargs)
 
 
 def load(directory) -> Forcing:
@@ -45,8 +47,8 @@ def load(directory) -> Forcing:
     data = yaml.load(source)
 
     target_model = data.pop('model')
-    Forcing = FORCING_CLASSES[target_model]
-    return Forcing(**data)
+    constructor = FORCING_CLASSES.get(target_model, default.DefaultForcing)
+    return constructor(**data)
 
 
 def load_foreign(target_model, **kwargs) -> Forcing:
@@ -61,8 +63,8 @@ def load_foreign(target_model, **kwargs) -> Forcing:
     Returns:
         Forcing object, e.g. :obj:`.hype.HypeForcing`
     """
-    Forcing = FORCING_CLASSES[target_model]
-    return Forcing(**kwargs)
+    constructor = FORCING_CLASSES.get(target_model, default.DefaultForcing)
+    return constructor(**kwargs)
 
 
 # TODO fix time conventions

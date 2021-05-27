@@ -1,13 +1,13 @@
 """Forcing related functionality for pcrglobwb"""
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 from esmvalcore.experimental import get_recipe
-from pathlib import Path
 
-from .default import DefaultForcing
 from .datasets import DATASETS
+from .default import DefaultForcing
 
 
 @dataclass
@@ -26,16 +26,25 @@ class PCRGlobWBForcing(DefaultForcing):
     # ...
 
     @classmethod
-    def generate(cls, dataset, startyear, endyear, extract_region=None, dem_file=None) -> 'PCRGlobWBForcing':
+    def generate(  # type: ignore
+        cls,
+        dataset: str = None,
+        startyear: int = None,
+        endyear: int = None,
+        startyear_climatology: int = None,
+        endyear_climatology: int = None,
+        basin: str = None,
+        extract_region: dict = None,
+    ) -> 'PCRGlobWBForcing':
         """Generate WflowForcing data with ESMValTool.
 
         Attributes:
             dataset: Name of the dataset to use
-            basin: Name of the basin (used for data output filename only)
             startyear: Start year for the observation data
             endyear: End year for the observation data
             startyear_climatology: Start year for the climatology data
             endyear_climatology: End year for the climatology data
+            basin: Name of the basin (used for data output filename only)
             extract_region: Region specification, must contain `start_longitude`,
                 `end_longitude`, `start_latitude`, `end_latitude`
         """
@@ -45,22 +54,22 @@ class PCRGlobWBForcing(DefaultForcing):
 
         # model-specific updates to the recipe
         preproc_names = ('crop_basin', 'preproc_pr', 'preproc_tas',
-                        'preproc_pr_clim', 'preproc_tas_clim')
+                         'preproc_pr_clim', 'preproc_tas_clim')
 
         if dataset is not None:
-            recipe_dict['diagnostics']['diagnostic_daily'][
+            recipe.data['diagnostics']['diagnostic_daily'][
                 'additional_datasets'] = [DATASETS[dataset]]
 
         if basin is not None:
-            recipe_dict['diagnostics']['diagnostic_daily']['scripts']['script'][
-                'basin'] = basin
+            recipe.data['diagnostics']['diagnostic_daily']['scripts'][
+                'script']['basin'] = basin
 
         if extract_region is not None:
             for preproc_name in preproc_names:
-                recipe_dict['preprocessors'][preproc_name][
+                recipe.data['preprocessors'][preproc_name][
                     'extract_region'] = extract_region
 
-        variables = recipe_dict['diagnostics']['diagnostic_daily']['variables']
+        variables = recipe.data['diagnostics']['diagnostic_daily']['variables']
         var_names = 'tas', 'pr'
 
         if startyear is not None:
@@ -86,7 +95,9 @@ class PCRGlobWBForcing(DefaultForcing):
         forcing_path = list(recipe_output['............']).data_files[0]
 
         forcing_file = Path(forcing_path).name
-        directory = Path(forcing_path).dir
+        directory = str(Path(forcing_path).parent)
 
         # instantiate forcing object based on generated data
-        return PCRGlobWBForcing(directory=directory, start_time=startyear, end_time=endyear, netcdfinput=forcing_file)
+        return PCRGlobWBForcing(directory=directory,
+                                start_time=str(startyear),
+                                end_time=str(endyear))

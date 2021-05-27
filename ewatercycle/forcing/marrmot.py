@@ -1,13 +1,14 @@
 """Forcing related functionality for marrmot"""
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 from esmvalcore.experimental import get_recipe
-from pathlib import Path
 
-from .default import DefaultForcing
 from .datasets import DATASETS
+from .default import DefaultForcing
+
 
 @dataclass
 class MarrmotForcing(DefaultForcing):
@@ -25,7 +26,7 @@ class MarrmotForcing(DefaultForcing):
     # ...
 
     @classmethod
-    def generate(
+    def generate(  # type: ignore
         cls,
         dataset: str = None,
         startyear: int = None,
@@ -47,16 +48,16 @@ class MarrmotForcing(DefaultForcing):
         # model-specific updates to the recipe
         if shapefile is not None:
             basin = Path(shapefile).stem
-            recipe_dict['preprocessors']['daily']['extract_shape'][
+            recipe.data['preprocessors']['daily']['extract_shape'][
                 'shapefile'] = shapefile
-            recipe_dict['diagnostics']['diagnostic_daily']['scripts']['script'][
-                'basin'] = basin
+            recipe.data['diagnostics']['diagnostic_daily']['scripts'][
+                'script']['basin'] = basin
 
         if dataset is not None:
-            recipe_dict['diagnostics']['diagnostic_daily'][
+            recipe.data['diagnostics']['diagnostic_daily'][
                 'additional_datasets'] = [DATASETS[dataset]]
 
-        variables = recipe_dict['diagnostics']['diagnostic_daily']['variables']
+        variables = recipe.data['diagnostics']['diagnostic_daily']['variables']
         var_names = 'tas', 'pr', 'psl', 'rsds', 'rsdt'
 
         if startyear is not None:
@@ -72,7 +73,9 @@ class MarrmotForcing(DefaultForcing):
         forcing_path = list(recipe_output['.............']).data_files[0]
 
         forcing_file = Path(forcing_path).name
-        directory = Path(forcing_path).dir
+        directory = str(Path(forcing_path).parent)
 
         # instantiate forcing object based on generated data
-        return MarrmotForcing(directory=directory, start_time=startyear, end_time=endyear)
+        return MarrmotForcing(directory=directory,
+                              start_time=str(startyear),
+                              end_time=str(endyear))

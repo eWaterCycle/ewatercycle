@@ -1,13 +1,14 @@
 """Forcing related functionality for hype"""
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 from esmvalcore.experimental import get_recipe
-from pathlib import Path
 
-from .default import DefaultForcing
 from .datasets import DATASETS
+from .default import DefaultForcing
+
 
 @dataclass
 class HypeForcing(DefaultForcing):
@@ -25,7 +26,7 @@ class HypeForcing(DefaultForcing):
     # ...
 
     @classmethod
-    def generate(
+    def generate(  # type: ignore
         cls,
         dataset: str = None,
         startyear: int = None,
@@ -49,13 +50,13 @@ class HypeForcing(DefaultForcing):
 
         if shapefile is not None:
             for preproc_name in preproc_names:
-                recipe_dict['preprocessors'][preproc_name]['extract_shape'][
+                recipe.data['preprocessors'][preproc_name]['extract_shape'][
                     'shapefile'] = shapefile
 
         if dataset is not None:
-            recipe_dict['datasets'] = [DATASETS[dataset]]
+            recipe.data['datasets'] = [DATASETS[dataset]]
 
-        variables = recipe_dict['diagnostics']['hype']['variables']
+        variables = recipe.data['diagnostics']['hype']['variables']
         var_names = 'tas', 'tasmin', 'tasmax', 'pr'
 
         if startyear is not None:
@@ -71,7 +72,9 @@ class HypeForcing(DefaultForcing):
         forcing_path = list(recipe_output['...........']).data_files[0]
 
         forcing_file = Path(forcing_path).name
-        directory = Path(forcing_path).dir
+        directory = str(Path(forcing_path).parent)
 
         # instantiate forcing object based on generated data
-        return HypeForcing(directory=directory, start_time=startyear, end_time=endyear)
+        return HypeForcing(directory=directory,
+                           start_time=str(startyear),
+                           end_time=str(endyear))

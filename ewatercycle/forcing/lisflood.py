@@ -1,13 +1,14 @@
 """Forcing related functionality for lisflood"""
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 from esmvalcore.experimental import get_recipe
-from pathlib import Path
 
-from .default import DefaultForcing
 from .datasets import DATASETS
+from .default import DefaultForcing
+
 
 @dataclass
 class LisfloodForcing(DefaultForcing):
@@ -25,7 +26,7 @@ class LisfloodForcing(DefaultForcing):
     # ...
 
     @classmethod
-    def generate(
+    def generate(  # type: ignore
         cls,
         dataset: str = None,
         startyear: int = None,
@@ -49,25 +50,25 @@ class LisfloodForcing(DefaultForcing):
 
         # model-specific updates to the recipe
         preproc_names = ('general', 'daily_water', 'daily_temperature',
-                        'daily_radiation', 'daily_windspeed')
+                         'daily_radiation', 'daily_windspeed')
 
         if shapefile is not None:
             basin = Path(shapefile).stem
             for preproc_name in preproc_names:
-                recipe_dict['preprocessors'][preproc_name]['extract_shape'][
+                recipe.data['preprocessors'][preproc_name]['extract_shape'][
                     'shapefile'] = shapefile
-            recipe_dict['diagnostics']['diagnostic_daily']['scripts']['script'][
-                'catchment'] = basin
+            recipe.data['diagnostics']['diagnostic_daily']['scripts'][
+                'script']['catchment'] = basin
 
         if extract_region is not None:
             for preproc_name in preproc_names:
-                recipe_dict['preprocessors'][preproc_name][
+                recipe.data['preprocessors'][preproc_name][
                     'extract_region'] = extract_region
 
         if dataset is not None:
-            recipe_dict['datasets'] = [DATASETS[dataset]]
+            recipe.data['datasets'] = [DATASETS[dataset]]
 
-        variables = recipe_dict['diagnostics']['diagnostic_daily']['variables']
+        variables = recipe.data['diagnostics']['diagnostic_daily']['variables']
         var_names = 'pr', 'tas', 'tasmax', 'tasmin', 'tdps', 'uas', 'vas', 'rsds'
 
         if startyear is not None:
@@ -83,7 +84,9 @@ class LisfloodForcing(DefaultForcing):
         forcing_path = list(recipe_output['...........']).data_files[0]
 
         forcing_file = Path(forcing_path).name
-        directory = Path(forcing_path).dir
+        directory = str(Path(forcing_path).parent)
 
         # instantiate forcing object based on generated data
-        return LisfloodForcing(directory=directory, start_time=startyear, end_time=endyear)
+        return LisfloodForcing(directory=directory,
+                               start_time=str(startyear),
+                               end_time=str(endyear))

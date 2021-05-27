@@ -1,6 +1,7 @@
 """Forcing related functionality for default models"""
 
 from dataclasses import dataclass
+
 from ruamel.yaml import YAML
 
 
