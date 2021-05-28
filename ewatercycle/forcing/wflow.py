@@ -21,6 +21,7 @@ class WflowForcing(DefaultForcing):
     """Start time of the forcing data"""
     end_time: str
     """End time of the forcing data"""
+    shape: str
 
     # Model-specific attributes (ideally should have defaults):
     netcdfinput: str = "inmaps.nc"

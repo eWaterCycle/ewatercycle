@@ -13,7 +13,7 @@ FORCING_CLASSES = {  # not sure how to annotate this
 }
 
 
-def generate(target_model: str, **kwargs):
+def generate(target_model: str, dataset, start_time, end_time, shape, model_specific_options):
     """Generate forcing data with ESMValTool.
 
     Args:
@@ -45,7 +45,7 @@ def load(directory):
     return constructor(**data)
 
 
-def load_foreign(target_model, **kwargs):
+def load_foreign(target_model, **forcing_info):
     """Load existing forcing data generated from an external source.
 
     Args:

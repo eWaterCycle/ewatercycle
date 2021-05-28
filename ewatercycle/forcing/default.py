@@ -20,7 +20,7 @@ class DefaultForcing:
     # ...
 
     @classmethod
-    def generate(cls, **kwargs) -> 'DefaultForcing':
+    def generate(cls, start_time, end_time, shapefile, **model_specific_options) -> 'DefaultForcing':
         """Generate forcing data with ESMValTool."""
         raise NotImplementedError("No default forcing generator available.")
 
