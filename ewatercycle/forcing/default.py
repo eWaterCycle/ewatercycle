@@ -24,6 +24,8 @@ class DefaultForcing:
         """Generate forcing data with ESMValTool."""
         raise NotImplementedError("No default forcing generator available.")
 
+
+    # TODO use dedicated method: https://yaml.readthedocs.io/en/latest/dumpcls.html
     def save(self):
         """Export forcing data for later use."""
         yaml = YAML()

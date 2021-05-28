@@ -1,14 +1,8 @@
 from pathlib import Path
-from typing import Dict, TypeVar
-
 from ruamel.yaml import YAML
 
 from . import default, hype, lisflood, marrmot, pcrglobwb, wflow
 from .datasets import DATASETS
-
-# Return type for DefaultForcing including subtypes.
-Forcing = TypeVar('Forcing', bound=default.DefaultForcing)
-
 
 FORCING_CLASSES = {  # not sure how to annotate this
     "hype": hype.HypeForcing,
@@ -19,7 +13,7 @@ FORCING_CLASSES = {  # not sure how to annotate this
 }
 
 
-def generate(target_model: str, **kwargs) -> Forcing:
+def generate(target_model: str, **kwargs):
     """Generate forcing data with ESMValTool.
 
     Args:
@@ -33,7 +27,7 @@ def generate(target_model: str, **kwargs) -> Forcing:
     return constructor.generate(**kwargs)
 
 
-def load(directory) -> Forcing:
+def load(directory):
     """Load previously generated or imported forcing data.
 
     Args:
@@ -51,7 +45,7 @@ def load(directory) -> Forcing:
     return constructor(**data)
 
 
-def load_foreign(target_model, **kwargs) -> Forcing:
+def load_foreign(target_model, **kwargs):
     """Load existing forcing data generated from an external source.
 
     Args:
