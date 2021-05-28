@@ -1,7 +1,11 @@
+from typing import Any, Tuple
+
+import fiona
 import numpy as np
 import xarray as xr
 from datetime import datetime
 from dateutil.parser import parse
+from shapely import geometry
 
 
 def var_to_xarray(model, variable):
@@ -92,3 +96,29 @@ def get_time(time_iso: str) -> datetime:
             f"The time is not in UTC. The ISO format for a UTC time is 'YYYY-MM-DDTHH:MM:SSZ'"
         )
     return time
+
+
+def get_extents(shapefile: Any, pad=0) -> dict[str, float]:
+    """Get lat/lon extents from shapefile and add padding.
+
+    Args:
+        shapefile: Path to shapfile
+        pad: Optional padding
+
+    Returns:
+        Dict with `start_longitude`, `start_latitude`, `end_longitude`, `end_latitude`
+    """
+    shape = fiona.open(shapefile)
+    x0, y0, x1, y1 = [
+        geometry.shape(p["geometry"]).bounds for p in shape
+    ][0]
+    x0 = round((x0 - pad), 1)
+    y0 = round((y0 - pad), 1)
+    x1 = round((x1 + pad), 1)
+    y1 = round((y1 + pad), 1)
+    return {
+        'start_longitude': x0,
+        'start_latitude': y0,
+        'end_longitude': x1,
+        'end_latitude': y1,
+    }

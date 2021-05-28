@@ -8,6 +8,9 @@ from esmvalcore.experimental import get_recipe
 
 from .datasets import DATASETS
 from .default import DefaultForcing
+from ..util import get_time
+
+GENERATE_DOCS = """Hype does not have model specific options."""
 
 
 @dataclass
@@ -28,18 +31,18 @@ class HypeForcing(DefaultForcing):
     @classmethod
     def generate(  # type: ignore
         cls,
-        dataset: str = None,
-        startyear: int = None,
-        endyear: int = None,
-        shapefile: str = None,
+        dataset: str,
+        start_time: str,
+        end_time: str,
+        shape: str
     ) -> 'HypeForcing':
         """Generate HypeForcing with ESMValTool.
 
         Args:
             dataset: Name of the dataset to use
-            startyear: Start year for the forcing data
-            endyear: End year for the observation data
-            shapefile: Name of the shapefile to use.
+            start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+            end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+            shape: Path to a shape file. Used for spatial selection.
         """
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_hype.yml"
@@ -48,24 +51,22 @@ class HypeForcing(DefaultForcing):
         # model-specific updates to the recipe
         preproc_names = ('preprocessor', 'temperature', 'water')
 
-        if shapefile is not None:
-            for preproc_name in preproc_names:
-                recipe.data['preprocessors'][preproc_name]['extract_shape'][
-                    'shapefile'] = shapefile
+        for preproc_name in preproc_names:
+            recipe.data['preprocessors'][preproc_name]['extract_shape'][
+                'shapefile'] = shape
 
-        if dataset is not None:
-            recipe.data['datasets'] = [DATASETS[dataset]]
+        recipe.data['datasets'] = [DATASETS[dataset]]
 
         variables = recipe.data['diagnostics']['hype']['variables']
         var_names = 'tas', 'tasmin', 'tasmax', 'pr'
 
-        if startyear is not None:
-            for var_name in var_names:
-                variables[var_name]['start_year'] = startyear
+        startyear = get_time(start_time).year
+        for var_name in var_names:
+            variables[var_name]['start_year'] = startyear
 
-        if endyear is not None:
-            for var_name in var_names:
-                variables[var_name]['end_year'] = endyear
+        endyear = get_time(end_time).year
+        for var_name in var_names:
+            variables[var_name]['end_year'] = endyear
 
         # generate forcing data and retreive useful information
         recipe_output = recipe.run()
