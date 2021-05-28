@@ -1,4 +1,6 @@
 from pathlib import Path
+from typing import Optional
+
 from ruamel.yaml import YAML
 
 from . import default, hype, lisflood, marrmot, pcrglobwb, wflow
@@ -19,7 +21,7 @@ def generate(target_model: str,
              start_time: str,
              end_time: str,
              shape: str,
-             model_specific_options: dict) -> DefaultForcing:
+             model_specific_options: Optional[dict] = None) -> DefaultForcing:
     """Generate forcing data with ESMValTool.
 
     Args:
@@ -34,6 +36,8 @@ def generate(target_model: str,
         Forcing object, e.g. :obj:`.lisflood.LisfloodForcing`
     """
     constructor = FORCING_CLASSES.get(target_model, default.DefaultForcing)
+    if model_specific_options is None:
+        return constructor.generate(dataset, start_time, end_time, shape)
     return constructor.generate(dataset, start_time, end_time, shape, **model_specific_options)
 
 
@@ -48,25 +52,58 @@ def load(directory):
     """
     yaml = YAML()
     source = Path(directory) / 'ewatercycle_forcing.yaml'
-    data = yaml.load(source)
-
-    target_model = data.pop('model')
-    constructor = FORCING_CLASSES.get(target_model, default.DefaultForcing)
-    return constructor(**data)
+    yaml.register_class(DefaultForcing)
+    for forcing_cls in FORCING_CLASSES.values():
+        yaml.register_class(forcing_cls)
+    return yaml.load(source)
 
 
 # Or load_custom , load_external, load_???
-def load_foreign(target_model, **forcing_info) -> DefaultForcing:
+def load_foreign(target_model, forcing_info) -> DefaultForcing:
     """Load existing forcing data generated from an external source.
 
     Args:
         target_model: Name of the hydrological model for which the forcing will be used
-        **forcing_info: Model specific configuration settings related to the forcing
-            data. For each model you can see the available settings in the corresponding
-            Forcing object, e.g. :obj:`.wflow.WflowForcing`.
+        forcing_info: Model specific information about forcing
+            data. For each model you can see the available information fields
+            at `https://ewatercycle.readtherdocs.io/forcing_load_info`_.
 
     Returns:
         Forcing object, e.g. :obj:`.hype.HypeForcing`
+
+    Examples:
+
+        For Marrmot
+
+        .. code-block:: python
+
+          from ewatercycle.models import load_foreign
+
+          forcing = load_foreign('marmot',
+                                 forcing_info={
+                                     'directory': '/data/marrmot-forcings-case1',
+                                     'start_time': '1989-01-02T00:00:00Z',
+                                     'end_time': '1999-01-02T00:00:00Z',
+                                     'forcing_file': 'marrmot-1989-1999.mat'
+                                 })
+
+        For LisFlood
+
+        .. code-block:: python
+
+          from ewatercycle.models import load_foreign
+
+          forcing = load_foreign('lisflood',
+                                 forcing_info={
+                                     'directory': '/data/lisflood-forcings-case1',
+                                     'start_time': '1989-01-02T00:00:00Z',
+                                     'end_time': '1999-01-02T00:00:00Z',
+                                     'PrefixPrecipitation': 'tp.nc',
+                                     'PrefixTavg': 'ta.nc',
+                                     'PrefixE0': 'e.nc',
+                                     'PrefixES0': 'es.nc',
+                                     'PrefixET0': 'et.nc'
+                                 })
     """
     constructor = FORCING_CLASSES.get(target_model, default.DefaultForcing)
     return constructor(**forcing_info)

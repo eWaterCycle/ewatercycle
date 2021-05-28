@@ -1,132 +1,121 @@
 """Test forcing data for WFLOW."""
+
 import pytest
 from esmvalcore.experimental.recipe import Recipe
-from ruamel.yaml import YAML
-from esmvalcore.experimental import get_recipe
-from ewatercycle.forcing.wflow import WflowForcing
-from pathlib import Path
-import json
-import ewatercycle.forcing
 from esmvalcore.experimental.recipe_output import DataFile
 
-# This is what the recipe should look like after we update it
-REFERENCE_RECIPE_YAML = """\
-# ESMValTool
-# recipe_wflow.yml
----
-documentation:
-  description: |
-    Pre-processes climate data for the WFlow hydrological model.
-
-  authors:
-    - kalverla_peter
-    - camphuijsen_jaro
-    - alidoost_sarah
-    - aerts_jerom
-    - andela_bouwe
-
-  projects:
-    - ewatercycle
-
-  references:
-    - acknow_project
-
-preprocessors:
-  rough_cutout:
-    extract_region:
-      start_longitude: 10
-      end_longitude: 16.75
-      start_latitude: 7.25
-      end_latitude: 2.5
-
-diagnostics:
-  wflow_daily:
-    description: WFlow input preprocessor for daily data
-    additional_datasets:
-      - {dataset: ERA5, project: OBS6, tier: 3, type: reanaly, version: 1}
-    variables:
-      orog:
-        mip: fx
-        preprocessor: rough_cutout
-      tas: &daily_var
-        mip: day
-        preprocessor: rough_cutout
-        start_year: 1990
-        end_year: 2001
-      pr: *daily_var
-      psl: *daily_var
-      rsds: *daily_var
-      rsdt:
-        <<: *daily_var
-        mip: CFday
-    scripts:
-      script:
-        script: hydrology/wflow.py
-        basin: Meuse
-        dem_file: 'wflow_parameterset/meuse/staticmaps/wflow_dem.map'
-        regrid: area_weighted
-"""
+from ewatercycle.forcing import generate, load
+from ewatercycle.forcing.wflow import WflowForcing
 
 
 @pytest.fixture
 def mock_recipe_run(monkeypatch, tmp_path):
     """Overload the `run` method on esmvalcore Recipe's."""
+    data = {}
+
     class MockTaskOutput:
         fake_forcing_path = str(tmp_path / 'wflow_forcing.nc')
         data_files = (
             DataFile(fake_forcing_path),
         )
 
-
     def mock_run(self):
         """Store recipe for inspection and return dummy output."""
-        recipe_path = tmp_path / 'recipe_wflow.yml'
-        with open(recipe_path, 'w') as f:
-            json.dump(self.data, f)
-
-        return {'wflow_daily/script': MockTaskOutput}
+        nonlocal data
+        data['data_during_run'] = self.data
+        return {'wflow_daily/script': MockTaskOutput()}
 
     monkeypatch.setattr(Recipe, "run", mock_run)
+    return data
 
 
-def test_fixture(mock_recipe_run):
-    """For development purposes only; can be deleted when other tests work."""
-    recipe = get_recipe('hydrology/recipe_wflow.yml')
-    output = recipe.run()
-
-    forcing_data = output['wflow_daily/script'].data_files[0]
-    forcing_file = forcing_data.filename
-    directory = str(forcing_file.parent)
-    forcing = WflowForcing(directory, '2021', '2022')
-    assert isinstance(forcing, WflowForcing)
-
-
-def test_generate(mock_recipe_run):
-    forcing = ewatercycle.forcing.generate(
-        target_model = 'wflow',
-        dataset = 'ERA5',
-        startyear = 1990,
-        endyear = 2001,
-        dem_file = 'wflow_parameterset/meuse/staticmaps/wflow_dem.map',
-        extract_region = {
-            'start_longitude': 10,
-            'end_longitude': 16.75,
-            'start_latitude': 7.25,
-            'end_latitude': 2.5,
+class TestGenerateWithExtractRegion:
+    @pytest.fixture
+    def reference_recipe(self):
+        return {
+            'diagnostics': {
+                'wflow_daily': {
+                    'additional_datasets': [{'dataset': 'ERA5',
+                                             'project': 'OBS6',
+                                             'tier': 3,
+                                             'type': 'reanaly',
+                                             'version': 1}],
+                    'description': 'WFlow input preprocessor for '
+                                   'daily data',
+                    'scripts': {'script': {'basin': 'Rhine',
+                                           'dem_file': 'wflow_parameterset/meuse/staticmaps/wflow_dem.map',
+                                           'regrid': 'area_weighted',
+                                           'script': 'hydrology/wflow.py'}},
+                    'variables': {'orog': {'mip': 'fx',
+                                           'preprocessor': 'rough_cutout'},
+                                  'pr': {'end_year': 1999,
+                                         'mip': 'day',
+                                         'preprocessor': 'rough_cutout',
+                                         'start_year': 1989},
+                                  'psl': {'end_year': 1999,
+                                          'mip': 'day',
+                                          'preprocessor': 'rough_cutout',
+                                          'start_year': 1989},
+                                  'rsds': {'end_year': 1999,
+                                           'mip': 'day',
+                                           'preprocessor': 'rough_cutout',
+                                           'start_year': 1989},
+                                  'rsdt': {'end_year': 1999,
+                                           'mip': 'CFday',
+                                           'preprocessor': 'rough_cutout',
+                                           'start_year': 1989},
+                                  'tas': {'end_year': 1999,
+                                          'mip': 'day',
+                                          'preprocessor': 'rough_cutout',
+                                          'start_year': 1989}}}},
+            'documentation': {'authors': ['kalverla_peter',
+                                          'camphuijsen_jaro',
+                                          'alidoost_sarah',
+                                          'aerts_jerom',
+                                          'andela_bouwe'],
+                              'description': 'Pre-processes climate data for the WFlow hydrological model.\n',
+                              'projects': ['ewatercycle'],
+                              'references': ['acknow_project']},
+            'preprocessors': {'rough_cutout': {'extract_region': {'end_latitude': 2.5,
+                                                                  'end_longitude': 16.75,
+                                                                  'start_latitude': 7.25,
+                                                                  'start_longitude': 10}
+                                               }
+                              }
         }
-    )
 
-    assert isinstance(forcing, WflowForcing)
+    @pytest.fixture
+    def forcing(self, mock_recipe_run, sample_shape):
+        return generate(
+            target_model='wflow',
+            dataset='ERA5',
+            start_time='1989-01-02T00:00:00Z',
+            end_time='1999-01-02T00:00:00Z',
+            shape=sample_shape,
+            model_specific_options=dict(
+                dem_file='wflow_parameterset/meuse/staticmaps/wflow_dem.map',
+                extract_region={
+                    'start_longitude': 10,
+                    'end_longitude': 16.75,
+                    'start_latitude': 7.25,
+                    'end_latitude': 2.5,
+                }
+            )
+        )
 
-    result_recipe_location = Path(forcing.directory) / 'recipe_wflow.yml'
-    result_recipe = json.load(stored_recipe)
-    reference_recipe = YAML().load(REFERENCE_RECIPE_YAML)
+    def test_result(self, forcing, tmp_path):
+        expected = WflowForcing(
+            directory=str(tmp_path),
+            start_time='1989-01-02T00:00:00Z',
+            end_time='1999-01-02T00:00:00Z',
+            netcdfinput='wflow_forcing.nc'
+        )
+        assert forcing == expected
 
-    # NOT THE SAME YET
-    aseert result_recipe == reference_recipe
+    def test_recipe_configured(self, forcing, mock_recipe_run, reference_recipe):
+        assert mock_recipe_run['data_during_run'] == reference_recipe
 
+    def test_saved_yaml(self, forcing, tmp_path):
+        saved_forcing = load(tmp_path)
 
-    # forcing.directory
-    # --> check if the forcing object looks okay
-    # --> check if the dumped recipe is the same as the reference recipe
-    # --> check if there is a ewatercycle-forcing.yaml file
+        assert forcing == saved_forcing

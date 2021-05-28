@@ -1,6 +1,7 @@
 """Forcing related functionality for default models"""
 
 from dataclasses import dataclass
+from pathlib import Path
 
 from ruamel.yaml import YAML
 
@@ -29,15 +30,13 @@ class DefaultForcing:
         """Generate forcing data with ESMValTool."""
         raise NotImplementedError("No default forcing generator available.")
 
-
-    # TODO use dedicated method: https://yaml.readthedocs.io/en/latest/dumpcls.html
     def save(self):
         """Export forcing data for later use."""
         yaml = YAML()
+        yaml.register_class(self.__class__)
         target = Path(self.directory) / 'ewatercycle_forcing.yaml'
-        data = dict(model='default', **self.__dict__)
         with open(target, 'w') as f:
-            yaml.dump(data, f)
+            yaml.dump(self, f)
         return target
 
     def plot(self):

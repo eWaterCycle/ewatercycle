@@ -11,6 +11,7 @@ from .default import DefaultForcing
 from ..util import get_time
 
 GENERATE_DOCS = """Hype does not have model specific options."""
+LOAD_DOCS = """Hype does not have model specific info."""
 
 
 @dataclass
@@ -39,7 +40,7 @@ class HypeForcing(DefaultForcing):
         """Generate HypeForcing with ESMValTool.
 
         Args:
-            dataset: Name of the dataset to use
+            dataset: Name of the source dataset. See :py:data:`.DATASETS`.
             start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
             shape: Path to a shape file. Used for spatial selection.

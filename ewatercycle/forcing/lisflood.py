@@ -7,7 +7,21 @@ from esmvalcore.experimental import get_recipe
 
 from .datasets import DATASETS
 from .default import DefaultForcing
-from ..util import get_time, get_extents
+from ..util import get_time, get_extents, data_files_from_recipe_output
+
+GENERATE_DOCS = """
+Options:
+    extract_region (dict): Region specification, dictionary must contain `start_longitude`,
+        `end_longitude`, `start_latitude`, `end_latitude`
+"""
+LOAD_DOCS = """
+Fields:
+    PrefixPrecipitation: Path to a NetCDF or pcraster file with precipitation data
+    PrefixTavg: Path to a NetCDF or pcraster file with average temperature data
+    PrefixE0: Path to a NetCDF or pcraster file with potential evaporation rate from open water surface data
+    PrefixES0: Path to a NetCDF or pcraster file with potential evaporation rate from bare soil surface data
+    PrefixET0: Path to a NetCDF or pcraster file with potential (reference) evapotranspiration rate data
+"""
 
 
 @dataclass
@@ -24,12 +38,11 @@ class LisfloodForcing(DefaultForcing):
 
     # Model-specific attributes (preferably with default values):
     PrefixPrecipitation: str
-    """"""
     PrefixTavg: str
-    """"""
     PrefixE0: str
     PrefixES0: str
     PrefixET0: str
+    # TODO check whether start/end time are same as in the files
 
     @classmethod
     def generate(  # type: ignore
@@ -43,7 +56,7 @@ class LisfloodForcing(DefaultForcing):
         """Generate LisfloodForcing with ESMValTool.
 
         Args:
-            dataset: Name of the dataset to use
+            dataset: Name of the source dataset. See :py:data:`.DATASETS`.
             start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
             shape: Path to a shape file. Used for spatial selection.
@@ -88,18 +101,10 @@ class LisfloodForcing(DefaultForcing):
 
         # generate forcing data and retrieve useful information
         recipe_output = recipe.run()
+        directory, forcing_files = data_files_from_recipe_output(recipe_output)
 
         # TODO run lisvap
-
-        data_files = list(recipe_output.values())[0].data_files
-        forcing_files = {}
-        for data_file in data_files:
-            dataset = data_file.load_xarray()
-            var_name = list(dataset.data_vars.keys())[0]
-            forcing_files[var_name] = data_file.filename.name
-
-        # TODO simplify (recipe_output.location) when next esmvalcore release is made
-        directory = str(Path(data_files[0]).parent)
+        # TODO forcing_files['e0'] = ...
 
         # instantiate forcing object based on generated data
         return LisfloodForcing(directory=directory,
