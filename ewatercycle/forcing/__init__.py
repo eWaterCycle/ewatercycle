@@ -39,8 +39,9 @@ def generate(target_model: str,
     if constructor is None:
         raise NotImplementedError(f'Target model `{target_model}` is not supported by the eWatercycle forcing generator')
     if model_specific_options is None:
-        return constructor.generate(dataset, start_time, end_time, shape)
-    forcing_info = constructor.generate(dataset, start_time, end_time, shape, **model_specific_options)
+        forcing_info = constructor.generate(dataset, start_time, end_time, shape)
+    else:
+        forcing_info = constructor.generate(dataset, start_time, end_time, shape, **model_specific_options)
     forcing_info.save()
     return forcing_info
 
