@@ -101,7 +101,7 @@ def get_time(time_iso: str) -> datetime:
     return time
 
 
-def get_extents(shapefile: Any, pad=0) -> dict[str, float]:
+def get_extents(shapefile: Any, pad=0) -> Dict[str, float]:
     """Get lat/lon extents from shapefile and add padding.
 
     Args:
