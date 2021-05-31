@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Tuple
+from typing import Any, Tuple, Dict
 
 import fiona
 import numpy as np
@@ -126,7 +126,7 @@ def get_extents(shapefile: Any, pad=0) -> dict[str, float]:
     }
 
 
-def data_files_from_recipe_output(recipe_output: RecipeOutput) -> Tuple[str, dict[str, str]]:
+def data_files_from_recipe_output(recipe_output: RecipeOutput) -> Tuple[str, Dict[str, str]]:
     """Get data files from a ESMVaLTool recipe output
 
     Expects first diagnostic task to produce files with single var each.
