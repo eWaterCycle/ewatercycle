@@ -42,4 +42,5 @@ def sample_parameterset(yaml_config_url):
 
 @pytest.fixture
 def sample_shape():
-    return str(Path(__file__) / 'models' / 'data' / 'Rhine' / 'Rhine.shp')
+    p = Path(__file__) / '..' / 'models' / 'data' / 'Rhine' / 'Rhine.shp'
+    return str(p.expanduser().resolve())
