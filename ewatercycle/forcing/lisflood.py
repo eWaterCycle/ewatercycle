@@ -28,20 +28,12 @@ Fields:
 class LisfloodForcing(DefaultForcing):
     """Container for lisflood forcing data."""
 
-    # Overwrite (repeat) the defaults so that the docstrings are included
-    directory: str
-    """Location where the forcing data is stored."""
-    start_time: str
-    """Start time of the forcing data"""
-    end_time: str
-    """End time of the forcing data"""
-
     # Model-specific attributes (preferably with default values):
-    PrefixPrecipitation: str
-    PrefixTavg: str
-    PrefixE0: str
-    PrefixES0: str
-    PrefixET0: str
+    PrefixPrecipitation: str = 'pr.nc'
+    PrefixTavg: str = 'tas.nc'
+    PrefixE0: str = 'e0.nc'
+    PrefixES0: str = 'es0.nc'
+    PrefixET0: str = 'et0.nc'
     # TODO check whether start/end time are same as in the files
 
     @classmethod
@@ -116,3 +108,6 @@ class LisfloodForcing(DefaultForcing):
                                PrefixES0=forcing_files['es0'],
                                PrefixET0=forcing_files['et0'],
                                )
+
+    def plot(self):
+        raise NotImplementedError('Dont know how to plot')

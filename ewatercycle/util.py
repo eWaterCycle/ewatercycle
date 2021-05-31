@@ -86,6 +86,7 @@ def lat_lon_boundingbox_to_variable_indices(model, variable, latMin, latMax, lon
     return np.array(output)
 
 
+# TODO rename to to_utcdatetime
 def get_time(time_iso: str) -> datetime:
     """Return a datetime in UTC.
 

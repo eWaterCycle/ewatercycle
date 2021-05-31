@@ -20,16 +20,8 @@ Fields:
 class MarrmotForcing(DefaultForcing):
     """Container for marrmot forcing data."""
 
-    # Overwrite (repeat) the defaults so that the docstrings are included
-    directory: str
-    """Location where the forcing data is stored."""
-    start_time: str
-    """Start time of the forcing data"""
-    end_time: str
-    """End time of the forcing data"""
-
     # Model-specific attributes (preferably with default values):
-    forcing_file: str
+    forcing_file: str = 'marrmot.mat'
 
     @classmethod
     def generate(  # type: ignore
@@ -83,3 +75,6 @@ class MarrmotForcing(DefaultForcing):
                               start_time=str(startyear),
                               end_time=str(endyear),
                               forcing_file=forcing_file)
+
+    def plot(self):
+        raise NotImplementedError('Dont know how to plot')

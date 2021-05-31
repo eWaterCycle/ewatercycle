@@ -30,13 +30,6 @@ Fields:
 class WflowForcing(DefaultForcing):
     """Container for wflow forcing data."""
 
-    # Overwrite (repeat) the defaults so that the docstrings are included.
-    directory: str
-    """Location where the forcing data is stored."""
-    start_time: str
-    """Start time of the forcing data"""
-    end_time: str
-
     # Model-specific attributes (ideally should have defaults):
     netcdfinput: str = "inmaps.nc"
     """Input file path."""
@@ -110,9 +103,10 @@ class WflowForcing(DefaultForcing):
         directory = str(forcing_file.parent)
 
         # instantiate forcing object based on generated data
-        forcing = WflowForcing(directory=directory,
-                               start_time=start_time,
-                               end_time=end_time,
-                               netcdfinput=forcing_file.name)
-        forcing.save()
-        return forcing
+        return WflowForcing(directory=directory,
+                            start_time=start_time,
+                            end_time=end_time,
+                            netcdfinput=forcing_file.name)
+
+    def plot(self):
+        raise NotImplementedError('Dont know how to plot')

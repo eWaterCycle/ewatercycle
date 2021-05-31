@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 from esmvalcore.experimental import get_recipe
 
@@ -28,18 +27,10 @@ Fields:
 class PCRGlobWBForcing(DefaultForcing):
     """Container for pcrglobwb forcing data."""
 
-    # Overwrite (repeat) the defaults so that the docstrings are included
-    directory: str
-    """Location where the forcing data is stored."""
-    start_time: str
-    """Start time of the forcing data"""
-    end_time: str
-    """End time of the forcing data"""
-
     # Model-specific attributes (preferably with default values):
-    precipitationNC: str
+    precipitationNC: str = 'pr.nc'
     """Input file for precipitation data."""
-    temperatureNC: str
+    temperatureNC: str = 'tas.nc'
     """Input file for temperature data."""
 
     @classmethod
@@ -49,13 +40,13 @@ class PCRGlobWBForcing(DefaultForcing):
         start_time: str,
         end_time: str,
         shape: str,
-        start_time_climatology: str,
-        end_time_climatology: str,
+        start_time_climatology: str,  # TODO make optional, default to start_time
+        end_time_climatology: str,  # TODO make optional, defaults to start_time + 1 year
         extract_region: dict = None,
     ) -> 'PCRGlobWBForcing':
         """Generate WflowForcing data with ESMValTool.
 
-        Attributes:
+        Args:
             dataset: Name of the source dataset. See :py:data:`.DATASETS`.
             start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
@@ -110,6 +101,7 @@ class PCRGlobWBForcing(DefaultForcing):
 
         # generate forcing data and retrieve useful information
         recipe_output = recipe.run()
+        # TODO dont open recipe output files, but use standard name from ESMValTool diagnostic
         directory, forcing_files = data_files_from_recipe_output(recipe_output)
 
         # instantiate forcing object based on generated data
@@ -118,3 +110,6 @@ class PCRGlobWBForcing(DefaultForcing):
                                 end_time=end_time,
                                 precipitationNC=forcing_files['pr'],
                                 temperatureNC=forcing_files['tas'])
+
+    def plot(self):
+        raise NotImplementedError('Dont know how to plot')

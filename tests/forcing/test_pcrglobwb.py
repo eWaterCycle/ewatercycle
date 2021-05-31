@@ -78,3 +78,6 @@ class TestGenerateWithExtractRegion:
             temperatureNC='pcrglobwb_tas.nc'
         )
         assert forcing == expected
+
+# TODO test if recipe was generated correctlu
+# TODO test if yaml was written
