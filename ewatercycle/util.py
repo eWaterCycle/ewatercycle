@@ -1,7 +1,13 @@
+from pathlib import Path
+from typing import Any, Tuple, Dict
+
+import fiona
 import numpy as np
 import xarray as xr
 from datetime import datetime
 from dateutil.parser import parse
+from esmvalcore.experimental.recipe_output import RecipeOutput
+from shapely import geometry
 
 
 def var_to_xarray(model, variable):
@@ -80,6 +86,7 @@ def lat_lon_boundingbox_to_variable_indices(model, variable, latMin, latMax, lon
     return np.array(output)
 
 
+# TODO rename to to_utcdatetime
 def get_time(time_iso: str) -> datetime:
     """Return a datetime in UTC.
 
@@ -92,3 +99,53 @@ def get_time(time_iso: str) -> datetime:
             f"The time is not in UTC. The ISO format for a UTC time is 'YYYY-MM-DDTHH:MM:SSZ'"
         )
     return time
+
+
+def get_extents(shapefile: Any, pad=0) -> Dict[str, float]:
+    """Get lat/lon extents from shapefile and add padding.
+
+    Args:
+        shapefile: Path to shapfile
+        pad: Optional padding
+
+    Returns:
+        Dict with `start_longitude`, `start_latitude`, `end_longitude`, `end_latitude`
+    """
+    shape = fiona.open(shapefile)
+    x0, y0, x1, y1 = [
+        geometry.shape(p["geometry"]).bounds for p in shape
+    ][0]
+    x0 = round((x0 - pad), 1)
+    y0 = round((y0 - pad), 1)
+    x1 = round((x1 + pad), 1)
+    y1 = round((y1 + pad), 1)
+    return {
+        'start_longitude': x0,
+        'start_latitude': y0,
+        'end_longitude': x1,
+        'end_latitude': y1,
+    }
+
+
+def data_files_from_recipe_output(recipe_output: RecipeOutput) -> Tuple[str, Dict[str, str]]:
+    """Get data files from a ESMVaLTool recipe output
+
+    Expects first diagnostic task to produce files with single var each.
+
+    Args:
+        recipe_output: ESMVaLTool recipe output
+
+    Returns:
+        Tuple with directory of files and a
+        dict where key is cmor short name and value is relative path to NetCDF file
+    """
+    data_files = list(recipe_output.values())[0].data_files
+    forcing_files = {}
+    for data_file in data_files:
+        dataset = data_file.load_xarray()
+        var_name = list(dataset.data_vars.keys())[0]
+        dataset.close()
+        forcing_files[var_name] = data_file.filename.name
+    # TODO simplify (recipe_output.location) when next esmvalcore release is made
+    directory = str(data_files[0].filename.parent)
+    return directory, forcing_files

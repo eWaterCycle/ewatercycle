@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from pathlib import Path
 
 import pytest
 
@@ -37,3 +38,8 @@ def sample_parameterset(yaml_config_url):
         config_format='yaml', config_url=yaml_config_url,
         datafiles_format='svn', datafiles_url='http://example.com',
     )
+
+
+@pytest.fixture
+def sample_shape():
+    return str(Path(__file__) / 'models' / 'data' / 'Rhine')

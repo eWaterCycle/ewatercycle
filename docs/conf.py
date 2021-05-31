@@ -215,5 +215,7 @@ autodoc_mock_imports = [
     'ruamel.yaml',
     'scipy',
     'xarray',
-
 ]
+
+# Prevent alphabetic sorting of (@data)class attributes/methods
+autodoc_member_order = 'bysource'
