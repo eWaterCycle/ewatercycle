@@ -120,5 +120,22 @@ class WflowForcing(DefaultForcing):
                             end_time=end_time,
                             netcdfinput=forcing_file.name)
 
+    def __str__(self):
+        """Nice formatting of the forcing data object."""
+        return "\n".join([
+            "Forcing data for Wflow",
+            "----------------------",
+            f"Directory: {self.directory}",
+            f"Start time: {self.start_time}",
+            f"End time: {self.end_time}",
+            f"Shapefile: {self.shape}",
+            f"Additional information for model config:",
+            f"  - netcdfinput: {self.netcdfinput}",
+            f"  - Precipitation: {self.Precipitation}",
+            f"  - Temperature: {self.Temperature}",
+            f"  - EvapoTranspiration: {self.EvapoTranspiration}",
+            f"  - Inflow: {self.Inflow}",
+        ])
+
     def plot(self):
         raise NotImplementedError('Dont know how to plot')
