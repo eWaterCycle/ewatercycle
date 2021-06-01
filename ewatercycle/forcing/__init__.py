@@ -1,50 +1,24 @@
-from collections import defaultdict
-from ruamel.yaml import YAML
-
-from . import default, hype, lisflood, marrmot, pcrglobwb, wflow
-from .recipe_generator import RecipeGenerator
-
-FORCING_CLASSES = defaultdict(default.DefaultForcing, wflow=wflow.WflowForcing)
+from . import preprocessors
+from .forcing_data import ForcingData
 
 
-def generate(target_model: str, **kwargs):
-    """Generate forcing data for model evaluation.
-
-    Args:
-        target_model: Name of the model
-        **kwargs: Model specific recipe settings
-
-    Returns:
-        :obj:`ForcingData`
+def generate(model: str, **kwargs):
     """
-    Forcing = FORCING_CLASSES[target_model]
-    return Forcing.generate(**kwargs)
+    Generate forcing data for model evaluation.
 
+    Parameters
+    ----------
+    model : str
+        Name of the model
+    **kwargs :
+        Model specific parameters
 
-def load(target_model, **kwargs):
-    """Load existing forcing data from disk.
-
-    Args:
-        target_model: Name of the hydrological model for which the forcing will be used
-        **kwargs: Model specific configuration settings related to the forcing data
-
-    Returns:
-        :obj:`ForcingData`
+    Returns
+    -------
+    forcing_data : :obj:`ForcingData`
     """
-    Forcing = FORCING_CLASSES[target_model]
-    return Forcing(**kwargs)
+    recipe_generator = preprocessors.MODELS[model]
+    recipe = recipe_generator(**kwargs)
+    recipe_output = recipe.run()
 
-
-def reload(directory):
-    """Reload previously generated forcing data.
-
-    Args:
-        directory: forcing data directory; must contain `ewatercycle_forcing.yaml`
-    """
-    yaml = YAML()
-    source = Path(directory) / 'ewatercycle_forcing.yaml'
-    data = yaml.load(source)
-
-    target_model = data.pop('model')
-    Forcing = FORCING_CLASSES[target_model]
-    return Forcing(**data)
+    return ForcingData(recipe_output)

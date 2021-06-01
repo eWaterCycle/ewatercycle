@@ -1,11 +1,9 @@
-"""Tests recipe update functions with a variety of different inputs."""
-
 from esmvalcore.experimental import get_recipe
 import deepdiff
 import copy
 import pytest
 from typing import Dict, Any, Tuple, Callable
-from ewatercycle.forcing import RECIPE_GENERATORS
+from ewatercycle.forcing.preprocessors import update_marrmot, update_lisflood, update_hype, update_wflow, update_pcrglobwb
 
 
 TEST_INPUT_MARRMOT: Tuple[Dict[str, Any], ...] = (
@@ -1021,48 +1019,62 @@ TEST_CASES_WFLOW = list(zip(TEST_INPUT_WFLOW, EXPECTED_DIFF_WFLOW))
 TEST_CASES_PCRGLOBWB = list(zip(TEST_INPUT_PCRGLOBWB, EXPECTED_DIFF_PCRGLOBWB))
 
 
-def _test_forcing(model, params, expected_diff):
-    recipe = RECIPE_GENERATORS[model].recipe
-    update_func = copy.deepcopy(RECIPE_GENERATORS[model])
-
+def _test_forcing(recipe, update_func, params, expected_diff):
     expected_recipe_dict = recipe.data
     recipe_dict = copy.deepcopy(expected_recipe_dict)
-    update_func(**params)
+    update_func(recipe_dict, **params)
     diff = deepdiff.DeepDiff(expected_recipe_dict, recipe_dict)
 
     if not diff == expected_diff:
         raise AssertionError(
             f'Expected: {expected_diff}\nActual: {diff.pretty()}')
 
+
 @pytest.mark.parametrize('params, expected_diff', TEST_CASES_MARRMOT)
 def test_forcing_marrmot(params, expected_diff):
-    _test_forcing('marrmot', params, expected_diff)
+    recipe = get_recipe('hydrology/recipe_marrmot.yml')
+    update_func = update_marrmot
+
+    _test_forcing(recipe, update_func, params, expected_diff)
 
 
 @pytest.mark.parametrize('params, expected_diff', TEST_CASES_LISFLOOD)
 def test_forcing_lisflood(params, expected_diff):
-    _test_forcing('lisflood', params, expected_diff)
+    recipe = get_recipe('hydrology/recipe_lisflood.yml')
+    update_func = update_lisflood
+
+    _test_forcing(recipe, update_func, params, expected_diff)
+
 
 @pytest.mark.parametrize('params, expected_diff', TEST_CASES_HYPE)
 def test_forcing_hype(params, expected_diff):
-    _test_forcing('hype', params, expected_diff)
+    recipe = get_recipe('hydrology/recipe_hype.yml')
+    update_func = update_hype
+
+    _test_forcing(recipe, update_func, params, expected_diff)
 
 
 @pytest.mark.parametrize('params, expected_diff', TEST_CASES_WFLOW)
 def test_forcing_wflow(params, expected_diff):
-    _test_forcing('wflow', params, expected_diff)
+    recipe = get_recipe('hydrology/recipe_wflow.yml')
+    update_func = update_wflow
+
+    _test_forcing(recipe, update_func, params, expected_diff)
 
 
 @pytest.mark.parametrize('params, expected_diff', TEST_CASES_PCRGLOBWB)
 def test_forcing_pcrglobwb(params, expected_diff):
-    _test_forcing('pcrglobwb', params, expected_diff)
+    recipe = get_recipe('hydrology/recipe_pcrglobwb.yml')
+    update_func = update_pcrglobwb
+
+    _test_forcing(recipe, update_func, params, expected_diff)
 
 
 if __name__ == '__main__':
     model = 'wflow'
 
     func_list: Dict[str, Callable] = {
-        'marrmot': RECIPE_GENERATORS['marrmot'].update_func,
+        'marrmot': update_marrmot,
         'lisflood': update_lisflood,
         'hype': update_hype,
         'wflow': update_wflow,
@@ -1078,7 +1090,7 @@ if __name__ == '__main__':
     }
 
     recipe = get_recipe(f'hydrology/recipe_{model}.yml')
-    update_func = RECIPE_GENERATORS[model].update_func
+    update_func = func_list[model]
     params_list = test_input_list[model]
 
     NEW_TEST_CASES = []
