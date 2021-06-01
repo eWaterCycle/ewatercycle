@@ -5,11 +5,10 @@ from unittest.mock import patch
 import pytest
 import xarray
 
-from esmvalcore.experimental.recipe_output import DataFile
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
-from ewatercycle.forcing.forcing_data import ForcingData
+from ewatercycle.forcing import load_foreign
 from ewatercycle.parametersetdb.datafiles import SubversionCopier
 from ewatercycle.models.lisflood import Lisflood, LisfloodParameterSet, XmlConfig
 
@@ -45,40 +44,30 @@ class TestLFlatlonUseCase:
 
 
     @pytest.fixture
-    def forcing(self, tmp_path, parameterset):
+    def generate_forcing(self, tmp_path, parameterset):
         forcing_dir = tmp_path / 'forcing'
         forcing_dir.mkdir()
         meteo_dir = Path(parameterset.PathRoot) / 'meteo'
-        meteo_files = {
-            'ta.nc': {'ta': 'tas'},
-            'e0.nc': False,
-            'tp.nc': False,
-        }
-        for fn, var_rename in meteo_files.items():
-            ds = xarray.open_dataset(meteo_dir / fn)
-            # TODO save files as f"lisflood_{prefix['value']}_{timestamp}",
-            if var_rename:
-                ds.rename(var_rename).to_netcdf(forcing_dir / fn)
-            else:
-                ds.to_netcdf(forcing_dir / fn)
+        # Create the case where forcing data arenot part of parameter_set
+        for file in meteo_dir.glob('*.nc'):
+            shutil.copy(file, forcing_dir)
 
-        class MockedTaskOutput:
-            data_files = (
-                DataFile(str(forcing_dir / 'e0.nc')),
-                DataFile(str(forcing_dir / 'ta.nc')),
-                DataFile(str(forcing_dir / 'tp.nc')),
-            )
+        forcing = load_foreign(target_model='lisflood',
+                                directory=forcing_dir,
+                                start_time='1986-01-02T00:00:00Z',
+                                end_time='2018-01-02T00:00:00Z',
+                                forcing_info={
+                                    'PrefixPrecipitation': 'tp.nc',
+                                    'PrefixTavg': 'ta.nc',
+                                    'PrefixE0': 'e0.nc',
+                                })
 
-        recipe_output = {
-            'diagnostic_daily/script': MockedTaskOutput()
-        }
-        return forcing_dir, ForcingData(recipe_output)
-
+        return forcing
 
     @pytest.fixture
-    def model(self, parameterset, forcing):
-        forcing_dir, _ = forcing
-        m = Lisflood(version='20.10', parameter_set=parameterset, forcing=forcing_dir)
+    def model(self, parameterset, generate_forcing):
+        forcing = generate_forcing
+        m = Lisflood(version='20.10', parameter_set=parameterset, forcing=forcing)
         yield m
         if m.bmi:
             # Clean up container

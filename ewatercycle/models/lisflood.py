@@ -12,10 +12,10 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
-from ewatercycle.forcing.forcing_data import ForcingData
+from ewatercycle.forcing.lisflood import LisfloodForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import AbstractConfig
-from ewatercycle.util import convert_timearray_to_datetime, get_time
+from ewatercycle.util import get_time
 
 
 @dataclass
@@ -43,16 +43,6 @@ class LisfloodParameterSet:
         self.__dict__[name] = Path(value).expanduser().resolve()
 
 
-# Mapping from lisvap output to lisflood input files. MAPS_PREFIXES dictionary
-# contains lisvap filenames in lisvap and lisflood config files and their
-# equivalent cmor names
-MAPS_PREFIXES = {
-    'E0Maps': {'name': 'PrefixE0', 'value': 'e0'},
-    'ES0Maps': {'name': 'PrefixES0', 'value': 'es0'},
-    'ET0Maps': {'name': 'PrefixET0', 'value': 'et0'},
-}
-
-
 class Lisflood(AbstractModel):
     """eWaterCycle implementation of Lisflood hydrological model.
 
@@ -70,7 +60,7 @@ class Lisflood(AbstractModel):
     available_versions = ["20.10"]
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
-    def __init__(self, version: str, parameter_set: LisfloodParameterSet, forcing: Union[str, Path]):
+    def __init__(self, version: str, parameter_set: LisfloodParameterSet, forcing: LisfloodForcing):
         """Construct Lisflood model with initial values. """
         super().__init__()
         self.version = version
@@ -108,12 +98,11 @@ class Lisflood(AbstractModel):
               work_dir: Path = None) -> Tuple[Path, Path]:
         """Configure model run
 
-        If evaporation files (e0, es0, et0) are not included in the forcing, then :py:meth:`run_lisvap` function should be called before setup.
-
         1. Creates config file and config directory based on the forcing variables and time range
         2. Start bmi container and store as :py:attr:`bmi`
 
         Args:
+            IrrigationEfficiency: Field application irrigation efficiency max 1, ~0.90 drip irrigation, ~0.75 sprinkling
             start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
             end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
             work_dir: a working directory given by user or created for user.
@@ -122,10 +111,7 @@ class Lisflood(AbstractModel):
             Path to config file and path to config directory
         """
 
-        # <textvar name="IrrigationEfficiency" value="0.75">
-        # Field application irrigation efficiency max 1, ~0.90 drip irrigation, ~0.75 sprinkling
         #TODO forcing can be a part of parameter_set
-        #TODO add a start time argument that must be in forcing time range
         work_dir = _generate_workdir(work_dir)
         config_file = self._create_lisflood_config(work_dir, start_time, end_time, IrrigationEfficiency)
 
@@ -136,7 +122,7 @@ class Lisflood(AbstractModel):
                 input_dirs=[
                     str(self.parameter_set.PathRoot),
                     str(self.parameter_set.MaskMap.parent),
-                    str(self.forcing_dir)
+                    str(self.forcing.directory)
                 ],
                 work_dir=str(work_dir),
             )
@@ -148,7 +134,7 @@ class Lisflood(AbstractModel):
                 input_dirs=[
                     str(self.parameter_set.PathRoot),
                     str(self.parameter_set.MaskMap.parent),
-                    str(self.forcing_dir)
+                    str(self.forcing.directory)
                 ],
                 work_dir=str(work_dir),
             )
@@ -162,32 +148,14 @@ class Lisflood(AbstractModel):
         """"Check forcing argument and get path, start and end time of forcing data."""
         # TODO check if mask has same grid as forcing files,
         # if not warn users to run reindex_forcings
-        if isinstance(forcing, (str, Path)):
-            self.forcing_dir = Path(forcing).expanduser().resolve()
-            self.forcing_files = dict()
-            for forcing_file in self.forcing_dir.glob('*.nc'):
-                dataset = xr.open_dataset(forcing_file)
-                # TODO check dataset was created by ESMValTool, to make sure var names are as expected
-                var_name = list(dataset.data_vars.keys())[0]
-                self.forcing_files[var_name] = forcing_file.name
-                # get start and end date of time dimension
-                self._start = convert_timearray_to_datetime(dataset.coords['time'][0])
-                self._end = convert_timearray_to_datetime(dataset.coords['time'][-1])
-        elif isinstance(forcing, ForcingData):
-            # key is cmor var name and value is path to NetCDF file
-            self.forcing_files = dict()
-            data_files = list(forcing.recipe_output.values())[0].data_files
-            for data_file in data_files:
-                dataset = data_file.load_xarray()
-                var_name = list(dataset.data_vars.keys())[0]
-                self.forcing_files[var_name] = data_file.filename.name
-                self.forcing_dir = data_file.filename.parent
-                # get start and end date of time dimension
-                self._start = convert_timearray_to_datetime(dataset.coords['time'][0])
-                self._end = convert_timearray_to_datetime(dataset.coords['time'][-1])
+        if isinstance(forcing, LisfloodForcing):
+            self.forcing = forcing
+            # convert date_strings to datetime objects
+            self._start = get_time(self.forcing.start_time)
+            self._end = get_time(self.forcing.end_time)
         else:
             raise TypeError(
-                f"Unknown forcing type: {forcing}. Please supply either a Path or ForcingData object."
+                f"Unknown forcing type: {forcing}. Please either supply a LisfloodForcing object."
             )
 
     def _create_lisflood_config(self, work_dir: Path, start_time_iso: str = None, end_time_iso: str = None, IrrigationEfficiency: str = None) -> Path:
@@ -212,14 +180,12 @@ class Lisflood(AbstractModel):
             "StepEnd": str((self._end - self._start).days),
             "PathRoot": f"{self.parameter_set.PathRoot}",
             "MaskMap": f"{self.parameter_set.MaskMap}".rstrip('.nc'),
-            "PathMeteo": f"{self.forcing_dir}",
+            "PathMeteo": f"{self.forcing.directory}",
             "PathOut": f"{work_dir}",
         }
 
         if IrrigationEfficiency is not None:
             settings['IrrigationEfficiency'] = IrrigationEfficiency
-
-        timestamp = f"{self._start.year}_{self._end.year}"
 
         for textvar in self.cfg.config.iter("textvar"):
             textvar_name = textvar.attrib["name"]
@@ -231,17 +197,20 @@ class Lisflood(AbstractModel):
 
             # input for lisflood
             if "PrefixPrecipitation" in textvar_name:
-                textvar.set("value", self.forcing_files['pr'].rstrip('.nc'))
+                textvar.set("value", self.forcing.PrefixPrecipitation.rstrip('.nc'))
             if "PrefixTavg" in textvar_name:
-                textvar.set("value", self.forcing_files['tas'].rstrip('.nc'))
+                textvar.set("value", self.forcing.PrefixTavg.rstrip('.nc'))
 
+            # maps_prefixes dictionary contains lisvap filenames in lisflood config
+            maps_prefixes = {
+                'E0Maps': {'name': 'PrefixE0', 'value': f"{self.forcing.PrefixE0.rstrip('.nc')}"},
+                'ES0Maps': {'name': 'PrefixES0', 'value': f"{self.forcing.PrefixES0.rstrip('.nc')}"},
+                'ET0Maps': {'name': 'PrefixET0', 'value': f"{self.forcing.PrefixET0.rstrip('.nc')}"},
+            }
             # output of lisvap
-            for map_var, prefix in MAPS_PREFIXES.items():
+            for map_var, prefix in maps_prefixes.items():
                 if prefix['name'] in textvar_name:
-                    textvar.set(
-                        "value",
-                        f"lisflood_{prefix['value']}_{timestamp}",
-                    )
+                    textvar.set("value", prefix['value'])
                 if map_var in textvar_name:
                     textvar.set('value', f"$(PathMeteo)/$({prefix['name']})")
 
@@ -284,15 +253,15 @@ class Lisflood(AbstractModel):
             ('start_time', self._start.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ('end_time', self._end.strftime("%Y-%m-%dT%H:%M:%SZ")),
         ]
-        if self.forcing_dir:
+        if self.forcing.directory:
             parameters += [
-                ('forcing directory',  str(self.forcing_dir)),
+                ('forcing directory',  str(self.forcing.directory)),
             ]
 
         return parameters
 
-
-def reindex_forcings(mask_map: Path, forcing: ForcingData, output_dir: Path = None) -> Path:
+# TODO it needs fix regarding forcing
+def reindex_forcings(mask_map: Path, forcing: LisfloodForcing, output_dir: Path = None) -> Path:
     """Reindex forcing files to match mask map grid
 
     Args:
