@@ -76,8 +76,6 @@ class Lisflood(AbstractModel):
         self.version = version
         self._check_forcing(forcing)
         self.parameter_set = parameter_set
-        self._set_singularity_image()
-        self._set_docker_image()
         self.cfg = XmlConfig(self.parameter_set.config_template)
 
     def _set_docker_image(self):
@@ -86,12 +84,11 @@ class Lisflood(AbstractModel):
         }
         self.docker_image = images[self.version]
 
-    def _set_singularity_image(self):
+    def _set_singularity_image(self, singularity_dir: Path):
         images = {
             '20.10': 'ewatercycle-lisflood-grpc4bmi_20.10.sif'
         }
-        if CFG.get('singularity_dir'):
-            self.singularity_image = CFG['singularity_dir'] / images[self.version]
+        self.singularity_image = singularity_dir / images[self.version]
 
     def _get_textvar_value(self, name: str):
         for textvar in self.cfg.config.iter("textvar"):
@@ -133,6 +130,7 @@ class Lisflood(AbstractModel):
         config_file = self._create_lisflood_config(work_dir, start_time, end_time, IrrigationEfficiency)
 
         if CFG['container_engine'].lower() == 'singularity':
+            self._set_singularity_image(CFG['singularity_dir'])
             self.bmi = BmiClientSingularity(
                 image=str(self.singularity_image),
                 input_dirs=[
@@ -143,6 +141,7 @@ class Lisflood(AbstractModel):
                 work_dir=str(work_dir),
             )
         elif CFG['container_engine'].lower() == 'docker':
+            self._set_docker_image()
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
@@ -282,8 +281,8 @@ class Lisflood(AbstractModel):
             ('PathRoot', str(self.parameter_set.PathRoot)),
             ('MaskMap', str(self.parameter_set.MaskMap.parent)),
             ('config_template', str(self.parameter_set.config_template)),
-            ('start_time', self._start.isoformat()),
-            ('end_time', self._end.isoformat()),
+            ('start_time', self._start.strftime("%Y-%m-%dT%H:%M:%SZ")),
+            ('end_time', self._end.strftime("%Y-%m-%dT%H:%M:%SZ")),
         ]
         if self.forcing_dir:
             parameters += [
