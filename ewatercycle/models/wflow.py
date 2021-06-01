@@ -12,47 +12,9 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
+from ewatercycle.forcing.wflow import WflowForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import CaseConfigParser
-
-class PathParser:
-    """Descriptor that converts input to pathlib.Path objects."""
-    def __set_name__(self, owner: object, name: str):
-        self.name = name
-
-    def __set__(self, instance: object, value: Union[str, PathLike]):
-        instance.__dict__[self.name] = Path(value).expanduser().resolve()
-
-
-@dataclass
-class WflowForcing:
-    """Forcing data for the Wflow model class.
-
-    Default variable names follow CMOR standards.
-
-    Example:
-
-        To run the example case `wflow_rhine_sbm_nc <https://github.com/openstreams/wflow/tree/master/examples/wflow_rhine_sbm_nc>`_ one would use:
-
-    .. code-block::
-
-        forcing = WflowForcing(
-            netcdfinput='inmaps.nc',
-            Precipitation = "/P",
-            EvapoTranspiration = "/PET",
-            Temperature = "/TEMP",
-        )
-    """
-    netcdfinput: PathParser = PathParser()
-    """Input file path."""
-    Precipitation: str = "/pr"
-    """Variable name of Precipitation data in input file."""
-    EvapoTranspiration: str = "/pet"
-    """Variable name of EvapoTranspiration data in input file."""
-    Temperature: str = "/tas"
-    """Variable name of Temperature data in input file."""
-    Inflow: Optional[str] = None
-    """Variable name of Inflow data in input file."""
 
 
 @dataclass

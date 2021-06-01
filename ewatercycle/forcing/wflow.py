@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 from esmvalcore.experimental import get_recipe
 
@@ -25,13 +25,25 @@ Fields:
     Inflow Optional[str]: Variable name of inflow data in input file.
 """
 
+class PathParser:
+    """Descriptor that converts input to pathlib.Path objects."""
+    def __init__(self, default_value):
+        self.default_value = default_value
+
+    def __set_name__(self, owner: object, name: str):
+        self.name = name
+
+    def __set__(self, instance: object, value: Optional[str] = None):
+        value = value if value is not None else self.default_value
+        instance.__dict__[self.name] = Path(value).expanduser().resolve()
+
 
 @dataclass
 class WflowForcing(DefaultForcing):
     """Container for wflow forcing data."""
 
     # Model-specific attributes (ideally should have defaults):
-    netcdfinput: str = "inmaps.nc"
+    netcdfinput: str = PathParser(default_value='inmaps.nc')
     """Input file path."""
     Precipitation: str = "/pr"
     """Variable name of precipitation data in input file."""
