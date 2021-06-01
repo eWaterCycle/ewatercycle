@@ -71,7 +71,7 @@ class Lisflood(AbstractModel):
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     def __init__(self, version: str, parameter_set: LisfloodParameterSet, forcing: Union[str, Path]):
-        """Construct MarrmotM01 with initial values. """
+        """Construct Lisflood model with initial values. """
         super().__init__()
         self.version = version
         self._check_forcing(forcing)
@@ -104,7 +104,6 @@ class Lisflood(AbstractModel):
 
 
     # unable to subclass with more specialized arguments so ignore type
-    # TODO add IrrigationEfficiency to setup
     def setup(self,  # type: ignore
               IrrigationEfficiency: str = None,
               start_time: str = None,
