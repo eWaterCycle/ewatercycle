@@ -3,7 +3,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from os import PathLike
 from pathlib import Path
-from typing import Any, Iterable, Tuple, Union
+from typing import Any, Iterable, Tuple
 
 import numpy as np
 import scipy.io as sio
@@ -15,19 +15,20 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 from ewatercycle import CFG
 from ewatercycle.forcing.forcing_data import ForcingData
 from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.util import get_time
 
 
 @dataclass
 class Solver:
     """Solver, for current implementations see
-    _`here <https://github.com/wknoben/MARRMoT/tree/master/MARRMoT/Functions/Time%20stepping>`.
+    `here <https://github.com/wknoben/MARRMoT/tree/master/MARRMoT/Functions/Time%20stepping>`_.
     """
     name: str = 'createOdeApprox_IE'
     resnorm_tolerance: float = 0.1
     resnorm_maxiter: float = 6.0
 
 
-def _generate_work_dir(work_dir: PathLike = None):
+def _generate_work_dir(work_dir: PathLike = None) -> PathLike:
     """
     Args:
         work_dir: If work dir is None then create sub-directory in CFG['output_dir']
@@ -44,74 +45,102 @@ def _generate_work_dir(work_dir: PathLike = None):
 class MarrmotM01(AbstractModel):
     """eWaterCycle implementation of Marrmot Collie River 1 (traditional bucket) hydrological model.
 
+    It sets MarrmotM01 parameter with an initial value that is the mean value of the range specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
+
+    Args:
+        version: pick a version for which an ewatercycle grpc4bmi docker image is available.
+        forcing: a forcing file or a forcing data object. See format forcing file in `model implementation <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`_.
+            If forcing file contains parameter and other settings, those are used and can be changed in :py:meth:`steup`.
+
     Attributes:
         bmi (Bmi): Basic Modeling Interface object
-        work_dir (PathLike): Working directory for the model where it can read/write files
 
     Example:
         See examples/marrmotM01.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
     model_name = "m_01_collie1_1p_1s"
-    """Name of model in Matlab code"""
+    """Name of model in Matlab code."""
+    available_versions = ["2020.11"]
+    """Versions for which ewatercycle grpc4bmi docker images are available."""
 
-    def __init__(self):
+    def __init__(self, version: str, forcing: PathLike):
+        """Construct MarrmotM01 with initial values. """
         super().__init__()
+        self.version = version
         self._parameters = [1000.0]
         self.store_ini = [900.0]
         self.solver = Solver()
-        self.forcing_file: PathLike = None
+
+        self.forcing = forcing
+        self._check_forcing(self.forcing)
+
+        self._set_singularity_image()
+        self._set_docker_image()
+
+    def _set_docker_image(self):
+        images = {
+            '2020.11': 'ewatercycle/marrmot-grpc4bmi:2020.11'
+        }
+        self.docker_image = images[self.version]
+
+    def _set_singularity_image(self):
+        images = {
+            '2020.11': 'ewatercycle-marrmot-grpc4bmi_2020.11.sif'
+        }
+        if CFG.get('singularity_dir'):
+            self.singularity_image = CFG['singularity_dir'] / images[self.version]
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
-              forcing: Union[ForcingData, PathLike],
-              maximum_soil_moisture_storage: float = 1000.0,
-              initial_soil_moisture_storage: float = 900.0,
-              start_time: datetime = None,
-              end_time: datetime = None,
-              solver: Solver = Solver(),
+              maximum_soil_moisture_storage: float = None,
+              initial_soil_moisture_storage: float = None,
+              start_time: str = None,
+              end_time: str = None,
+              solver: Solver = None,
               work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
-        """Configure model run
+        """Configure model run.
 
         1. Creates config file and config directory based on the forcing variables and time range
         2. Start bmi container and store as :py:attr:`bmi`
 
         Args:
-            forcing: a forcing file or a forcing data object. See format forcing file in _`model implementation <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`.
-            maximum_soil_moisture_storage: in mm. Range is specfied in _`model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`.
+            maximum_soil_moisture_storage: in mm. Range is specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
             initial_soil_moisture_storage: in mm.
-            start_time: Start time of model, if not given then forcing start time is used.
-            end_time: End time of model, if not given then forcing end time is used.
+            start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
+            end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
             solver: Solver settings
             work_dir: a working directory given by user or created for user.
         Returns:
             Path to config file and path to config directory
         """
-        self._parameters = [maximum_soil_moisture_storage]
-        self.store_ini = [initial_soil_moisture_storage]
-        self.solver = solver
-        self.start_time_as_dt = start_time
-        self.end_time_as_dt = end_time
-        self.work_dir = _generate_work_dir(work_dir)
-        self._check_forcing(forcing)
+        if maximum_soil_moisture_storage:
+            self._parameters = [maximum_soil_moisture_storage]
+        if initial_soil_moisture_storage:
+            self.store_ini = [initial_soil_moisture_storage]
+        if solver:
+            self.solver = solver
 
-        config_file = self._create_marrmot_config()
+        work_dir = _generate_work_dir(work_dir)
+        config_file = self._create_marrmot_config(work_dir, start_time, end_time)
 
         if CFG['container_engine'].lower() == 'singularity':
+            message = f"The singularity image {self.singularity_image} does not exist."
+            assert self.singularity_image.exists(), message
             self.bmi = BmiClientSingularity(
-                image=CFG['marrmot.singularity_image'],
-                work_dir=str(self.work_dir),
+                image=str(self.singularity_image),
+                work_dir=str(work_dir),
             )
         elif CFG['container_engine'].lower() == 'docker':
             self.bmi = BmiClientDocker(
-                image=CFG['marrmot.docker_image'],
+                image=self.docker_image,
                 image_port=55555,
-                work_dir=str(self.work_dir),
+                work_dir=str(work_dir),
             )
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        return config_file, self.work_dir
+        return config_file, work_dir
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
@@ -125,43 +154,65 @@ class MarrmotM01(AbstractModel):
             )
         # parse start/end time
         forcing_data = sio.loadmat(str(self.forcing_file), mat_dtype=True)
-        time_start_parts = [int(d) for d in forcing_data["time_start"][0]]
+        time_start_parts = [int(d) for d in forcing_data['time_start'][0]]
         self.forcing_start_time = datetime(*time_start_parts, tzinfo=timezone.utc)
-        time_end_parts = [int(d) for d in forcing_data["time_end"][0]]
+        time_end_parts = [int(d) for d in forcing_data['time_end'][0]]
         self.forcing_end_time = datetime(*time_end_parts, tzinfo=timezone.utc)
 
-    def _create_marrmot_config(self) -> PathLike:
+        if 'parameters' in forcing_data:
+            self._parameters = forcing_data['parameters'][0]
+        if 'store_ini' in forcing_data:
+            self.store_ini = forcing_data['store_ini'][0]
+        if 'solver' in forcing_data:
+            self.solver = Solver()
+            forcing_solver = forcing_data['solver']
+            self.solver.name = forcing_solver['name'][0][0][0]
+            self.solver.resnorm_tolerance = forcing_solver['resnorm_tolerance'][0][0][0]
+            self.solver.resnorm_maxiter = forcing_solver['resnorm_maxiter'][0][0][0]
+
+    def _create_marrmot_config(self, work_dir: PathLike, start_time_iso: str = None, end_time_iso: str = None) -> PathLike:
         """Write model configuration file.
 
         Adds the model parameters to forcing file for the given period
         and writes this information to a model configuration file.
+
+        Args:
+            work_dir: a working directory given by user or created for user.
+            start_time_iso: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
+            end_time_iso: End time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
+
+        Returns:
+            Path for Marrmot config file
         """
-        # get the forcing that was created with ESMValTool
         forcing_data = sio.loadmat(str(self.forcing_file), mat_dtype=True)
 
         # overwrite dates if given
-        if self.start_time_as_dt is not None:
-            if self.forcing_start_time <= self.start_time_as_dt <= self.forcing_end_time:
-                forcing_data["time_start"][0][0:6] = [
-                    self.start_time_as_dt.year,
-                    self.start_time_as_dt.month,
-                    self.start_time_as_dt.day,
-                    self.start_time_as_dt.hour,
-                    self.start_time_as_dt.minute,
-                    self.start_time_as_dt.second,
+        if start_time_iso is not None:
+            start_time = get_time(start_time_iso)
+            if self.forcing_start_time <= start_time <= self.forcing_end_time:
+                forcing_data['time_start'][0][0:6] = [
+                    start_time.year,
+                    start_time.month,
+                    start_time.day,
+                    start_time.hour,
+                    start_time.minute,
+                    start_time.second,
                 ]
+                self.forcing_start_time = start_time
             else:
                 raise ValueError('start_time outside forcing time range')
-        if self.end_time_as_dt is not None:
-            if self.forcing_start_time <= self.end_time_as_dt <= self.forcing_end_time:
-                forcing_data["time_end"][0][0:6] = [
-                    self.end_time_as_dt.year,
-                    self.end_time_as_dt.month,
-                    self.end_time_as_dt.day,
-                    self.end_time_as_dt.hour,
-                    self.end_time_as_dt.minute,
-                    self.end_time_as_dt.second,
+        if end_time_iso is not None:
+            end_time = get_time(end_time_iso)
+            if self.forcing_start_time <= end_time <= self.forcing_end_time:
+                forcing_data['time_end'][0][0:6] = [
+                    end_time.year,
+                    end_time.month,
+                    end_time.day,
+                    end_time.hour,
+                    end_time.minute,
+                    end_time.second,
                 ]
+                self.forcing_end_time = end_time
             else:
                 raise ValueError('end_time outside forcing time range')
 
@@ -173,7 +224,7 @@ class MarrmotM01(AbstractModel):
             store_ini=self.store_ini,
         )
 
-        config_file = self.work_dir / 'marrmot-m01_config.mat'
+        config_file = work_dir / Path('marrmot-m01_config.mat')
         sio.savemat(config_file, forcing_data)
         return config_file
 
@@ -210,6 +261,8 @@ class MarrmotM01(AbstractModel):
             ('maximum_soil_moisture_storage', self._parameters[0]),
             ('initial_soil_moisture_storage', self.store_ini[0]),
             ('solver', self.solver),
+            ('start time', self.forcing_start_time.isoformat()),
+            ('end time', self.forcing_end_time.isoformat()),
         ]
         if self.forcing_file:
             p += [
