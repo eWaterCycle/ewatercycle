@@ -7,6 +7,7 @@ from esmvalcore.experimental import get_recipe
 
 from .datasets import DATASETS
 from .default import DefaultForcing
+from .lisvap import create_lisvap_config, run_lisvap
 from ..util import get_time, get_extents, data_files_from_recipe_output
 
 GENERATE_DOCS = """
@@ -95,15 +96,19 @@ class LisfloodForcing(DefaultForcing):
         recipe_output = recipe.run()
         directory, forcing_files = data_files_from_recipe_output(recipe_output)
 
-        # TODO run lisvap
-        # TODO forcing_files['e0'] = ...
+        # TODO run lisvap: how to provide parameterset and version?!
+        config_file = create_lisvap_config(parameterset, start_time, end_time, directory, forcing_files)
+        run_lisvap(version, config_file, parameterset, directory)
+        timestamp = f"{startyear}_{endyear}"
+        for cmor_name in {'e0', 'es0', 'et0'}:
+            forcing_files[cmor_name] = f"lisflood_{cmor_name}_{timestamp}.nc"
 
         # instantiate forcing object based on generated data
         return LisfloodForcing(directory=directory,
                                start_time=str(startyear),
                                end_time=str(endyear),
-                               PrefixPrecipitation=forcing_files["pr"],
-                               PrefixTavg=forcing_files["tas"],
+                               PrefixPrecipitation=forcing_files['pr'],
+                               PrefixTavg=forcing_files['tas'],
                                PrefixE0=forcing_files['e0'],
                                PrefixES0=forcing_files['es0'],
                                PrefixET0=forcing_files['et0'],
