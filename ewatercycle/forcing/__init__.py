@@ -93,7 +93,7 @@ def load_foreign(target_model,
 
         .. code-block:: python
 
-          from ewatercycle.models import load_foreign
+          from ewatercycle.forcing import load_foreign
 
           forcing = load_foreign('marmot',
                                  directory='/data/marrmot-forcings-case1',
@@ -107,10 +107,10 @@ def load_foreign(target_model,
 
         .. code-block:: python
 
-          from ewatercycle.models import load_foreign
+          from ewatercycle.forcing import load_foreign
 
           forcing = load_foreign(target_model='lisflood',
-                                 directory=='/data/lisflood-forcings-case1',
+                                 directory='/data/lisflood-forcings-case1',
                                  start_time='1989-01-02T00:00:00Z',
                                  end_time='1999-01-02T00:00:00Z',
                                  forcing_info={
