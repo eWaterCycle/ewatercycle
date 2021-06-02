@@ -13,7 +13,7 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
-from ewatercycle.forcing.forcing_data import ForcingData
+from ewatercycle.forcing.marrmot import MarrmotForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.util import get_time
 
@@ -63,16 +63,14 @@ class MarrmotM01(AbstractModel):
     available_versions = ["2020.11"]
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
-    def __init__(self, version: str, forcing: PathLike):
+    def __init__(self, version: str, forcing: MarrmotForcing):
         """Construct MarrmotM01 with initial values. """
         super().__init__()
         self.version = version
         self._parameters = [1000.0]
         self.store_ini = [900.0]
         self.solver = Solver()
-
-        self.forcing = forcing
-        self._check_forcing(self.forcing)
+        self._check_forcing(forcing)
 
         self._set_singularity_image()
         self._set_docker_image()
@@ -144,21 +142,18 @@ class MarrmotM01(AbstractModel):
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
-        if isinstance(forcing, PathLike):
-            self.forcing_file = forcing
-        elif isinstance(forcing, ForcingData):
-            self.forcing_file = list(forcing.recipe_output.values())[0].files[0].filename
+        if isinstance(forcing, MarrmotForcing):
+            forcing_dir = Path(forcing.directory).expanduser().resolve()
+            self.forcing_file = str(forcing_dir / forcing.forcing_file)
+            # convert date_strings to datetime objects
+            self.forcing_start_time = get_time(forcing.start_time)
+            self.forcing_end_time = get_time(forcing.end_time)
         else:
             raise TypeError(
-                f"Unknown forcing type: {forcing}. Please supply either a Path or ForcingData object."
+                f"Unknown forcing type: {forcing}. Please supply a MarrmotForcing object."
             )
         # parse start/end time
-        forcing_data = sio.loadmat(str(self.forcing_file), mat_dtype=True)
-        time_start_parts = [int(d) for d in forcing_data['time_start'][0]]
-        self.forcing_start_time = datetime(*time_start_parts, tzinfo=timezone.utc)
-        time_end_parts = [int(d) for d in forcing_data['time_end'][0]]
-        self.forcing_end_time = datetime(*time_end_parts, tzinfo=timezone.utc)
-
+        forcing_data = sio.loadmat(self.forcing_file, mat_dtype=True)
         if 'parameters' in forcing_data:
             self._parameters = forcing_data['parameters'][0]
         if 'store_ini' in forcing_data:
@@ -184,7 +179,7 @@ class MarrmotM01(AbstractModel):
         Returns:
             Path for Marrmot config file
         """
-        forcing_data = sio.loadmat(str(self.forcing_file), mat_dtype=True)
+        forcing_data = sio.loadmat(self.forcing_file, mat_dtype=True)
 
         # overwrite dates if given
         if start_time_iso is not None:
@@ -263,9 +258,6 @@ class MarrmotM01(AbstractModel):
             ('solver', self.solver),
             ('start time', self.forcing_start_time.isoformat()),
             ('end time', self.forcing_end_time.isoformat()),
+            ('forcing_file', self.forcing_file),
         ]
-        if self.forcing_file:
-            p += [
-                ('forcing_file', self.forcing_file),
-            ]
         return p

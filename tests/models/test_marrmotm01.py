@@ -9,6 +9,7 @@ from scipy.io import loadmat
 from xarray.testing import assert_allclose
 
 from ewatercycle import CFG
+from ewatercycle.forcing import load_foreign
 from ewatercycle.models import MarrmotM01
 from ewatercycle.models.marrmot import Solver
 
@@ -21,14 +22,22 @@ def mocked_config(tmp_path):
 
 class TestWithDefaultsAndExampleData:
     @pytest.fixture
-    def forcing_file(self):
+    def generate_forcing(self):
         # Downloaded from
         # https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
-        return Path(__file__).parent / 'data' / 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
+        forcing = load_foreign('marrmot',
+                                directory=f'{Path(__file__).parent}/data',
+                                start_time='1989-01-01T00:00:00Z',
+                                end_time='1992-12-31T00:00:00Z',
+                                forcing_info={
+                                    'forcing_file': 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
+                                })
+        return forcing
 
     @pytest.fixture
-    def model(self, forcing_file: Path, mocked_config):
-        m = MarrmotM01(version="2020.11", forcing=forcing_file)
+    def model(self, generate_forcing, mocked_config):
+        forcing = generate_forcing
+        m = MarrmotM01(version="2020.11", forcing=forcing)
         yield m
         if m.bmi:
             # Clean up container
@@ -39,22 +48,24 @@ class TestWithDefaultsAndExampleData:
         cfg_file, cfg_dir = model.setup()
         return model, cfg_file, cfg_dir
 
-    def test_parameters(self, model, forcing_file):
+    def test_parameters(self, model):
+
         expected = [
             ('maximum_soil_moisture_storage', 10.0),
             ('initial_soil_moisture_storage', 5.0),
             ('solver', Solver()),
             ('start time', '1989-01-01T00:00:00+00:00'),
             ('end time', '1992-12-31T00:00:00+00:00'),
-            ('forcing_file', forcing_file)
+            ('forcing_file', f'{Path(__file__).parent}/data/BMI_testcase_m01_BuffaloRiver_TN_USA.mat')
         ]
         assert model.parameters == expected
 
-    def test_setup(self, model_with_setup, forcing_file):
+    def test_setup(self, model_with_setup):
         model, cfg_file, cfg_dir = model_with_setup
 
         actual = loadmat(str(cfg_file))
-        expected_forcing = loadmat(str(forcing_file))
+        forcing_file = f'{Path(__file__).parent}/data/BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
+        expected_forcing = loadmat(forcing_file)
 
         assert cfg_file.name == 'marrmot-m01_config.mat'
         assert model.bmi
@@ -66,7 +77,7 @@ class TestWithDefaultsAndExampleData:
         # TODO assert solver
         # assert actual['solver'] == asdict(Solver())
 
-    def test_parameters_after_setup(self, model_with_setup, forcing_file):
+    def test_parameters_after_setup(self, model_with_setup):
         model = model_with_setup[0]
         expected = [
             ('maximum_soil_moisture_storage', 10.0),
@@ -74,7 +85,7 @@ class TestWithDefaultsAndExampleData:
             ('solver', Solver()),
             ('start time', '1989-01-01T00:00:00+00:00'),
             ('end time', '1992-12-31T00:00:00+00:00'),
-            ('forcing_file', forcing_file)
+            ('forcing_file', f'{Path(__file__).parent}/data/BMI_testcase_m01_BuffaloRiver_TN_USA.mat')
         ]
         assert model.parameters == expected
 
@@ -107,14 +118,22 @@ class TestWithDefaultsAndExampleData:
 
 class TestWithCustomSetupAndExampleData:
     @pytest.fixture
-    def forcing_file(self):
+    def generate_forcing(self):
         # Downloaded from
         # https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
-        return Path(__file__).parent / 'data' / 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
+        forcing = load_foreign('marrmot',
+                                directory=f'{Path(__file__).parent}/data',
+                                start_time='1989-01-01T00:00:00Z',
+                                end_time='1992-12-31T00:00:00Z',
+                                forcing_info={
+                                    'forcing_file': 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
+                                })
+        return forcing
 
     @pytest.fixture
-    def model(self, forcing_file: Path, mocked_config):
-        m = MarrmotM01(version="2020.11", forcing=forcing_file)
+    def model(self, generate_forcing, mocked_config):
+        forcing = generate_forcing
+        m = MarrmotM01(version="2020.11", forcing=forcing)
         yield m
         if m.bmi:
             # Clean up container
@@ -145,14 +164,22 @@ class TestWithCustomSetupAndExampleData:
 
 class TestWithDatesOutsideRangeSetupAndExampleData:
     @pytest.fixture
-    def forcing_file(self):
+    def generate_forcing(self):
         # Downloaded from
         # https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
-        return Path(__file__).parent / 'data' / 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
+        forcing = load_foreign('marrmot',
+                                directory=f'{Path(__file__).parent}/data',
+                                start_time='1989-01-01T00:00:00Z',
+                                end_time='1992-12-31T00:00:00Z',
+                                forcing_info={
+                                    'forcing_file': 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
+                                })
+        return forcing
 
     @pytest.fixture
-    def model(self, forcing_file: Path, mocked_config):
-        m = MarrmotM01(version="2020.11", forcing=forcing_file)
+    def model(self, generate_forcing, mocked_config):
+        forcing = generate_forcing
+        m = MarrmotM01(version="2020.11", forcing=forcing)
         yield m
         if m.bmi:
             # Clean up container
