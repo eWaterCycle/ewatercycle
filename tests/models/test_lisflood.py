@@ -53,7 +53,7 @@ class TestLFlatlonUseCase:
             shutil.copy(file, forcing_dir)
 
         forcing = load_foreign(target_model='lisflood',
-                                directory=forcing_dir,
+                                directory=str(forcing_dir),
                                 start_time='1986-01-02T00:00:00Z',
                                 end_time='2018-01-02T00:00:00Z',
                                 forcing_info={

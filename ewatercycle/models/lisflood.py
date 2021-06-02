@@ -122,7 +122,7 @@ class Lisflood(AbstractModel):
                 input_dirs=[
                     str(self.parameter_set.PathRoot),
                     str(self.parameter_set.MaskMap.parent),
-                    str(self.forcing.directory)
+                    str(self.forcing_dir)
                 ],
                 work_dir=str(work_dir),
             )
@@ -134,7 +134,7 @@ class Lisflood(AbstractModel):
                 input_dirs=[
                     str(self.parameter_set.PathRoot),
                     str(self.parameter_set.MaskMap.parent),
-                    str(self.forcing.directory)
+                    str(self.forcing_dir)
                 ],
                 work_dir=str(work_dir),
             )
@@ -150,9 +150,10 @@ class Lisflood(AbstractModel):
         # if not warn users to run reindex_forcings
         if isinstance(forcing, LisfloodForcing):
             self.forcing = forcing
+            self.forcing_dir = Path(forcing.directory).expanduser().resolve()
             # convert date_strings to datetime objects
-            self._start = get_time(self.forcing.start_time)
-            self._end = get_time(self.forcing.end_time)
+            self._start = get_time(forcing.start_time)
+            self._end = get_time(forcing.end_time)
         else:
             raise TypeError(
                 f"Unknown forcing type: {forcing}. Please either supply a LisfloodForcing object."
@@ -180,7 +181,7 @@ class Lisflood(AbstractModel):
             "StepEnd": str((self._end - self._start).days),
             "PathRoot": f"{self.parameter_set.PathRoot}",
             "MaskMap": f"{self.parameter_set.MaskMap}".rstrip('.nc'),
-            "PathMeteo": f"{self.forcing.directory}",
+            "PathMeteo": f"{self.forcing_dir}",
             "PathOut": f"{work_dir}",
         }
 
@@ -252,12 +253,8 @@ class Lisflood(AbstractModel):
             ('config_template', str(self.parameter_set.config_template)),
             ('start_time', self._start.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ('end_time', self._end.strftime("%Y-%m-%dT%H:%M:%SZ")),
+            ('forcing directory',  str(self.forcing_dir)),
         ]
-        if self.forcing.directory:
-            parameters += [
-                ('forcing directory',  str(self.forcing.directory)),
-            ]
-
         return parameters
 
 # TODO it needs fix regarding forcing
