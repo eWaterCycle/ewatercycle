@@ -1,7 +1,5 @@
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from os import PathLike
 from pathlib import Path
 from typing import Any, Iterable, Tuple
 
@@ -28,7 +26,7 @@ class Solver:
     resnorm_maxiter: float = 6.0
 
 
-def _generate_work_dir(work_dir: PathLike = None) -> PathLike:
+def _generate_work_dir(work_dir: Path = None) -> Path:
     """
     Args:
         work_dir: If work dir is None then create sub-directory in CFG['output_dir']
@@ -95,7 +93,7 @@ class MarrmotM01(AbstractModel):
               start_time: str = None,
               end_time: str = None,
               solver: Solver = None,
-              work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
+              work_dir: Path = None) -> Tuple[Path, Path]:
         """Configure model run.
 
         1. Creates config file and config directory based on the forcing variables and time range
@@ -165,7 +163,7 @@ class MarrmotM01(AbstractModel):
             self.solver.resnorm_tolerance = forcing_solver['resnorm_tolerance'][0][0][0]
             self.solver.resnorm_maxiter = forcing_solver['resnorm_maxiter'][0][0][0]
 
-    def _create_marrmot_config(self, work_dir: PathLike, start_time_iso: str = None, end_time_iso: str = None) -> PathLike:
+    def _create_marrmot_config(self, work_dir: Path, start_time_iso: str = None, end_time_iso: str = None) -> Path:
         """Write model configuration file.
 
         Adds the model parameters to forcing file for the given period
@@ -219,7 +217,7 @@ class MarrmotM01(AbstractModel):
             store_ini=self.store_ini,
         )
 
-        config_file = work_dir / Path('marrmot-m01_config.mat')
+        config_file = work_dir / 'marrmot-m01_config.mat'
         sio.savemat(config_file, forcing_data)
         return config_file
 
