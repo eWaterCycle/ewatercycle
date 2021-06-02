@@ -97,11 +97,12 @@ class LisfloodForcing(DefaultForcing):
         directory, forcing_files = data_files_from_recipe_output(recipe_output)
 
         # TODO run lisvap: how to provide parameterset and version?!
+        # TODO check if mask has same grid as forcing files,
+        # if not run reindex_forcings
         config_file = create_lisvap_config(parameterset, start_time, end_time, directory, forcing_files)
         run_lisvap(version, config_file, parameterset, directory)
-        timestamp = f"{startyear}_{endyear}"
         for cmor_name in {'e0', 'es0', 'et0'}:
-            forcing_files[cmor_name] = f"lisflood_{cmor_name}_{timestamp}.nc"
+            forcing_files[cmor_name] = f"lisflood_{cmor_name}_{startyear}_{endyear}.nc"
 
         # instantiate forcing object based on generated data
         return LisfloodForcing(directory=directory,
