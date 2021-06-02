@@ -254,8 +254,8 @@ class MarrmotM01(AbstractModel):
             ('maximum_soil_moisture_storage', self._parameters[0]),
             ('initial_soil_moisture_storage', self.store_ini[0]),
             ('solver', self.solver),
-            ('start time', self.forcing_start_time.isoformat()),
-            ('end time', self.forcing_end_time.isoformat()),
+            ('start time', self.forcing_start_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
+            ('end time', self.forcing_end_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ('forcing_file', self.forcing_file),
         ]
         return p
