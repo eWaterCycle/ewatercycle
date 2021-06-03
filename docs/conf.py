@@ -206,6 +206,7 @@ autodoc_mock_imports = [
     'cftime',
     'dask',
     'esmvalcore',
+    'fiona'
     'hydrostats',
     'matplotlib',
     'numpy',
