@@ -1,40 +1,41 @@
 """Forcing related functionality for lisflood"""
 
-from dataclasses import dataclass
 from pathlib import Path
 
 from esmvalcore.experimental import get_recipe
-
+from typing import Optional
 from .datasets import DATASETS
-from .default import DefaultForcing
+from ._default import DefaultForcing
 from ..util import get_time, get_extents, data_files_from_recipe_output
 
-GENERATE_DOCS = """
-Options:
-    extract_region (dict): Region specification, dictionary must contain `start_longitude`,
-        `end_longitude`, `start_latitude`, `end_latitude`
-"""
-LOAD_DOCS = """
-Fields:
-    PrefixPrecipitation: Path to a NetCDF or pcraster file with precipitation data
-    PrefixTavg: Path to a NetCDF or pcraster file with average temperature data
-    PrefixE0: Path to a NetCDF or pcraster file with potential evaporation rate from open water surface data
-    PrefixES0: Path to a NetCDF or pcraster file with potential evaporation rate from bare soil surface data
-    PrefixET0: Path to a NetCDF or pcraster file with potential (reference) evapotranspiration rate data
-"""
-
-
-@dataclass
 class LisfloodForcing(DefaultForcing):
     """Container for lisflood forcing data."""
-
-    # Model-specific attributes (preferably with default values):
-    PrefixPrecipitation: str = 'pr.nc'
-    PrefixTavg: str = 'tas.nc'
-    PrefixE0: str = 'e0.nc'
-    PrefixES0: str = 'es0.nc'
-    PrefixET0: str = 'et0.nc'
     # TODO check whether start/end time are same as in the files
+    def __init__(
+        self,
+        start_time: str,
+        end_time: str,
+        directory: str,
+        shape: str,
+        PrefixPrecipitation: Optional[str] = 'pr.nc',
+        PrefixTavg: Optional[str] = 'tas.nc',
+        PrefixE0: Optional[str] = 'e0.nc',
+        PrefixES0: Optional[str] = 'es0.nc',
+        PrefixET0: Optional[str] = 'et0.nc',
+    ):
+        """
+            PrefixPrecipitation: Path to a NetCDF or pcraster file with precipitation data
+            PrefixTavg: Path to a NetCDF or pcraster file with average temperature data
+            PrefixE0: Path to a NetCDF or pcraster file with potential evaporation rate from open water surface data
+            PrefixES0: Path to a NetCDF or pcraster file with potential evaporation rate from bare soil surface data
+            PrefixET0: Path to a NetCDF or pcraster file with potential (reference) evapotranspiration rate data
+        """
+        super().__init(start_time, end_time, directory, shape)
+        self.PrefixPrecipitation = PrefixPrecipitation
+        self.PrefixTavg = PrefixTavg
+        self.PrefixE0 = PrefixE0
+        self.PrefixES0 = PrefixES0
+        self.PrefixET0 = PrefixET0
 
     @classmethod
     def generate(  # type: ignore
@@ -45,18 +46,9 @@ class LisfloodForcing(DefaultForcing):
         shape: str,
         extract_region: dict = None,
     ) -> 'LisfloodForcing':
-        """Generate LisfloodForcing with ESMValTool.
-
-        Args:
-            dataset: Name of the source dataset. See :py:data:`.DATASETS`.
-            start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-            end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-            shape: Path to a shape file. Used for spatial selection.
-            extract_region: Region specification, must contain `start_longitude`,
+        """
+            extract_region (dict): Region specification, dictionary must contain `start_longitude`,
                 `end_longitude`, `start_latitude`, `end_latitude`
-
-            TODO add regrid options so forcing can be generated for parameter set
-            TODO that is not on a 0.1x0.1 grid
         """
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_hype.yml"

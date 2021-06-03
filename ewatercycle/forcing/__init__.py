@@ -3,16 +3,16 @@ from typing import Optional, Dict
 
 from ruamel.yaml import YAML
 
-from . import default, hype, lisflood, marrmot, pcrglobwb, wflow
+from . import _hype, _lisflood, _marrmot, _pcrglobwb, _wflow
 from .datasets import DATASETS
-from .default import DefaultForcing
+from ._default import DefaultForcing
 
 FORCING_CLASSES = {  # not sure how to annotate this
-    "hype": hype.HypeForcing,
-    "lisflood": lisflood.LisfloodForcing,
-    "marrmot": marrmot.MarrmotForcing,
-    "pcrglobwb": pcrglobwb.PCRGlobWBForcing,
-    "wflow": wflow.WflowForcing,
+    "hype": _hype.HypeForcing,
+    "lisflood": _lisflood.LisfloodForcing,
+    "marrmot": _marrmot.MarrmotForcing,
+    "pcrglobwb": _pcrglobwb.PCRGlobWBForcing,
+    "wflow": _wflow.WflowForcing,
 }
 
 
@@ -30,10 +30,13 @@ def generate(target_model: str,
         start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         shape: Path to a shape file. Used for spatial selection.
-        **model_specific_options: Model specific recipe settings. See `https://ewatercycle.readtherdocs.io/forcing_generate_options`_.
+        model_specific_options: Model specific recipe settings. See below for the available options for each model.
 
     Returns:
         Forcing object, e.g. :obj:`.lisflood.LisfloodForcing`
+
+
+    Model-specific options that can be passed to `generate`:
     """
     constructor = FORCING_CLASSES.get(target_model, None)
     if constructor is None:
@@ -81,8 +84,7 @@ def load_foreign(target_model,
         directory: forcing data directory
         shape: Path to a shape file. Used for spatial selection.
         forcing_info: Model specific information about forcing
-            data. For each model you can see the available information fields
-            at `https://ewatercycle.readtherdocs.io/forcing_load_info`_.
+            data. See below for the available options for each model.
 
     Returns:
         Forcing object, e.g. :obj:`.hype.HypeForcing`
@@ -120,6 +122,8 @@ def load_foreign(target_model,
                                      'PrefixES0': 'es.nc',
                                      'PrefixET0': 'et.nc'
                                  })
+
+    Model-specific forcing info:
     """
     constructor = FORCING_CLASSES.get(target_model, None)
     if constructor is None:
@@ -128,6 +132,11 @@ def load_foreign(target_model,
     return constructor(start_time, end_time, directory, shape, **forcing_info)
 
 
-# TODO fix time conventions
-# TODO add / fix tests
-# TODO make sure model classes understand new forcing data objects
+# Append docstrings of with model-specific options to existing docstring
+load_foreign.__doc__ += "".join([
+    f"\n    {k}: {v.__init__.__doc__}" for k, v in FORCING_CLASSES.items()
+])
+
+generate.__doc__ += "".join([
+    f"\n    {k}: {v.generate.__doc__}" for k, v in FORCING_CLASSES.items()
+])

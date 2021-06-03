@@ -1,25 +1,28 @@
 """Forcing related functionality for hype"""
 
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
 from esmvalcore.experimental import get_recipe
 
 from .datasets import DATASETS
-from .default import DefaultForcing
+from ._default import DefaultForcing
 from ..util import get_time
 
-GENERATE_DOCS = """Hype does not have model specific options."""
-LOAD_DOCS = """Hype does not have model specific info."""
-
-
-@dataclass
 class HypeForcing(DefaultForcing):
     """Container for hype forcing data."""
+    def __init__(
+        self,
+        start_time: str,
+        end_time: str,
+        directory: str,
+        shape: str,
+    ):
+        """
+            None: Hype does not have model-specific load options.
+        """
+        super().__init(start_time, end_time, directory, shape)
 
-    # Model-specific attributes (preferably with default values):
-    # ...
 
     @classmethod
     def generate(  # type: ignore
@@ -29,13 +32,8 @@ class HypeForcing(DefaultForcing):
         end_time: str,
         shape: str
     ) -> 'HypeForcing':
-        """Generate HypeForcing with ESMValTool.
-
-        Args:
-            dataset: Name of the source dataset. See :py:data:`.DATASETS`.
-            start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-            end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-            shape: Path to a shape file. Used for spatial selection.
+        """
+            None: Hype does not have model-specific generate options.
         """
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_hype.yml"

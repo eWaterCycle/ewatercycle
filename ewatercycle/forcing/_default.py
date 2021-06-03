@@ -5,23 +5,20 @@ from pathlib import Path
 
 from ruamel.yaml import YAML
 
-
-@dataclass
 class DefaultForcing:
-    """Container for forcing data."""
+    """Container for forcing data.
 
-    # Default attributes that every forcing class should have:
-    start_time: str
-    """Start time of the forcing data"""
-    end_time: str
-    """End time of the forcing data"""
-    directory: str = '.'
-    """Location where the forcing data is stored."""
-    shape: str = None
-    """Shape file"""
-
-    # Model-specific attributes (preferably with default values):
-    # ...
+    Args:
+        dataset: Name of the source dataset. See :py:data:`.DATASETS`.
+        start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+        end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+        shape: Path to a shape file. Used for spatial selection.
+    """
+    def __init__(self, start_time: str, end_time: str, directory: str, shape: str):
+        self.start_time = parse_time(start_time)
+        self.end_time = parse_time(end_time)
+        self.directory = parse_path(directory)
+        self.shape = parse_path(shape)
 
     @classmethod
     def generate(cls,
