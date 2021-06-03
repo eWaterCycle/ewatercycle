@@ -207,6 +207,7 @@ autodoc_mock_imports = [
     'dask',
     'esmvalcore',
     'fiona',
+    'dateutil',
     'hydrostats',
     'matplotlib',
     'numpy',
