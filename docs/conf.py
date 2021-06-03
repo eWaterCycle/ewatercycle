@@ -208,6 +208,7 @@ autodoc_mock_imports = [
     'esmvalcore',
     'fiona',
     'dateutil',
+    'shapely',
     'hydrostats',
     'matplotlib',
     'numpy',
