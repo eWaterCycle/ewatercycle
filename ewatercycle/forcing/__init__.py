@@ -51,7 +51,7 @@ def load_foreign(target_model,
         end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         directory: forcing data directory
         shape: Path to a shape file. Used for spatial selection.
-        forcing_info: Model specific information about forcing
+        forcing_info: Dictionary with model-specific information about forcing
             data. See below for the available options for each model.
 
     Returns:
@@ -115,7 +115,7 @@ def generate(target_model: str,
         start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         shape: Path to a shape file. Used for spatial selection.
-        model_specific_options: Model specific recipe settings. See below for the available options for each model.
+        model_specific_options: Dictionary with model-specific recipe settings. See below for the available options for each model.
 
     Returns:
         Forcing object, e.g. :obj:`.lisflood.LisfloodForcing`
