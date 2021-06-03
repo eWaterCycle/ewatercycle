@@ -1,15 +1,18 @@
 """Forcing related functionality for lisflood"""
 
 from pathlib import Path
+from typing import Optional
 
 from esmvalcore.experimental import get_recipe
-from typing import Optional
-from .datasets import DATASETS
+
+from ..util import data_files_from_recipe_output, get_extents, get_time
 from ._default import DefaultForcing
-from ..util import get_time, get_extents, data_files_from_recipe_output
+from .datasets import DATASETS
+
 
 class LisfloodForcing(DefaultForcing):
     """Container for lisflood forcing data."""
+
     # TODO check whether start/end time are same as in the files
     def __init__(
         self,
@@ -62,13 +65,14 @@ class LisfloodForcing(DefaultForcing):
         for preproc_name in preproc_names:
             recipe.data['preprocessors'][preproc_name]['extract_shape'][
                 'shapefile'] = shape
-        recipe.data['diagnostics']['diagnostic_daily']['scripts'][
-            'script']['catchment'] = basin
+        recipe.data['diagnostics']['diagnostic_daily']['scripts']['script'][
+            'catchment'] = basin
 
         if extract_region is None:
             extract_region = get_extents(shape)
         for preproc_name in preproc_names:
-            recipe.data['preprocessors'][preproc_name]['extract_region'] = extract_region
+            recipe.data['preprocessors'][preproc_name][
+                'extract_region'] = extract_region
 
         recipe.data['datasets'] = [DATASETS[dataset]]
 
@@ -91,15 +95,16 @@ class LisfloodForcing(DefaultForcing):
         # TODO forcing_files['e0'] = ...
 
         # instantiate forcing object based on generated data
-        return LisfloodForcing(directory=directory,
-                               start_time=str(startyear),
-                               end_time=str(endyear),
-                               PrefixPrecipitation=forcing_files["pr"],
-                               PrefixTavg=forcing_files["tas"],
-                               PrefixE0=forcing_files['e0'],
-                               PrefixES0=forcing_files['es0'],
-                               PrefixET0=forcing_files['et0'],
-                               )
+        return LisfloodForcing(
+            directory=directory,
+            start_time=str(startyear),
+            end_time=str(endyear),
+            PrefixPrecipitation=forcing_files["pr"],
+            PrefixTavg=forcing_files["tas"],
+            PrefixE0=forcing_files['e0'],
+            PrefixES0=forcing_files['es0'],
+            PrefixET0=forcing_files['et0'],
+        )
 
     def plot(self):
         raise NotImplementedError('Dont know how to plot')

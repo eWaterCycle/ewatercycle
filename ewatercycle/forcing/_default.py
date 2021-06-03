@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ruamel.yaml import YAML
 
+
 class DefaultForcing:
     """Container for forcing data.
 
@@ -14,19 +15,21 @@ class DefaultForcing:
         end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         shape: Path to a shape file. Used for spatial selection.
     """
-    def __init__(self, start_time: str, end_time: str, directory: str, shape: str):
+    def __init__(self, start_time: str, end_time: str, directory: str,
+                 shape: str):
         self.start_time = parse_time(start_time)
         self.end_time = parse_time(end_time)
         self.directory = parse_path(directory)
         self.shape = parse_path(shape)
 
     @classmethod
-    def generate(cls,
-                 dataset: str,
-                 start_time: str,
-                 end_time: str,
-                 shape: str,
-                 ) -> 'DefaultForcing':
+    def generate(
+        cls,
+        dataset: str,
+        start_time: str,
+        end_time: str,
+        shape: str,
+    ) -> 'DefaultForcing':
         """Generate forcing data with ESMValTool."""
         raise NotImplementedError("No default forcing generator available.")
 

@@ -1,12 +1,13 @@
 """Forcing related functionality for marrmot"""
 
 from pathlib import Path
+from typing import Optional
 
 from esmvalcore.experimental import get_recipe
-from typing import Optional
-from .datasets import DATASETS
-from ._default import DefaultForcing
+
 from ..util import get_time
+from ._default import DefaultForcing
+from .datasets import DATASETS
 
 
 class MarrmotForcing(DefaultForcing):
@@ -45,8 +46,8 @@ class MarrmotForcing(DefaultForcing):
         basin = Path(shape).stem
         recipe.data['preprocessors']['daily']['extract_shape'][
             'shapefile'] = shape
-        recipe.data['diagnostics']['diagnostic_daily']['scripts'][
-            'script']['basin'] = basin
+        recipe.data['diagnostics']['diagnostic_daily']['scripts']['script'][
+            'basin'] = basin
 
         recipe.data['diagnostics']['diagnostic_daily'][
             'additional_datasets'] = [DATASETS[dataset]]

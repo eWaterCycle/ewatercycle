@@ -1,11 +1,11 @@
 from pathlib import Path
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 from ruamel.yaml import YAML
 
 from . import _hype, _lisflood, _marrmot, _pcrglobwb, _wflow
-from .datasets import DATASETS
 from ._default import DefaultForcing
+from .datasets import DATASETS
 
 FORCING_CLASSES = {  # not sure how to annotate this
     "hype": _hype.HypeForcing,
@@ -40,10 +40,13 @@ def generate(target_model: str,
     """
     constructor = FORCING_CLASSES.get(target_model, None)
     if constructor is None:
-        raise NotImplementedError(f'Target model `{target_model}` is not supported by the eWatercycle forcing generator')
+        raise NotImplementedError(
+            f'Target model `{target_model}` is not supported by the eWatercycle forcing generator'
+        )
     if model_specific_options is None:
         return constructor.generate(dataset, start_time, end_time, shape)
-    forcing_info = constructor.generate(dataset, start_time, end_time, shape, **model_specific_options)
+    forcing_info = constructor.generate(dataset, start_time, end_time, shape,
+                                        **model_specific_options)
     forcing_info.save()
     return forcing_info
 
@@ -128,15 +131,14 @@ def load_foreign(target_model,
     constructor = FORCING_CLASSES.get(target_model, None)
     if constructor is None:
         raise NotImplementedError(
-            f'Target model `{target_model}` is not supported by the eWatercycle forcing generator')
+            f'Target model `{target_model}` is not supported by the eWatercycle forcing generator'
+        )
     return constructor(start_time, end_time, directory, shape, **forcing_info)
 
 
 # Append docstrings of with model-specific options to existing docstring
-load_foreign.__doc__ += "".join([
-    f"\n    {k}: {v.__init__.__doc__}" for k, v in FORCING_CLASSES.items()
-])
+load_foreign.__doc__ += "".join(
+    [f"\n    {k}: {v.__init__.__doc__}" for k, v in FORCING_CLASSES.items()])
 
-generate.__doc__ += "".join([
-    f"\n    {k}: {v.generate.__doc__}" for k, v in FORCING_CLASSES.items()
-])
+generate.__doc__ += "".join(
+    [f"\n    {k}: {v.generate.__doc__}" for k, v in FORCING_CLASSES.items()])

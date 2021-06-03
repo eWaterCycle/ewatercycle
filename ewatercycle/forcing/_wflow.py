@@ -4,9 +4,10 @@ from typing import Optional
 
 from esmvalcore.experimental import get_recipe
 
-from .datasets import DATASETS
+from ..util import get_extents, get_time
 from ._default import DefaultForcing
-from ..util import get_time, get_extents
+from .datasets import DATASETS
+
 
 class WflowForcing(DefaultForcing):
     """Container for wflow forcing data."""
@@ -56,12 +57,11 @@ class WflowForcing(DefaultForcing):
         recipe = get_recipe(recipe_name)
 
         basin = Path(shape).stem
-        recipe.data['diagnostics']['wflow_daily']['scripts'][
-            'script']['basin'] = basin
+        recipe.data['diagnostics']['wflow_daily']['scripts']['script'][
+            'basin'] = basin
 
         # model-specific updates
-        script = recipe.data['diagnostics']['wflow_daily']['scripts'][
-            'script']
+        script = recipe.data['diagnostics']['wflow_daily']['scripts']['script']
         script['dem_file'] = dem_file
 
         if extract_region is None:
@@ -69,8 +69,9 @@ class WflowForcing(DefaultForcing):
         recipe.data['preprocessors']['rough_cutout'][
             'extract_region'] = extract_region
 
-        recipe.data['diagnostics']['wflow_daily'][
-            'additional_datasets'] = [DATASETS[dataset]]
+        recipe.data['diagnostics']['wflow_daily']['additional_datasets'] = [
+            DATASETS[dataset]
+        ]
 
         variables = recipe.data['diagnostics']['wflow_daily']['variables']
         var_names = 'tas', 'pr', 'psl', 'rsds', 'rsdt'

@@ -5,9 +5,10 @@ from typing import Optional
 
 from esmvalcore.experimental import get_recipe
 
-from .datasets import DATASETS
-from ._default import DefaultForcing
 from ..util import get_time
+from ._default import DefaultForcing
+from .datasets import DATASETS
+
 
 class HypeForcing(DefaultForcing):
     """Container for hype forcing data."""
@@ -23,15 +24,10 @@ class HypeForcing(DefaultForcing):
         """
         super().__init(start_time, end_time, directory, shape)
 
-
     @classmethod
     def generate(  # type: ignore
-        cls,
-        dataset: str,
-        start_time: str,
-        end_time: str,
-        shape: str
-    ) -> 'HypeForcing':
+            cls, dataset: str, start_time: str, end_time: str,
+            shape: str) -> 'HypeForcing':
         """
             None: Hype does not have model-specific generate options.
         """

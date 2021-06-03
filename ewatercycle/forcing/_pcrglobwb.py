@@ -3,15 +3,16 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
+
 from esmvalcore.experimental import get_recipe
 
-from .datasets import DATASETS
+from ..util import data_files_from_recipe_output, get_extents, get_time
 from ._default import DefaultForcing
-from ..util import get_time, get_extents, data_files_from_recipe_output
+from .datasets import DATASETS
+
 
 class PCRGlobWBForcing(DefaultForcing):
     """Container for pcrglobwb forcing data."""
-
     def __init__(
         self,
         start_time: str,
@@ -26,7 +27,7 @@ class PCRGlobWBForcing(DefaultForcing):
             temperatureNC (str): Input file for temperature data.
         """
         super().__init(start_time, end_time, directory, shape)
-        self.precipitationNC =  precipitationNC
+        self.precipitationNC = precipitationNC
         self.temperatureNC = temperatureNC
 
     @classmethod
@@ -37,7 +38,8 @@ class PCRGlobWBForcing(DefaultForcing):
         end_time: str,
         shape: str,
         start_time_climatology: str,  # TODO make optional, default to start_time
-        end_time_climatology: str,  # TODO make optional, defaults to start_time + 1 year
+        end_time_climatology:
+        str,  # TODO make optional, defaults to start_time + 1 year
         extract_region: dict = None,
     ) -> 'PCRGlobWBForcing':
         """
@@ -59,8 +61,8 @@ class PCRGlobWBForcing(DefaultForcing):
                 'additional_datasets'] = [DATASETS[dataset]]
 
         basin = Path(shape).stem
-        recipe.data['diagnostics']['diagnostic_daily']['scripts'][
-            'script']['basin'] = basin
+        recipe.data['diagnostics']['diagnostic_daily']['scripts']['script'][
+            'basin'] = basin
 
         if extract_region is None:
             extract_region = get_extents(shape)
