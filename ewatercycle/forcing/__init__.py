@@ -16,41 +16,6 @@ FORCING_CLASSES = {  # not sure how to annotate this
 }
 
 
-def generate(target_model: str,
-             dataset: str,
-             start_time: str,
-             end_time: str,
-             shape: str,
-             model_specific_options: Optional[Dict] = None) -> DefaultForcing:
-    """Generate forcing data with ESMValTool.
-
-    Args:
-        target_model: Name of the model
-        dataset: Name of the source dataset. See :py:data:`.DATASETS`.
-        start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-        end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-        shape: Path to a shape file. Used for spatial selection.
-        model_specific_options: Model specific recipe settings. See below for the available options for each model.
-
-    Returns:
-        Forcing object, e.g. :obj:`.lisflood.LisfloodForcing`
-
-
-    Model-specific options that can be passed to `generate`:
-    """
-    constructor = FORCING_CLASSES.get(target_model, None)
-    if constructor is None:
-        raise NotImplementedError(
-            f'Target model `{target_model}` is not supported by the eWatercycle forcing generator'
-        )
-    if model_specific_options is None:
-        return constructor.generate(dataset, start_time, end_time, shape)
-    forcing_info = constructor.generate(dataset, start_time, end_time, shape,
-                                        **model_specific_options)
-    forcing_info.save()
-    return forcing_info
-
-
 def load(directory):
     """Load previously generated or imported forcing data.
 
@@ -136,6 +101,39 @@ def load_foreign(target_model,
     return constructor(start_time, end_time, directory, shape, **forcing_info)
 
 
+def generate(target_model: str,
+             dataset: str,
+             start_time: str,
+             end_time: str,
+             shape: str,
+             model_specific_options: Optional[Dict] = None) -> DefaultForcing:
+    """Generate forcing data with ESMValTool.
+
+    Args:
+        target_model: Name of the model
+        dataset: Name of the source dataset. See :py:data:`.DATASETS`.
+        start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+        end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+        shape: Path to a shape file. Used for spatial selection.
+        model_specific_options: Model specific recipe settings. See below for the available options for each model.
+
+    Returns:
+        Forcing object, e.g. :obj:`.lisflood.LisfloodForcing`
+
+
+    Model-specific options that can be passed to `generate`:
+    """
+    constructor = FORCING_CLASSES.get(target_model, None)
+    if constructor is None:
+        raise NotImplementedError(
+            f'Target model `{target_model}` is not supported by the eWatercycle forcing generator'
+        )
+    if model_specific_options is None:
+        return constructor.generate(dataset, start_time, end_time, shape)
+    forcing_info = constructor.generate(dataset, start_time, end_time, shape,
+                                        **model_specific_options)
+    forcing_info.save()
+    return forcing_info
 # Append docstrings of with model-specific options to existing docstring
 load_foreign.__doc__ += "".join(
     [f"\n    {k}: {v.__init__.__doc__}" for k, v in FORCING_CLASSES.items()])
