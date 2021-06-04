@@ -20,7 +20,7 @@ def test_plot():
 @pytest.fixture
 def mock_recipe_run(monkeypatch, tmp_path):
     """Overload the `run` method on esmvalcore Recipe's."""
-    data = {}
+    recorder = {}
 
     class MockTaskOutput:
         fake_forcing_path = str(tmp_path / 'marrmot.mat')
@@ -30,12 +30,12 @@ def mock_recipe_run(monkeypatch, tmp_path):
 
     def mock_run(self):
         """Store recipe for inspection and return dummy output."""
-        nonlocal data
-        data['data_during_run'] = self.data
+        nonlocal recorder
+        recorder['data_during_run'] = self.data
         return {'diagnostic_daily/script': MockTaskOutput()}
 
     monkeypatch.setattr(Recipe, "run", mock_run)
-    return data
+    return recorder
 
 
 class TestGenerate:
