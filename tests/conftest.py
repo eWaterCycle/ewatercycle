@@ -43,3 +43,10 @@ def sample_parameterset(yaml_config_url):
 @pytest.fixture
 def sample_shape():
     return str(Path(__file__) / 'models' / 'data' / 'Rhine' / 'Rhine.shp')
+
+
+@pytest.fixture
+def sample_marrmot_forcing_file():
+    # Downloaded from
+    # https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
+    return str(Path(__file__) / 'models' / 'data' / 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat')

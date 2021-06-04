@@ -21,10 +21,8 @@ def mocked_config(tmp_path):
 
 class TestWithDefaultsAndExampleData:
     @pytest.fixture
-    def forcing_file(self):
-        # Downloaded from
-        # https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
-        return Path(__file__).parent / 'data' / 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
+    def forcing_file(self, sample_marrmot_forcing_file):
+        return sample_marrmot_forcing_file
 
     @pytest.fixture
     def model(self, forcing_file: Path, mocked_config):

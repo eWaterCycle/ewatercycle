@@ -1,8 +1,10 @@
+from pathlib import Path
+
 import pytest
 from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import OutputFile
 
-from ewatercycle.forcing import generate, load
+from ewatercycle.forcing import generate, load, load_foreign
 from ewatercycle.forcing.marrmot import MarrmotForcing
 
 
@@ -121,3 +123,26 @@ class TestGenerate:
         saved_forcing = load(tmp_path)
 
         assert forcing == saved_forcing
+
+
+def test_load_foreign(sample_shape, sample_marrmot_forcing_file):
+    forcing_file = Path(sample_marrmot_forcing_file)
+    actual = load_foreign(
+        target_model='marrmot',
+        start_time='1989-01-02T00:00:00Z',
+        end_time='1999-01-02T00:00:00Z',
+        shape=sample_shape,
+        directory=str(forcing_file.parent),
+        forcing_info={
+            'forcing_file': str(forcing_file.name)
+        }
+    )
+
+    expected = MarrmotForcing(
+        start_time='1989-01-02T00:00:00Z',
+        end_time='1999-01-02T00:00:00Z',
+        shape=sample_shape,
+        directory=str(forcing_file.parent),
+        forcing_file=str(forcing_file.name)
+    )
+    assert actual == expected
