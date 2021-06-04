@@ -34,6 +34,9 @@ class TestWithDefaultsAndExampleData:
                                 })
         return forcing
 
+    def forcing_file(self, sample_marrmot_forcing_file):
+        return sample_marrmot_forcing_file
+
     @pytest.fixture
     def model(self, generate_forcing, mocked_config):
         forcing = generate_forcing
