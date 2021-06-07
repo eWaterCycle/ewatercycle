@@ -28,12 +28,12 @@ class TestWithDefaultsAndExampleData:
     @pytest.fixture
     def generate_forcing(self, forcing_file):
         forcing = load_foreign('marrmot',
-                                directory=str(Path(forcing_file).parent),
-                                start_time='1989-01-01T00:00:00Z',
-                                end_time='1992-12-31T00:00:00Z',
-                                forcing_info={
-                                    'forcing_file': str(Path(forcing_file).name)
-                                })
+                               directory=str(Path(forcing_file).parent),
+                               start_time='1989-01-01T00:00:00Z',
+                               end_time='1992-12-31T00:00:00Z',
+                               forcing_info={
+                                   'forcing_file': str(Path(forcing_file).name)
+                               })
         return forcing
 
     @pytest.fixture
