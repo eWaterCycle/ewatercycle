@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 import xarray as xr
 
-from ewatercycle.util import get_time, convert_timearray_to_datetime
+from ewatercycle.util import get_time
 
 
 def test_get_time_with_utc():
