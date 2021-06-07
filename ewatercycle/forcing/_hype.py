@@ -60,7 +60,7 @@ class HypeForcing(DefaultForcing):
         forcing_path = list(recipe_output['...........']).data_files[0]
 
         forcing_file = Path(forcing_path).name
-        directory = str(Path(forcing_path).parent)
+        directory = str(Path(forcing_file).parent)
 
         # instantiate forcing object based on generated data
         return HypeForcing(directory=directory,

@@ -27,11 +27,16 @@ class LisfloodForcing(DefaultForcing):
         PrefixET0: Optional[str] = 'et0.nc',
     ):
         """
-            PrefixPrecipitation: Path to a NetCDF or pcraster file with precipitation data
-            PrefixTavg: Path to a NetCDF or pcraster file with average temperature data
-            PrefixE0: Path to a NetCDF or pcraster file with potential evaporation rate from open water surface data
-            PrefixES0: Path to a NetCDF or pcraster file with potential evaporation rate from bare soil surface data
-            PrefixET0: Path to a NetCDF or pcraster file with potential (reference) evapotranspiration rate data
+            PrefixPrecipitation: Path to a NetCDF or pcraster file with
+                precipitation data
+            PrefixTavg: Path to a NetCDF or pcraster file with average
+                temperature data
+            PrefixE0: Path to a NetCDF or pcraster file with potential
+                evaporation rate from open water surface data
+            PrefixES0: Path to a NetCDF or pcraster file with potential
+                evaporation rate from bare soil surface data
+            PrefixET0: Path to a NetCDF or pcraster file with potential
+                (reference) evapotranspiration rate data
         """
         super().__init__(start_time, end_time, directory, shape)
         self.PrefixPrecipitation = PrefixPrecipitation

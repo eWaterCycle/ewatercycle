@@ -1,6 +1,5 @@
 """Forcing related functionality for pcrglobwb"""
 
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
@@ -45,8 +44,9 @@ class PCRGlobWBForcing(DefaultForcing):
         """
             start_time_climatology (str): Start time for the climatology data
             end_time_climatology (str): End time for the climatology data
-            extract_region (dict): Region specification, dictionary must contain `start_longitude`,
-                `end_longitude`, `start_latitude`, `end_latitude`
+            extract_region (dict): Region specification, dictionary must
+                contain `start_longitude`, `end_longitude`, `start_latitude`,
+                `end_latitude`
         """
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_pcrglobwb.yml"

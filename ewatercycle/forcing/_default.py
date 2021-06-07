@@ -4,20 +4,24 @@ from pathlib import Path
 
 from ruamel.yaml import YAML
 
+from ewatercycle.util import get_time, parse_path
+
 
 class DefaultForcing:
     """Container for forcing data.
 
     Args:
         dataset: Name of the source dataset. See :py:data:`.DATASETS`.
-        start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-        end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+        start_time: Start time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        end_time: End time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
         shape: Path to a shape file. Used for spatial selection.
     """
     def __init__(self, start_time: str, end_time: str, directory: str,
                  shape: str):
-        self.start_time = parse_time(start_time)
-        self.end_time = parse_time(end_time)
+        self.start_time = get_time(start_time)
+        self.end_time = get_time(end_time)
         self.directory = parse_path(directory)
         self.shape = parse_path(shape)
 

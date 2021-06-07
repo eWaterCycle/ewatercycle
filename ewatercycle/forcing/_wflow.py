@@ -24,11 +24,14 @@ class WflowForcing(DefaultForcing):
         Inflow: Optional[str] = None,
     ):
         """
-            netcdfinput (str): Path to forcing file. Default is "inmaps.nc"
-            Precipitation (str): Variable name of precipitation data in input file. Default is "/pr".
-            EvapoTranspiration (str): Variable name of evapotranspiration data in input file. Default is"/pet".
-            Temperature (str): Variable name of temperature data in input file. Default is "/tas".
-            Inflow (str): Variable name of inflow data in input file. Default is None
+            netcdfinput (str) = "inmaps.nc": Path to forcing file."
+            Precipitation (str) = "/pr": Variable name of precipitation data in
+                input file.
+            EvapoTranspiration (str) = "/pet": Variable name of
+                evapotranspiration data in input file.
+            Temperature (str) = "/tas": Variable name of temperature data in
+                input file.
+            Inflow (str) = None: Variable name of inflow data in input file.
         """
         super().__init__(start_time, end_time, directory, shape)
         self.netcdfinput = netcdfinput
@@ -48,9 +51,11 @@ class WflowForcing(DefaultForcing):
         extract_region: Optional[str] = None,
     ) -> 'WflowForcing':
         """
-            dem_file (str): Name of the dem_file to use. Also defines the basin param.
-            extract_region (dict): Region specification, dictionary must contain `start_longitude`,
-                `end_longitude`, `start_latitude`, `end_latitude`
+            dem_file (str): Name of the dem_file to use. Also defines the basin
+                param.
+            extract_region (dict): Region specification, dictionary must
+                contain `start_longitude`, `end_longitude`, `start_latitude`,
+                `end_latitude`
         """
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_wflow.yml"
