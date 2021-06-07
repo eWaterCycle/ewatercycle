@@ -51,14 +51,14 @@ class TestLFlatlonUseCase:
             shutil.copy(file, forcing_dir)
 
         forcing = load_foreign(target_model='lisflood',
-                                directory=str(forcing_dir),
-                                start_time='1986-01-02T00:00:00Z',
-                                end_time='2018-01-02T00:00:00Z',
-                                forcing_info={
-                                    'PrefixPrecipitation': 'tp.nc',
-                                    'PrefixTavg': 'ta.nc',
-                                    'PrefixE0': 'e0.nc',
-                                })
+                               directory=str(forcing_dir),
+                               start_time='1986-01-02T00:00:00Z',
+                               end_time='2018-01-02T00:00:00Z',
+                               forcing_info={
+                                   'PrefixPrecipitation': 'tp.nc',
+                                   'PrefixTavg': 'ta.nc',
+                                   'PrefixE0': 'e0.nc',
+                               })
 
         return forcing
 
@@ -109,4 +109,3 @@ class TestLFlatlonUseCase:
             textvar_name = textvar.attrib["name"]
             if textvar_name == 'IrrigationEfficiency':
                 assert textvar.get('value') == '0.8'
-
