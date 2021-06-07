@@ -30,7 +30,7 @@ class WflowForcing(DefaultForcing):
             Temperature (str): Variable name of temperature data in input file. Default is "/tas".
             Inflow (str): Variable name of inflow data in input file. Default is None
         """
-        super().__init(start_time, end_time, directory, shape)
+        super().__init__(start_time, end_time, directory, shape)
         self.netcdfinput = netcdfinput
         self.Precipitation = Precipitation
         self.EvapoTranspiration = EvapoTranspiration

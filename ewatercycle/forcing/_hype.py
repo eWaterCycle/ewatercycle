@@ -22,7 +22,7 @@ class HypeForcing(DefaultForcing):
         """
             None: Hype does not have model-specific load options.
         """
-        super().__init(start_time, end_time, directory, shape)
+        super().__init__(start_time, end_time, directory, shape)
 
     @classmethod
     def generate(  # type: ignore

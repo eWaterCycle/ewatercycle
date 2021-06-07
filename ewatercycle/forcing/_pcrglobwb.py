@@ -26,7 +26,7 @@ class PCRGlobWBForcing(DefaultForcing):
             precipitationNC (str): Input file for precipitation data.
             temperatureNC (str): Input file for temperature data.
         """
-        super().__init(start_time, end_time, directory, shape)
+        super().__init__(start_time, end_time, directory, shape)
         self.precipitationNC = precipitationNC
         self.temperatureNC = temperatureNC
 

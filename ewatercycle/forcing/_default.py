@@ -1,6 +1,5 @@
 """Forcing related functionality for default models"""
 
-from dataclasses import dataclass
 from pathlib import Path
 
 from ruamel.yaml import YAML

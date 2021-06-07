@@ -33,7 +33,7 @@ class LisfloodForcing(DefaultForcing):
             PrefixES0: Path to a NetCDF or pcraster file with potential evaporation rate from bare soil surface data
             PrefixET0: Path to a NetCDF or pcraster file with potential (reference) evapotranspiration rate data
         """
-        super().__init(start_time, end_time, directory, shape)
+        super().__init__(start_time, end_time, directory, shape)
         self.PrefixPrecipitation = PrefixPrecipitation
         self.PrefixTavg = PrefixTavg
         self.PrefixE0 = PrefixE0

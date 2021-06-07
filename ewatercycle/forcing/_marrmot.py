@@ -23,7 +23,7 @@ class MarrmotForcing(DefaultForcing):
         """
             forcing_file: Matlab file that contains forcings for Marrmot models. See format forcing file in `model implementation <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`_.
         """
-        super().__init(start_time, end_time, directory, shape)
+        super().__init__(start_time, end_time, directory, shape)
         self.forcing_file = forcing_file
 
     @classmethod
