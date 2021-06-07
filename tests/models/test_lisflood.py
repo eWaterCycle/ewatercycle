@@ -3,7 +3,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-import xarray
 
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
@@ -111,6 +110,5 @@ class TestLFlatlonUseCase:
             textvar_name = textvar.attrib["name"]
             if textvar_name == 'IrrigationEfficiency':
                 assert textvar.get('value') == '0.8'
-
 
 
