@@ -41,7 +41,6 @@ class TestLFlatlonUseCase:
             config_template=root / 'settings_lat_lon-Run.xml',
         )
 
-
     @pytest.fixture
     def generate_forcing(self, tmp_path, parameterset):
         forcing_dir = tmp_path / 'forcing'
@@ -110,5 +109,4 @@ class TestLFlatlonUseCase:
             textvar_name = textvar.attrib["name"]
             if textvar_name == 'IrrigationEfficiency':
                 assert textvar.get('value') == '0.8'
-
 
