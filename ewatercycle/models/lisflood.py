@@ -47,9 +47,9 @@ class Lisflood(AbstractModel):
     """eWaterCycle implementation of Lisflood hydrological model.
 
     Args:
-    version: pick a version for which an ewatercycle grpc4bmi docker image is available.
-    parameter_set: LISFLOOD input files. Any included forcing data will be ignored.
-    forcing: a LisfloodForcing object.
+      version: pick a version for which an ewatercycle grpc4bmi docker image is available.
+      parameter_set: LISFLOOD input files. Any included forcing data will be ignored.
+      forcing: a LisfloodForcing object.
 
     Attributes:
         bmi (Bmi): Basic Modeling Interface object
