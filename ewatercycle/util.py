@@ -86,16 +86,6 @@ def lat_lon_boundingbox_to_variable_indices(model, variable, latMin, latMax, lon
     return np.array(output)
 
 
-def convert_timearray_to_datetime(timearray: xr.DataArray) -> datetime:
-    """Convert an array of datetimes into an datetime objetct.
-
-    First convert an array of datetimes into a string.
-    Then, convert a string in ISO format to a datetime.
-    """
-    datetime_as_string = np.datetime_as_string(timearray, timezone='UTC')
-    return parse(datetime_as_string)
-
-
 # TODO rename to to_utcdatetime
 def get_time(time_iso: str) -> datetime:
     """Return a datetime in UTC.

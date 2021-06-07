@@ -25,13 +25,3 @@ def test_get_time_without_tz():
 
     assert 'not in UTC' in str(excinfo.value)
 
-
-def test_convert_timearray_to_datetime():
-    da = xr.DataArray(
-        [[0.1]],
-        coords=[[np.datetime64('2021-05-25')],['x']],
-        dims=['time', 'lon'],
-        )
-    dt = convert_timearray_to_datetime(da.coords['time'][0])
-    assert dt == datetime(2021, 5, 25, tzinfo=timezone.utc)
-
