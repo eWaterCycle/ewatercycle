@@ -156,7 +156,7 @@ class Lisflood(AbstractModel):
             self._end = get_time(forcing.end_time)
         else:
             raise TypeError(
-                f"Unknown forcing type: {forcing}. Please either supply a LisfloodForcing object."
+                f"Unknown forcing type: {forcing}. Please supply a LisfloodForcing object."
             )
 
     def _create_lisflood_config(self, work_dir: Path, start_time_iso: str = None, end_time_iso: str = None, IrrigationEfficiency: str = None) -> Path:
