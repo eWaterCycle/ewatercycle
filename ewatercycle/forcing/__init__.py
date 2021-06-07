@@ -5,7 +5,6 @@ from ruamel.yaml import YAML
 
 from . import _hype, _lisflood, _marrmot, _pcrglobwb, _wflow
 from ._default import DefaultForcing
-from .datasets import DATASETS
 
 FORCING_CLASSES = {  # not sure how to annotate this
     "hype": _hype.HypeForcing,
@@ -20,10 +19,10 @@ def load(directory):
     """Load previously generated or imported forcing data.
 
     Args:
-        directory: forcing data directory; must contain `ewatercycle_forcing.yaml`
+        directory: forcing data directory; must contain
+        `ewatercycle_forcing.yaml`
 
-    Returns:
-        Forcing object, e.g. :obj:`.marrmot.MarrmotForcing`
+    Returns: Forcing object, e.g. :obj:`.marrmot.MarrmotForcing`
     """
     yaml = YAML()
     source = Path(directory) / 'ewatercycle_forcing.yaml'
@@ -46,9 +45,12 @@ def load_foreign(target_model,
     """Load existing forcing data generated from an external source.
 
     Args:
-        target_model: Name of the hydrological model for which the forcing will be used
-        start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-        end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+        target_model: Name of the hydrological model for which the forcing will
+        be used
+        start_time: Start time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        end_time: End time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
         directory: forcing data directory
         shape: Path to a shape file. Used for spatial selection.
         forcing_info: Dictionary with model-specific information about forcing
@@ -96,8 +98,8 @@ def load_foreign(target_model,
     constructor = FORCING_CLASSES.get(target_model, None)
     if constructor is None:
         raise NotImplementedError(
-            f'Target model `{target_model}` is not supported by the eWatercycle forcing generator'
-        )
+            f'Target model `{target_model}` is not supported by the '
+            'eWatercycle forcing generator')
     return constructor(start_time, end_time, directory, shape, **forcing_info)
 
 
@@ -112,10 +114,13 @@ def generate(target_model: str,
     Args:
         target_model: Name of the model
         dataset: Name of the source dataset. See :py:data:`.DATASETS`.
-        start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-        end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+        start_time: Start time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        end_time: End time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
         shape: Path to a shape file. Used for spatial selection.
-        model_specific_options: Dictionary with model-specific recipe settings. See below for the available options for each model.
+        model_specific_options: Dictionary with model-specific recipe settings.
+            See below for the available options for each model.
 
     Returns:
         Forcing object, e.g. :obj:`.lisflood.LisfloodForcing`
@@ -126,14 +131,16 @@ def generate(target_model: str,
     constructor = FORCING_CLASSES.get(target_model, None)
     if constructor is None:
         raise NotImplementedError(
-            f'Target model `{target_model}` is not supported by the eWatercycle forcing generator'
-        )
+            f'Target model `{target_model}` is not supported by the '
+            'eWatercycle forcing generator')
     if model_specific_options is None:
         return constructor.generate(dataset, start_time, end_time, shape)
     forcing_info = constructor.generate(dataset, start_time, end_time, shape,
                                         **model_specific_options)
     forcing_info.save()
     return forcing_info
+
+
 # Append docstrings of with model-specific options to existing docstring
 load_foreign.__doc__ += "".join(
     [f"\n    {k}: {v.__init__.__doc__}" for k, v in FORCING_CLASSES.items()])
