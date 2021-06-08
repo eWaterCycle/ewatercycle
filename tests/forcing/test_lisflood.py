@@ -130,8 +130,7 @@ class TestGenerateRegionFromShapeFile:
                                                                      'start_latitude': 46.3,
                                                                      'start_longitude': 4.1},
                                                   'extract_shape': {'crop': True,
-                                                                    'method': 'contains',
-                                                                    'shapefile': '/home/verhoes/git/eWaterCycle/ewatercycle/tests/models/data/Rhine/Rhine.shp'},
+                                                                    'method': 'contains'},
                                                   'regrid': {'lat_offset': True,
                                                              'lon_offset': True,
                                                              'scheme': 'linear',
@@ -143,8 +142,7 @@ class TestGenerateRegionFromShapeFile:
                                                                        'start_latitude': 46.3,
                                                                        'start_longitude': 4.1},
                                                     'extract_shape': {'crop': True,
-                                                                      'method': 'contains',
-                                                                      'shapefile': '/home/verhoes/git/eWaterCycle/ewatercycle/tests/models/data/Rhine/Rhine.shp'},
+                                                                      'method': 'contains'},
                                                     'regrid': {'lat_offset': True,
                                                                'lon_offset': True,
                                                                'scheme': 'linear',
@@ -156,8 +154,7 @@ class TestGenerateRegionFromShapeFile:
                                                                  'start_latitude': 46.3,
                                                                  'start_longitude': 4.1},
                                               'extract_shape': {'crop': True,
-                                                                'method': 'contains',
-                                                                'shapefile': '/home/verhoes/git/eWaterCycle/ewatercycle/tests/models/data/Rhine/Rhine.shp'},
+                                                                'method': 'contains'},
                                               'regrid': {'lat_offset': True,
                                                          'lon_offset': True,
                                                          'scheme': 'linear',
@@ -168,8 +165,7 @@ class TestGenerateRegionFromShapeFile:
                                                                      'start_latitude': 46.3,
                                                                      'start_longitude': 4.1},
                                                   'extract_shape': {'crop': True,
-                                                                    'method': 'contains',
-                                                                    'shapefile': '/home/verhoes/git/eWaterCycle/ewatercycle/tests/models/data/Rhine/Rhine.shp'},
+                                                                    'method': 'contains'},
                                                   'regrid': {'lat_offset': True,
                                                              'lon_offset': True,
                                                              'scheme': 'linear',
@@ -180,8 +176,7 @@ class TestGenerateRegionFromShapeFile:
                                                              'start_latitude': 46.3,
                                                              'start_longitude': 4.1},
                                           'extract_shape': {'crop': True,
-                                                            'method': 'contains',
-                                                            'shapefile': '/home/verhoes/git/eWaterCycle/ewatercycle/tests/models/data/Rhine/Rhine.shp'},
+                                                            'method': 'contains'},
                                           'regrid': {'lat_offset': True,
                                                      'lon_offset': True,
                                                      'scheme': 'linear',
@@ -208,10 +203,13 @@ class TestGenerateRegionFromShapeFile:
         # Remove long description and absolute path so assert is easier
         actual_desc = actual['documentation']['description']
         del actual['documentation']['description']
-        # actual_shapefile = actual['preprocessors']['daily']['extract_shape']['shapefile']
-        # del actual['preprocessors']['daily']['extract_shape']['shapefile']
+        actual_shapefile = actual['preprocessors']['general']['extract_shape']['shapefile']
+        # Will also del other occurrences of shapefile due to extract shape object being shared between preprocessors
+        del actual['preprocessors']['general']['extract_shape']['shapefile']
 
         assert actual == reference_recipe
+        assert actual_shapefile == sample_shape
+        assert 'LISFLOOD' in actual_desc
 
     def test_saved_yaml(self, forcing, tmp_path):
         saved_forcing = load(tmp_path)
