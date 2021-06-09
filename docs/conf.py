@@ -191,6 +191,25 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
+autodoc_mock_imports = [
+    'basic_modeling_interface',
+    'cftime',
+    'dask',
+    'esmvalcore',
+    'fiona',
+    'dateutil',
+    'shapely',
+    'hydrostats',
+    'matplotlib',
+    'numpy',
+    'pandas',
+    'pyoos',
+    'grpc4bmi',
+    'ruamel.yaml',
+    'scipy',
+    'xarray',
+]
+
 # Prevent alphabetic sorting of (@data)class attributes/methods
 autodoc_member_order = 'bysource'
 
