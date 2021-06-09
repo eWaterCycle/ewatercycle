@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Dict
+from typing import Optional, Dict, Type
 
 from ruamel.yaml import YAML
 
@@ -7,13 +7,14 @@ from . import default, hype, lisflood, marrmot, pcrglobwb, wflow
 from .datasets import DATASETS
 from .default import DefaultForcing
 
-FORCING_CLASSES = {  # not sure how to annotate this
+FORCING_CLASSES: Dict[str, Type[DefaultForcing]] = {
     "hype": hype.HypeForcing,
     "lisflood": lisflood.LisfloodForcing,
     "marrmot": marrmot.MarrmotForcing,
     "pcrglobwb": pcrglobwb.PCRGlobWBForcing,
     "wflow": wflow.WflowForcing,
 }
+"""List of supported models for which forcings can be generated or loaded"""
 
 
 def generate(target_model: str,
