@@ -14,7 +14,6 @@ FORCING_CLASSES: Dict[str, Type[DefaultForcing]] = {
     "pcrglobwb": pcrglobwb.PCRGlobWBForcing,
     "wflow": wflow.WflowForcing,
 }
-"""List of supported models for which forcings can be generated or loaded"""
 
 
 def generate(target_model: str,
