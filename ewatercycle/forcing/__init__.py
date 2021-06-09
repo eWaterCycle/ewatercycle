@@ -125,7 +125,9 @@ def load_foreign(target_model,
     if constructor is None:
         raise NotImplementedError(
             f'Target model `{target_model}` is not supported by the eWatercycle forcing generator')
-    return constructor(start_time, end_time, directory, shape, **forcing_info)
+    if forcing_info is None:
+        forcing_info = {}
+    return constructor(start_time, end_time, directory, shape, **forcing_info)  # type: ignore # each subclass can have different forcing_info
 
 
 # TODO fix time conventions
