@@ -19,16 +19,9 @@
 import os
 import sys
 
-from ewatercycle.forcing import FORCING_CLASSES
-# The version info for the project you're documenting, acts as replacement for
-# |version| and |release|, also used in various other places throughout the
-# built documents.
-#
-# The short X.Y version.
-from ewatercycle.version import __version__ as version
-
 here = os.path.dirname(__file__)
 sys.path.insert(0, os.path.abspath(os.path.join(here, '..')))
+
 
 # -- General configuration ------------------------------------------------
 
@@ -58,7 +51,12 @@ project = u'ewatercycle'
 copyright = u'2018, Netherlands eScience Center & Delft University of Technology'
 author = u'Stefan Verhoeven'
 
-
+# The version info for the project you're documenting, acts as replacement for
+# |version| and |release|, also used in various other places throughout the
+# built documents.
+#
+# The short X.Y version.
+from ewatercycle.version import __version__ as version
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -90,8 +88,15 @@ def run_apidoc(_):
 
     ignore_paths = []
 
-    argv = ["-f", "-T", "-e", "-M", "--implicit-namespaces", "-o", out, src
-            ] + ignore_paths
+    argv = [
+        "-f",
+        "-T",
+        "-e",
+        "-M",
+        "--implicit-namespaces",
+        "-o", out,
+        src
+    ] + ignore_paths
 
     try:
         # Sphinx 1.7+
@@ -139,10 +144,12 @@ html_sidebars = {
     ]
 }
 
+
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'ewatercycle_doc'
+
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -172,12 +179,16 @@ latex_documents = [
      u'Stefan Verhoeven', 'manual'),
 ]
 
+
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, 'ewatercycle', u'ewatercycle Documentation',
-              [author], 1)]
+man_pages = [
+    (master_doc, 'ewatercycle', u'ewatercycle Documentation',
+     [author], 1)
+]
+
 
 # -- Options for Texinfo output -------------------------------------------
 
@@ -185,9 +196,8 @@ man_pages = [(master_doc, 'ewatercycle', u'ewatercycle Documentation',
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'ewatercycle', u'ewatercycle Documentation', author,
-     'ewatercycle',
-     'Python utilities to gather input files for running a hydrology model',
+    (master_doc, 'ewatercycle', u'ewatercycle Documentation',
+     author, 'ewatercycle', 'Python utilities to gather input files for running a hydrology model',
      'Miscellaneous'),
 ]
 
@@ -214,5 +224,10 @@ autodoc_mock_imports = [
 autodoc_member_order = 'bysource'
 
 # Nice formatting of model-specific input parameters
-napoleon_custom_sections = [(m, 'params_style')
-                            for m in FORCING_CLASSES.keys()]
+napoleon_custom_sections = [
+    ('hype', 'params_style'),
+    ('lisflood', 'params_style'),
+    ('marrmot', 'params_style'),
+    ('pcrglobwb', 'params_style'),
+    ('wflow', 'params_style'),
+]
