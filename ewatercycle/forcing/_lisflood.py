@@ -57,9 +57,12 @@ class LisfloodForcing(DefaultForcing):
         """
             extract_region (dict): Region specification, dictionary must contain `start_longitude`,
                 `end_longitude`, `start_latitude`, `end_latitude`
+
+            TODO add regrid options so forcing can be generated for parameter set
+            TODO that is not on a 0.1x0.1 grid
         """
         # load the ESMValTool recipe
-        recipe_name = "hydrology/recipe_hype.yml"
+        recipe_name = "hydrology/recipe_lisflood.yml"
         recipe = get_recipe(recipe_name)
 
         # model-specific updates to the recipe
@@ -100,16 +103,15 @@ class LisfloodForcing(DefaultForcing):
         # TODO forcing_files['e0'] = ...
 
         # instantiate forcing object based on generated data
-        return LisfloodForcing(
-            directory=directory,
-            start_time=str(startyear),
-            end_time=str(endyear),
-            PrefixPrecipitation=forcing_files["pr"],
-            PrefixTavg=forcing_files["tas"],
-            PrefixE0=forcing_files['e0'],
-            PrefixES0=forcing_files['es0'],
-            PrefixET0=forcing_files['et0'],
-        )
+        return LisfloodForcing(directory=directory,
+                               start_time=start_time,
+                               end_time=end_time,
+                               PrefixPrecipitation=forcing_files["pr"],
+                               PrefixTavg=forcing_files["tas"],
+                               PrefixE0=forcing_files['e0'],
+                               PrefixES0=forcing_files['es0'],
+                               PrefixET0=forcing_files['et0'],
+                               )
 
     def plot(self):
         raise NotImplementedError('Dont know how to plot')
