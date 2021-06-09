@@ -3,9 +3,3 @@ grdc_location: null
 container_engine: null
 singularity_dir: null
 output_dir: null
-wflow.singularity_image: null
-wflow.docker_image: null
-marrmot.singularity_image: null
-marrmot.docker_image: null
-lisflood.singularity_image: null
-lisflood.docker_image: null

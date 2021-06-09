@@ -20,6 +20,7 @@ setup(
     url='https://github.com/eWaterCycle/ewatercycle',
     install_requires=[
         'basic_modeling_interface',
+        'cftime',
         'esmvaltool',
         'grpc4bmi>=0.2.12,<0.3',
         'hydrostats',
@@ -27,7 +28,9 @@ setup(
         'numpy',
         'pandas',
         'pyoos',
+        'python-dateutil',
         'ruamel.yaml',
+        'scipy',
         'xarray',
     ],
     packages=find_packages(),

@@ -1,12 +1,8 @@
-import os
-import subprocess
 import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
-from datetime import datetime
-from os import PathLike
 from pathlib import Path
-from typing import Any, Iterable, Optional, Tuple, Union
+from typing import Any, Iterable, Tuple, Union
 
 import numpy as np
 import xarray as xr
@@ -15,165 +11,183 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
-from ewatercycle.forcing.forcing_data import ForcingData
+from ewatercycle.forcing.lisflood import LisfloodForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import AbstractConfig
+from ewatercycle.util import get_time
 
 
 @dataclass
 class LisfloodParameterSet:
-    """Input files specific for parameterset, model boundaries, and configuration template files
+    """Input files specific for parameter_set, model boundaries, and configuration template files
 
     Example:
 
     .. code-block::
 
-        parameterset = LisfloodParameterSet(
-            root=Path('/projects/0/wtrcycle/comparison/lisflood_input/Lisflood01degree_masked'),
-            mask=Path('/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD/model_mask.nc'),
-            config_template=Path('/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml'),
-            lisvap_config_template=Path('/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisvap.xml'),
+        parameter_set = LisfloodParameterSet(
+            PathRoot='/projects/0/wtrcycle/comparison/lisflood_input/Lisflood01degree_masked',
+            MaskMap='/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD/model_mask.nc',
+            config_template='/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml',
         )
     """
-    root: PathLike
+    PathRoot: Path
     """Directory with input files"""
-    mask: Path
+    MaskMap: Path
     """A NetCDF file with model boundaries"""
-    config_template: PathLike
+    config_template: Path
     """Config file used as template for a lisflood run"""
-    lisvap_config_template: Optional[PathLike] = None
-    """Config file used as template for a lisvap run"""
 
-
-# Mapping from lisvap output to lisflood input files. MAPS_PREFIXES dictionary
-# contains lisvap filenames in lisvap and lisflood config files and their
-# equivalent cmor names
-MAPS_PREFIXES = {
-    'E0Maps': {'name': 'PrefixE0', 'value': 'e0'},
-    'ES0Maps': {'name': 'PrefixES0', 'value': 'es0'},
-    'ET0Maps': {'name': 'PrefixET0', 'value': 'et0'},
-}
+    def __setattr__(self, name: str, value: Union[str, Path]):
+        self.__dict__[name] = Path(value).expanduser().resolve()
 
 
 class Lisflood(AbstractModel):
     """eWaterCycle implementation of Lisflood hydrological model.
 
+    Args:
+      version: pick a version for which an ewatercycle grpc4bmi docker image is available.
+      parameter_set: LISFLOOD input files. Any included forcing data will be ignored.
+      forcing: a LisfloodForcing object.
+
     Attributes:
         bmi (Bmi): Basic Modeling Interface object
-        work_dir (PathLike): Working directory for the model where it can read/write files
 
     Example:
         See examples/lisflood.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
+    available_versions = ["20.10"]
+    """Versions for which ewatercycle grpc4bmi docker images are available."""
+
+    def __init__(self, version: str, parameter_set: LisfloodParameterSet, forcing: LisfloodForcing):
+        """Construct Lisflood model with initial values. """
+        super().__init__()
+        self.version = version
+        self._check_forcing(forcing)
+        self.parameter_set = parameter_set
+        self.cfg = XmlConfig(self.parameter_set.config_template)
+
+    def _set_docker_image(self):
+        images = {
+            '20.10': 'ewatercycle/lisflood-grpc4bmi:20.10'
+        }
+        self.docker_image = images[self.version]
+
+    def _set_singularity_image(self, singularity_dir: Path):
+        images = {
+            '20.10': 'ewatercycle-lisflood-grpc4bmi_20.10.sif'
+        }
+        self.singularity_image = singularity_dir / images[self.version]
+
+    def _get_textvar_value(self, name: str):
+        for textvar in self.cfg.config.iter("textvar"):
+            textvar_name = textvar.attrib["name"]
+            if name == textvar_name:
+                return textvar.get('value')
+        raise KeyError(
+            f'Name {name} not found in the config file.'
+        )
+
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
-              forcing: Union[ForcingData, PathLike],
-              parameterset: LisfloodParameterSet,
-              work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
+              IrrigationEfficiency: str = None,
+              start_time: str = None,
+              end_time: str = None,
+              work_dir: Path = None) -> Tuple[Path, Path]:
         """Configure model run
-
-        If evaporation files (e0, es0, et0) are not included in the forcing, then :py:meth:`run_lisvap` function should be called before setup.
 
         1. Creates config file and config directory based on the forcing variables and time range
         2. Start bmi container and store as :py:attr:`bmi`
 
         Args:
-            forcing: a forcing directory or a forcing data object.
-            parameterset: LISFLOOD input files. Any included forcing data will be ignored.
+            IrrigationEfficiency: Field application irrigation efficiency max 1, ~0.90 drip irrigation, ~0.75 sprinkling
+            start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
+            end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
             work_dir: a working directory given by user or created for user.
 
         Returns:
             Path to config file and path to config directory
         """
-        #TODO forcing can be a part of parameterset
-        #TODO add a start time argument that must be in forcing time range
-        singularity_image = CFG['lisflood.singularity_image']
-        docker_image = CFG['lisflood.docker_image']
-        self.work_dir = _generate_workdir(work_dir)
-        self._check_forcing(forcing)
-        self.parameterset = parameterset
 
-        config_file = self._create_lisflood_config()
+        #TODO forcing can be a part of parameter_set
+        work_dir = _generate_workdir(work_dir)
+        config_file = self._create_lisflood_config(work_dir, start_time, end_time, IrrigationEfficiency)
 
         if CFG['container_engine'].lower() == 'singularity':
+            self._set_singularity_image(CFG['singularity_dir'])
             self.bmi = BmiClientSingularity(
-                image=singularity_image,
+                image=str(self.singularity_image),
                 input_dirs=[
-                    str(parameterset.root),
-                    str(parameterset.mask.parent),
+                    str(self.parameter_set.PathRoot),
+                    str(self.parameter_set.MaskMap.parent),
                     str(self.forcing_dir)
                 ],
-                work_dir=str(self.work_dir),
+                work_dir=str(work_dir),
             )
         elif CFG['container_engine'].lower() == 'docker':
+            self._set_docker_image()
             self.bmi = BmiClientDocker(
-                image=docker_image,
+                image=self.docker_image,
                 image_port=55555,
                 input_dirs=[
-                    str(parameterset.root),
-                    str(parameterset.mask.parent),
+                    str(self.parameter_set.PathRoot),
+                    str(self.parameter_set.MaskMap.parent),
                     str(self.forcing_dir)
                 ],
-                work_dir=str(self.work_dir),
+                work_dir=str(work_dir),
             )
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        return Path(config_file), self.work_dir
+        return config_file, work_dir
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
         # TODO check if mask has same grid as forcing files,
         # if not warn users to run reindex_forcings
-        if isinstance(forcing, PathLike):
-            self.forcing_dir = forcing.expanduser().resolve()
-            self.forcing_files = dict()
-            for forcing_file in self.forcing_dir.glob('*.nc'):
-                dataset = xr.open_dataset(forcing_file)
-                # TODO check dataset was created by ESMValTool, to make sure var names are as expected
-                var_name = list(dataset.data_vars.keys())[0]
-                self.forcing_files[var_name] = forcing_file.name
-                # get start and end date of time dimension
-                # TODO converting numpy.datetime64 to datetime object is ugly, find better way
-                self.start = datetime.utcfromtimestamp(dataset.coords['time'][0].values.astype('O') / 1e9)
-                self.end = datetime.utcfromtimestamp(dataset.coords['time'][-1].values.astype('O') / 1e9)
-        elif isinstance(forcing, ForcingData):
-            # key is cmor var name and value is path to NetCDF file
-            self.forcing_files = dict()
-            data_files = list(forcing.recipe_output.values())[0].data_files
-            for data_file in data_files:
-                dataset = data_file.load_xarray()
-                var_name = list(dataset.data_vars.keys())[0]
-                self.forcing_files[var_name] = data_file.filename.name
-                self.forcing_dir = data_file.filename.parent
-                # get start and end date of time dimension
-                # TODO converting numpy.datetime64 to datetime object is ugly, find better way
-                self.start = datetime.utcfromtimestamp(dataset.coords['time'][0].values.astype('O') / 1e9)
-                self.end = datetime.utcfromtimestamp(dataset.coords['time'][-1].values.astype('O') / 1e9)
+        if isinstance(forcing, LisfloodForcing):
+            self.forcing = forcing
+            self.forcing_dir = Path(forcing.directory).expanduser().resolve()
+            # convert date_strings to datetime objects
+            self._start = get_time(forcing.start_time)
+            self._end = get_time(forcing.end_time)
         else:
             raise TypeError(
-                f"Unknown forcing type: {forcing}. Please supply either a Path or ForcingData object."
+                f"Unknown forcing type: {forcing}. Please supply a LisfloodForcing object."
             )
 
-    def _create_lisflood_config(self) -> str:
+    def _create_lisflood_config(self, work_dir: Path, start_time_iso: str = None, end_time_iso: str = None, IrrigationEfficiency: str = None) -> Path:
         """Create lisflood config file"""
-        cfg = XmlConfig(self.parameterset.config_template)
+        # overwrite dates if given
+        if start_time_iso is not None:
+            start_time = get_time(start_time_iso)
+            if self._start  <= start_time <= self._end:
+                self._start = start_time
+            else:
+                raise ValueError('start_time outside forcing time range')
+        if end_time_iso is not None:
+            end_time = get_time(end_time_iso)
+            if self._start  <= end_time <= self._end:
+                self._end = end_time
+            else:
+                raise ValueError('end_time outside forcing time range')
 
         settings = {
-            "CalendarDayStart": self.start.strftime("%d/%m/%Y 00:00"),
+            "CalendarDayStart": self._start.strftime("%d/%m/%Y 00:00"),
             "StepStart": "1",
-            "StepEnd": str((self.end - self.start).days),
-            "PathRoot": f"{self.parameterset.root}",
-            "MaskMap": f"{self.parameterset.mask}".rstrip('.nc'),
+            "StepEnd": str((self._end - self._start).days),
+            "PathRoot": f"{self.parameter_set.PathRoot}",
+            "MaskMap": f"{self.parameter_set.MaskMap}".rstrip('.nc'),
             "PathMeteo": f"{self.forcing_dir}",
-            "PathOut": f"{self.work_dir}",
+            "PathOut": f"{work_dir}",
         }
 
-        timestamp = f"{self.start.year}_{self.end.year}"
+        if IrrigationEfficiency is not None:
+            settings['IrrigationEfficiency'] = IrrigationEfficiency
 
-        for textvar in cfg.config.iter("textvar"):
+        for textvar in self.cfg.config.iter("textvar"):
             textvar_name = textvar.attrib["name"]
 
             # general settings
@@ -183,129 +197,27 @@ class Lisflood(AbstractModel):
 
             # input for lisflood
             if "PrefixPrecipitation" in textvar_name:
-                textvar.set("value", self.forcing_files['pr'].rstrip('.nc'))
+                textvar.set("value", self.forcing.PrefixPrecipitation.rstrip('.nc'))
             if "PrefixTavg" in textvar_name:
-                textvar.set("value", self.forcing_files['tas'].rstrip('.nc'))
+                textvar.set("value", self.forcing.PrefixTavg.rstrip('.nc'))
 
+            # maps_prefixes dictionary contains lisvap filenames in lisflood config
+            maps_prefixes = {
+                'E0Maps': {'name': 'PrefixE0', 'value': f"{self.forcing.PrefixE0.rstrip('.nc')}"},
+                'ES0Maps': {'name': 'PrefixES0', 'value': f"{self.forcing.PrefixES0.rstrip('.nc')}"},
+                'ET0Maps': {'name': 'PrefixET0', 'value': f"{self.forcing.PrefixET0.rstrip('.nc')}"},
+            }
             # output of lisvap
-            for map_var, prefix in MAPS_PREFIXES.items():
+            for map_var, prefix in maps_prefixes.items():
                 if prefix['name'] in textvar_name:
-                    textvar.set(
-                        "value",
-                        f"lisflood_{prefix['value']}_{timestamp}",
-                    )
+                    textvar.set("value", prefix['value'])
                 if map_var in textvar_name:
-                    textvar.set('value', f"$(PathOut)/$({prefix['name']})")
+                    textvar.set('value', f"$(PathMeteo)/$({prefix['name']})")
 
         # Write to new setting file
-        lisflood_file = f"{self.work_dir}/lisflood_setting.xml"
-        cfg.save(lisflood_file)
+        lisflood_file = work_dir / "lisflood_setting.xml"
+        self.cfg.save(str(lisflood_file))
         return lisflood_file
-
-    def _create_lisvap_config(self) -> str:
-        """Update lisvap setting file"""
-        cfg = XmlConfig(self.parameterset.lisvap_config_template)
-        # Make a dictionary for settings
-        maps = "/data/lisflood_input/maps_netcdf"
-        settings = {
-            "CalendarDayStart": self.start.strftime("%d/%m/%Y 00:00"),
-            "StepStart": self.start.strftime("%d/%m/%Y 00:00"),
-            "StepEnd": self.end.strftime("%d/%m/%Y 00:00"),
-            "PathOut": "/output",
-            "PathBaseMapsIn": maps,
-            "MaskMap": "/data/model_mask",
-            "PathMeteoIn": "/data/forcing",
-        }
-
-        timestamp = f"{self.start.year}_{self.end.year}"
-
-        # Mapping lisvap input varnames to cmor varnames
-        INPUT_NAMES = {
-            'TAvgMaps': 'tas',
-            'TMaxMaps': 'tasmax',
-            'TMinMaps': 'tasmin',
-            'EActMaps': 'e',
-            'WindMaps': 'sfcWind',
-            'RgdMaps': 'rsds',
-        }
-        for textvar in cfg.config.iter("textvar"):
-            textvar_name = textvar.attrib["name"]
-
-            # general settings
-            for key, value in settings.items():
-                if key in textvar_name:
-                    textvar.set("value", value)
-
-            # lisvap input files
-            for lisvap_var, cmor_var in INPUT_NAMES.items():
-                if lisvap_var in textvar_name:
-                    filename = self.forcing_files[cmor_var]
-                    textvar.set(
-                        "value", f"$(PathMeteoIn)/{filename}",
-                    )
-
-            # lisvap output files
-            for prefix in MAPS_PREFIXES.values():
-                if prefix['name'] in textvar_name:
-                    textvar.set(
-                        "value",
-                        f"lisflood_{prefix['value']}_{timestamp}",
-                    )
-
-        # Write to new setting file
-        lisvap_file = f"{self.work_dir}/lisvap_setting.xml"
-        cfg.save(lisvap_file)
-        return lisvap_file
-
-    # TODO take this out of the class?
-    def run_lisvap(self, forcing: PathLike) -> Tuple[int, bytes, bytes]:
-        """Run lisvap to generate evaporation input files
-
-        Args:
-            forcing: Path to forcing data
-
-        Returns:
-            Tuple with exit code, stdout and stderr
-        """
-        singularity_image = CFG['lisflood.singularity_image']
-        docker_image = CFG['lisflood.docker_image']
-        self._check_forcing(forcing)
-        lisvap_file = self._create_lisvap_config()
-
-        mount_points = {
-            f'{self.parameterset.root}': '/data/lisflood_input',
-            f'{self.parameterset.mask}': '/data/model_mask.nc',
-            f'{self.forcing_dir}': '/data/forcing',
-            f'{self.work_dir}': '/output',
-        }
-
-        if CFG['container_engine'].lower() == 'singularity':
-            args = [
-                "singularity",
-                "exec",
-            ]
-            args += ["--bind", ','.join([hp + ':' + ip for hp, ip in mount_points.items()])]
-            args.append(singularity_image)
-
-        elif CFG['container_engine'].lower() == 'docker':
-            args = [
-                "docker",
-                "run -ti",
-            ]
-            args += ["--volume", ','.join([hp + ':' + ip for hp, ip in mount_points.items()])]
-            args.append(docker_image)
-
-        else:
-            raise ValueError(
-                f"Unknown container technology in CFG: {CFG['container_engine']}"
-            )
-
-        lisvap_filename = Path(lisvap_file).name
-        args += ['python3', '/opt/Lisvap/src/lisvap1.py', f"/output/{lisvap_filename}"]
-        container = subprocess.Popen(args, preexec_fn=os.setsid, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        exit_code = container.wait()
-        stdout, stderr = container.communicate()
-        return exit_code, stdout, stderr
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
@@ -333,42 +245,46 @@ class Lisflood(AbstractModel):
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the parameters for this model."""
         #TODO fix issue #60
-        if self.forcing_dir and self.work_dir:
-            return {
-                'forcing_dir': self.forcing_dir,
-                'work_dir': self.work_dir,
-            }.items()
-        return []
+        parameters = [
+            ('IrrigationEfficiency', self._get_textvar_value('IrrigationEfficiency')),
+            ('PathRoot', str(self.parameter_set.PathRoot)),
+            ('MaskMap', str(self.parameter_set.MaskMap.parent)),
+            ('config_template', str(self.parameter_set.config_template)),
+            ('start_time', self._start.strftime("%Y-%m-%dT%H:%M:%SZ")),
+            ('end_time', self._end.strftime("%Y-%m-%dT%H:%M:%SZ")),
+            ('forcing directory',  str(self.forcing_dir)),
+        ]
+        return parameters
+
+# TODO it needs fix regarding forcing
+# def reindex_forcings(mask_map: Path, forcing: LisfloodForcing, output_dir: Path = None) -> Path:
+#     """Reindex forcing files to match mask map grid
+
+#     Args:
+#         mask_map: Path to NetCDF file used a boolean map that defines model boundaries.
+#         forcing: Forcing data from ESMValTool
+#         output_dir: Directory where to write the re-indexed files, given by user or created for user
+
+#     Returns:
+#         Output dir with re-indexed files.
+#     """
+#     output_dir = _generate_workdir(output_dir)
+#     mask = xr.open_dataarray(mask_map).load()
+#     data_files = list(forcing.recipe_output.values())[0].data_files
+#     for data_file in data_files:
+#         dataset = data_file.load_xarray()
+#         out_fn = output_dir / data_file.filename.name
+#         var_name = list(dataset.data_vars.keys())[0]
+#         encoding = {var_name: {"zlib": True, "complevel": 4, "chunksizes": (1,) + dataset[var_name].shape[1:]}}
+#         dataset.reindex(
+#                     {"lat": mask["lat"], "lon": mask["lon"]},
+#                     method="nearest",
+#                     tolerance=1e-2,
+#                 ).to_netcdf(out_fn, encoding=encoding)
+#     return output_dir
 
 
-def reindex_forcings(mask_map: PathLike, forcing: ForcingData, output_dir: PathLike = None) -> PathLike:
-    """Reindex forcing files to match mask map grid
-
-    Args:
-        mask_map: Path to NetCDF file used a boolean map that defines model boundaries.
-        forcing: Forcing data from ESMValTool
-        output_dir: Directory where to write the re-indexed files, given by user or created for user
-
-    Returns:
-        Output dir with re-indexed files.
-    """
-    output_dir = _generate_workdir(output_dir)
-    mask = xr.open_dataarray(mask_map).load()
-    data_files = list(forcing.recipe_output.values())[0].data_files
-    for data_file in data_files:
-        dataset = data_file.load_xarray()
-        out_fn = output_dir / data_file.filename.name
-        var_name = list(dataset.data_vars.keys())[0]
-        encoding = {var_name: {"zlib": True, "complevel": 4, "chunksizes": (1,) + dataset[var_name].shape[1:]}}
-        dataset.reindex(
-                    {"lat": mask["lat"], "lon": mask["lon"]},
-                    method="nearest",
-                    tolerance=1e-2,
-                ).to_netcdf(out_fn, encoding=encoding)
-    return output_dir
-
-
-def _generate_workdir(work_dir: PathLike = None) -> PathLike:
+def _generate_workdir(work_dir: Path = None) -> Path:
     """
 
     Args:
