@@ -38,6 +38,8 @@ class PCRGlobWB(AbstractModel):
 
         version: pick a version from :py:attr:`~available_versions`
         parameter_set: instance of :py:class:`~PCRGlobWBParameterSet`.
+        forcing: ewatercycle forcing container;
+            see :py:mod:`ewatercycle.forcing`.
 
     Attributes:
 
