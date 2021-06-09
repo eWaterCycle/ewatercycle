@@ -1,6 +1,4 @@
-import shutil
 import time
-import warnings
 from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
@@ -13,6 +11,7 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
+from ewatercycle.forcing.pcrglobwb import PCRGlobWBForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import CaseConfigParser
 
@@ -32,24 +31,6 @@ class PCRGlobWBParameterSet:
         self.__dict__[name] = Path(value).expanduser().resolve()
 
 
-@dataclass
-class PCRGlobWBForcing:
-    """Forcing data for the PCRGlobWB model class."""
-    precipitationNC: Optional[Union[str, PathLike]] = None
-    """Input file for precipitation data."""
-    temperatureNC: Optional[Union[str, PathLike]] = None
-    """Input file for temperature data."""
-    refETPotFileNC: Optional[Union[str, PathLike]] = None
-    """Input file for reference potential evapotranspiration data."""
-    def __setattr__(self, name: str, value: Union[str, PathLike, None]):
-        if value is not None and Path(value).exists():
-            self.__dict__[name] = Path(value).expanduser().resolve()
-        else:
-            warnings.warn(
-                f"No valid input path received for {name}, defaulting to ''.")
-            self.__dict__[name] = ''
-
-
 class PCRGlobWB(AbstractModel):
     """eWaterCycle implementation of PCRGlobWB hydrological model.
 
@@ -64,10 +45,8 @@ class PCRGlobWB(AbstractModel):
     """
     available_versions = ('setters')
 
-    def __init__(self,
-                 version: str,
-                 parameter_set: PCRGlobWBParameterSet,
-                 forcing: Optional[PCRGlobWBForcing] = None):
+    def __init__(self, version: str, parameter_set: PCRGlobWBParameterSet,
+                 forcing: PCRGlobWBForcing):
         super().__init__()
 
         self.version = version
@@ -80,8 +59,11 @@ class PCRGlobWB(AbstractModel):
         self._setup_work_dir()
         self._setup_default_config()
 
-        if forcing is not None:
-            self._update_config(meteoOptions=forcing.__dict__)
+        self._update_config(
+            meteoOptions={
+                "temperatureNC": forcing.temperatureNC,
+                "precipitationNC": forcing.precipitationNC,
+            })
 
     def _set_docker_image(self):
         images = {
