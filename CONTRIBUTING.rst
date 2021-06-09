@@ -44,7 +44,7 @@ You want to make some kind of change to the code base
 5. make sure the existing tests still work by running ``pytest``;
 6. make sure the existing documentation can still by generated without warnings by running ``cd docs && make html``;
 7. add your own tests (if necessary);
-8. update or expand the documentation;
+8. update or expand the documentation; Please add `Google Style Python docstrings <https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings>`__.
 9. `push <http://rogerdudler.github.io/git-guide/>`_ your feature branch to (your fork of) the ewatercycle repository on GitHub;
 10. create the pull request, e.g. following the instructions `here <https://help.github.com/articles/creating-a-pull-request/>`_.
 
