@@ -64,17 +64,17 @@ class MarrmotForcing(DefaultForcing):
         for var_name in var_names:
             variables[var_name]['end_year'] = endyear
 
-        # generate forcing data and retreive useful information
+        # generate forcing data and retrieve useful information
         recipe_output = recipe.run()
-        forcing_file = list(recipe_output.values())[0].files[0].filename
+        forcing_file: Path = list(recipe_output.values())[0].files[0].filename
 
         directory = str(Path(forcing_file).parent)
 
         # instantiate forcing object based on generated data
         return MarrmotForcing(directory=directory,
-                              start_time=str(startyear),
-                              end_time=str(endyear),
-                              forcing_file=forcing_file)
+                              start_time=start_time,
+                              end_time=end_time,
+                              forcing_file=forcing_file.name)
 
     def plot(self):
         raise NotImplementedError('Dont know how to plot')
