@@ -30,10 +30,10 @@ def var_to_xarray(model, variable):
 
     # Create xarray object
     da = xr.DataArray(data,
-                      coords = {'longitude': lon, 'latitude': lat, 'time': time},
-                      dims = ['latitude', 'longitude'],
-                      name = variable,
-                      attrs = {'units': model.get_var_units(variable)}
+                      coords={'longitude': lon, 'latitude': lat, 'time': time},
+                      dims=['latitude', 'longitude'],
+                      name=variable,
+                      attrs={'units': model.get_var_units(variable)}
                       )
 
     # Masked invalid values on return array:
@@ -55,18 +55,18 @@ def lat_lon_to_closest_variable_indices(model, variable, lats, lons):
     if len(lats) == 1:
         idx = np.abs(lat_model - lats).argmin()
         idy = np.abs(lon_model - lons).argmin()
-        output = idx+nx*idy
+        output = idx + nx * idy
     else:
-        output=[]
-        for [lat,lon] in [lats, lons]:
+        output = []
+        for [lat, lon] in [lats, lons]:
             idx = np.abs(lat_model - lat).argmin()
             idy = np.abs(lon_model - lon).argmin()
-            output.append(idx+nx*idy)
+            output.append(idx + nx * idy)
 
     return np.array(output)
 
 
-def lat_lon_boundingbox_to_variable_indices(model, variable, latMin, latMax, lonMin, lonMax):
+def lat_lon_boundingbox_to_variable_indices(model, variable, lat_min, lat_max, lon_min, lon_max):
     """Translate bounding boxes of lat, lon coordinates into BMI model
     indices, which are used to get and set variable values.
     """
@@ -76,13 +76,13 @@ def lat_lon_boundingbox_to_variable_indices(model, variable, latMin, latMax, lon
     lon_model = model.get_grid_y(model.get_var_grid(variable))
     nx = len(lat_model)
 
-    idx = [i for i,v in enumerate(lat_model) if ((v > lat_min) and (v < lat_max))]
-    idy = [i for i,v in enumerate(lon_model) if ((v > lon_min) and (v < lon_max))]
+    idx = [i for i, v in enumerate(lat_model) if ((v > lat_min) and (v < lat_max))]
+    idy = [i for i, v in enumerate(lon_model) if ((v > lon_min) and (v < lon_max))]
 
     output = []
     for x in idx:
         for y in idy:
-            output.append(x + nx*y)
+            output.append(x + nx * y)
 
     return np.array(output)
 
