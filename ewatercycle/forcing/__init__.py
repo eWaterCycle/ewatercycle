@@ -39,7 +39,7 @@ def generate(target_model: str,
     if constructor is None:
         raise NotImplementedError(f'Target model `{target_model}` is not supported by the eWatercycle forcing generator')
     if model_specific_options is None:
-        return constructor.generate(dataset, start_time, end_time, shape)
+        model_specific_options = {}
     forcing_info = constructor.generate(dataset, start_time, end_time, shape, **model_specific_options)
     forcing_info.save()
     return forcing_info
@@ -93,7 +93,7 @@ def load_foreign(target_model,
 
         .. code-block:: python
 
-          from ewatercycle.models import load_foreign
+          from ewatercycle.forcing import load_foreign
 
           forcing = load_foreign('marmot',
                                  directory='/data/marrmot-forcings-case1',
@@ -107,10 +107,10 @@ def load_foreign(target_model,
 
         .. code-block:: python
 
-          from ewatercycle.models import load_foreign
+          from ewatercycle.forcing import load_foreign
 
           forcing = load_foreign(target_model='lisflood',
-                                 directory=='/data/lisflood-forcings-case1',
+                                 directory='/data/lisflood-forcings-case1',
                                  start_time='1989-01-02T00:00:00Z',
                                  end_time='1999-01-02T00:00:00Z',
                                  forcing_info={

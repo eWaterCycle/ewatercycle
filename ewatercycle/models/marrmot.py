@@ -1,7 +1,5 @@
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from os import PathLike
 from pathlib import Path
 from typing import Any, Iterable, Tuple
 
@@ -13,7 +11,7 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
-from ewatercycle.forcing.forcing_data import ForcingData
+from ewatercycle.forcing.marrmot import MarrmotForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.util import get_time
 
@@ -28,7 +26,7 @@ class Solver:
     resnorm_maxiter: float = 6.0
 
 
-def _generate_work_dir(work_dir: PathLike = None) -> PathLike:
+def _generate_work_dir(work_dir: Path = None) -> Path:
     """
     Args:
         work_dir: If work dir is None then create sub-directory in CFG['output_dir']
@@ -49,7 +47,7 @@ class MarrmotM01(AbstractModel):
 
     Args:
         version: pick a version for which an ewatercycle grpc4bmi docker image is available.
-        forcing: a forcing file or a forcing data object. See format forcing file in `model implementation <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`_.
+        forcing: a MarrmotForcing object.
             If forcing file contains parameter and other settings, those are used and can be changed in :py:meth:`steup`.
 
     Attributes:
@@ -63,16 +61,14 @@ class MarrmotM01(AbstractModel):
     available_versions = ["2020.11"]
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
-    def __init__(self, version: str, forcing: PathLike):
+    def __init__(self, version: str, forcing: MarrmotForcing):
         """Construct MarrmotM01 with initial values. """
         super().__init__()
         self.version = version
         self._parameters = [1000.0]
         self.store_ini = [900.0]
         self.solver = Solver()
-
-        self.forcing = forcing
-        self._check_forcing(self.forcing)
+        self._check_forcing(forcing)
 
         self._set_singularity_image()
         self._set_docker_image()
@@ -97,7 +93,7 @@ class MarrmotM01(AbstractModel):
               start_time: str = None,
               end_time: str = None,
               solver: Solver = None,
-              work_dir: PathLike = None) -> Tuple[PathLike, PathLike]:
+              work_dir: Path = None) -> Tuple[Path, Path]:
         """Configure model run.
 
         1. Creates config file and config directory based on the forcing variables and time range
@@ -144,21 +140,18 @@ class MarrmotM01(AbstractModel):
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
-        if isinstance(forcing, PathLike):
-            self.forcing_file = forcing
-        elif isinstance(forcing, ForcingData):
-            self.forcing_file = list(forcing.recipe_output.values())[0].files[0].filename
+        if isinstance(forcing, MarrmotForcing):
+            forcing_dir = Path(forcing.directory).expanduser().resolve()
+            self.forcing_file = str(forcing_dir / forcing.forcing_file)
+            # convert date_strings to datetime objects
+            self.forcing_start_time = get_time(forcing.start_time)
+            self.forcing_end_time = get_time(forcing.end_time)
         else:
             raise TypeError(
-                f"Unknown forcing type: {forcing}. Please supply either a Path or ForcingData object."
+                f"Unknown forcing type: {forcing}. Please supply a MarrmotForcing object."
             )
         # parse start/end time
-        forcing_data = sio.loadmat(str(self.forcing_file), mat_dtype=True)
-        time_start_parts = [int(d) for d in forcing_data['time_start'][0]]
-        self.forcing_start_time = datetime(*time_start_parts, tzinfo=timezone.utc)
-        time_end_parts = [int(d) for d in forcing_data['time_end'][0]]
-        self.forcing_end_time = datetime(*time_end_parts, tzinfo=timezone.utc)
-
+        forcing_data = sio.loadmat(self.forcing_file, mat_dtype=True)
         if 'parameters' in forcing_data:
             self._parameters = forcing_data['parameters'][0]
         if 'store_ini' in forcing_data:
@@ -170,7 +163,7 @@ class MarrmotM01(AbstractModel):
             self.solver.resnorm_tolerance = forcing_solver['resnorm_tolerance'][0][0][0]
             self.solver.resnorm_maxiter = forcing_solver['resnorm_maxiter'][0][0][0]
 
-    def _create_marrmot_config(self, work_dir: PathLike, start_time_iso: str = None, end_time_iso: str = None) -> PathLike:
+    def _create_marrmot_config(self, work_dir: Path, start_time_iso: str = None, end_time_iso: str = None) -> Path:
         """Write model configuration file.
 
         Adds the model parameters to forcing file for the given period
@@ -184,7 +177,7 @@ class MarrmotM01(AbstractModel):
         Returns:
             Path for Marrmot config file
         """
-        forcing_data = sio.loadmat(str(self.forcing_file), mat_dtype=True)
+        forcing_data = sio.loadmat(self.forcing_file, mat_dtype=True)
 
         # overwrite dates if given
         if start_time_iso is not None:
@@ -224,7 +217,7 @@ class MarrmotM01(AbstractModel):
             store_ini=self.store_ini,
         )
 
-        config_file = work_dir / Path('marrmot-m01_config.mat')
+        config_file = work_dir / 'marrmot-m01_config.mat'
         sio.savemat(config_file, forcing_data)
         return config_file
 
@@ -261,11 +254,8 @@ class MarrmotM01(AbstractModel):
             ('maximum_soil_moisture_storage', self._parameters[0]),
             ('initial_soil_moisture_storage', self.store_ini[0]),
             ('solver', self.solver),
-            ('start time', self.forcing_start_time.isoformat()),
-            ('end time', self.forcing_end_time.isoformat()),
+            ('start time', self.forcing_start_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
+            ('end time', self.forcing_end_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
+            ('forcing_file', self.forcing_file),
         ]
-        if self.forcing_file:
-            p += [
-                ('forcing_file', self.forcing_file),
-            ]
         return p
