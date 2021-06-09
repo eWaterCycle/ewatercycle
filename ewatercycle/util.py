@@ -76,8 +76,8 @@ def lat_lon_boundingbox_to_variable_indices(model, variable, latMin, latMax, lon
     lon_model = model.get_grid_y(model.get_var_grid(variable))
     nx = len(lat_model)
 
-    idx = [i for i,v in enumerate(lat_model) if ((v > latMin) and (v < latMax))]
-    idy = [i for i,v in enumerate(lon_model) if ((v > lonMin) and (v < lonMax))]
+    idx = [i for i,v in enumerate(lat_model) if ((v > lat_min) and (v < lat_max))]
+    idy = [i for i,v in enumerate(lon_model) if ((v > lon_min) and (v < lon_max))]
 
     output = []
     for x in idx:
