@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 from ruamel.yaml import YAML
 
@@ -17,7 +18,7 @@ class DefaultForcing:
     """End time of the forcing data"""
     directory: str = '.'
     """Location where the forcing data is stored."""
-    shape: str = None
+    shape: Optional[str] = None
     """Shape file"""
 
     # Model-specific attributes (preferably with default values):
