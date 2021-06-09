@@ -1,4 +1,3 @@
-import re
 from pathlib import Path
 from typing import Optional, Dict
 
@@ -38,7 +37,8 @@ def generate(target_model: str,
     """
     constructor = FORCING_CLASSES.get(target_model, None)
     if constructor is None:
-        raise NotImplementedError(f'Target model `{target_model}` is not supported by the eWatercycle forcing generator')
+        raise NotImplementedError(
+            f'Target model `{target_model}` is not supported by the eWatercycle forcing generator')
     if model_specific_options is None:
         model_specific_options = {}
     forcing_info = constructor.generate(dataset, start_time, end_time, shape, **model_specific_options)
@@ -131,7 +131,6 @@ def load_foreign(target_model,
         raise NotImplementedError(
             f'Target model `{target_model}` is not supported by the eWatercycle forcing generator')
     return constructor(start_time, end_time, directory, shape, **forcing_info)
-
 
 # TODO fix time conventions
 # TODO add / fix tests

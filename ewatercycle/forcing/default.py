@@ -1,5 +1,4 @@
 """Forcing related functionality for default models"""
-import re
 from dataclasses import dataclass
 from io import StringIO
 from pathlib import Path
