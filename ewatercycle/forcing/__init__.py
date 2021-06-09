@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Dict, Type
+from typing import Optional, Dict
 
 from ruamel.yaml import YAML
 
