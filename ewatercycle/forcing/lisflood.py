@@ -59,7 +59,7 @@ class LisfloodForcing(DefaultForcing):
             TODO that is not on a 0.1x0.1 grid
         """
         # load the ESMValTool recipe
-        recipe_name = "hydrology/recipe_hype.yml"
+        recipe_name = "hydrology/recipe_lisflood.yml"
         recipe = get_recipe(recipe_name)
 
         # model-specific updates to the recipe
@@ -100,8 +100,8 @@ class LisfloodForcing(DefaultForcing):
 
         # instantiate forcing object based on generated data
         return LisfloodForcing(directory=directory,
-                               start_time=str(startyear),
-                               end_time=str(endyear),
+                               start_time=start_time,
+                               end_time=end_time,
                                PrefixPrecipitation=forcing_files["pr"],
                                PrefixTavg=forcing_files["tas"],
                                PrefixE0=forcing_files['e0'],
