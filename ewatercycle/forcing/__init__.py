@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from typing import Optional, Dict
 
@@ -5,7 +6,7 @@ from ruamel.yaml import YAML
 
 from . import default, hype, lisflood, marrmot, pcrglobwb, wflow
 from .datasets import DATASETS
-from .default import DefaultForcing
+from .default import DefaultForcing, FORCING_YAML
 
 FORCING_CLASSES = {  # not sure how to annotate this
     "hype": hype.HypeForcing,
@@ -55,13 +56,17 @@ def load(directory):
         Forcing object, e.g. :obj:`.marrmot.MarrmotForcing`
     """
     yaml = YAML()
-    source = Path(directory) / 'ewatercycle_forcing.yaml'
+    source = Path(directory) / FORCING_YAML
     # TODO give nicer error
     yaml.register_class(DefaultForcing)
     for forcing_cls in FORCING_CLASSES.values():
         yaml.register_class(forcing_cls)
-    forcing_info = yaml.load(source)
-    forcing_info.directory = str(Path(directory).expanduser().resolve())
+    content = source.read_text()
+    # Set directory in yaml string to parent of yaml file
+    # Because in DefaultForcing.save the directory was removed
+    abs_dir = str(source.parent.expanduser().resolve())
+    content += f'directory: {abs_dir}\n'
+    forcing_info = yaml.load(content)
     return forcing_info
 
 

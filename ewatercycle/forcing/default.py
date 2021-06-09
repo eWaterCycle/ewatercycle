@@ -1,9 +1,12 @@
 """Forcing related functionality for default models"""
-
+import re
 from dataclasses import dataclass
+from io import StringIO
 from pathlib import Path
 
 from ruamel.yaml import YAML
+
+FORCING_YAML = 'ewatercycle_forcing.yaml'
 
 
 @dataclass
@@ -37,10 +40,15 @@ class DefaultForcing:
         """Export forcing data for later use."""
         yaml = YAML()
         yaml.register_class(self.__class__)
-        target = Path(self.directory) / 'ewatercycle_forcing.yaml'
-        # TODO remove directory or set to .
+        target = Path(self.directory) / FORCING_YAML
+        # We want to make the yaml and its parent moveable,
+        # so the directory should not be included in the yaml file
+        inner_file = StringIO()
+        yaml.dump(self, inner_file)
+        inner = inner_file.getvalue()
+        inner = inner.replace(f'directory: {self.directory}\n', '')
         with open(target, 'w') as f:
-            yaml.dump(self, f)
+            f.write(inner)
         return target
 
     def plot(self):
