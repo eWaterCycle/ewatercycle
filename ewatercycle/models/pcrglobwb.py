@@ -1,8 +1,7 @@
-import shutil
 import time
 from os import PathLike
 from pathlib import Path
-from typing import Any, Iterable, Optional, Tuple
+from typing import Any, Iterable, Tuple
 
 import numpy as np
 import xarray as xr

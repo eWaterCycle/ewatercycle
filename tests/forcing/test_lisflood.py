@@ -6,7 +6,7 @@ from esmvalcore.experimental.recipe_output import DataFile
 import xarray as xr
 
 from ewatercycle.forcing import generate, load
-from ewatercycle.forcing.lisflood import LisfloodForcing
+from ewatercycle.forcing._lisflood import LisfloodForcing
 
 
 def test_plot():
