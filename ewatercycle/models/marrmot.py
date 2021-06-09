@@ -1,7 +1,7 @@
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Iterable, Tuple
+from typing import Any, Iterable, List, Tuple
 import warnings
 
 import numpy as np
@@ -158,7 +158,6 @@ class MarrmotM01(AbstractModel):
         if 'store_ini' in forcing_data:
             self.store_ini = forcing_data['store_ini'][0]
         if 'solver' in forcing_data:
-            self.solver = Solver()
             forcing_solver = forcing_data['solver']
             self.solver.name = forcing_solver['name'][0][0][0]
             self.solver.resnorm_tolerance = forcing_solver['resnorm_tolerance'][0][0][0]
@@ -412,7 +411,6 @@ class MarrmotM14(AbstractModel):
             else:
                 warnings.warn(f"The length of initial stores in forcing {self.forcing_file} does not match the length of M14 iniatial stores that is two.")
         if 'solver' in forcing_data:
-            self.solver = Solver()
             forcing_solver = forcing_data['solver']
             self.solver.name = forcing_solver['name'][0][0][0]
             self.solver.resnorm_tolerance = forcing_solver['resnorm_tolerance'][0][0][0]
@@ -505,7 +503,7 @@ class MarrmotM14(AbstractModel):
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the parameters for this model."""
-        p = list(zip(M14_PARAMS, self._parameters))
+        p:List[Tuple[str, Any]] = list(zip(M14_PARAMS, self._parameters))
         p += [
             ('initial_upper_zone_storage', self.store_ini[0]),
             ('initial_saturated_zone_storage', self.store_ini[1]),
@@ -515,3 +513,4 @@ class MarrmotM14(AbstractModel):
             ('forcing_file', self.forcing_file),
         ]
         return p
+
