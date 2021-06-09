@@ -15,14 +15,14 @@ FORCING_CLASSES = {  # not sure how to annotate this
 }
 
 
-def load(directory):
+def load(directory: str) -> DefaultForcing:
     """Load previously generated or imported forcing data.
 
     Args:
         directory: forcing data directory; must contain
-        `ewatercycle_forcing.yaml`
+            `ewatercycle_forcing.yaml` file
 
-    Returns: Forcing object, e.g. :obj:`.marrmot.MarrmotForcing`
+    Returns: Forcing object
     """
     yaml = YAML()
     source = Path(directory) / 'ewatercycle_forcing.yaml'
@@ -46,7 +46,7 @@ def load_foreign(target_model,
 
     Args:
         target_model: Name of the hydrological model for which the forcing will
-        be used
+            be used
         start_time: Start time of forcing in UTC and ISO format string e.g.
             'YYYY-MM-DDTHH:MM:SSZ'.
         end_time: End time of forcing in UTC and ISO format string e.g.
@@ -57,7 +57,7 @@ def load_foreign(target_model,
             data. See below for the available options for each model.
 
     Returns:
-        Forcing object, e.g. :obj:`.hype.HypeForcing`
+        Forcing object
 
     Examples:
 
@@ -113,7 +113,7 @@ def generate(target_model: str,
 
     Args:
         target_model: Name of the model
-        dataset: Name of the source dataset. See :py:data:`.DATASETS`.
+        dataset: Name of the source dataset. See :py:mod:`~.datasets`.
         start_time: Start time of forcing in UTC and ISO format string e.g.
             'YYYY-MM-DDTHH:MM:SSZ'.
         end_time: End time of forcing in UTC and ISO format string e.g.
@@ -123,7 +123,7 @@ def generate(target_model: str,
             See below for the available options for each model.
 
     Returns:
-        Forcing object, e.g. :obj:`.lisflood.LisfloodForcing`
+        Forcing object
 
 
     Model-specific options that can be passed to `generate`:
