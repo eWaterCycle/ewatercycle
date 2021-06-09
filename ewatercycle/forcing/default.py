@@ -1,8 +1,7 @@
 """Forcing related functionality for default models"""
-
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict
 
 from ruamel.yaml import YAML
 
@@ -30,6 +29,7 @@ class DefaultForcing:
                  start_time: str,
                  end_time: str,
                  shape: str,
+                 **_kwargs: Dict  # Subclasses can have additional named arguments, added to pass mypy
                  ) -> 'DefaultForcing':
         """Generate forcing data with ESMValTool."""
         raise NotImplementedError("No default forcing generator available.")
