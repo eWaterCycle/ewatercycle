@@ -56,7 +56,6 @@ class PCRGlobWB(AbstractModel):
         self._additional_input_dirs: Iterable[PathLike] = []
 
         self._set_docker_image()
-        self._set_singularity_image()
 
         self._setup_work_dir()
         self._setup_default_config()
@@ -72,13 +71,6 @@ class PCRGlobWB(AbstractModel):
             "setters": "ewatercycle/pcrg-grpc4bmi:setters",
         }
         self.docker_image = images[self.version]
-
-    def _set_singularity_image(self):
-        # TODO auto detect sif file based on docker image and singularity dir.
-        images = {
-            "setters": "ewatercycle/pcrg-grpc4bmi:setters",
-        }
-        self.singularity_image = CFG['singularity_dir'] / images[self.version]
 
     def _setup_work_dir(self):
         # Must exist before setting up default config
@@ -165,11 +157,8 @@ class PCRGlobWB(AbstractModel):
                 timeout=10,
             )
         elif CFG["container_engine"] == "singularity":
-            message = f"No singularity image found at {image}"
-            assert self.singularity_image.exists(), message
-
             self.bmi = BmiClientSingularity(
-                image=str(self.singularity_image),
+                image=f"docker://{self.docker_image}",
                 work_dir=str(self.work_dir),
                 input_dirs=[str(input_path) for input_path in input_dirs],
                 timeout=10,
