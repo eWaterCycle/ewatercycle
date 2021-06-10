@@ -3,6 +3,7 @@ from os import PathLike
 from typing import Tuple, Iterable, Any
 
 import numpy as np
+import warnings
 import xarray as xr
 from basic_modeling_interface import Bmi
 
@@ -107,6 +108,9 @@ class AbstractModel(metaclass=ABCMeta):
             index: The index into the variable array
 
         """
+
+    def _conversion_feedback(self, coord_user, coord_converted):
+        warnings.warn(f"Your coordinate {coord_user} matches model coordinate {coord_converted}.")
 
     @abstractmethod
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
