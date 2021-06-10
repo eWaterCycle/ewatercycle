@@ -58,6 +58,16 @@ class AbstractModel(metaclass=ABCMeta):
         """
         return self.bmi.get_value(name)
 
+    def get_value_at_indices(self, name: str, indices: np.ndarray) -> np.ndarray:
+        """Get a copy of values of the given variable.
+
+        Args:
+            name: Name of variable
+            indices: The indices into the variable array
+
+        """
+        return self.bmi.get_value_at_indices(name, indices)
+
     def set_value(self, name: str, value: np.ndarray) -> None:
         """Specify a new value for a model variable.
 
