@@ -15,6 +15,7 @@ from ewatercycle.forcing.pcrglobwb import PCRGlobWBForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.util import get_time
+from grpc import FutureTimeoutError
 
 
 @dataclass
@@ -180,12 +181,20 @@ class PCRGlobWB(AbstractModel):
                 timeout=10,
             )
         elif CFG["container_engine"] == "singularity":
-            self.bmi = BmiClientSingularity(
-                image=f"docker://{self.docker_image}",
-                work_dir=str(self.work_dir),
-                input_dirs=additional_input_dirs,
-                timeout=10,
-            )
+            try:
+                self.bmi = BmiClientSingularity(
+                    image=f"docker://{self.docker_image}",
+                    work_dir=str(self.work_dir),
+                    input_dirs=additional_input_dirs,
+                    timeout=15,
+                )
+            except FutureTimeoutError:
+                raise ValueError(
+                    "Couldn't spawn the singularity container within allocated"
+                    " time limit (15 seconds). You may try building it with "
+                    f"`!singularity run docker://{self.docker_image}` and try "
+                    "again. Please also inform the system administrator that "
+                    "the singularity image was missing.")
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
