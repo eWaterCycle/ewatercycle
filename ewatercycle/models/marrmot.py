@@ -355,7 +355,7 @@ class MarrmotM14(AbstractModel):
         arguments = vars()
         arguments_subset = {key: arguments[key] for key in M14_PARAMS}
         for index, key in enumerate(M14_PARAMS):
-            if arguments_subset[key]:
+            if arguments_subset[key] is not None:
                 self._parameters[index] = arguments_subset[key]
         if initial_upper_zone_storage:
             self.store_ini[0] = initial_upper_zone_storage
