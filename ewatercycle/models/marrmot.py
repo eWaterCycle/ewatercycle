@@ -277,7 +277,7 @@ class MarrmotM14(AbstractModel):
     Args:
         version: pick a version for which an ewatercycle grpc4bmi docker image is available.
         forcing: a MarrmotForcing object.
-            If forcing file contains parameter and other settings, those are used and can be changed in :py:meth:`steup`.
+            If forcing file contains parameter and other settings, those are used and can be changed in :py:meth:`setup`.
 
     Attributes:
         bmi (Bmi): Basic Modeling Interface object
@@ -513,4 +513,3 @@ class MarrmotM14(AbstractModel):
             ('forcing_file', self.forcing_file),
         ]
         return p
-
