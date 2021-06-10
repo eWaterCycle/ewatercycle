@@ -123,6 +123,31 @@ class AbstractModel(metaclass=ABCMeta):
 
         """
 
+    def get_value_at_coord(self, name, lat: float, lon: float) -> np.ndarray:
+        """Get a copy of values of the given variable at lat/lon coordinates.
+
+        Args:
+            name: Name of variable
+            lat: Latitudinal value
+            lon: Longitudinal value
+
+        """
+        index = self.coord_to_index(lat,lon)
+        return self.get_value_at_indices(name, index)
+
+    def set_value_at_coord(self, name, lat: float, lon: float, value: np.ndarray) -> None:
+        """Specify a new value for a model variable at at lat/lon coordinates.
+
+        Args:
+            name: Name of variable
+            lat: Latitudinal value
+            lon: Longitudinal value
+            value: The new value for the specified variable.
+
+        """
+        index = self.coord_to_index(lat,lon)
+        return self.set_value_at_indices(name, index, value)
+
     @property
     @abstractmethod
     def parameters(self) -> Iterable[Tuple[str, Any]]:
