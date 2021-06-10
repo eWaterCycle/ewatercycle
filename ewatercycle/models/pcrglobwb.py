@@ -14,6 +14,7 @@ from ewatercycle import CFG
 from ewatercycle.forcing.pcrglobwb import PCRGlobWBForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import CaseConfigParser
+from ewatercycle.util import get_time
 
 
 @dataclass
@@ -53,7 +54,7 @@ class PCRGlobWB(AbstractModel):
 
         self.version = version
         self.parameter_set = parameter_set
-        self._additional_input_dirs: Iterable[PathLike] = []
+        self.forcing = forcing
 
         self._set_docker_image()
 
@@ -81,28 +82,42 @@ class PCRGlobWB(AbstractModel):
         cfg.read(config_file)
         cfg.set('globalOptions', 'inputDir', str(input_dir))
         cfg.set('globalOptions', 'outputDir', str(self.work_dir))
-        cfg.set('meteoOptions', 'temperatureNC',
-                str(Path(self.forcing.directory) / self.forcing.temperatureNC))
+        cfg.set('globalOptions', 'startTime',
+                get_time(self.forcing.start_time).strftime("%Y-%m-%d"))
+        cfg.set('globalOptions', 'endTime',
+                get_time(self.forcing.start_time).strftime("%Y-%m-%d"))
+        cfg.set(
+            'meteoOptions', 'temperatureNC',
+            str((Path(self.forcing.directory) /
+                 self.forcing.temperatureNC).expanduser().resolve()))
         cfg.set(
             'meteoOptions', 'precipitationNC',
-            str(Path(self.forcing.directory) / self.forcing.precipitationNC))
+            str((Path(self.forcing.directory) /
+                 self.forcing.precipitationNC).expanduser().resolve()))
 
         self.config = cfg
 
     def setup(  # type: ignore
-            self, **kwargs) -> Tuple[PathLike, PathLike]:
+            self,
+            additional_input_dirs: Optional[Iterable[str]] = None,
+            **kwargs) -> Tuple[PathLike, PathLike]:
         """Start model inside container and return config file and work dir.
 
         Args:
-
-            - **kwargs (optional, dict): Should be passed as a dict,
-            e.g. `meteoOptions = {"temperatureNC": "era5_tas_1990_2000.nc"}`
-            where meteoOptions is the section in which the temperatureNC option
-            may be found. See :py:attr:`~parameters` for all available settings.
+            additional_input_dirs: By default, the model only has access to
+                its working directory, the parameter sets, and the forcing
+                directory. This option makes it possible to add other external
+                inputs, that can then be configured in the config file.
+            **kwargs: Use :py:meth:parameters to see all configurable options for this model,
 
         Returns: Path to config file and work dir
         """
+        if additional_input_dirs is None:
+            additional_input_dirs = []
+        self._additional_input_dirs = additional_input_dirs
+
         self._update_config(**kwargs)
+
         cfg_file = self._export_config()
         work_dir = self.work_dir
 
@@ -113,27 +128,25 @@ class PCRGlobWB(AbstractModel):
     def _update_config(self, **kwargs):
         cfg = self.config
 
-        default_input_dir = self.parameter_set.input_dir
+        if "start_time" in kwargs:
+            cfg.set('globalOptions', 'startTime',
+                    get_time(kwargs["start_time"]).strftime("%Y-%m-%d"))
 
-        for section, options in kwargs.items():
-            if not cfg.has_section(section):
-                cfg.add_section(section)
+        if "end_time" in kwargs:
+            cfg.set('globalOptions', 'endTime',
+                    get_time(kwargs["end_time"]).strftime("%Y-%m-%d"))
 
-            for option, value in options.items():
+        if "routing_method" in kwargs:
+            cfg.set('routingOptions', 'routingMethod',
+                    kwargs['routing_method'])
 
-                if Path(value).exists():
-                    # New data paths must be mounted on the container
-                    inputpath = Path(value).expanduser().resolve()
-                    if default_input_dir in inputpath.parents:
-                        pass
-                    elif inputpath.is_dir():
-                        self._additional_input_dirs.append(str(inputpath))
-                    else:
-                        self._additional_input_dirs.append(
-                            str(inputpath.parent))
-                    cfg.set(section, option, str(inputpath))
-                else:
-                    cfg.set(section, option, value)
+        if "dynamic_flood_plain" in kwargs:
+            cfg.set("routingOptions", "dynamicFloodPlain",
+                    kwargs["dynamic_flood_plain"])
+
+        if "max_spinups_in_years" in kwargs:
+            cfg.set("globalOptions", "maxSpinUpsInYears",
+                    str(kwargs["max_spinups_in_years"]))
 
     def _export_config(self) -> PathLike:
         new_cfg_file = Path(self.work_dir) / "pcrglobwb_ewatercycle.ini"
@@ -144,22 +157,24 @@ class PCRGlobWB(AbstractModel):
         return self.cfg_file
 
     def _start_container(self):
-        input_dirs = [self.parameter_set.input_dir
-                      ] + self._additional_input_dirs
+        additional_input_dirs = [
+            str(self.parameter_set.input_dir),
+            str(self.forcing.directory)
+        ] + self._additional_input_dirs
 
         if CFG["container_engine"] == "docker":
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
                 work_dir=str(self.work_dir),
-                input_dirs=[str(input_dir) for input_dir in input_dirs],
+                input_dirs=additional_input_dirs,
                 timeout=10,
             )
         elif CFG["container_engine"] == "singularity":
             self.bmi = BmiClientSingularity(
                 image=f"docker://{self.docker_image}",
                 work_dir=str(self.work_dir),
-                input_dirs=[str(input_path) for input_path in input_dirs],
+                input_dirs=additional_input_dirs,
                 timeout=10,
             )
         else:
@@ -192,5 +207,13 @@ class PCRGlobWB(AbstractModel):
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the configurable parameters for this model."""
-        return [(section, dict(self.config[section]))
-                for section in self.config.sections()]
+        # An opiniated list of configurable parameters.
+        cfg = self.config
+        return [
+            ("start_time",
+             f"{cfg.get('globalOptions', 'startTime')}T00:00:00Z"),
+            ("end_time", f"{cfg.get('globalOptions', 'endTime')}T00:00:00Z"),
+            ("routing_method", cfg.get("routingOptions", "routingMethod")),
+            ("max_spinups_in_years",
+             cfg.get("globalOptions", "maxSpinUpsInYears")),
+        ]
