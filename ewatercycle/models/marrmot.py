@@ -261,13 +261,13 @@ class MarrmotM01(AbstractModel):
         return p
 
 
-M14_PARAMS = ['maximum_soil_moisture_storage',
+M14_PARAMS = ('maximum_soil_moisture_storage',
             'threshold_flow_generation_evap_change',
             'leakage_saturated_zone_flow_coefficient',
             'zero_deficit_base_flow_speed',
             'baseflow_coefficient',
             'gamma_distribution_chi_parameter',
-            'gamma_distribution_phi_parameter']
+            'gamma_distribution_phi_parameter')
 
 class MarrmotM14(AbstractModel):
     """eWaterCycle implementation of Marrmot Top Model hydrological model.
