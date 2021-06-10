@@ -62,8 +62,8 @@ class PCRGlobWB(AbstractModel):
 
         self._update_config(
             meteoOptions={
-                "temperatureNC": forcing.temperatureNC,
-                "precipitationNC": forcing.precipitationNC,
+                "temperatureNC": str(Path(forcing.directory) / forcing.temperatureNC),
+                "precipitationNC": str(Path(forcing.directory) / forcing.precipitationNC),
             })
 
     def _set_docker_image(self):
