@@ -59,7 +59,7 @@ class AbstractModel(metaclass=ABCMeta):
         return self.bmi.get_value(name)
 
     def get_value_at_indices(self, name: str, indices: np.ndarray) -> np.ndarray:
-        """Get a copy of values of the given variable.
+        """Get a copy of values of the given variable at particular indices.
 
         Args:
             name: Name of variable
@@ -77,6 +77,17 @@ class AbstractModel(metaclass=ABCMeta):
 
         """
         self.bmi.set_value(name, value)
+
+    def set_value_at_indices(self, name: str, indices: np.ndarray, value: np.ndarray) -> None:
+        """Specify a new value for a model variable at particular indices.
+
+        Args:
+            name: Name of variable
+            indices: The indices into the variable array
+            value: The new value for the specified variable.
+
+        """
+        self.bmi.set_value_at_indices(name, indices, value)
 
     @abstractmethod
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
