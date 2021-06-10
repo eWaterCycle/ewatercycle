@@ -90,6 +90,25 @@ class AbstractModel(metaclass=ABCMeta):
         self.bmi.set_value_at_indices(name, indices, value)
 
     @abstractmethod
+    def coord_to_index(self, lat: float, lon: float) -> np.ndarray:
+        """Converts lat/lon values to index.
+
+        Args:
+            lat: Latitudinal value
+            lon: Longitudinal value
+
+        """
+
+    @abstractmethod
+    def index_to_coord(self, index: np.ndarray) -> tuple(float,float):
+        """Convert index to lat/lon values.
+
+        Args:
+            index: The index into the variable array
+
+        """
+
+    @abstractmethod
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Get a copy values of the given variable as xarray DataArray.
 
