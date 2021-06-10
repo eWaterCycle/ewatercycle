@@ -60,12 +60,6 @@ class PCRGlobWB(AbstractModel):
         self._setup_work_dir()
         self._setup_default_config()
 
-        self._update_config(
-            meteoOptions={
-                "temperatureNC": str(Path(forcing.directory) / forcing.temperatureNC),
-                "precipitationNC": str(Path(forcing.directory) / forcing.precipitationNC),
-            })
-
     def _set_docker_image(self):
         images = {
             "setters": "ewatercycle/pcrg-grpc4bmi:setters",
@@ -87,6 +81,11 @@ class PCRGlobWB(AbstractModel):
         cfg.read(config_file)
         cfg.set('globalOptions', 'inputDir', str(input_dir))
         cfg.set('globalOptions', 'outputDir', str(self.work_dir))
+        cfg.set('meteoOptions', 'temperatureNC',
+                str(Path(self.forcing.directory) / self.forcing.temperatureNC))
+        cfg.set(
+            'meteoOptions', 'precipitationNC',
+            str(Path(self.forcing.directory) / self.forcing.precipitationNC))
 
         self.config = cfg
 

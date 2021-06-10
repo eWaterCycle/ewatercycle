@@ -18,8 +18,8 @@ Options:
 """
 LOAD_DOCS = """
 Fields:
-    precipitationNC (str): Input file for precipitation data.
-    temperatureNC (str): Input file for temperature data.
+    precipitationNC (str): Input file for precipitation data (relative to `directory`).
+    temperatureNC (str): Input file for temperature data (relative to `directory`).
 """
 
 
@@ -32,7 +32,6 @@ class PCRGlobWBForcing(DefaultForcing):
     """Input file for precipitation data."""
     temperatureNC: str = 'tas.nc'
     """Input file for temperature data."""
-
     @classmethod
     def generate(  # type: ignore
         cls,
@@ -41,7 +40,8 @@ class PCRGlobWBForcing(DefaultForcing):
         end_time: str,
         shape: str,
         start_time_climatology: str,  # TODO make optional, default to start_time
-        end_time_climatology: str,  # TODO make optional, defaults to start_time + 1 year
+        end_time_climatology:
+        str,  # TODO make optional, defaults to start_time + 1 year
         extract_region: dict = None,
     ) -> 'PCRGlobWBForcing':
         """Generate WflowForcing data with ESMValTool.
@@ -69,8 +69,8 @@ class PCRGlobWBForcing(DefaultForcing):
                 'additional_datasets'] = [DATASETS[dataset]]
 
         basin = Path(shape).stem
-        recipe.data['diagnostics']['diagnostic_daily']['scripts'][
-            'script']['basin'] = basin
+        recipe.data['diagnostics']['diagnostic_daily']['scripts']['script'][
+            'basin'] = basin
 
         if extract_region is None:
             extract_region = get_extents(shape)
