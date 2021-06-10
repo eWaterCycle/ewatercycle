@@ -31,6 +31,15 @@ class PCRGlobWBParameterSet:
     def __setattr__(self, name: str, value: Union[str, PathLike]):
         self.__dict__[name] = Path(value).expanduser().resolve()
 
+    def __str__(self):
+        """Nice formatting of the parameterset object."""
+        return "\n".join([
+            "Wflow parameter set",
+            "-------------------",
+            f"Directory: {self.input_dir}",
+            f"Default configuration file: {self.default_config}",
+        ])
+
 
 class PCRGlobWB(AbstractModel):
     """eWaterCycle implementation of PCRGlobWB hydrological model.
