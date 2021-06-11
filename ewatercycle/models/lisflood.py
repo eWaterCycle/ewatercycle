@@ -241,6 +241,40 @@ class Lisflood(AbstractModel):
 
         return da
 
+    def coords_to_indices(self, name: str, lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
+        """Convert lat, lon coordinates into model indices."""
+        grid_id = self.bmi.get_var_grid(name)
+        shape = self.bmi.get_grid_shape(grid_id) #(len(y), len(x))
+        x_model = self.bmi.get_grid_x(grid_id)
+        y_model = self.bmi.get_grid_y(grid_id)
+        indices = []
+        coord_converted = []
+        # in lisflood, x corresponds to lon, and y to lat.
+        # this might not be the case for other models!
+        for x, y in zip(lon, lat):
+            idx = np.abs(x_model - x).argmin()
+            idy = np.abs(y_model - y).argmin()
+            indices.append(np.ravel_multi_index((idy, idx), shape))
+            coord_converted.append((x_model[idx], y_model[idy]))
+        #TODO provide feedback
+        return np.array(indices)
+
+    def indices_to_coords(self, name: str, indices: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """Convert index to lat/lon values."""
+        grid_id = self.bmi.get_var_grid(name)
+        shape = self.bmi.get_grid_shape(grid_id)
+        idy, idx = np.unravel_index(indices, shape)
+        x_model = self.bmi.get_grid_x(grid_id)
+        y_model = self.bmi.get_grid_y(grid_id)
+        lon = []
+        lat = []
+        # in lisflood, x corresponds to lon, and y to lat.
+        # this might not be the case for other models!
+        for x, y in zip(idx, idy):
+            lon.append(x_model[x])
+            lat.append(y_model[y])
+        return np.array(lon), np.array(lat)
+
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the parameters for this model."""
