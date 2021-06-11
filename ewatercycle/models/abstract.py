@@ -126,12 +126,13 @@ class AbstractModel(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def index_to_coord(self, index: np.ndarray) -> tuple(float,float):
+    def index_to_coord(self, index: np.ndarray) -> Tuple[float,float]:
         """Convert index to lat/lon values.
 
         Args: index: The index into lat/lon values
 
         """
+
     @abstractmethod
     def conversion_feedback(self, coord_user, coord_converted):
         warnings.warn(f"Your coordinates {coord_user} matches model coordinates {coord_converted}.")
