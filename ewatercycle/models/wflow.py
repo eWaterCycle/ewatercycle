@@ -28,9 +28,17 @@ class WflowParameterSet:
     """Input folder path."""
     default_config: Union[str, PathLike]
     """Path to (default) model configuration file consistent with `input_data`."""
-
     def __setattr__(self, name: str, value: Union[str, PathLike]):
         self.__dict__[name] = Path(value).expanduser().resolve()
+
+    def __str__(self):
+        """Nice formatting of parameter set."""
+        return "\n".join([
+            "Wflow parameterset",
+            "------------------",
+            f"Directory: {self.input_data}",
+            f"Default configuration file: {self.default_config}",
+        ])
 
 
 class Wflow(AbstractModel):
