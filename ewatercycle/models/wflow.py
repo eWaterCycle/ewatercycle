@@ -1,6 +1,7 @@
 import shutil
 import time
 from dataclasses import dataclass
+from datetime import datetime
 from os import PathLike
 from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple, Union
@@ -16,6 +17,7 @@ from ewatercycle import CFG
 from ewatercycle.forcing.wflow import WflowForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import CaseConfigParser
+from ewatercycle.util import get_time
 
 
 @dataclass
@@ -69,7 +71,6 @@ class Wflow(AbstractModel):
 
         self._set_docker_image()
         self._setup_default_config()
-        self._parse_forcing()
 
     def _set_docker_image(self):
         images = {
@@ -80,40 +81,46 @@ class Wflow(AbstractModel):
 
     def _setup_default_config(self):
         config_file = self.parameter_set.default_config
+        forcing = self.forcing
 
         cfg = CaseConfigParser()
         cfg.read(config_file)
-        self.config = cfg
 
-    def _parse_forcing(self):
-        if self.forcing is None:
-            return
-
-        cfg = self.config
-        forcing = self.forcing
         cfg.set("framework", "netcdfinput", forcing.netcdfinput.name)
         cfg.set("inputmapstacks", "Precipitation", forcing.Precipitation)
         cfg.set("inputmapstacks", "EvapoTranspiration",
                 forcing.EvapoTranspiration)
         cfg.set("inputmapstacks", "Temperature", forcing.Temperature)
+        cfg.set("run", "starttime", _iso_to_wflow(forcing.start_time))
+        cfg.set("run", "endtime", _iso_to_wflow(forcing.end_time))
+
+        self.config = cfg
 
     def setup(self, **kwargs) -> Tuple[PathLike, PathLike]:  # type: ignore
         """Start the model inside a container and return a valid config file.
 
         Args:
             **kwargs (optional, dict): see :py:attr:`~parameters` for all
-                available settings. It is possible to overwrite paths. If an
-                absolute path is given, it will be converted to a path relative
-                to the working directory, and the content will be copied there.
+                configurable model parameters.
 
         Returns:
             Path to config file and working directory
         """
         self._setup_working_directory()
-        config_file = self._update_config(**kwargs)
+        cfg = self.config
+
+        if "start_time" in kwargs:
+            cfg.set("run", "starttime", _iso_to_wflow(kwargs["start_time"]))
+        if "end_time" in kwargs:
+            cfg.set("run", "endtime", _iso_to_wflow(kwargs["end_time"]))
+
+        updated_cfg_file = self.work_dir / "wflow_ewatercycle.ini"
+        with updated_cfg_file.open("w") as filename:
+            cfg.write(filename)
+
         self._start_container()
 
-        return config_file, self.work_dir,
+        return updated_cfg_file.expanduser().resolve(), self.work_dir,
 
     def _setup_working_directory(self):
         timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -122,32 +129,7 @@ class Wflow(AbstractModel):
 
         shutil.copytree(src=self.parameter_set.input_data,
                         dst=working_directory)
-        if self.forcing is not None:
-            shutil.copy(src=self.forcing.netcdfinput, dst=working_directory)
-
-    def _update_config(self, **kwargs) -> PathLike:
-        cfg = self.config
-
-        for section, options in kwargs.items():
-            if not cfg.has_section(section):
-                cfg.add_section(section)
-
-            for option, value in options.items():
-                if Path(value).exists():
-                    # Absolute paths must be copied to work dir
-                    if Path(value).is_file():
-                        shutil.copy(value, self.work_dir)
-                    else:
-                        shutil.copytree(value, self.work_dir)
-                    cfg.set(section, option, Path(value).name)
-                else:
-                    cfg.set(section, option, value)
-
-        updated_cfg_file = self.work_dir / "wflow_ewatercycle.ini"
-        with updated_cfg_file.open("w") as filename:
-            cfg.write(filename)
-
-        return updated_cfg_file.resolve()
+        shutil.copy(src=self.forcing.netcdfinput, dst=working_directory)
 
     def _start_container(self):
         if CFG["container_engine"] == "docker":
@@ -200,5 +182,19 @@ class Wflow(AbstractModel):
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the configurable parameters for this model."""
-        return [(section, dict(self.config[section]))
-                for section in self.config.sections()]
+        # An opiniated list of configurable parameters.
+        cfg = self.config
+        return [
+            ("start_time", _wflow_to_iso(cfg.get('run', 'starttime'))),
+            ("end_time", _wflow_to_iso(cfg.get('run', 'endtime'))),
+        ]
+
+
+def _wflow_to_iso(t):
+    dt = datetime.fromisoformat(t)
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _iso_to_wflow(t):
+    dt = get_time(t)
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
