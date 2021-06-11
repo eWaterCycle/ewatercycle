@@ -8,6 +8,7 @@ from typing import Any, Iterable, Optional, Tuple, Union
 import numpy as np
 import xarray as xr
 from cftime import num2date
+from grpc import FutureTimeoutError
 from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
@@ -67,7 +68,6 @@ class Wflow(AbstractModel):
         self.forcing = forcing
 
         self._set_docker_image()
-        self._set_singularity_image()
         self._setup_default_config()
         self._parse_forcing()
 
@@ -77,14 +77,6 @@ class Wflow(AbstractModel):
             "2020.1.1": "ewatercycle/wflow-grpc4bmi:2020.1.1",
         }
         self.docker_image = images[self.version]
-
-    def _set_singularity_image(self):
-        # TODO auto detect sif file based on docker image and singularity dir.
-        images = {
-            # "2019.1": "ewatercycle-wflow-grpc4bmi.sif",
-            "2020.1.1": "ewatercycle-wflow-grpc4bmi.sif",
-        }
-        self.singularity_image = CFG['singularity_dir'] / images[self.version]
 
     def _setup_default_config(self):
         config_file = self.parameter_set.default_config
@@ -166,18 +158,22 @@ class Wflow(AbstractModel):
                 timeout=10,
             )
         elif CFG["container_engine"] == "singularity":
-            message = f"No singularity image found at {image}"
-            assert self.singularity_image.exists(), message
-
-            self.bmi = BmiClientSingularity(
-                image=str(self.singularity_image),
-                work_dir=str(self.work_dir),
-                timeout=10,
-            )
+            try:
+                self.bmi = BmiClientSingularity(
+                    image=f"docker://{self.docker_image}",
+                    work_dir=str(self.work_dir),
+                    timeout=15,
+                )
+            except FutureTimeoutError:
+                raise ValueError(
+                    "Couldn't spawn the singularity container within allocated"
+                    " time limit (15 seconds). You may try building it with "
+                    f"`!singularity run docker://{self.docker_image}` and try "
+                    "again. Please also inform the system administrator that "
+                    "the singularity image was missing.")
         else:
             raise ValueError(
-                f"Unknown container technology in CFG: {CFG['container_engine']}"
-            )
+                f"Unknown container technology: {CFG['container_engine']}")
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
