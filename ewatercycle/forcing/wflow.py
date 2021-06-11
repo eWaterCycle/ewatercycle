@@ -2,13 +2,13 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Union
+from typing import Dict, Optional
 
 from esmvalcore.experimental import get_recipe
 
+from ..util import get_extents, get_time
 from .datasets import DATASETS
 from .default import DefaultForcing
-from ..util import get_time, get_extents
 
 GENERATE_DOCS = """
 Options:
@@ -25,44 +25,31 @@ Fields:
     Inflow Optional[str]: Variable name of inflow data in input file.
 """
 
-class PathParser:
-    """Descriptor that converts input to pathlib.Path objects."""
-    def __init__(self, default_value):
-        self.default_value = default_value
-
-    def __set_name__(self, owner: object, name: str):
-        self.name = name
-
-    def __set__(self, instance: object, value: Optional[str] = None):
-        value = value if value is not None else self.default_value
-        instance.__dict__[self.name] = Path(value).expanduser().resolve()
-
 
 @dataclass
 class WflowForcing(DefaultForcing):
     """Container for wflow forcing data."""
 
     # Model-specific attributes (ideally should have defaults):
-    netcdfinput: str = PathParser(default_value='inmaps.nc')
+    netcdfinput: Optional[str] = 'inmaps.nc'
     """Input file path."""
-    Precipitation: str = "/pr"
+    Precipitation: Optional[str] = "/pr"
     """Variable name of precipitation data in input file."""
-    EvapoTranspiration: str = "/pet"
+    EvapoTranspiration: Optional[str] = "/pet"
     """Variable name of evapotranspiration data in input file."""
-    Temperature: str = "/tas"
+    Temperature: Optional[str] = "/tas"
     """Variable name of temperature data in input file."""
     Inflow: Optional[str] = None
     """Variable name of inflow data in input file."""
-
     @classmethod
-    def generate(
-        cls,  # type: ignore
+    def generate(  # type: ignore
+        cls,
         dataset: str,
         start_time: str,
         end_time: str,
         shape: str,
         dem_file: str,
-        extract_region: Optional[str] = None,
+        extract_region: Optional[Dict[str, float]] = None,
     ) -> 'WflowForcing':
         """Generate WflowForcing data with ESMValTool.
 
@@ -80,12 +67,11 @@ class WflowForcing(DefaultForcing):
         recipe = get_recipe(recipe_name)
 
         basin = Path(shape).stem
-        recipe.data['diagnostics']['wflow_daily']['scripts'][
-            'script']['basin'] = basin
+        recipe.data['diagnostics']['wflow_daily']['scripts']['script'][
+            'basin'] = basin
 
         # model-specific updates
-        script = recipe.data['diagnostics']['wflow_daily']['scripts'][
-            'script']
+        script = recipe.data['diagnostics']['wflow_daily']['scripts']['script']
         script['dem_file'] = dem_file
 
         if extract_region is None:
@@ -93,8 +79,9 @@ class WflowForcing(DefaultForcing):
         recipe.data['preprocessors']['rough_cutout'][
             'extract_region'] = extract_region
 
-        recipe.data['diagnostics']['wflow_daily'][
-            'additional_datasets'] = [DATASETS[dataset]]
+        recipe.data['diagnostics']['wflow_daily']['additional_datasets'] = [
+            DATASETS[dataset]
+        ]
 
         variables = recipe.data['diagnostics']['wflow_daily']['variables']
         var_names = 'tas', 'pr', 'psl', 'rsds', 'rsdt'
