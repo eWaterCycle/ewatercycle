@@ -86,7 +86,7 @@ class Wflow(AbstractModel):
         cfg = CaseConfigParser()
         cfg.read(config_file)
 
-        cfg.set("framework", "netcdfinput", forcing.netcdfinput.name)
+        cfg.set("framework", "netcdfinput", Path(forcing.netcdfinput).name)
         cfg.set("inputmapstacks", "Precipitation", forcing.Precipitation)
         cfg.set("inputmapstacks", "EvapoTranspiration",
                 forcing.EvapoTranspiration)
