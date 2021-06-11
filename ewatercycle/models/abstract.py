@@ -69,7 +69,7 @@ class AbstractModel(metaclass=ABCMeta):
         """
         return self.bmi.get_value_at_indices(name, indices)
 
-    def get_value_at_coord(self, name, lat: float, lon: float) -> np.ndarray:
+    def get_value_at_coords(self, name, lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
         """Get a copy of values of the given variable at lat/lon coordinates.
 
         Args:
@@ -78,8 +78,8 @@ class AbstractModel(metaclass=ABCMeta):
             lon: Longitudinal value
 
         """
-        index = self.coord_to_index(lat,lon)
-        return self.get_value_at_indices(name, index)
+        indices = self.coords_to_indices(name, lat, lon)
+        return self.get_value_at_indices(name, indices)
 
     def set_value(self, name: str, value: np.ndarray) -> None:
         """Specify a new value for a model variable.
@@ -102,7 +102,7 @@ class AbstractModel(metaclass=ABCMeta):
         """
         self.bmi.set_value_at_indices(name, indices, value)
 
-    def set_value_at_coord(self, name, lat: float, lon: float, value: np.ndarray) -> None:
+    def set_value_at_coords(self, name: str, lat: np.ndarray, lon: np.ndarray, values: np.ndarray) -> None:
         """Specify a new value for a model variable at at lat/lon coordinates.
 
         Args:
@@ -112,11 +112,15 @@ class AbstractModel(metaclass=ABCMeta):
             value: The new value for the specified variable.
 
         """
-        index = self.coord_to_index(lat,lon)
-        self.set_value_at_indices(name, index, value)
+        indices = self.coords_to_indices(name, lat, lon)
+        self.set_value_at_indices(name, indices, values)
+
+    # TODO Fix this function
+    def conversion_feedback(self, coord_user, coord_converted):
+        warnings.warn(f"Your coordinates {coord_user} matches model coordinates {coord_converted}.")
 
     @abstractmethod
-    def coord_to_index(self, lat: float, lon: float) -> np.ndarray:
+    def coords_to_indices(self, name: str, lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
         """Converts lat/lon values to index.
 
         Args:
@@ -126,16 +130,12 @@ class AbstractModel(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def index_to_coord(self, index: np.ndarray) -> Tuple[float,float]:
+    def indices_to_coords(self, name: str, indices: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Convert index to lat/lon values.
 
         Args: index: The index into lat/lon values
 
         """
-
-    @abstractmethod
-    def conversion_feedback(self, coord_user, coord_converted):
-        warnings.warn(f"Your coordinates {coord_user} matches model coordinates {coord_converted}.")
 
     @abstractmethod
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
