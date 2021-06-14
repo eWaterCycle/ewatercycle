@@ -137,7 +137,8 @@ class Wflow(AbstractModel):
         self.work_dir = working_directory.resolve()
 
         shutil.copytree(src=self.parameter_set.input_data, dst=working_directory)
-        shutil.copy(src=self.forcing.netcdfinput, dst=working_directory)
+        forcing_path = Path(self.forcing.directory) / self.forcing.netcdfinput
+        shutil.copy(src=forcing_path, dst=working_directory)
 
     def _start_container(self):
         if CFG["container_engine"] == "docker":
