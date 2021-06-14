@@ -2,13 +2,13 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional
 
 from esmvalcore.experimental import get_recipe
 
+from ..util import get_extents, get_time
 from .datasets import DATASETS
 from .default import DefaultForcing
-from ..util import get_time, get_extents
 
 GENERATE_DOCS = """
 Options:
@@ -31,27 +31,27 @@ class WflowForcing(DefaultForcing):
     """Container for wflow forcing data."""
 
     # Model-specific attributes (ideally should have defaults):
-    netcdfinput: str = "inmaps.nc"
+    netcdfinput: Optional[str] = "inmaps.nc"
     """Input file path."""
-    Precipitation: str = "/pr"
+    Precipitation: Optional[str] = "/pr"
     """Variable name of precipitation data in input file."""
-    EvapoTranspiration: str = "/pet"
+    EvapoTranspiration: Optional[str] = "/pet"
     """Variable name of evapotranspiration data in input file."""
-    Temperature: str = "/tas"
+    Temperature: Optional[str] = "/tas"
     """Variable name of temperature data in input file."""
     Inflow: Optional[str] = None
     """Variable name of inflow data in input file."""
 
     @classmethod
-    def generate(
-        cls,  # type: ignore
+    def generate(  # type: ignore
+        cls,
         dataset: str,
         start_time: str,
         end_time: str,
         shape: str,
         dem_file: str,
-        extract_region: Optional[str] = None,
-    ) -> 'WflowForcing':
+        extract_region: Optional[Dict[str, float]] = None,
+    ) -> "WflowForcing":
         """Generate WflowForcing data with ESMValTool.
 
         Args:
@@ -68,45 +68,64 @@ class WflowForcing(DefaultForcing):
         recipe = get_recipe(recipe_name)
 
         basin = Path(shape).stem
-        recipe.data['diagnostics']['wflow_daily']['scripts'][
-            'script']['basin'] = basin
+        recipe.data["diagnostics"]["wflow_daily"]["scripts"]["script"]["basin"] = basin
 
         # model-specific updates
-        script = recipe.data['diagnostics']['wflow_daily']['scripts'][
-            'script']
-        script['dem_file'] = dem_file
+        script = recipe.data["diagnostics"]["wflow_daily"]["scripts"]["script"]
+        script["dem_file"] = dem_file
 
         if extract_region is None:
             extract_region = get_extents(shape)
-        recipe.data['preprocessors']['rough_cutout'][
-            'extract_region'] = extract_region
+        recipe.data["preprocessors"]["rough_cutout"]["extract_region"] = extract_region
 
-        recipe.data['diagnostics']['wflow_daily'][
-            'additional_datasets'] = [DATASETS[dataset]]
+        recipe.data["diagnostics"]["wflow_daily"]["additional_datasets"] = [
+            DATASETS[dataset]
+        ]
 
-        variables = recipe.data['diagnostics']['wflow_daily']['variables']
-        var_names = 'tas', 'pr', 'psl', 'rsds', 'rsdt'
+        variables = recipe.data["diagnostics"]["wflow_daily"]["variables"]
+        var_names = "tas", "pr", "psl", "rsds", "rsdt"
 
         startyear = get_time(start_time).year
         for var_name in var_names:
-            variables[var_name]['start_year'] = startyear
+            variables[var_name]["start_year"] = startyear
 
         endyear = get_time(end_time).year
         for var_name in var_names:
-            variables[var_name]['end_year'] = endyear
+            variables[var_name]["end_year"] = endyear
 
         # generate forcing data and retreive useful information
         recipe_output = recipe.run()
-        forcing_data = recipe_output['wflow_daily/script'].data_files[0]
+        forcing_data = recipe_output["wflow_daily/script"].data_files[0]
 
         forcing_file = forcing_data.filename
         directory = str(forcing_file.parent)
 
         # instantiate forcing object based on generated data
-        return WflowForcing(directory=directory,
-                            start_time=start_time,
-                            end_time=end_time,
-                            netcdfinput=forcing_file.name)
+        return WflowForcing(
+            directory=directory,
+            start_time=start_time,
+            end_time=end_time,
+            netcdfinput=forcing_file.name,
+        )
+
+    def __str__(self):
+        """Nice formatting of the forcing data object."""
+        return "\n".join(
+            [
+                "Forcing data for Wflow",
+                "----------------------",
+                f"Directory: {self.directory}",
+                f"Start time: {self.start_time}",
+                f"End time: {self.end_time}",
+                f"Shapefile: {self.shape}",
+                f"Additional information for model config:",
+                f"  - netcdfinput: {self.netcdfinput}",
+                f"  - Precipitation: {self.Precipitation}",
+                f"  - Temperature: {self.Temperature}",
+                f"  - EvapoTranspiration: {self.EvapoTranspiration}",
+                f"  - Inflow: {self.Inflow}",
+            ]
+        )
 
     def plot(self):
-        raise NotImplementedError('Dont know how to plot')
+        raise NotImplementedError("Dont know how to plot")
