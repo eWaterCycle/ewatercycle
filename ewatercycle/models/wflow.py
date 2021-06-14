@@ -27,21 +27,25 @@ class WflowParameterSet:
     A valid wflow parameter set consists of a input data files
     and should always include a default configuration file.
     """
+
     input_data: Union[str, PathLike]
     """Input folder path."""
     default_config: Union[str, PathLike]
     """Path to (default) model configuration file consistent with `input_data`."""
+
     def __setattr__(self, name: str, value: Union[str, PathLike]):
         self.__dict__[name] = Path(value).expanduser().resolve()
 
     def __str__(self):
         """Nice formatting of parameter set."""
-        return "\n".join([
-            "Wflow parameterset",
-            "------------------",
-            f"Directory: {self.input_data}",
-            f"Default configuration file: {self.default_config}",
-        ])
+        return "\n".join(
+            [
+                "Wflow parameterset",
+                "------------------",
+                f"Directory: {self.input_data}",
+                f"Default configuration file: {self.default_config}",
+            ]
+        )
 
 
 class Wflow(AbstractModel):
@@ -57,12 +61,15 @@ class Wflow(AbstractModel):
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
 
-    available_versions = ("2020.1.1")
+    available_versions = ("2020.1.1",)
     """Show supported WFlow versions in eWaterCycle"""
-    def __init__(self,
-                 version: str,
-                 parameter_set: WflowParameterSet,
-                 forcing: Optional[WflowForcing] = None):
+
+    def __init__(
+        self,
+        version: str,
+        parameter_set: WflowParameterSet,
+        forcing: Optional[WflowForcing] = None,
+    ):
 
         super().__init__()
         self.version = version
@@ -88,8 +95,7 @@ class Wflow(AbstractModel):
 
         cfg.set("framework", "netcdfinput", Path(forcing.netcdfinput).name)
         cfg.set("inputmapstacks", "Precipitation", forcing.Precipitation)
-        cfg.set("inputmapstacks", "EvapoTranspiration",
-                forcing.EvapoTranspiration)
+        cfg.set("inputmapstacks", "EvapoTranspiration", forcing.EvapoTranspiration)
         cfg.set("inputmapstacks", "Temperature", forcing.Temperature)
         cfg.set("run", "starttime", _iso_to_wflow(forcing.start_time))
         cfg.set("run", "endtime", _iso_to_wflow(forcing.end_time))
@@ -120,15 +126,17 @@ class Wflow(AbstractModel):
 
         self._start_container()
 
-        return updated_cfg_file.expanduser().resolve(), self.work_dir,
+        return (
+            updated_cfg_file.expanduser().resolve(),
+            self.work_dir,
+        )
 
     def _setup_working_directory(self):
         timestamp = time.strftime("%Y%m%d_%H%M%S")
-        working_directory = CFG["output_dir"] / f'wflow_{timestamp}'
+        working_directory = CFG["output_dir"] / f"wflow_{timestamp}"
         self.work_dir = working_directory.resolve()
 
-        shutil.copytree(src=self.parameter_set.input_data,
-                        dst=working_directory)
+        shutil.copytree(src=self.parameter_set.input_data, dst=working_directory)
         shutil.copy(src=self.forcing.netcdfinput, dst=working_directory)
 
     def _start_container(self):
@@ -152,10 +160,10 @@ class Wflow(AbstractModel):
                     " time limit (15 seconds). You may try building it with "
                     f"`!singularity run docker://{self.docker_image}` and try "
                     "again. Please also inform the system administrator that "
-                    "the singularity image was missing.")
+                    "the singularity image was missing."
+                )
         else:
-            raise ValueError(
-                f"Unknown container technology: {CFG['container_engine']}")
+            raise ValueError(f"Unknown container technology: {CFG['container_engine']}")
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
@@ -170,7 +178,7 @@ class Wflow(AbstractModel):
             coords={
                 "longitude": self.bmi.get_grid_y(grid),
                 "latitude": self.bmi.get_grid_x(grid),
-                "time": num2date(self.bmi.get_current_time(), time_units)
+                "time": num2date(self.bmi.get_current_time(), time_units),
             },
             dims=["latitude", "longitude"],
             name=name,
@@ -185,8 +193,8 @@ class Wflow(AbstractModel):
         # An opiniated list of configurable parameters.
         cfg = self.config
         return [
-            ("start_time", _wflow_to_iso(cfg.get('run', 'starttime'))),
-            ("end_time", _wflow_to_iso(cfg.get('run', 'endtime'))),
+            ("start_time", _wflow_to_iso(cfg.get("run", "starttime"))),
+            ("end_time", _wflow_to_iso(cfg.get("run", "endtime"))),
         ]
 
 
