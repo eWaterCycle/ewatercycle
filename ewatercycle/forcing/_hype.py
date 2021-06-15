@@ -57,7 +57,9 @@ class HypeForcing(DefaultForcing):
 
         # generate forcing data and retreive useful information
         recipe_output = recipe.run()
-        forcing_path = list(recipe_output['...........']).data_files[0]
+        # TODO return files created by ESMValTOOL which are needed by Hype Model
+        # forcing_path = list(recipe_output['...........']).data_files[0]
+        forcing_path = '/foobar.txt'
 
         forcing_file = Path(forcing_path).name
         directory = str(Path(forcing_file).parent)

@@ -46,44 +46,44 @@ def lat_lon_to_closest_variable_indices(model, variable, lats, lons):
     """Translate lat, lon coordinates into BMI model
     indices, which are used to get and set variable values.
     """
-    #get shape of model grid and lat-lon coordinates of grid
+    # get shape of model grid and lat-lon coordinates of grid
     shape = model.bmi.get_grid_shape(model.bmi.get_var_grid(variable))
-    latModel = model.bmi.get_grid_x(model.bmi.get_var_grid(variable))
-    lonModel = model.bmi.get_grid_y(model.bmi.get_var_grid(variable))
-    nx = len(latModel)
+    lat_model = model.bmi.get_grid_x(model.bmi.get_var_grid(variable))
+    lon_model = model.bmi.get_grid_y(model.bmi.get_var_grid(variable))
+    nx = len(lat_model)
 
-    #for each coordinate given, determine where in the grid they fall and
-    #calculate 1D indeces
+    # for each coordinate given, determine where in the grid they fall and
+    # calculate 1D indices
     if len(lats) == 1:
-        idx = np.abs(latModel - lats).argmin()
-        idy = np.abs(lonModel - lons).argmin()
+        idx = np.abs(lat_model - lats).argmin()
+        idy = np.abs(lon_model - lons).argmin()
         output = idx + nx * idy
     else:
         output = []
         for [lat, lon] in [lats, lons]:
-            idx = np.abs(latModel - lat).argmin()
-            idy = np.abs(lonModel - lon).argmin()
+            idx = np.abs(lat_model - lat).argmin()
+            idy = np.abs(lon_model - lon).argmin()
             output.append(idx + nx * idy)
 
     return np.array(output)
 
 
-def lat_lon_boundingbox_to_variable_indices(model, variable, latMin, latMax,
-                                            lonMin, lonMax):
+def lat_lon_boundingbox_to_variable_indices(model, variable, lat_min, lat_max,
+                                            lon_min, lon_max):
     """Translate bounding boxes of lat, lon coordinates into BMI model
     indices, which are used to get and set variable values.
     """
     # get shape of model grid and lat-lon coordinates of grid
     shape = model.get_grid_shape(model.get_var_grid(variable))
-    latModel = model.get_grid_x(model.get_var_grid(variable))
-    lonModel = model.get_grid_y(model.get_var_grid(variable))
-    nx = len(latModel)
+    lat_model = model.get_grid_x(model.get_var_grid(variable))
+    lon_model = model.get_grid_y(model.get_var_grid(variable))
+    nx = len(lat_model)
 
     idx = [
-        i for i, v in enumerate(latModel) if ((v > latMin) and (v < latMax))
+        i for i, v in enumerate(lat_model) if ((v > lat_min) and (v < lat_max))
     ]
     idy = [
-        i for i, v in enumerate(lonModel) if ((v > lonMin) and (v < lonMax))
+        i for i, v in enumerate(lon_model) if ((v > lon_min) and (v < lon_max))
     ]
 
     output = []

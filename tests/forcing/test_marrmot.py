@@ -146,3 +146,22 @@ def test_load_foreign(sample_shape, sample_marrmot_forcing_file):
         forcing_file=str(forcing_file.name)
     )
     assert actual == expected
+
+
+def test_load_foreign_without_forcing_info(sample_shape):
+    actual = load_foreign(
+        target_model='marrmot',
+        start_time='1989-01-02T00:00:00Z',
+        end_time='1999-01-02T00:00:00Z',
+        shape=sample_shape,
+        directory='/data'
+    )
+
+    expected = MarrmotForcing(
+        start_time='1989-01-02T00:00:00Z',
+        end_time='1999-01-02T00:00:00Z',
+        shape=sample_shape,
+        directory='/data',
+        forcing_file='marrmot.mat'
+    )
+    assert actual == expected
