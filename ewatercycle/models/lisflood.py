@@ -2,7 +2,7 @@ import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Tuple, Union
+from typing import Any, Iterable, List, Tuple, Union
 
 import numpy as np
 import xarray as xr
@@ -241,7 +241,7 @@ class Lisflood(AbstractModel):
 
         return da
 
-    def coords_to_indices(self, name: str, lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
+    def coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Iterable[int]:
         """Convert lat, lon coordinates into model indices."""
         grid_id = self.bmi.get_var_grid(name)
         shape = self.bmi.get_grid_shape(grid_id) #(len(y), len(x))
@@ -255,14 +255,17 @@ class Lisflood(AbstractModel):
             idx = np.abs(x_model - x).argmin()
             idy = np.abs(y_model - y).argmin()
             indices.append(np.ravel_multi_index((idy, idx), shape))
-            coord_converted.append((x_model[idx], y_model[idy]))
-        #TODO provide feedback
+            coord_converted.append(np.around((x_model[idx], y_model[idy]), 2))
+        # Provide feedback
+        coord_user = np.around(tuple(zip(lon, lat)), 2)
+        self.conversion_feedback(coord_user, coord_converted)
         return np.array(indices)
 
-    def indices_to_coords(self, name: str, indices: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def indices_to_coords(self, name: str, indices: Iterable[int]) -> Tuple[Iterable[float], Iterable[float]]:
         """Convert index to lat/lon values."""
         grid_id = self.bmi.get_var_grid(name)
-        shape = self.bmi.get_grid_shape(grid_id)
+        shape = self.bmi.get_grid_shape(grid_id) #(len(y), len(x))
+        indices = np.array(indices)
         idy, idx = np.unravel_index(indices, shape)
         x_model = self.bmi.get_grid_x(grid_id)
         y_model = self.bmi.get_grid_y(grid_id)

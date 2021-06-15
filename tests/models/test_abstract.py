@@ -32,10 +32,10 @@ class MockedModel(AbstractModel):
             attrs=dict(units="degC"),
         )
 
-    def coords_to_indices(self, name: str, lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
+    def coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Iterable[int]:
         return np.array([0])
 
-    def indices_to_coords(self, name: str, indices: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def indices_to_coords(self, name: str, indices: Iterable[int]) -> Tuple[Iterable[float], Iterable[float]]:
         return np.array([-99.83]), np.array([42.25])
 
 
@@ -104,7 +104,7 @@ def test_get_value_at_indices(bmi, model: MockedModel):
     expected = np.array([1.0])
     bmi.get_value_at_indices.return_value = expected
 
-    value = model.get_value_at_indices('discharge', np.array([0.0]))
+    value = model.get_value_at_indices('discharge', [0])
 
     assert_array_equal(value, expected)
 
@@ -113,7 +113,7 @@ def test_get_value_at_coords(bmi, model: MockedModel):
     expected = np.array([1.0])
     bmi.get_value_at_indices.return_value = expected
 
-    value = model.get_value_at_coords('discharge', np.array([-99.83]), np.array([42.25]))
+    value = model.get_value_at_coords('discharge', [-99.83], [42.25])
 
     assert_array_equal(value, expected)
 
@@ -127,16 +127,16 @@ def test_set_value(model: MockedModel, bmi):
 
 def set_value_at_indices(model: MockedModel, bmi):
     value = np.array([1.0])
-    model.set_value_at_indices('precipitation', np.array([0.0]), value)
+    model.set_value_at_indices('precipitation', [0], value)
 
-    bmi.set_value_at_indices.assert_called_once_with('precipitation', np.array([0.0]), value)
+    bmi.set_value_at_indices.assert_called_once_with('precipitation', [0], value)
 
 
 def test_set_value_at_coords(model: MockedModel, bmi):
     value = np.array([1.0])
-    model.set_value_at_coords('precipitation', np.array([-99.83]), np.array([42.25]), value)
+    model.set_value_at_coords('precipitation', [-99.83], [42.25], value)
 
-    bmi.set_value_at_indices.assert_called_once_with('precipitation', np.array([0.0]), value)
+    bmi.set_value_at_indices.assert_called_once_with('precipitation', [0], value)
 
 
 def test_start_time(bmi, model: MockedModel):
