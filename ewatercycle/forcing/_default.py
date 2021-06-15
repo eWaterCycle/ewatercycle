@@ -1,10 +1,9 @@
 """Forcing related functionality for default models"""
 
 from pathlib import Path
+from typing import Optional
 
 from ruamel.yaml import YAML
-
-from ewatercycle.util import get_time, parse_path
 
 
 class DefaultForcing:
@@ -18,8 +17,11 @@ class DefaultForcing:
             'YYYY-MM-DDTHH:MM:SSZ'.
         shape: Path to a shape file. Used for spatial selection.
     """
-    def __init__(self, start_time: str, end_time: str, directory: str,
-                 shape: str):
+    def __init__(self,
+                 start_time: str,
+                 end_time: str,
+                 directory: str,
+                 shape: Optional[str] = None):
         self.start_time = start_time
         self.end_time = end_time
         self.directory = directory
