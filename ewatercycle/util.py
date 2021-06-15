@@ -1,10 +1,11 @@
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any, Tuple, Dict
 
 import fiona
 import numpy as np
 import xarray as xr
+from datetime import datetime
+
+from cftime import num2date
 from dateutil.parser import parse
 from esmvalcore.experimental.recipe_output import RecipeOutput
 from shapely import geometry
@@ -29,14 +30,11 @@ def var_to_xarray(model, variable):
 
     # Create xarray object
     da = xr.DataArray(data,
-                      coords={
-                          'longitude': lon,
-                          'latitude': lat,
-                          'time': time
-                      },
+                      coords={'longitude': lon, 'latitude': lat, 'time': time},
                       dims=['latitude', 'longitude'],
                       name=variable,
-                      attrs={'units': model.get_var_units(variable)})
+                      attrs={'units': model.get_var_units(variable)}
+                      )
 
     # Masked invalid values on return array:
     return da.where(da != -999)
@@ -68,8 +66,7 @@ def lat_lon_to_closest_variable_indices(model, variable, lats, lons):
     return np.array(output)
 
 
-def lat_lon_boundingbox_to_variable_indices(model, variable, lat_min, lat_max,
-                                            lon_min, lon_max):
+def lat_lon_boundingbox_to_variable_indices(model, variable, lat_min, lat_max, lon_min, lon_max):
     """Translate bounding boxes of lat, lon coordinates into BMI model
     indices, which are used to get and set variable values.
     """
@@ -79,12 +76,8 @@ def lat_lon_boundingbox_to_variable_indices(model, variable, lat_min, lat_max,
     lon_model = model.get_grid_y(model.get_var_grid(variable))
     nx = len(lat_model)
 
-    idx = [
-        i for i, v in enumerate(lat_model) if ((v > lat_min) and (v < lat_max))
-    ]
-    idy = [
-        i for i, v in enumerate(lon_model) if ((v > lon_min) and (v < lon_max))
-    ]
+    idx = [i for i, v in enumerate(lat_model) if ((v > lat_min) and (v < lat_max))]
+    idy = [i for i, v in enumerate(lon_model) if ((v > lon_min) and (v < lon_max))]
 
     output = []
     for x in idx:
@@ -120,7 +113,9 @@ def get_extents(shapefile: Any, pad=0) -> Dict[str, float]:
         Dict with `start_longitude`, `start_latitude`, `end_longitude`, `end_latitude`
     """
     shape = fiona.open(shapefile)
-    x0, y0, x1, y1 = [geometry.shape(p["geometry"]).bounds for p in shape][0]
+    x0, y0, x1, y1 = [
+        geometry.shape(p["geometry"]).bounds for p in shape
+    ][0]
     x0 = round((x0 - pad), 1)
     y0 = round((y0 - pad), 1)
     x1 = round((x1 + pad), 1)
@@ -133,8 +128,7 @@ def get_extents(shapefile: Any, pad=0) -> Dict[str, float]:
     }
 
 
-def data_files_from_recipe_output(
-        recipe_output: RecipeOutput) -> Tuple[str, Dict[str, str]]:
+def data_files_from_recipe_output(recipe_output: RecipeOutput) -> Tuple[str, Dict[str, str]]:
     """Get data files from a ESMVaLTool recipe output
 
     Expects first diagnostic task to produce files with single var each.
@@ -156,17 +150,3 @@ def data_files_from_recipe_output(
     # TODO simplify (recipe_output.location) when next esmvalcore release is made
     directory = str(data_files[0].filename.parent)
     return directory, forcing_files
-
-
-def parse_path(input_path: str, must_exist: bool = False) -> Path:
-    """Parse input string as pathlib.Path object."""
-    try:
-        parsed_path = Path(input_path).expanduser().resolve()
-    except Exception as e:
-        raise ValueError(f"Tried to parse input path {input_path}, "
-                         f"but failed with exception: {e}")
-
-    if must_exist and not parsed_path.exists():
-        raise ValueError(f"Got non-existent path {input_path}.")
-
-    return parsed_path

@@ -1,9 +1,8 @@
 from datetime import datetime, timezone
-from pathlib import Path
 
 import pytest
 
-from ewatercycle.util import get_time, parse_path
+from ewatercycle.util import get_time
 
 
 def test_get_time_with_utc():
@@ -24,22 +23,3 @@ def test_get_time_without_tz():
 
     assert 'not in UTC' in str(excinfo.value)
 
-
-def test_parse_path():
-    input_path = "~/nonexistent_file.txt"
-    parsed = parse_path(input_path)
-    expected = Path.home() / "nonexistent_file.txt"
-    assert parsed == expected
-
-
-def test_parse_path_must_exist():
-    input_path = "~/nonexistent_file.txt"
-    with pytest.raises(ValueError) as excinfo:
-        parse_path(input_path, must_exist=True)
-    assert "Got non-existent path" in str(excinfo.value)
-
-
-def test_parse_path_invalid():
-    with pytest.raises(ValueError) as excinfo:
-        parse_path(123)
-    assert "Tried to parse input path" in str(excinfo.value)

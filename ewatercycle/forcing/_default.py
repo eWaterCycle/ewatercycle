@@ -20,10 +20,10 @@ class DefaultForcing:
     """
     def __init__(self, start_time: str, end_time: str, directory: str,
                  shape: str):
-        self.start_time = get_time(start_time)
-        self.end_time = get_time(end_time)
-        self.directory = parse_path(directory)
-        self.shape = parse_path(shape)
+        self.start_time = start_time
+        self.end_time = end_time
+        self.directory = directory
+        self.shape = shape
 
     @classmethod
     def generate(
