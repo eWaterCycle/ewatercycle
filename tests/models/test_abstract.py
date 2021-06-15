@@ -22,11 +22,22 @@ class MockedModel(AbstractModel):
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         return xr.DataArray(
-            data=[[1.0, 2.0]],
-            dims=["time", "x"],
+            data=[[1.0, 2.0], [3.0, 4.0]],
+            coords={
+                "latitude":[42.25, 42.21],
+                "longitude":[-99.83, -99.32],
+                "time":'2014-09-06'},
+            dims=["longitude", "latitude"],
             name='Temperature',
             attrs=dict(units="degC"),
         )
+
+    def coords_to_indices(self, name: str, lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
+        return np.array([0])
+
+    def indices_to_coords(self, name: str, indices: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        return np.array([-99.83]), np.array([42.25])
+
 
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
@@ -81,10 +92,28 @@ def test_update(model: MockedModel, bmi):
 
 
 def test_get_value(bmi, model: MockedModel):
-    expected = np.array([1.0, 2.0])
+    expected = np.array([[1.0, 2.0], [3.0, 4.0]])
     bmi.get_value.return_value = expected
 
     value = model.get_value('discharge')
+
+    assert_array_equal(value, expected)
+
+
+def test_get_value_at_indices(bmi, model: MockedModel):
+    expected = np.array([1.0])
+    bmi.get_value_at_indices.return_value = expected
+
+    value = model.get_value_at_indices('discharge', np.array([0.0]))
+
+    assert_array_equal(value, expected)
+
+
+def test_get_value_at_coords(bmi, model: MockedModel):
+    expected = np.array([1.0])
+    bmi.get_value_at_indices.return_value = expected
+
+    value = model.get_value_at_coords('discharge', np.array([-99.83]), np.array([42.25]))
 
     assert_array_equal(value, expected)
 
@@ -94,6 +123,20 @@ def test_set_value(model: MockedModel, bmi):
     model.set_value('precipitation', value)
 
     bmi.set_value.assert_called_once_with('precipitation', value)
+
+
+def set_value_at_indices(model: MockedModel, bmi):
+    value = np.array([1.0])
+    model.set_value_at_indices('precipitation', np.array([0.0]), value)
+
+    bmi.set_value_at_indices.assert_called_once_with('precipitation', np.array([0.0]), value)
+
+
+def test_set_value_at_coords(model: MockedModel, bmi):
+    value = np.array([1.0])
+    model.set_value_at_coords('precipitation', np.array([-99.83]), np.array([42.25]), value)
+
+    bmi.set_value_at_indices.assert_called_once_with('precipitation', np.array([0.0]), value)
 
 
 def test_start_time(bmi, model: MockedModel):
@@ -146,8 +189,12 @@ def test_output_var_names(bmi, model: MockedModel):
 
 def test_get_value_as_xarray(model: MockedModel):
     expected = xr.DataArray(
-            data=[[1.0, 2.0]],
-            dims=["time", "x"],
+            data=[[1.0, 2.0], [3.0, 4.0]],
+            coords={
+                "latitude":[42.25, 42.21],
+                "longitude":[-99.83, -99.32],
+                "time":'2014-09-06'},
+            dims=["longitude", "latitude"],
             name='Temperature',
             attrs=dict(units="degC"),
         )
