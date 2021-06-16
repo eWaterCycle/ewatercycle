@@ -16,7 +16,7 @@ class WflowForcing(DefaultForcing):
         start_time: str,
         end_time: str,
         directory: str,
-        shape: str,
+        shape: Optional[str] = None,
         netcdfinput: Optional[str] = "inmaps.nc",
         Precipitation: Optional[str] = "/pr",
         EvapoTranspiration: Optional[str] = "/pet",

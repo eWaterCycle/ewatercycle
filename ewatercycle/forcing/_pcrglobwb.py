@@ -17,7 +17,7 @@ class PCRGlobWBForcing(DefaultForcing):
         start_time: str,
         end_time: str,
         directory: str,
-        shape: str,
+        shape: Optional[str] = None,
         precipitationNC: Optional[str] = 'precipitation.nc',
         temperatureNC: Optional[str] = 'temperature.nc',
     ):

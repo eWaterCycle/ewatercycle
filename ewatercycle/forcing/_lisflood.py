@@ -19,7 +19,7 @@ class LisfloodForcing(DefaultForcing):
         start_time: str,
         end_time: str,
         directory: str,
-        shape: str,
+        shape: Optional[str] = None,
         PrefixPrecipitation: Optional[str] = 'pr.nc',
         PrefixTavg: Optional[str] = 'tas.nc',
         PrefixE0: Optional[str] = 'e0.nc',
@@ -103,15 +103,16 @@ class LisfloodForcing(DefaultForcing):
         # TODO forcing_files['e0'] = ...
 
         # instantiate forcing object based on generated data
-        return LisfloodForcing(directory=directory,
-                               start_time=start_time,
-                               end_time=end_time,
-                               PrefixPrecipitation=forcing_files["pr"],
-                               PrefixTavg=forcing_files["tas"],
-                               PrefixE0=forcing_files['e0'],
-                               PrefixES0=forcing_files['es0'],
-                               PrefixET0=forcing_files['et0'],
-                               )
+        return LisfloodForcing(
+            directory=directory,
+            start_time=start_time,
+            end_time=end_time,
+            PrefixPrecipitation=forcing_files["pr"],
+            PrefixTavg=forcing_files["tas"],
+            PrefixE0=forcing_files['e0'],
+            PrefixES0=forcing_files['es0'],
+            PrefixET0=forcing_files['et0'],
+        )
 
     def plot(self):
         raise NotImplementedError('Dont know how to plot')
