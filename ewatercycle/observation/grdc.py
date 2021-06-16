@@ -53,15 +53,15 @@ def get_grdc_data(station_id: str,
                 NA
     """
     if data_home:
-        data_home = Path(data_home).expanduser().resolve()
+        data_path = Path(data_home).expanduser().resolve()
     else:
-        data_home = Path(CFG["grdc_location"]).expanduser().resolve()
+        data_path = Path(CFG["grdc_location"]).expanduser().resolve()
 
-    if not data_home.exists():
-        raise ValueError(f'The grdc directory {data_home} does not exist!')
+    if not data_path.exists():
+        raise ValueError(f'The grdc directory {data_path} does not exist!')
 
     # Read the raw data
-    raw_file = data_home / f"{station_id}_{parameter}_Day.Cmd.txt"
+    raw_file = data_path / f"{station_id}_{parameter}_Day.Cmd.txt"
     if not raw_file.exists():
         raise ValueError(f'The grdc file {raw_file} does not exist!')
 
@@ -71,11 +71,7 @@ def get_grdc_data(station_id: str,
         start=get_time(start_time).date(),
         end=get_time(end_time).date())
 
-    # Create the xarray dataset
-    ds = df.to_xarray()
-    ds.attrs = metadata
-
-    return ds
+    return df, metadata
 
 
 def _grdc_read(grdc_station_path, start, end):
@@ -93,19 +89,17 @@ def _grdc_read(grdc_station_path, start, end):
             break
 
     # Import GRDC data into dataframe and modify dataframe format
-    grdc_station_df = pd.read_csv(
+    grdc_data = pd.read_csv(
         grdc_station_path,
         skiprows=header,
         delimiter=';',
         parse_dates=['YYYY-MM-DD'],
         na_values='-999')
-    grdc_station_df = grdc_station_df.rename(columns={
-        'YYYY-MM-DD': 'time',
-        ' Value': 'streamflow'
-    })
-    grdc_station_df = grdc_station_df.reset_index().set_index(
-        pd.DatetimeIndex(grdc_station_df['time']))
-    grdc_station_df = grdc_station_df.drop(columns=['hh:mm', 'index', 'time'])
+    grdc_station_df = pd.DataFrame(
+        {'streamflow': grdc_data[' Value'].values},
+        index = grdc_data['YYYY-MM-DD'].values,
+        )
+    grdc_station_df.index.rename('time', inplace=True)
 
     # Select GRDC station data that matches the forecast results Date
     grdc_station_select = grdc_station_df.loc[start:end]

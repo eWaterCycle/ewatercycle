@@ -1,9 +1,9 @@
 from datetime import datetime
+import pandas as pd
 
 import pytest
-import xarray as xa
 import numpy as np
-from xarray.testing import assert_equal
+from pandas.testing import assert_frame_equal
 
 from ewatercycle.observation.grdc import get_grdc_data
 
@@ -57,12 +57,14 @@ YYYY-MM-DD;hh:mm; Value
 
 
 def test_get_grdc_data(tmp_path, sample_grdc_file):
-    result = get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z', data_home=tmp_path)
+    result_data, result_metadata = get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z', data_home=tmp_path)
 
-    expected = xa.Dataset(
-        {'streamflow': ('time', [123., 456., np.NaN])},
-        coords={'time': [datetime(2000, 1, 1), datetime(2000, 1, 2), datetime(2000, 1, 3)]},
-        attrs={
+    expected_data = pd.DataFrame(
+        {'streamflow': [123., 456., np.NaN]},
+        index = [datetime(2000, 1, 1), datetime(2000, 1, 2), datetime(2000, 1, 3)],
+    )
+    expected_data.index.rename('time', inplace=True)
+    expected_metadata = {
             'altitude_masl': 8.0,
             'country_code': 'NA',
             'dataSetContent': 'MEAN DAILY DISCHARGE (Q)',
@@ -80,7 +82,5 @@ def test_get_grdc_data(tmp_path, sample_grdc_file):
             'time_series': '2000-01 - 2000-01',
             'units': 'm�/s'
         }
-    )
-
-    assert_equal(result, expected)
-    assert result.attrs == expected.attrs
+    assert_frame_equal(result_data, expected_data)
+    assert result_metadata == expected_metadata
