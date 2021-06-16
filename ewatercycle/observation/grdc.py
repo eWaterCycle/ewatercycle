@@ -4,61 +4,53 @@ from pathlib import Path
 
 import pandas as pd
 from ewatercycle import CFG
+from ewatercycle.util import get_time
 
 def get_grdc_data(station_id: str,
                   start_time: str,
                   end_time: str,
                   parameter: str = 'Q',
                   data_home: str = None):
-    """
-    Get river discharge data from Global Runoff Data Centre (GRDC).
+    """Get river discharge data from Global Runoff Data Centre (GRDC).
 
-    Requires the GRDC daily data files in a local directory.
-    The GRDC daily data files can be ordered at https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/riverdischarge_node.html
+    Requires the GRDC daily data files in a local directory. The GRDC daily data
+    files can be ordered at
+    https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/riverdischarge_node.html
 
-    Parameters
-    ----------
-    station_id : str
-        The station id to get.
-        The station id can be found in the catalogues at https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/212_prjctlgs/project_catalogue_node.html
-    start_time : str
-        String for start date in the format: 'YYYY-MM-dd', e.g. '1980-01-01'
-    end_time : str
-        String for start date in the format: 'YYYY-MM-dd', e.g. '2018-12-31'
-    parameter : str, optional
-        The parameter code to get, e.g. ('Q') discharge, cubic meters per second
-    data_home : str, optional
-        The directory where the daily grdc data is located.
-        If left out will use the grdc_location in the eWaterCycle configuration file.
+    Args:
+    station_id: The station id to get. The station id can be found in the
+    catalogues at
+    https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/212_prjctlgs/project_catalogue_node.html
+    start_time: Start time of model in UTC and ISO format string e.g.
+    'YYYY-MM-DDTHH:MM:SSZ'.
+    end_time: End time of model in  UTC and ISO format string e.g.
+    'YYYY-MM-DDTHH:MM:SSZ'.
+    parameter: optional. The parameter code to get, e.g. ('Q') discharge,
+    cubic meters per second.
+    data_home : optional. The directory where the
+    daily grdc data is located. If left out will use the grdc_location in the
+    eWaterCycle configuration file.
 
-    Examples
-    --------
-    >>> from ewatercycle.observation.grdc import get_grdc_data
-    >>> data = get_grdc_data('6335020', '2000-01-01', '2001-01-01', data_home='.')
-    >>> data
-        <xarray.Dataset>
-        Dimensions:     (time: 367)
-        Coordinates:
-        * time        (time) datetime64[ns] 2000-01-01 2000-01-02 ... 2001-01-01
-        Data variables:
-            streamflow  (time) float64 ...
-        Attributes:
-            grdc_file_name:                6335020_Q_Day.Cmd
-            id_from_grdc:                  6335020
-            file_generation_date:          2019-03-27
-            river_name:                    RHINE RIVER
-            station_name:                  REES
-            country_code:                  DE
-            grdc_latitude_in_arc_degree:   51.756918
-            grdc_longitude_in_arc_degree:  6.395395
-            grdc_catchment_area_in_km2:    159300.0
-            altitude_masl:                 8.0
-            dataSetContent:                MEAN DAILY DISCHARGE (Q)
-            units:                         m�/s
-            time_series:                   1814-11 - 2016-12
-            no_of_years:                   203
-            last_update:                   2018-05-24
-            nrMeasurements:                NA
+    Returns:
+        grdc data in a dataframe and metadata.
+
+    Examples:
+        .. code-block:: python
+            from ewatercycle.observation.grdc import get_grdc_data data =
+            get_grdc_data('6335020', '2000-01-01T00:00Z', '2001-01-01T00:00Z', data_home='.') data
+            <xarray.Dataset> Dimensions:     (time: 367) Coordinates:
+            * time        (time) datetime64[ns] 2000-01-01 2000-01-02 ... 2001-01-01
+                Data variables: streamflow  (time) float64 ... Attributes:
+                grdc_file_name:                6335020_Q_Day.Cmd id_from_grdc:
+                6335020 file_generation_date:          2019-03-27 river_name:
+                RHINE RIVER station_name:                  REES country_code:
+                DE grdc_latitude_in_arc_degree:   51.756918
+                grdc_longitude_in_arc_degree:  6.395395 grdc_catchment_area_in_km2:
+                159300.0 altitude_masl:                 8.0 dataSetContent:
+                MEAN DAILY DISCHARGE (Q) units:                         m�/s
+                time_series:                   1814-11 - 2016-12 no_of_years:
+                203 last_update:                   2018-05-24 nrMeasurements:
+                NA
     """
     if data_home:
         data_home = Path(data_home).expanduser().resolve()
@@ -76,8 +68,8 @@ def get_grdc_data(station_id: str,
     # Convert the raw data to an xarray
     metadata, df = _grdc_read(
         raw_file,
-        start=datetime.strptime(start_time, "%Y-%m-%d"),
-        end=datetime.strptime(end_time, "%Y-%m-%d"))
+        start=get_time(start_time).date(),
+        end=get_time(end_time).date())
 
     # Create the xarray dataset
     ds = df.to_xarray()

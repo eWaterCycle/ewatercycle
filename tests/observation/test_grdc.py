@@ -57,7 +57,7 @@ YYYY-MM-DD;hh:mm; Value
 
 
 def test_get_grdc_data(tmp_path, sample_grdc_file):
-    result = get_grdc_data('42424242', '2000-01-01', '2000-02-01', data_home=tmp_path)
+    result = get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z', data_home=tmp_path)
 
     expected = xa.Dataset(
         {'streamflow': ('time', [123., 456., np.NaN])},
