@@ -150,8 +150,8 @@ def generate(target_model: str,
 
 
 # Append docstrings of with model-specific options to existing docstring
-load_foreign.__doc__ += "".join(
+load_foreign.__doc__ += "".join(  # type:ignore
     [f"\n    {k}: {v.__init__.__doc__}" for k, v in FORCING_CLASSES.items()])
 
-generate.__doc__ += "".join(
+generate.__doc__ += "".join(  # type:ignore
     [f"\n    {k}: {v.generate.__doc__}" for k, v in FORCING_CLASSES.items()])

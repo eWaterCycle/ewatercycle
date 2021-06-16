@@ -34,6 +34,7 @@ class DefaultForcing:
         start_time: str,
         end_time: str,
         shape: str,
+        **model_specific_options,
     ) -> 'DefaultForcing':
         """Generate forcing data with ESMValTool."""
         raise NotImplementedError("No default forcing generator available.")

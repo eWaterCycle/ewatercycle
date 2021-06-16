@@ -17,7 +17,7 @@ class HypeForcing(DefaultForcing):
         start_time: str,
         end_time: str,
         directory: str,
-        shape: str,
+        shape: Optional[str] = None,
     ):
         """
             None: Hype does not have model-specific load options.

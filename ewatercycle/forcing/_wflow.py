@@ -1,6 +1,6 @@
 """Forcing related functionality for wflow"""
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional
 
 from esmvalcore.experimental import get_recipe
 
@@ -41,14 +41,14 @@ class WflowForcing(DefaultForcing):
         self.Inflow = Inflow
 
     @classmethod
-    def generate(
-        cls,  # type: ignore
+    def generate(  # type: ignore
+        cls,
         dataset: str,
         start_time: str,
         end_time: str,
         shape: str,
         dem_file: str,
-        extract_region: Optional[str] = None,
+        extract_region: Dict[str, float] = None,
     ) -> 'WflowForcing':
         """
             dem_file (str): Name of the dem_file to use. Also defines the basin
