@@ -3,7 +3,6 @@ from os import PathLike
 from typing import Tuple, Iterable, Any
 
 import numpy as np
-import warnings
 import xarray as xr
 from basic_modeling_interface import Bmi
 
