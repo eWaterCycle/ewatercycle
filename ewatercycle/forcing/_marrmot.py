@@ -17,8 +17,8 @@ class MarrmotForcing(DefaultForcing):
         start_time: str,
         end_time: str,
         directory: str,
-        forcing_file: str,
         shape: Optional[str] = None,
+        forcing_file: Optional[str] = 'marrmot.mat',
     ):
         """
             forcing_file: Matlab file that contains forcings for Marrmot

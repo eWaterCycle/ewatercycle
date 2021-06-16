@@ -10,8 +10,10 @@ from ewatercycle.forcing._marrmot import MarrmotForcing
 
 def test_plot():
     f = MarrmotForcing(
+        directory='.',
         start_time='1989-01-02T00:00:00Z',
         end_time='1999-01-02T00:00:00Z',
+        forcing_file='marrmot.mat',
     )
     with pytest.raises(NotImplementedError):
         f.plot()

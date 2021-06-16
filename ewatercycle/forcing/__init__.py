@@ -103,7 +103,11 @@ def load_foreign(target_model,
     if forcing_info is None:
         forcing_info = {}
     return constructor(
-        start_time, end_time, directory, shape, **forcing_info
+        start_time=start_time,
+        end_time=end_time,
+        directory=directory,
+        shape=shape,
+        **forcing_info,
     )  # type: ignore # each subclass can have different forcing_info
 
 
