@@ -1,14 +1,15 @@
 import os
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
+from ewatercycle import CFG
 
-
-def get_grdc_data(station_id,
-                  start_date,
-                  end_date,
-                  parameter='Q',
-                  data_home=None):
+def get_grdc_data(station_id: str,
+                  start_time: str,
+                  end_time: str,
+                  parameter: str = 'Q',
+                  data_home: str = None):
     """
     Get river discharge data from Global Runoff Data Centre (GRDC).
 
@@ -20,15 +21,15 @@ def get_grdc_data(station_id,
     station_id : str
         The station id to get.
         The station id can be found in the catalogues at https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/212_prjctlgs/project_catalogue_node.html
-    start_date : str
+    start_time : str
         String for start date in the format: 'YYYY-MM-dd', e.g. '1980-01-01'
-    end_date : str
+    end_time : str
         String for start date in the format: 'YYYY-MM-dd', e.g. '2018-12-31'
     parameter : str, optional
         The parameter code to get, e.g. ('Q') discharge, cubic meters per second
     data_home : str, optional
         The directory where the daily grdc data is located.
-        If left out will use the environment variable GRDC_DATA_HOME
+        If left out will use the grdc_location in the eWaterCycle configuration file.
 
     Examples
     --------
@@ -59,18 +60,24 @@ def get_grdc_data(station_id,
             last_update:                   2018-05-24
             nrMeasurements:                NA
     """
-    if data_home is None:
-        data_home = os.environ.get('GRDC_DATA_HOME', None)
-    if data_home is None:
-        raise ValueError('Missing data_home argument or GRDC_DATA_HOME env var to find GRDC data files')
+    if data_home:
+        data_home = Path(data_home).expanduser().resolve()
+    else:
+        data_home = Path(CFG["grdc_location"]).expanduser().resolve()
+
+    if not data_home.exists():
+        raise ValueError(f'The grdc directory {data_home} does not exist!')
 
     # Read the raw data
-    raw_file = os.path.join(data_home, station_id + "_" + parameter + "_Day.Cmd.txt")
+    raw_file = data_home / f"{station_id}_{parameter}_Day.Cmd.txt"
+    if not raw_file.exists():
+        raise ValueError(f'The grdc file {raw_file} does not exist!')
+
     # Convert the raw data to an xarray
     metadata, df = _grdc_read(
         raw_file,
-        start=datetime.strptime(start_date, "%Y-%m-%d"),
-        end=datetime.strptime(end_date, "%Y-%m-%d"))
+        start=datetime.strptime(start_time, "%Y-%m-%d"),
+        end=datetime.strptime(end_time, "%Y-%m-%d"))
 
     # Create the xarray dataset
     ds = df.to_xarray()
@@ -80,13 +87,10 @@ def get_grdc_data(station_id,
 
 
 def _grdc_read(grdc_station_path, start, end):
-    if not os.path.exists(grdc_station_path):
-        raise ValueError("Data file ", grdc_station_path, " does not exist!")
-    else:
-        with open(
-                grdc_station_path, 'r', encoding='utf-8',
-                errors='ignore') as file:
-            data = file.read()
+    with open(
+            grdc_station_path, 'r', encoding='utf-8',
+            errors='ignore') as file:
+        data = file.read()
 
     metadata = _grdc_metadata_reader(grdc_station_path, data)
 
@@ -149,7 +153,7 @@ def _grdc_metadata_reader(grdc_station_path, allLines):
 
     if id_from_grdc is not None:
 
-        attributeGRDC["grdc_file_name"] = grdc_station_path
+        attributeGRDC["grdc_file_name"] = str(grdc_station_path)
         attributeGRDC["id_from_grdc"] = id_from_grdc
 
         try:
