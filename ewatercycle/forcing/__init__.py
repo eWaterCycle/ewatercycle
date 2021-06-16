@@ -102,13 +102,13 @@ def load_foreign(target_model,
             'eWatercycle forcing generator.')
     if forcing_info is None:
         forcing_info = {}
-    return constructor(
+    return constructor(  # type: ignore # each subclass can have different forcing_info
         start_time=start_time,
         end_time=end_time,
         directory=directory,
         shape=shape,
         **forcing_info,
-    )  # type: ignore # each subclass can have different forcing_info
+    )
 
 
 def generate(target_model: str,
