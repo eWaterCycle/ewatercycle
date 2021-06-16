@@ -29,23 +29,20 @@ class PCRGlobWB(AbstractModel):
         """Start model inside container and return config file and work dir.
 
         Args:
-
-            - input_dir: main input directory. Relative paths in the cfg_file
-            should start from this directory.
-
-            - cfg_file: path to a valid pcrglobwb configuration file,
+            input_dir: main input directory. Relative paths in the cfg_file
+                should start from this directory.
+            cfg_file: path to a valid pcrglobwb configuration file,
             typically somethig like `setup.ini`.
+            additional_input_dirs: one or more additional data directories
+                that the model will have access to.
+            **kwargs (optional, dict): any settings in the cfg_file that you
+                want to overwrite programmatically. Should be passed as a dict,
+                e.g. `meteoOptions = {"temperatureNC": "era5_tas_1990_2000.nc"}`
+                where meteoOptions is the section in which the temperatureNC option
+                may be found.
 
-            - additional_input_dirs: one or more additional data directories
-            that the model will have access to.
-
-            - **kwargs (optional, dict): any settings in the cfg_file that you
-            want to overwrite programmatically. Should be passed as a dict,
-            e.g. `meteoOptions = {"temperatureNC": "era5_tas_1990_2000.nc"}`
-            where meteoOptions is the section in which the temperatureNC option
-            may be found.
-
-        Returns: Path to config file and work dir
+        Returns:
+            Path to config file and work dir
         """
         self._setup_work_dir()
         self._setup_config(cfg_file, input_dir, **kwargs)
