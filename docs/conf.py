@@ -206,6 +206,9 @@ autodoc_mock_imports = [
     'cftime',
     'dask',
     'esmvalcore',
+    'fiona',
+    'dateutil',
+    'shapely',
     'hydrostats',
     'matplotlib',
     'numpy',
@@ -219,3 +222,12 @@ autodoc_mock_imports = [
 
 # Prevent alphabetic sorting of (@data)class attributes/methods
 autodoc_member_order = 'bysource'
+
+# Nice formatting of model-specific input parameters
+napoleon_custom_sections = [
+    ('hype', 'params_style'),
+    ('lisflood', 'params_style'),
+    ('marrmot', 'params_style'),
+    ('pcrglobwb', 'params_style'),
+    ('wflow', 'params_style'),
+]

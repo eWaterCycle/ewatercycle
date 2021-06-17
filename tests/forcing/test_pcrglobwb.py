@@ -6,7 +6,7 @@ from esmvalcore.experimental.recipe_output import DataFile
 import xarray as xr
 
 from ewatercycle.forcing import generate
-from ewatercycle.forcing.pcrglobwb import PCRGlobWBForcing
+from ewatercycle.forcing._pcrglobwb import PCRGlobWBForcing
 
 
 def create_netcdf(var_name, filename):

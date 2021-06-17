@@ -1,37 +1,33 @@
 """Forcing related functionality for pcrglobwb"""
 
-from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 from esmvalcore.experimental import get_recipe
 
+from ..util import data_files_from_recipe_output, get_extents, get_time
+from ._default import DefaultForcing
 from .datasets import DATASETS
-from .default import DefaultForcing
-from ..util import get_time, get_extents, data_files_from_recipe_output
-
-GENERATE_DOCS = """
-Options:
-    start_time_climatology (str): Start time for the climatology data
-    end_time_climatology (str): End time for the climatology data
-    extract_region (dict): Region specification, dictionary must contain `start_longitude`,
-        `end_longitude`, `start_latitude`, `end_latitude`
-"""
-LOAD_DOCS = """
-Fields:
-    precipitationNC (str): Input file for precipitation data.
-    temperatureNC (str): Input file for temperature data.
-"""
 
 
-@dataclass
 class PCRGlobWBForcing(DefaultForcing):
     """Container for pcrglobwb forcing data."""
-
-    # Model-specific attributes (preferably with default values):
-    precipitationNC: str = 'pr.nc'
-    """Input file for precipitation data."""
-    temperatureNC: str = 'tas.nc'
-    """Input file for temperature data."""
+    def __init__(
+        self,
+        start_time: str,
+        end_time: str,
+        directory: str,
+        shape: Optional[str] = None,
+        precipitationNC: Optional[str] = 'precipitation.nc',
+        temperatureNC: Optional[str] = 'temperature.nc',
+    ):
+        """
+            precipitationNC (str): Input file for precipitation data.
+            temperatureNC (str): Input file for temperature data.
+        """
+        super().__init__(start_time, end_time, directory, shape)
+        self.precipitationNC = precipitationNC
+        self.temperatureNC = temperatureNC
 
     @classmethod
     def generate(  # type: ignore
@@ -41,20 +37,16 @@ class PCRGlobWBForcing(DefaultForcing):
         end_time: str,
         shape: str,
         start_time_climatology: str,  # TODO make optional, default to start_time
-        end_time_climatology: str,  # TODO make optional, defaults to start_time + 1 year
+        end_time_climatology:
+        str,  # TODO make optional, defaults to start_time + 1 year
         extract_region: dict = None,
     ) -> 'PCRGlobWBForcing':
-        """Generate WflowForcing data with ESMValTool.
-
-        Args:
-            dataset: Name of the source dataset. See :py:data:`.DATASETS`.
-            start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-            end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-            shape: Path to a shape file. Used for spatial selection.
-            start_time_climatology: Start time for the climatology data
-            end_time_climatology: End time for the climatology data
-            extract_region: Region specification, must contain `start_longitude`,
-                `end_longitude`, `start_latitude`, `end_latitude`
+        """
+            start_time_climatology (str): Start time for the climatology data
+            end_time_climatology (str): End time for the climatology data
+            extract_region (dict): Region specification, dictionary must
+                contain `start_longitude`, `end_longitude`, `start_latitude`,
+                `end_latitude`
         """
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_pcrglobwb.yml"
@@ -69,8 +61,8 @@ class PCRGlobWBForcing(DefaultForcing):
                 'additional_datasets'] = [DATASETS[dataset]]
 
         basin = Path(shape).stem
-        recipe.data['diagnostics']['diagnostic_daily']['scripts'][
-            'script']['basin'] = basin
+        recipe.data['diagnostics']['diagnostic_daily']['scripts']['script'][
+            'basin'] = basin
 
         if extract_region is None:
             extract_region = get_extents(shape)
