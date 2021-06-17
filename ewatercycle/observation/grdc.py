@@ -55,7 +55,13 @@ def get_grdc_data(station_id: str,
     if data_home:
         data_path = Path(data_home).expanduser().resolve()
     else:
-        data_path = Path(CFG["grdc_location"]).expanduser().resolve()
+        if CFG["grdc_location"]:
+            data_path = Path(CFG["grdc_location"]).expanduser().resolve()
+        else:
+            raise ValueError(
+                f'Provide the grdc path using `data_home` argument '
+                f'or using `grdc_location` in ewatercycle configuration file.'
+                )
 
     if not data_path.exists():
         raise ValueError(f'The grdc directory {data_path} does not exist!')
