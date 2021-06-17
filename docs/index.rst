@@ -18,6 +18,8 @@ Content
 .. toctree::
   :maxdepth: 2
 
+  quickstart
+  ewatercycle_api_notebook
   hpc_to_cluster
   API Reference <apidocs/ewatercycle.rst>
 
