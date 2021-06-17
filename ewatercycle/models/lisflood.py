@@ -241,30 +241,35 @@ class Lisflood(AbstractModel):
 
         return da
 
-    def coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Iterable[int]:
+    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Iterable[int]:
         """Convert lat, lon coordinates into model indices."""
         grid_id = self.bmi.get_var_grid(name)
-        shape = self.bmi.get_grid_shape(grid_id) #(len(y), len(x))
+        shape = self.bmi.get_grid_shape(grid_id) # shape returns (len(y), len(x))
         x_model = self.bmi.get_grid_x(grid_id)
         y_model = self.bmi.get_grid_y(grid_id)
+
+        # Create a grid from coordinates
+        x_vectors, y_vectors = np.meshgrid(x_model, y_model)
+
         indices = []
         coord_converted = []
         # in lisflood, x corresponds to lon, and y to lat.
         # this might not be the case for other models!
         for x, y in zip(lon, lat):
-            idx = np.abs(x_model - x).argmin()
-            idy = np.abs(y_model - y).argmin()
-            indices.append(np.ravel_multi_index((idy, idx), shape))
+            # here we use Euclidean distance, but it is not accurate as we have lon/lat in degrees.
+            index = ((x_vectors - x) ** 2 + (y_vectors - y) ** 2).argmin()
+            indices.append(index)
+            idy, idx = np.unravel_index(index, shape)
             coord_converted.append(np.around((x_model[idx], y_model[idy]), 2))
         # Provide feedback
         coord_user = np.around(tuple(zip(lon, lat)), 2)
-        self.conversion_feedback(coord_user, coord_converted)
+        print(f"Your coordinates {coord_user} match these model coordinates {coord_converted}.")
         return np.array(indices)
 
-    def indices_to_coords(self, name: str, indices: Iterable[int]) -> Tuple[Iterable[float], Iterable[float]]:
+    def _indices_to_coords(self, name: str, indices: Iterable[int]) -> Tuple[Iterable[float], Iterable[float]]:
         """Convert index to lat/lon values."""
         grid_id = self.bmi.get_var_grid(name)
-        shape = self.bmi.get_grid_shape(grid_id) #(len(y), len(x))
+        shape = self.bmi.get_grid_shape(grid_id) # shape returns (len(y), len(x))
         indices = np.array(indices)
         idy, idx = np.unravel_index(indices, shape)
         x_model = self.bmi.get_grid_x(grid_id)
