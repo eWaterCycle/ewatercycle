@@ -71,6 +71,16 @@ def get_grdc_data(station_id: str,
         start=get_time(start_time).date(),
         end=get_time(end_time).date())
 
+    # Add start/end_time to metadata
+    metadata["UserStartTime"] = start_time
+    metadata["UserEndTime"] = end_time
+
+    # Add number of missing data to metadata
+    metadata["nrMissingData"] = _count_missing_data(df)
+
+    # Print info about data
+    _print_metadata(metadata)
+
     return df, metadata
 
 
@@ -228,3 +238,25 @@ def _grdc_metadata_reader(grdc_station_path, allLines):
             attributeGRDC["nrMeasurements"] = "NA"
 
     return attributeGRDC
+
+
+def _count_missing_data(df):
+    """Return number of missing data."""
+    return df['streamflow'].isna().sum()
+
+
+def _print_metadata(metadata):
+    """Print some information about data."""
+    coords = (
+        metadata['grdc_latitude_in_arc_degree'],
+        metadata['grdc_longitude_in_arc_degree']
+        )
+    message = (
+        f"GRDC station {metadata['id_from_grdc']} is selceted. "
+        f"The river name is: {metadata['river_name']}."
+        f"The coordinates are: {coords}."
+        f"The catchment area in km2 is: {metadata['grdc_catchment_area_in_km2']}. "
+        f"There are {metadata['nrMissingData']} missing values "
+        f"during {metadata['UserStartTime']}_{metadata['UserEndTime']} at this station. "
+        f"See the metadata for more information.")
+    print(message)
