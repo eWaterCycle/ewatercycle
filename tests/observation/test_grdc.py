@@ -80,7 +80,10 @@ def test_get_grdc_data(tmp_path, sample_grdc_file):
             'river_name': 'SOME RIVER',
             'station_name': 'SOME',
             'time_series': '2000-01 - 2000-01',
-            'units': 'm�/s'
+            'units': 'm�/s',
+            'UserEndTime': '2000-02-01T00:00Z',
+            'UserStartTime': '2000-01-01T00:00Z',
+            'nrMissingData': 1,
         }
     assert_frame_equal(result_data, expected_data)
     assert result_metadata == expected_metadata
