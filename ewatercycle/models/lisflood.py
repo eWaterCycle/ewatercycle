@@ -253,6 +253,7 @@ class Lisflood(AbstractModel):
 
         indices = []
         coord_converted = []
+        coord_user = []
         # in lisflood, x corresponds to lon, and y to lat.
         # this might not be the case for other models!
         for x, y in zip(lon, lat):
@@ -260,9 +261,9 @@ class Lisflood(AbstractModel):
             index = ((x_vectors - x) ** 2 + (y_vectors - y) ** 2).argmin()
             indices.append(index)
             idy, idx = np.unravel_index(index, shape)
-            coord_converted.append(np.around((x_model[idx], y_model[idy]), 2))
+            coord_converted.append((round(x_model[idx], 4), round(y_model[idy], 4))) # use 4 digits in round
+            coord_user.append((round(x, 4), round(y, 4)))
         # Provide feedback
-        coord_user = np.around(tuple(zip(lon, lat)), 2)
         print(f"Your coordinates {coord_user} match these model coordinates {coord_converted}.")
         return np.array(indices)
 
