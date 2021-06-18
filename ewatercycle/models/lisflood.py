@@ -257,7 +257,7 @@ class Lisflood(AbstractModel):
         # this might not be the case for other models!
         for x, y in zip(lon, lat):
             # here we use Euclidean distance, but it is not accurate as the coordinates are in lon/lat and degrees.
-            distance = (x_vectors - x) ** 2 + (y_vectors - y) ** 2
+            distance = ((x_vectors - x) ** 2 + (y_vectors - y) ** 2) ** (1/2)
             index = distance.argmin()
             indices.append(index)
             idy, idx = np.unravel_index(index, shape)
