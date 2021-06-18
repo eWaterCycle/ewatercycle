@@ -1,6 +1,6 @@
 import pytest
 
-from ewatercycle.forcing import generate, load_foreign, DefaultForcing, load
+from ewatercycle.forcing import generate, load_foreign
 
 
 def test_generate_unknown_model(sample_shape):

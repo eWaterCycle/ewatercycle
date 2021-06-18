@@ -2,7 +2,7 @@ import time
 from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
-from typing import Any, Iterable, Optional, Tuple, Union
+from typing import Any, Iterable, Tuple, Union
 
 import numpy as np
 import xarray as xr
@@ -11,7 +11,7 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
-from ewatercycle.forcing.pcrglobwb import PCRGlobWBForcing
+from ewatercycle.forcing._pcrglobwb import PCRGlobWBForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.util import get_time
