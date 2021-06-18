@@ -25,21 +25,25 @@ class PCRGlobWBParameterSet:
     A valid pcrglobwb parameter set consists of a folder with input data files
     and should always include a default configuration file.
     """
+
     input_dir: Union[str, PathLike]
     """Input folder path."""
     default_config: Union[str, PathLike]
     """Path to (default) model configuration file consistent with `input_data`."""
+
     def __setattr__(self, name: str, value: Union[str, PathLike]):
         self.__dict__[name] = Path(value).expanduser().resolve()
 
     def __str__(self):
         """Nice formatting of the parameterset object."""
-        return "\n".join([
-            "Wflow parameter set",
-            "-------------------",
-            f"Directory: {self.input_dir}",
-            f"Default configuration file: {self.default_config}",
-        ])
+        return "\n".join(
+            [
+                "Wflow parameter set",
+                "-------------------",
+                f"Directory: {self.input_dir}",
+                f"Default configuration file: {self.default_config}",
+            ]
+        )
 
 
 class PCRGlobWB(AbstractModel):
@@ -56,10 +60,15 @@ class PCRGlobWB(AbstractModel):
 
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
-    available_versions = ('setters', )
 
-    def __init__(self, version: str, parameter_set: PCRGlobWBParameterSet,
-                 forcing: PCRGlobWBForcing):
+    available_versions = ("setters",)
+
+    def __init__(
+        self,
+        version: str,
+        parameter_set: PCRGlobWBParameterSet,
+        forcing: PCRGlobWBForcing,
+    ):
         super().__init__()
 
         self.version = version
@@ -80,7 +89,7 @@ class PCRGlobWB(AbstractModel):
     def _setup_work_dir(self):
         # Must exist before setting up default config
         timestamp = time.strftime("%Y%m%d_%H%M%S")
-        work_dir = Path(CFG["output_dir"]) / f'pcrglobwb_{timestamp}'
+        work_dir = Path(CFG["output_dir"]) / f"pcrglobwb_{timestamp}"
         work_dir.mkdir()
         self.work_dir = work_dir.expanduser().resolve()
 
@@ -90,27 +99,40 @@ class PCRGlobWB(AbstractModel):
 
         cfg = CaseConfigParser()
         cfg.read(config_file)
-        cfg.set('globalOptions', 'inputDir', str(input_dir))
-        cfg.set('globalOptions', 'outputDir', str(self.work_dir))
-        cfg.set('globalOptions', 'startTime',
-                get_time(self.forcing.start_time).strftime("%Y-%m-%d"))
-        cfg.set('globalOptions', 'endTime',
-                get_time(self.forcing.start_time).strftime("%Y-%m-%d"))
+        cfg.set("globalOptions", "inputDir", str(input_dir))
+        cfg.set("globalOptions", "outputDir", str(self.work_dir))
         cfg.set(
-            'meteoOptions', 'temperatureNC',
-            str((Path(self.forcing.directory) /
-                 self.forcing.temperatureNC).expanduser().resolve()))
+            "globalOptions",
+            "startTime",
+            get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
+        )
         cfg.set(
-            'meteoOptions', 'precipitationNC',
-            str((Path(self.forcing.directory) /
-                 self.forcing.precipitationNC).expanduser().resolve()))
+            "globalOptions",
+            "endTime",
+            get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
+        )
+        cfg.set(
+            "meteoOptions",
+            "temperatureNC",
+            str(
+                (Path(self.forcing.directory) / self.forcing.temperatureNC)
+                .expanduser()
+                .resolve()
+            ),
+        )
+        cfg.set(
+            "meteoOptions",
+            "precipitationNC",
+            str(
+                (Path(self.forcing.directory) / self.forcing.precipitationNC)
+                .expanduser()
+                .resolve()
+            ),
+        )
 
         self.config = cfg
 
-    def setup(  # type: ignore
-            self,
-            additional_input_dirs: Optional[Iterable[str]] = None,
-            **kwargs) -> Tuple[PathLike, PathLike]:
+    def setup(self, **kwargs) -> Tuple[PathLike, PathLike]:  # type: ignore
         """Start model inside container and return config file and work dir.
 
         Args:
@@ -122,10 +144,6 @@ class PCRGlobWB(AbstractModel):
 
         Returns: Path to config file and work dir
         """
-        if additional_input_dirs is None:
-            additional_input_dirs = []
-        self._additional_input_dirs = additional_input_dirs
-
         self._update_config(**kwargs)
 
         cfg_file = self._export_config()
@@ -139,24 +157,37 @@ class PCRGlobWB(AbstractModel):
         cfg = self.config
 
         if "start_time" in kwargs:
-            cfg.set('globalOptions', 'startTime',
-                    get_time(kwargs["start_time"]).strftime("%Y-%m-%d"))
+            cfg.set(
+                "globalOptions",
+                "startTime",
+                get_time(kwargs["start_time"]).strftime("%Y-%m-%d"),
+            )
 
         if "end_time" in kwargs:
-            cfg.set('globalOptions', 'endTime',
-                    get_time(kwargs["end_time"]).strftime("%Y-%m-%d"))
+            cfg.set(
+                "globalOptions",
+                "endTime",
+                get_time(kwargs["end_time"]).strftime("%Y-%m-%d"),
+            )
 
         if "routing_method" in kwargs:
-            cfg.set('routingOptions', 'routingMethod',
-                    kwargs['routing_method'])
+            cfg.set(
+                "routingOptions", "routingMethod", kwargs["routing_method"]
+            )
 
         if "dynamic_flood_plain" in kwargs:
-            cfg.set("routingOptions", "dynamicFloodPlain",
-                    kwargs["dynamic_flood_plain"])
+            cfg.set(
+                "routingOptions",
+                "dynamicFloodPlain",
+                kwargs["dynamic_flood_plain"],
+            )
 
         if "max_spinups_in_years" in kwargs:
-            cfg.set("globalOptions", "maxSpinUpsInYears",
-                    str(kwargs["max_spinups_in_years"]))
+            cfg.set(
+                "globalOptions",
+                "maxSpinUpsInYears",
+                str(kwargs["max_spinups_in_years"]),
+            )
 
     def _export_config(self) -> PathLike:
         new_cfg_file = Path(self.work_dir) / "pcrglobwb_ewatercycle.ini"
@@ -169,8 +200,8 @@ class PCRGlobWB(AbstractModel):
     def _start_container(self):
         additional_input_dirs = [
             str(self.parameter_set.input_dir),
-            str(self.forcing.directory)
-        ] + self._additional_input_dirs
+            str(self.forcing.directory),
+        ]
 
         if CFG["container_engine"] == "docker":
             self.bmi = BmiClientDocker(
@@ -194,7 +225,8 @@ class PCRGlobWB(AbstractModel):
                     " time limit (15 seconds). You may try building it with "
                     f"`!singularity run docker://{self.docker_image}` and try "
                     "again. Please also inform the system administrator that "
-                    "the singularity image was missing.")
+                    "the singularity image was missing."
+                )
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
@@ -213,7 +245,7 @@ class PCRGlobWB(AbstractModel):
             coords={
                 "longitude": self.bmi.get_grid_y(grid),
                 "latitude": self.bmi.get_grid_x(grid),
-                "time": num2date(self.bmi.get_current_time(), time_units)
+                "time": num2date(self.bmi.get_current_time(), time_units),
             },
             dims=["latitude", "longitude"],
             name=name,
@@ -228,10 +260,14 @@ class PCRGlobWB(AbstractModel):
         # An opiniated list of configurable parameters.
         cfg = self.config
         return [
-            ("start_time",
-             f"{cfg.get('globalOptions', 'startTime')}T00:00:00Z"),
+            (
+                "start_time",
+                f"{cfg.get('globalOptions', 'startTime')}T00:00:00Z",
+            ),
             ("end_time", f"{cfg.get('globalOptions', 'endTime')}T00:00:00Z"),
             ("routing_method", cfg.get("routingOptions", "routingMethod")),
-            ("max_spinups_in_years",
-             cfg.get("globalOptions", "maxSpinUpsInYears")),
+            (
+                "max_spinups_in_years",
+                cfg.get("globalOptions", "maxSpinUpsInYears"),
+            ),
         ]
