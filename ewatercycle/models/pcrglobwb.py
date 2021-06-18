@@ -136,11 +136,8 @@ class PCRGlobWB(AbstractModel):
         """Start model inside container and return config file and work dir.
 
         Args:
-            additional_input_dirs: By default, the model only has access to
-                its working directory, the parameter sets, and the forcing
-                directory. This option makes it possible to add other external
-                inputs, that can then be configured in the config file.
-            **kwargs: Use :py:meth:parameters to see all configurable options for this model,
+            **kwargs: Use :py:meth:`parameters` to see the current values
+                configurable options for this model,
 
         Returns: Path to config file and work dir
         """
@@ -149,7 +146,18 @@ class PCRGlobWB(AbstractModel):
         cfg_file = self._export_config()
         work_dir = self.work_dir
 
-        self._start_container()
+        try:
+            self._start_container()
+        except FutureTimeoutError:
+            # https://github.com/eWaterCycle/grpc4bmi/issues/95
+            # https://github.com/eWaterCycle/grpc4bmi/issues/100
+            raise ValueError(
+                "Couldn't spawn container within allocated time limit "
+                "(15 seconds). You may try pulling the docker image with"
+                f" `docker pull {self.docker_image}` or call `singularity "
+                f"exec docker://{self.docker_image} run-bmi-server -h`"
+                "if you're using singularity, and then try again."
+            )
 
         return cfg_file, work_dir
 
@@ -209,24 +217,15 @@ class PCRGlobWB(AbstractModel):
                 image_port=55555,
                 work_dir=str(self.work_dir),
                 input_dirs=additional_input_dirs,
-                timeout=10,
+                timeout=15,
             )
         elif CFG["container_engine"] == "singularity":
-            try:
-                self.bmi = BmiClientSingularity(
-                    image=f"docker://{self.docker_image}",
-                    work_dir=str(self.work_dir),
-                    input_dirs=additional_input_dirs,
-                    timeout=15,
-                )
-            except FutureTimeoutError:
-                raise ValueError(
-                    "Couldn't spawn the singularity container within allocated"
-                    " time limit (15 seconds). You may try building it with "
-                    f"`!singularity run docker://{self.docker_image}` and try "
-                    "again. Please also inform the system administrator that "
-                    "the singularity image was missing."
-                )
+            self.bmi = BmiClientSingularity(
+                image=f"docker://{self.docker_image}",
+                work_dir=str(self.work_dir),
+                input_dirs=additional_input_dirs,
+                timeout=15,
+            )
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
