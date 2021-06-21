@@ -12,7 +12,7 @@ class DefaultForcing:
     """Container for forcing data.
 
     Args:
-        dataset: Name of the source dataset. See :py:data:`.DATASETS`.
+        directory: Directory where forcing data files are stored.
         start_time: Start time of forcing in UTC and ISO format string e.g.
             'YYYY-MM-DDTHH:MM:SSZ'.
         end_time: End time of forcing in UTC and ISO format string e.g.
