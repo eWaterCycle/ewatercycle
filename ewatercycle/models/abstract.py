@@ -103,7 +103,7 @@ class AbstractModel(metaclass=ABCMeta):
             lon: Longitudinal value
 
         """
-        raise NotImplementedError("No generic coords_to_indices method available.")
+        raise NotImplementedError("Method to convert from coordinates to model indices not implemented for this model.")
 
     def _indices_to_coords(self, name: str, indices: Iterable[int]) -> Tuple[Iterable[float], Iterable[float]]:
         """Convert index to lat/lon values.
