@@ -40,7 +40,7 @@ def get_parameter_set(name: str):
     if ps is None:
         raise KeyError(f"No parameter set available with name {name}")
 
-    if not ps.is_availabe:
+    if not ps.is_available:
         raise ValueError(f"Cannot find parameter set with attributes {ps}")
 
     return ps

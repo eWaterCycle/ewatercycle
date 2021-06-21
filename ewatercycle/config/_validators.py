@@ -140,6 +140,8 @@ validate_pathlist = _listify_validator(
     validate_path, docstring="Return a list of paths."
 )
 
+validate_dict_parameterset = _make_type_validator(dict, allow_none=True)
+
 _validators = {
     "esmvaltool_config": validate_path_or_none,
     "grdc_location": validate_path_or_none,
@@ -148,4 +150,5 @@ _validators = {
     "output_dir": validate_path_or_none,
     "ewatercycle_config": validate_path_or_none,
     "parameterset_dir": validate_path_or_none,
+    "parameter_sets": validate_dict_parameterset,
 }

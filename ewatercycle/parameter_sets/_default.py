@@ -23,7 +23,7 @@ class ParameterSet:
     def __repr__(self):
         attrs = self.__dict__.copy()
         model = attrs.pop("target_model").capitalize()
-        options = ", ".join([f"{k}={v!r}" for k, v in attrs.items()])
+        options = ", ".join(f"{k}={v!r}" for k, v in attrs.items())
         return f"{model}ParameterSet({options})"
 
     def __str__(self):

@@ -3,12 +3,11 @@ grdc_location: null
 container_engine: null
 singularity_dir: null
 output_dir: null
-pcrglobwb.singularity_image: null
-pcrglobwb.docker_image: null
 parameterset_dir: null
 
 
 parameter_sets:
+  # TODO move record below to example config or documentation
   lisflood_comparison_study:
     target_model: lisflood
     doi: N/A
