@@ -1,7 +1,8 @@
 import time
+from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
-from typing import Any, Iterable, Tuple
+from typing import Any, Iterable, Tuple, Union
 
 import numpy as np
 import xarray as xr
@@ -10,108 +11,225 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
+from ewatercycle.forcing._pcrglobwb import PCRGlobWBForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import CaseConfigParser
+from ewatercycle.util import get_time
+from grpc import FutureTimeoutError
+
+
+@dataclass
+class PCRGlobWBParameterSet:
+    """Parameter set for the PCRGlobWB model class.
+
+    A valid pcrglobwb parameter set consists of a folder with input data files
+    and should always include a default configuration file.
+    """
+
+    input_dir: Union[str, PathLike]
+    """Input folder path."""
+    default_config: Union[str, PathLike]
+    """Path to (default) model configuration file consistent with `input_data`."""
+
+    def __setattr__(self, name: str, value: Union[str, PathLike]):
+        self.__dict__[name] = Path(value).expanduser().resolve()
+
+    def __str__(self):
+        """Nice formatting of the parameterset object."""
+        return "\n".join(
+            [
+                "Wflow parameter set",
+                "-------------------",
+                f"Directory: {self.input_dir}",
+                f"Default configuration file: {self.default_config}",
+            ]
+        )
 
 
 class PCRGlobWB(AbstractModel):
     """eWaterCycle implementation of PCRGlobWB hydrological model.
 
-    Attributes
+    Args:
+
+        version: pick a version from :py:attr:`~available_versions`
+        parameter_set: instance of :py:class:`~PCRGlobWBParameterSet`.
+        forcing: ewatercycle forcing container;
+            see :py:mod:`ewatercycle.forcing`.
+
+    Attributes:
+
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
-    def setup(  # type: ignore
-            self,
-            input_dir: PathLike,
-            cfg_file: PathLike,
-            additional_input_dirs: Iterable[PathLike] = [],
-            **kwargs) -> Tuple[PathLike, PathLike]:
+
+    available_versions = ("setters",)
+
+    def __init__(
+        self,
+        version: str,
+        parameter_set: PCRGlobWBParameterSet,
+        forcing: PCRGlobWBForcing,
+    ):
+        super().__init__()
+
+        self.version = version
+        self.parameter_set = parameter_set
+        self.forcing = forcing
+
+        self._set_docker_image()
+
+        self._setup_work_dir()
+        self._setup_default_config()
+
+    def _set_docker_image(self):
+        images = {
+            "setters": "ewatercycle/pcrg-grpc4bmi:setters",
+        }
+        self.docker_image = images[self.version]
+
+    def _setup_work_dir(self):
+        # Must exist before setting up default config
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        work_dir = Path(CFG["output_dir"]) / f"pcrglobwb_{timestamp}"
+        work_dir.mkdir()
+        self.work_dir = work_dir.expanduser().resolve()
+
+    def _setup_default_config(self):
+        config_file = self.parameter_set.default_config
+        input_dir = self.parameter_set.input_dir
+
+        cfg = CaseConfigParser()
+        cfg.read(config_file)
+        cfg.set("globalOptions", "inputDir", str(input_dir))
+        cfg.set("globalOptions", "outputDir", str(self.work_dir))
+        cfg.set(
+            "globalOptions",
+            "startTime",
+            get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
+        )
+        cfg.set(
+            "globalOptions",
+            "endTime",
+            get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
+        )
+        cfg.set(
+            "meteoOptions",
+            "temperatureNC",
+            str(
+                (Path(self.forcing.directory) / self.forcing.temperatureNC)
+                .expanduser()
+                .resolve()
+            ),
+        )
+        cfg.set(
+            "meteoOptions",
+            "precipitationNC",
+            str(
+                (Path(self.forcing.directory) / self.forcing.precipitationNC)
+                .expanduser()
+                .resolve()
+            ),
+        )
+
+        self.config = cfg
+
+    def setup(self, **kwargs) -> Tuple[PathLike, PathLike]:  # type: ignore
         """Start model inside container and return config file and work dir.
 
         Args:
-            input_dir: main input directory. Relative paths in the cfg_file
-                should start from this directory.
-            cfg_file: path to a valid pcrglobwb configuration file,
-            typically somethig like `setup.ini`.
-            additional_input_dirs: one or more additional data directories
-                that the model will have access to.
-            **kwargs (optional, dict): any settings in the cfg_file that you
-                want to overwrite programmatically. Should be passed as a dict,
-                e.g. `meteoOptions = {"temperatureNC": "era5_tas_1990_2000.nc"}`
-                where meteoOptions is the section in which the temperatureNC option
-                may be found.
+            **kwargs: Use :py:meth:`parameters` to see the current values
+                configurable options for this model,
 
-        Returns:
-            Path to config file and work dir
+        Returns: Path to config file and work dir
         """
-        self._setup_work_dir()
-        self._setup_config(cfg_file, input_dir, **kwargs)
-        self._start_container(input_dir, additional_input_dirs)
+        self._update_config(**kwargs)
 
-        return self.cfg_file, self.work_dir,
+        cfg_file = self._export_config()
+        work_dir = self.work_dir
 
-    def _setup_work_dir(self):
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        work_dir = Path(CFG["output_dir"]) / f'pcrglobwb_{timestamp}'
-        work_dir.mkdir()
-        self.work_dir = work_dir.resolve()
-        print(f"Created working directory: {work_dir}")
+        try:
+            self._start_container()
+        except FutureTimeoutError:
+            # https://github.com/eWaterCycle/grpc4bmi/issues/95
+            # https://github.com/eWaterCycle/grpc4bmi/issues/100
+            raise ValueError(
+                "Couldn't spawn container within allocated time limit "
+                "(15 seconds). You may try pulling the docker image with"
+                f" `docker pull {self.docker_image}` or call `singularity "
+                f"exec docker://{self.docker_image} run-bmi-server -h`"
+                "if you're using singularity, and then try again."
+            )
 
-    def _setup_config(self, cfg_file: PathLike, input_dir: PathLike, **kwargs):
-        cfg = CaseConfigParser()
-        cfg.read(cfg_file)
-        self.cfg = cfg
+        return cfg_file, work_dir
 
-        full_input_path = Path(input_dir).resolve()
-        cfg.set('globalOptions', 'inputDir', str(full_input_path))
-        cfg.set('globalOptions', 'outputDir', str(self.work_dir))
+    def _update_config(self, **kwargs):
+        cfg = self.config
 
-        for section, options in kwargs.items():
-            for option, value in options.items():
-                cfg.set(section, option, value)
+        if "start_time" in kwargs:
+            cfg.set(
+                "globalOptions",
+                "startTime",
+                get_time(kwargs["start_time"]).strftime("%Y-%m-%d"),
+            )
 
+        if "end_time" in kwargs:
+            cfg.set(
+                "globalOptions",
+                "endTime",
+                get_time(kwargs["end_time"]).strftime("%Y-%m-%d"),
+            )
+
+        if "routing_method" in kwargs:
+            cfg.set(
+                "routingOptions", "routingMethod", kwargs["routing_method"]
+            )
+
+        if "dynamic_flood_plain" in kwargs:
+            cfg.set(
+                "routingOptions",
+                "dynamicFloodPlain",
+                kwargs["dynamic_flood_plain"],
+            )
+
+        if "max_spinups_in_years" in kwargs:
+            cfg.set(
+                "globalOptions",
+                "maxSpinUpsInYears",
+                str(kwargs["max_spinups_in_years"]),
+            )
+
+    def _export_config(self) -> PathLike:
         new_cfg_file = Path(self.work_dir) / "pcrglobwb_ewatercycle.ini"
         with new_cfg_file.open("w") as filename:
-            cfg.write(filename)
+            self.config.write(filename)
 
-        self.cfg_file = new_cfg_file.resolve()
-        print(f"Created config file {self.cfg_file} with inputDir "
-              f"{full_input_path} and outputDir {self.work_dir}.")
+        self.cfg_file = new_cfg_file.expanduser().resolve()
+        return self.cfg_file
 
-    def _start_container(self,
-                         input_dir: PathLike,
-                         additional_input_dirs: Iterable[PathLike] = []):
-        input_dirs = [input_dir] + list(additional_input_dirs)
+    def _start_container(self):
+        additional_input_dirs = [
+            str(self.parameter_set.input_dir),
+            str(self.forcing.directory),
+        ]
 
         if CFG["container_engine"] == "docker":
             self.bmi = BmiClientDocker(
-                image=CFG["pcrglobwb.docker_image"],
+                image=self.docker_image,
                 image_port=55555,
                 work_dir=str(self.work_dir),
-                input_dirs=[str(input_dir) for input_dir in input_dirs],
-                timeout=10,
+                input_dirs=additional_input_dirs,
+                timeout=15,
             )
         elif CFG["container_engine"] == "singularity":
-            image = CFG["pcrglobwb.singularity_image"]
-
-            message = f"No singularity image found at {image}"
-            assert Path(image).exists(), message
-
             self.bmi = BmiClientSingularity(
-                image=image,
+                image=f"docker://{self.docker_image}",
                 work_dir=str(self.work_dir),
-                input_dirs=[str(input_path) for input_path in input_dirs],
-                timeout=10,
+                input_dirs=additional_input_dirs,
+                timeout=15,
             )
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-
-        inputs = "\n".join([str(Path(p).resolve()) for p in input_dirs])
-        print(
-            f"Started model container with working directory {self.work_dir} "
-            f"and access to the following input directories:\n{inputs}.")
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
@@ -126,7 +244,7 @@ class PCRGlobWB(AbstractModel):
             coords={
                 "longitude": self.bmi.get_grid_y(grid),
                 "latitude": self.bmi.get_grid_x(grid),
-                "time": num2date(self.bmi.get_current_time(), time_units)
+                "time": num2date(self.bmi.get_current_time(), time_units),
             },
             dims=["latitude", "longitude"],
             name=name,
@@ -138,11 +256,17 @@ class PCRGlobWB(AbstractModel):
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the configurable parameters for this model."""
-        if not hasattr(self, "cfg"):
-            raise NotImplementedError(
-                "No default parameters available for pcrglobwb. To see the "
-                "parameters, first run setup with a valid .ini file.")
-
-        return [(f"{section}.{option}", f"{self.cfg.get(section, option)}")
-                for section in self.cfg.sections()
-                for option in self.cfg.options(section)]
+        # An opiniated list of configurable parameters.
+        cfg = self.config
+        return [
+            (
+                "start_time",
+                f"{cfg.get('globalOptions', 'startTime')}T00:00:00Z",
+            ),
+            ("end_time", f"{cfg.get('globalOptions', 'endTime')}T00:00:00Z"),
+            ("routing_method", cfg.get("routingOptions", "routingMethod")),
+            (
+                "max_spinups_in_years",
+                cfg.get("globalOptions", "maxSpinUpsInYears"),
+            ),
+        ]
