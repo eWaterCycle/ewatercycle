@@ -266,8 +266,8 @@ class Lisflood(AbstractModel):
             lon_converted.append(round(x_model[idx], 4)) # use 4 digits in round
             lat_converted.append(round(y_model[idy], 4)) # use 4 digits in round
             # consider a threshold
-            if distance[idy, idx] > max(spacing_model):
-                print(f"Note: this point is outside of the model grid.")
+            if distance[idy, idx] > max(spacing_model) * 2:
+                raise ValueError("This point is outside of the model grid.")
 
         return np.array(indices), np.array(lon_converted), np.array(lat_converted)
 
