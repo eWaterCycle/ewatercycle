@@ -1,5 +1,5 @@
 """Forcing related functionality for default models"""
-
+from copy import copy
 from pathlib import Path
 from typing import Optional
 
@@ -45,10 +45,13 @@ class DefaultForcing:
         """Export forcing data for later use."""
         yaml = YAML()
         yaml.register_class(self.__class__)
-        target = Path(self.directory) / 'ewatercycle_forcing.yaml'
-        # TODO remove directory or set to .
+        target = Path(self.directory) / FORCING_YAML
+        # We want to make the yaml and its parent movable,
+        # so the directory should not be included in the yaml file
+        clone = copy(self)
+        del clone.directory
         with open(target, 'w') as f:
-            yaml.dump(self, f)
+            yaml.dump(clone, f)
         return target
 
     def plot(self):
