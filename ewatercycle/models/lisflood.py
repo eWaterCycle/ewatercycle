@@ -14,7 +14,7 @@ from ewatercycle import CFG
 from ewatercycle.forcing.lisflood import LisfloodForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import AbstractConfig
-from ewatercycle.util import get_time
+from ewatercycle.util import get_time, find_closest_point
 
 
 @dataclass
@@ -249,18 +249,13 @@ class Lisflood(AbstractModel):
         y_model = self.bmi.get_grid_y(grid_id)
         spacing_model = self.bmi.get_grid_spacing(grid_id)
 
-        # Create a grid from coordinates
-        x_vectors, y_vectors = np.meshgrid(x_model, y_model)
-
         indices = []
         lon_converted = []
         lat_converted = []
         # in lisflood, x corresponds to lon, and y to lat.
         # this might not be the case for other models!
         for x, y in zip(lon, lat):
-            # here we use Euclidean distance, but it is not accurate as the coordinates are in lon/lat and degrees.
-            distance = ((x_vectors - x) ** 2 + (y_vectors - y) ** 2) ** (1/2)
-            index = distance.argmin()
+            distance, index = find_closest_point(x_model, y_model, x, y)
             indices.append(index)
             idy, idx = np.unravel_index(index, shape)
             lon_converted.append(round(x_model[idx], 4)) # use 4 digits in round

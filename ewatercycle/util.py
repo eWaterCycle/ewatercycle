@@ -1,4 +1,4 @@
-from typing import Any, Tuple, Dict
+from typing import Any, Iterable, Tuple, Dict
 
 import fiona
 import numpy as np
@@ -9,7 +9,6 @@ from cftime import num2date
 from dateutil.parser import parse
 from esmvalcore.experimental.recipe_output import RecipeOutput
 from shapely import geometry
-
 
 def var_to_xarray(model, variable):
     """Get grid properties from model (x = latitude !!)
@@ -85,6 +84,26 @@ def lat_lon_boundingbox_to_variable_indices(model, variable, lat_min, lat_max, l
             output.append(x + nx * y)
 
     return np.array(output)
+
+
+def find_closest_point(lonitudes: Iterable[float], latitudes: Iterable[float], longitude: float, latitude: float) -> Tuple[ Iterable[float], int]:
+    """Find closest grid cell to a point based on Geographical distances.
+
+    It uses Spherical Earth projected to a plane formula:
+    https://en.wikipedia.org/wiki/Geographical_distance
+    """
+    # Create a grid from coordinates
+    lon_vectors, lat_vectors = np.meshgrid(lonitudes, latitudes)
+
+    dlon = np.radians(lon_vectors - longitude)
+    dlat = np.radians(lat_vectors - latitude)
+    latm = np.radians((lat_vectors + latitude) / 2)
+
+    # approximate radius of earth in km
+    radius = 6373.0
+    distances = radius * np.sqrt(dlat ** 2  + (np.cos(latm) * dlon) ** 2)
+    index = distances.argmin()
+    return distances, index
 
 
 # TODO rename to to_utcdatetime
