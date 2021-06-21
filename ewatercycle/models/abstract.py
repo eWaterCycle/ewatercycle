@@ -67,7 +67,7 @@ class AbstractModel(metaclass=ABCMeta):
             lon: Longitudinal value
 
         """
-        indices = self._coords_to_indices(name, lat, lon)
+        indices, _, _ = self._coords_to_indices(name, lat, lon)
         indices = np.array(indices)
         return self.bmi.get_value_at_indices(name, indices)
 
@@ -91,11 +91,11 @@ class AbstractModel(metaclass=ABCMeta):
             value: The new value for the specified variable.
 
         """
-        indices = self._coords_to_indices(name, lat, lon)
+        indices, _, _ = self._coords_to_indices(name, lat, lon)
         indices = np.array(indices)
         self.bmi.set_value_at_indices(name, indices, values)
 
-    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Iterable[int]:
+    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Tuple[Iterable[int], Iterable[float], Iterable[float]]:
         """Converts lat/lon values to index.
 
         Args:

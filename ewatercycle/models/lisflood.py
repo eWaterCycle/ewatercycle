@@ -241,7 +241,7 @@ class Lisflood(AbstractModel):
 
         return da
 
-    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Iterable[int]:
+    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Tuple[Iterable[int], Iterable[float], Iterable[float]]:
         """Convert lat, lon coordinates into model indices."""
         grid_id = self.bmi.get_var_grid(name)
         shape = self.bmi.get_grid_shape(grid_id) # shape returns (len(y), len(x))
@@ -253,6 +253,8 @@ class Lisflood(AbstractModel):
         x_vectors, y_vectors = np.meshgrid(x_model, y_model)
 
         indices = []
+        lon_converted = []
+        lat_converted = []
         # in lisflood, x corresponds to lon, and y to lat.
         # this might not be the case for other models!
         for x, y in zip(lon, lat):
@@ -261,15 +263,13 @@ class Lisflood(AbstractModel):
             index = distance.argmin()
             indices.append(index)
             idy, idx = np.unravel_index(index, shape)
-            coord_converted = (round(x_model[idx], 4), round(y_model[idy], 4)) # use 4 digits in round
-            coord_user = (round(x, 4), round(y, 4))
-            # Provide feedback
-            print(f"Your coordinates {coord_user} are closest to these model coordinates {coord_converted}.")
+            lon_converted.append(round(x_model[idx], 4)) # use 4 digits in round
+            lat_converted.append(round(y_model[idy], 4)) # use 4 digits in round
             # consider a threshold
             if distance[idy, idx] > max(spacing_model):
                 print(f"Note: this point is outside of the model grid.")
 
-        return np.array(indices)
+        return np.array(indices), np.array(lon_converted), np.array(lat_converted)
 
     def _indices_to_coords(self, name: str, indices: Iterable[int]) -> Tuple[Iterable[float], Iterable[float]]:
         """Convert index to lat/lon values."""

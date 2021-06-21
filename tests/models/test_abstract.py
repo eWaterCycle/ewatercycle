@@ -32,8 +32,8 @@ class MockedModel(AbstractModel):
             attrs=dict(units="degC"),
         )
 
-    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Iterable[int]:
-        return np.array([0])
+    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Tuple[Iterable[int], Iterable[float], Iterable[float]]:
+        return np.array([0]), np.array([-99.83]), np.array([42.25])
 
     def _indices_to_coords(self, name: str, indices: Iterable[int]) -> Tuple[Iterable[float], Iterable[float]]:
         return np.array([-99.83]), np.array([42.25])
