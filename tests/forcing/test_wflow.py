@@ -5,7 +5,7 @@ from esmvalcore.experimental.recipe import Recipe
 from esmvalcore.experimental.recipe_output import DataFile
 
 from ewatercycle.forcing import generate, load
-from ewatercycle.forcing.wflow import WflowForcing
+from ewatercycle.forcing._wflow import WflowForcing
 
 
 @pytest.fixture

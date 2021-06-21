@@ -58,6 +58,7 @@ setup(
             'pytest-cov',
             'pytest-mypy',
             'pytest-runner',
+            'types-python-dateutil',
             # Linters
             'isort',
             'prospector[with_pyroma,with_mypy]',

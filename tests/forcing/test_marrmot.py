@@ -5,13 +5,15 @@ from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import OutputFile
 
 from ewatercycle.forcing import generate, load, load_foreign
-from ewatercycle.forcing.marrmot import MarrmotForcing
+from ewatercycle.forcing._marrmot import MarrmotForcing
 
 
 def test_plot():
     f = MarrmotForcing(
+        directory='.',
         start_time='1989-01-02T00:00:00Z',
         end_time='1999-01-02T00:00:00Z',
+        forcing_file='marrmot.mat',
     )
     with pytest.raises(NotImplementedError):
         f.plot()
@@ -144,5 +146,24 @@ def test_load_foreign(sample_shape, sample_marrmot_forcing_file):
         shape=sample_shape,
         directory=str(forcing_file.parent),
         forcing_file=str(forcing_file.name)
+    )
+    assert actual == expected
+
+
+def test_load_foreign_without_forcing_info(sample_shape):
+    actual = load_foreign(
+        target_model='marrmot',
+        start_time='1989-01-02T00:00:00Z',
+        end_time='1999-01-02T00:00:00Z',
+        shape=sample_shape,
+        directory='/data'
+    )
+
+    expected = MarrmotForcing(
+        start_time='1989-01-02T00:00:00Z',
+        end_time='1999-01-02T00:00:00Z',
+        shape=sample_shape,
+        directory='/data',
+        forcing_file='marrmot.mat'
     )
     assert actual == expected
