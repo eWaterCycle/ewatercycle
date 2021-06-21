@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from ewatercycle import CFG
@@ -14,11 +16,11 @@ def mocked_config(tmp_path):
 
 class TestDefaults:
     @pytest.fixture
-    def parameter_set(self, tmp_path, mocked_config):
+    def parameter_set(self, tmp_path, mocked_config: Path):
         return ParameterSet(
             name='justatest',
             directory=str(tmp_path),
-            config='mymockedconfig.ini'
+            config=mocked_config.name
         )
 
     def test_directory(self, parameter_set: ParameterSet, tmp_path):
