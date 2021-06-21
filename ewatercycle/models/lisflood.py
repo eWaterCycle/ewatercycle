@@ -260,8 +260,9 @@ class Lisflood(AbstractModel):
             idy, idx = np.unravel_index(index, shape)
             lon_converted.append(round(x_model[idx], 4)) # use 4 digits in round
             lat_converted.append(round(y_model[idy], 4)) # use 4 digits in round
-            # consider a threshold
-            if distance[idy, idx] > max(spacing_model) * 2:
+            # consider a threshold twice of the grid spacing
+            # and convert spacing_model to km using this approximation: 1 degree ~ 111km
+            if distance[idy, idx] > max(spacing_model) * 111 * 2:
                 raise ValueError("This point is outside of the model grid.")
 
         return np.array(indices), np.array(lon_converted), np.array(lat_converted)
