@@ -111,7 +111,7 @@ class AbstractModel(metaclass=ABCMeta):
         Args: index: The index into lat/lon values
 
         """
-        raise NotImplementedError("No generic indices_to_coords method available.")
+        raise NotImplementedError("Method to convert from indices to model coordinates not implemented for this model.")
 
     @abstractmethod
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
