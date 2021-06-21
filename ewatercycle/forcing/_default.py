@@ -5,6 +5,8 @@ from typing import Optional
 
 from ruamel.yaml import YAML
 
+FORCING_YAML = 'ewatercycle_forcing.yaml'
+
 
 class DefaultForcing:
     """Container for forcing data.
