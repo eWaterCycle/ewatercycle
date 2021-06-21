@@ -86,7 +86,7 @@ def lat_lon_boundingbox_to_variable_indices(model, variable, lat_min, lat_max, l
     return np.array(output)
 
 
-def find_closest_point(lonitudes: Iterable[float], latitudes: Iterable[float], longitude: float, latitude: float) -> Tuple[ Iterable[float], int]:
+def find_closest_point(lonitudes: Iterable[float], latitudes: Iterable[float], longitude: float, latitude: float) -> Tuple[np.ndarray, int]:
     """Find closest grid cell to a point based on Geographical distances.
 
     It uses Spherical Earth projected to a plane formula:
