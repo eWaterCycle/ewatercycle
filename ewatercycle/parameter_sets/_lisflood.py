@@ -1,6 +1,6 @@
 from typing import Optional
 
-from ._default import ParameterSet
+from ._default import ParameterSet, make_absolute
 
 
 class LisfloodParameterSet(ParameterSet):
@@ -17,10 +17,10 @@ class LisfloodParameterSet(ParameterSet):
             name,
             directory,
             config,
-            doi="N/A",
-            target_model="generic",
+            doi=doi,
+            target_model=target_model,
         )
-        self.MaskMap = MaskMap
+        self.MaskMap = make_absolute(MaskMap) if MaskMap is not None else None
 
     @property
     def is_available(self):

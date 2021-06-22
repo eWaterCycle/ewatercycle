@@ -148,7 +148,6 @@ _validators = {
     "container_engine": validate_string_or_none,
     "singularity_dir": validate_path_or_none,
     "output_dir": validate_path_or_none,
-    "ewatercycle_config": validate_path_or_none,
     "parameterset_dir": validate_path_or_none,
     "parameter_sets": validate_dict_parameterset,
 }

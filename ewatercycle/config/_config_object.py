@@ -1,7 +1,6 @@
 """Importable config object."""
 
 import os
-from datetime import datetime
 from pathlib import Path
 from typing import Union, Optional
 

@@ -4,25 +4,4 @@ container_engine: null
 singularity_dir: null
 output_dir: null
 parameterset_dir: null
-
-
-parameter_sets:
-  # TODO move record below to example config or documentation
-  lisflood_comparison_study:
-    target_model: lisflood
-    doi: N/A
-    directory: Lisflood01degree_masked
-    config: settings_templates/settings_lisflood.xml
-    MaskMap: model_mask.nc
-
-  wflow_example_case:
-    target_model: wflow
-    doi: N/A
-    directory: wflow_example_case_nc/
-    config: wflow_example_case_nc/wflow_sbm_NC.ini
-
-  pcrglobwb_example_case:
-    target_model: pcrglobwb
-    doi: N/A
-    directory: pcrglobwb_example_case
-    config: pcrglobwb_example_case/setup.ini
+parameter_sets: null

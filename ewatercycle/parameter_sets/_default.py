@@ -21,21 +21,17 @@ class ParameterSet:
         self.target_model = target_model
 
     def __repr__(self):
-        attrs = self.__dict__.copy()
-        model = attrs.pop("target_model").capitalize()
-        options = ", ".join(f"{k}={v!r}" for k, v in attrs.items())
-        return f"{model}ParameterSet({options})"
+        options = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())
+        return f"ParameterSet({options})"
 
     def __str__(self):
         """Nice formatting of parameter set."""
-        attrs = self.__dict__.copy()
-        model = attrs.pop("target_model").capitalize()
         return "\n".join(
             [
-                f"{model} parameterset",
-                "--------------------------",
+                "Parameter set",
+                "-------------",
             ]
-            + [f"{k}={v!r}" for k, v in attrs.items()]
+            + [f"{k}={v!r}" for k, v in self.__dict__.items()]
         )
 
     @property

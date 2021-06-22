@@ -31,3 +31,24 @@ class TestDefaults:
 
     def test_is_available(self, parameter_set: ParameterSet):
         assert parameter_set.is_available
+
+    def test_repr(self, parameter_set: ParameterSet, tmp_path):
+        expected = (
+            "ParameterSet(name='justatest', "
+            f"directory=PosixPath('{tmp_path}'), "
+            f"config=PosixPath('{tmp_path}/mymockedconfig.ini'), "
+            "doi='N/A', target_model='generic')"
+        )
+        assert repr(parameter_set) == expected
+
+    def test_str(self, parameter_set: ParameterSet, tmp_path):
+        expected = (
+            'Parameter set\n'
+            '-------------\n'
+            "name='justatest'\n"
+            f"directory=PosixPath('{tmp_path}')\n"
+            f"config=PosixPath('{tmp_path}/mymockedconfig.ini')\n"
+            "doi='N/A'\n"
+            "target_model='generic'"
+        )
+        assert str(parameter_set) == expected
