@@ -1,41 +1,35 @@
 """Forcing related functionality for hype"""
 
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
 from esmvalcore.experimental import get_recipe
 
-from .datasets import DATASETS
-from .default import DefaultForcing
 from ..util import get_time
+from ._default import DefaultForcing
+from .datasets import DATASETS
 
-GENERATE_DOCS = """Hype does not have model specific options."""
-LOAD_DOCS = """Hype does not have model specific info."""
 
-
-@dataclass
 class HypeForcing(DefaultForcing):
     """Container for hype forcing data."""
-
-    # Model-specific attributes (preferably with default values):
-    # ...
+    def __init__(
+        self,
+        start_time: str,
+        end_time: str,
+        directory: str,
+        shape: Optional[str] = None,
+    ):
+        """
+            None: Hype does not have model-specific load options.
+        """
+        super().__init__(start_time, end_time, directory, shape)
 
     @classmethod
     def generate(  # type: ignore
-        cls,
-        dataset: str,
-        start_time: str,
-        end_time: str,
-        shape: str
-    ) -> 'HypeForcing':
-        """Generate HypeForcing with ESMValTool.
-
-        Args:
-            dataset: Name of the source dataset. See :py:data:`.DATASETS`.
-            start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-            end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-            shape: Path to a shape file. Used for spatial selection.
+            cls, dataset: str, start_time: str, end_time: str,
+            shape: str) -> 'HypeForcing':
+        """
+            None: Hype does not have model-specific generate options.
         """
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_hype.yml"
@@ -68,7 +62,7 @@ class HypeForcing(DefaultForcing):
         forcing_path = '/foobar.txt'
 
         forcing_file = Path(forcing_path).name
-        directory = str(Path(forcing_path).parent)
+        directory = str(Path(forcing_file).parent)
 
         # instantiate forcing object based on generated data
         return HypeForcing(directory=directory,

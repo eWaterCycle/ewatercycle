@@ -3,65 +3,39 @@ from typing import Optional, Dict, Type
 
 from ruamel.yaml import YAML
 
-from . import default, hype, lisflood, marrmot, pcrglobwb, wflow
-from .datasets import DATASETS
-from .default import DefaultForcing
+from ._default import DefaultForcing, FORCING_YAML
+from . import _hype, _lisflood, _marrmot, _pcrglobwb, _wflow
 
 FORCING_CLASSES: Dict[str, Type[DefaultForcing]] = {
-    "hype": hype.HypeForcing,
-    "lisflood": lisflood.LisfloodForcing,
-    "marrmot": marrmot.MarrmotForcing,
-    "pcrglobwb": pcrglobwb.PCRGlobWBForcing,
-    "wflow": wflow.WflowForcing,
+    "hype": _hype.HypeForcing,
+    "lisflood": _lisflood.LisfloodForcing,
+    "marrmot": _marrmot.MarrmotForcing,
+    "pcrglobwb": _pcrglobwb.PCRGlobWBForcing,
+    "wflow": _wflow.WflowForcing,
 }
 
 
-def generate(target_model: str,
-             dataset: str,
-             start_time: str,
-             end_time: str,
-             shape: str,
-             model_specific_options: Optional[Dict] = None) -> DefaultForcing:
-    """Generate forcing data with ESMValTool.
-
-    Args:
-        target_model: Name of the model
-        dataset: Name of the source dataset. See :py:data:`.DATASETS`.
-        start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-        end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-        shape: Path to a shape file. Used for spatial selection.
-        **model_specific_options: Model specific recipe settings. See `https://ewatercycle.readtherdocs.io/forcing_generate_options`_.
-
-    Returns:
-        Forcing object, e.g. :obj:`.lisflood.LisfloodForcing`
-    """
-    constructor = FORCING_CLASSES.get(target_model, None)
-    if constructor is None:
-        raise NotImplementedError(f'Target model `{target_model}` is not supported by the eWatercycle forcing generator')
-    if model_specific_options is None:
-        model_specific_options = {}
-    forcing_info = constructor.generate(dataset, start_time, end_time, shape, **model_specific_options)
-    forcing_info.save()
-    return forcing_info
-
-
-def load(directory):
+def load(directory: str) -> DefaultForcing:
     """Load previously generated or imported forcing data.
 
     Args:
-        directory: forcing data directory; must contain `ewatercycle_forcing.yaml`
+        directory: forcing data directory; must contain
+            `ewatercycle_forcing.yaml` file
 
-    Returns:
-        Forcing object, e.g. :obj:`.marrmot.MarrmotForcing`
+    Returns: Forcing object
     """
     yaml = YAML()
-    source = Path(directory) / 'ewatercycle_forcing.yaml'
+    source = Path(directory) / FORCING_YAML
     # TODO give nicer error
     yaml.register_class(DefaultForcing)
     for forcing_cls in FORCING_CLASSES.values():
         yaml.register_class(forcing_cls)
-    forcing_info = yaml.load(source)
-    forcing_info.directory = str(Path(directory).expanduser().resolve())
+    content = source.read_text()
+    # Set directory in yaml string to parent of yaml file
+    # Because in DefaultForcing.save the directory was removed
+    abs_dir = str(source.parent.expanduser().resolve())
+    content += f'directory: {abs_dir}\n'
+    forcing_info = yaml.load(content)
     return forcing_info
 
 
@@ -75,17 +49,19 @@ def load_foreign(target_model,
     """Load existing forcing data generated from an external source.
 
     Args:
-        target_model: Name of the hydrological model for which the forcing will be used
-        start_time: Start time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-        end_time: End time of forcing in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+        target_model: Name of the hydrological model for which the forcing will
+            be used
+        start_time: Start time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        end_time: End time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
         directory: forcing data directory
         shape: Path to a shape file. Used for spatial selection.
-        forcing_info: Model specific information about forcing
-            data. For each model you can see the available information fields
-            at `https://ewatercycle.readtherdocs.io/forcing_load_info`_.
+        forcing_info: Dictionary with model-specific information about forcing
+            data. See below for the available options for each model.
 
     Returns:
-        Forcing object, e.g. :obj:`.hype.HypeForcing`
+        Forcing object
 
     Examples:
 
@@ -120,16 +96,66 @@ def load_foreign(target_model,
                                      'PrefixES0': 'es.nc',
                                      'PrefixET0': 'et.nc'
                                  })
+
+    Model-specific forcing info:
     """
     constructor = FORCING_CLASSES.get(target_model, None)
     if constructor is None:
         raise NotImplementedError(
-            f'Target model `{target_model}` is not supported by the eWatercycle forcing generator')
+            f'Target model `{target_model}` is not supported by the '
+            'eWatercycle forcing generator.')
     if forcing_info is None:
         forcing_info = {}
-    return constructor(start_time, end_time, directory, shape, **forcing_info)  # type: ignore # each subclass can have different forcing_info
+    return constructor(  # type: ignore # each subclass can have different forcing_info
+        start_time=start_time,
+        end_time=end_time,
+        directory=directory,
+        shape=shape,
+        **forcing_info,
+    )
 
 
-# TODO fix time conventions
-# TODO add / fix tests
-# TODO make sure model classes understand new forcing data objects
+def generate(target_model: str,
+             dataset: str,
+             start_time: str,
+             end_time: str,
+             shape: str,
+             model_specific_options: Optional[Dict] = None) -> DefaultForcing:
+    """Generate forcing data with ESMValTool.
+
+    Args:
+        target_model: Name of the model
+        dataset: Name of the source dataset. See :py:mod:`~.datasets`.
+        start_time: Start time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        end_time: End time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        shape: Path to a shape file. Used for spatial selection.
+        model_specific_options: Dictionary with model-specific recipe settings.
+            See below for the available options for each model.
+
+    Returns:
+        Forcing object
+
+
+    Model-specific options that can be passed to `generate`:
+    """
+    constructor = FORCING_CLASSES.get(target_model, None)
+    if constructor is None:
+        raise NotImplementedError(
+            f'Target model `{target_model}` is not supported by the '
+            'eWatercycle forcing generator')
+    if model_specific_options is None:
+        model_specific_options = {}
+    forcing_info = constructor.generate(dataset, start_time, end_time, shape,
+                                        **model_specific_options)
+    forcing_info.save()
+    return forcing_info
+
+
+# Append docstrings of with model-specific options to existing docstring
+load_foreign.__doc__ += "".join(  # type:ignore
+    [f"\n    {k}: {v.__init__.__doc__}" for k, v in FORCING_CLASSES.items()])
+
+generate.__doc__ += "".join(  # type:ignore
+    [f"\n    {k}: {v.generate.__doc__}" for k, v in FORCING_CLASSES.items()])

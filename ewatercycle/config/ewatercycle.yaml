@@ -3,5 +3,3 @@ grdc_location: null
 container_engine: null
 singularity_dir: null
 output_dir: null
-pcrglobwb.singularity_image: null
-pcrglobwb.docker_image: null
