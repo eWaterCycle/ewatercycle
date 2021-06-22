@@ -257,7 +257,7 @@ def _print_metadata(metadata):
         metadata['grdc_longitude_in_arc_degree']
         )
     message = (
-        f"GRDC station {metadata['id_from_grdc']} is selceted. "
+        f"GRDC station {metadata['id_from_grdc']} is selected. "
         f"The river name is: {metadata['river_name']}."
         f"The coordinates are: {coords}."
         f"The catchment area in km2 is: {metadata['grdc_catchment_area_in_km2']}. "
