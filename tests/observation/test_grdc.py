@@ -26,7 +26,7 @@ def sample_grdc_file(tmp_path):
 # Country:               NA
 # Latitude (DD):       52.356154
 # Longitude (DD):      4.955153
-# Catchment area (km�):      4242.0
+# Catchment area (km²):      4242.0
 # Altitude (m ASL):        8.0
 # Next downstream station:      42424243
 # Remarks:
@@ -34,7 +34,7 @@ def sample_grdc_file(tmp_path):
 #
 # Data Set Content:      MEAN DAILY DISCHARGE (Q)
 #                        --------------------
-# Unit of measure:                  m�/s
+# Unit of measure:                   m³/s
 # Time series:           2000-01 - 2000-01
 # No. of years:          1
 # Last update:           2000-02-01
@@ -51,7 +51,7 @@ YYYY-MM-DD;hh:mm; Value
 2000-01-01;--:--;    123.000
 2000-01-02;--:--;    456.000
 2000-01-03;--:--;    -999.000'''
-    with open(fn, 'w') as f:
+    with open(fn, 'w', encoding='cp1252') as f:
         f.write(s)
     return fn
 
@@ -80,7 +80,7 @@ def test_get_grdc_data(tmp_path, sample_grdc_file):
             'river_name': 'SOME RIVER',
             'station_name': 'SOME',
             'time_series': '2000-01 - 2000-01',
-            'units': 'm�/s',
+            'units': 'm³/s',
             'UserEndTime': '2000-02-01T00:00Z',
             'UserStartTime': '2000-01-01T00:00Z',
             'nrMissingData': 1,
