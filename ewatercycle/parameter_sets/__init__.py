@@ -47,13 +47,19 @@ def get_parameter_set(name: str):
     return ps
 
 
-def download_parameter_sets():
+def download_parameter_sets(zenodo_doi: str, target_model: str, config: str):
+    # TODO download archive matching doi from Zenodo
+    # TODO unpack archive in CFG['parameterset_dir'] subdirectory
+    # TODO print yaml snippet with target_model and config to add to ewatercycle.yaml
     raise NotImplementedError(
         "Auto download of parameter sets not yet supported"
     )
 
 
 def download_example_parameter_sets():
+    # TODO define array of examples urls per model 
+    # TODO use build_from_urls and save_* to download files
+    # TODO print yaml snippet
     # ...
     print(
         "Downloaded parameter sets: ..."
