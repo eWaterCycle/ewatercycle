@@ -116,8 +116,9 @@ def test_get_grdc_data_without_path():
     assert 'grdc_location' in msg
 
 
-def test_get_grdc_data_wrong_path():
-    CFG['grdc_location'] = '/data'
+def test_get_grdc_data_wrong_path(tmp_path):
+    CFG['grdc_location'] = f'{tmp_path}_data'
+
     with pytest.raises(ValueError) as excinfo:
         get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z')
     msg = str(excinfo.value)
