@@ -5,6 +5,7 @@ import pytest
 import numpy as np
 from pandas.testing import assert_frame_equal
 
+from ewatercycle import CFG
 from ewatercycle.observation.grdc import get_grdc_data
 
 
@@ -56,15 +57,15 @@ YYYY-MM-DD;hh:mm; Value
     return fn
 
 
-def test_get_grdc_data(tmp_path, sample_grdc_file):
-    result_data, result_metadata = get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z', data_home=tmp_path)
+@pytest.fixture
+def expected_results(tmp_path, sample_grdc_file):
 
-    expected_data = pd.DataFrame(
+    data = pd.DataFrame(
         {'streamflow': [123., 456., np.NaN]},
         index = [datetime(2000, 1, 1), datetime(2000, 1, 2), datetime(2000, 1, 3)],
     )
-    expected_data.index.rename('time', inplace=True)
-    expected_metadata = {
+    data.index.rename('time', inplace=True)
+    metadata = {
             'altitude_masl': 8.0,
             'country_code': 'NA',
             'dataSetContent': 'MEAN DAILY DISCHARGE (Q)',
@@ -85,5 +86,48 @@ def test_get_grdc_data(tmp_path, sample_grdc_file):
             'UserStartTime': '2000-01-01T00:00Z',
             'nrMissingData': 1,
         }
+    return data, metadata
+
+
+def test_get_grdc_data_with_datahome(tmp_path, expected_results):
+    expected_data, expected_metadata = expected_results
+    result_data, result_metadata = get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z', data_home=tmp_path)
+
     assert_frame_equal(result_data, expected_data)
     assert result_metadata == expected_metadata
+
+
+def test_get_grdc_data_with_CFG(expected_results, tmp_path):
+    CFG['grdc_location'] = str(tmp_path)
+    expected_data, expected_metadata = expected_results
+    result_data, result_metadata = get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z')
+
+    assert_frame_equal(result_data, expected_data)
+    assert result_metadata == expected_metadata
+
+
+def test_get_grdc_data_without_path():
+    CFG['grdc_location'] = None
+    with pytest.raises(ValueError) as excinfo:
+        get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z')
+    msg = str(excinfo.value)
+    print(msg)
+    assert 'data_home' in msg
+    assert 'grdc_location' in msg
+
+
+def test_get_grdc_data_wrong_path():
+    CFG['grdc_location'] = '/data'
+    with pytest.raises(ValueError) as excinfo:
+        get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z')
+    msg = str(excinfo.value)
+    print(msg)
+    assert 'directory' in msg
+
+
+def test_get_grdc_data_without_file(tmp_path):
+    with pytest.raises(ValueError) as excinfo:
+        get_grdc_data('42424243', '2000-01-01T00:00Z', '2000-02-01T00:00Z', data_home=tmp_path)
+    msg = str(excinfo.value)
+    print(msg)
+    assert 'file' in msg
