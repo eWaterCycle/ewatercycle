@@ -1,10 +1,13 @@
 import os
 from pathlib import Path
 from typing import Dict, Tuple, Union
+import logging
 
 import pandas as pd
 from ewatercycle import CFG
 from ewatercycle.util import get_time
+
+logger = logging.getLogger(Path(__file__).name)
 
 def get_grdc_data(station_id: str,
                   start_time: str,
@@ -103,8 +106,8 @@ def get_grdc_data(station_id: str,
     # Add number of missing data to metadata
     metadata["nrMissingData"] = _count_missing_data(df)
 
-    # Print info about data
-    _print_metadata(metadata)
+    # Shpw info about data
+    _log_metadata(metadata)
 
     return df, metadata
 
@@ -270,7 +273,7 @@ def _count_missing_data(df):
     return df['streamflow'].isna().sum()
 
 
-def _print_metadata(metadata):
+def _log_metadata(metadata):
     """Print some information about data."""
     coords = (
         metadata['grdc_latitude_in_arc_degree'],
@@ -284,4 +287,4 @@ def _print_metadata(metadata):
         f"There are {metadata['nrMissingData']} missing values "
         f"during {metadata['UserStartTime']}_{metadata['UserEndTime']} at this station. "
         f"See the metadata for more information.")
-    print(message)
+    logger.info("%s", message)
