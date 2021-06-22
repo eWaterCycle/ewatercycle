@@ -43,15 +43,16 @@ def get_grdc_data(station_id: str,
             from ewatercycle.observation.grdc import get_grdc_data
 
             df, meta = get_grdc_data('6335020', '2000-01-01T00:00Z', '2001-01-01T00:00Z', data_home='.')
-            df.info()
-            <class 'pandas.core.frame.DataFrame'>
-            DatetimeIndex: 367 entries, 2000-01-01 to 2001-01-01
-            Data columns (total 1 columns):
-            #   Column      Non-Null Count  Dtype
-            ---  ------      --------------  -----
-            0   streamflow  367 non-null    float64
-            dtypes: float64(1)
-            memory usage: 5.7 KB
+            df.describe()
+                     streamflow
+            count   4382.000000
+            mean    2328.992469
+            std	    1190.181058
+            min	     881.000000
+            25%	    1550.000000
+            50%	    2000.000000
+            75%	    2730.000000
+            max	   11300.000000
 
             meta
             {'grdc_file_name': '/home/verhoes/git/eWaterCycle/ewatercycle/6335020_Q_Day.Cmd.txt',
