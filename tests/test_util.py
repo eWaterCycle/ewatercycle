@@ -26,9 +26,9 @@ def test_get_time_without_tz():
 
 
 def test_find_closest_point():
-    actual_distances, actual_index = (
+    expected_distances, expected_index = (
         [[118.77417243, 111.22983323],[122.9552163 , 115.67902656]],
         1)
-    expected_distances, expected_index = find_closest_point([-99.83, -99.32], [42.25, 42.21], -99.32, 43.25)
+    actual_distances, actual_index = find_closest_point([-99.83, -99.32], [42.25, 42.21], -99.32, 43.25)
     assert_array_almost_equal(actual_distances, expected_distances)
     assert actual_index == expected_index
