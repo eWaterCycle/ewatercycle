@@ -6,12 +6,11 @@ from ._default import ParameterSet
 from ._lisflood import LisfloodParameterSet
 
 CONSTRUCTORS = {
-    "Lisflood": LisfloodParameterSet,
+    "Lisflood": LisfloodParameterSet,  # TODO remove when MaskMap is no longer in parameter set see #121
 }
 
 
 def _parse_parametersets():
-
     parametersets = {}
     for name, options in CFG["parameter_sets"].items():
         model = options["target_model"]
@@ -23,18 +22,19 @@ def _parse_parametersets():
     return parametersets
 
 
-def available_parameter_sets(target_model: str) -> Iterable[str]:
+def available_parameter_sets(target_model: str = None) -> Iterable[str]:
+    # TODO add docstring
     # TODO how to get valid target_model string?
     all_parameter_sets = _parse_parametersets()
     return (
         name
         for name, ps in all_parameter_sets.items()
-        if ps.is_available and ps.target_model == target_model
+        if ps.is_available and (target_model is None or ps.target_model == target_model)
     )
 
 
 def get_parameter_set(name: str):
-
+    # TODO add docstring
     all_parameter_sets = _parse_parametersets()
 
     ps = all_parameter_sets.get(name)
