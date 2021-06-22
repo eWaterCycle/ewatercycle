@@ -24,7 +24,6 @@ def _parse_parametersets():
 
 def available_parameter_sets(target_model: str = None) -> Iterable[str]:
     # TODO add docstring
-    # TODO how to get valid target_model string?
     all_parameter_sets = _parse_parametersets()
     return (
         name
