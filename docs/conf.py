@@ -219,3 +219,12 @@ autodoc_mock_imports = [
 
 # Prevent alphabetic sorting of (@data)class attributes/methods
 autodoc_member_order = 'bysource'
+
+# nbsphinx configuration values cf. https://nbsphinx.readthedocs.io/en/0.8.6/usage.html
+nbsphinx_execute = 'never'
+
+# Hacky way to 'remove' the cell count from the prompt.
+# Inspired by https://github.com/spatialaudio/nbsphinx/issues/126
+nbsphinx_prompt_width = 0
+nbsphinx_input_prompt = '%s         In:'
+nbsphinx_output_prompt = '%s       Out:'
