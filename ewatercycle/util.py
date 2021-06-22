@@ -86,18 +86,18 @@ def lat_lon_boundingbox_to_variable_indices(model, variable, lat_min, lat_max, l
     return np.array(output)
 
 
-def find_closest_point(lonitudes: Iterable[float], latitudes: Iterable[float], longitude: float, latitude: float) -> Tuple[np.ndarray, int]:
+def find_closest_point(grid_longitudes: Iterable[float], grid_latitudes: Iterable[float], point_longitude: float, point_latitude: float) -> Tuple[np.ndarray, int]:
     """Find closest grid cell to a point based on Geographical distances.
 
     It uses Spherical Earth projected to a plane formula:
     https://en.wikipedia.org/wiki/Geographical_distance
     """
     # Create a grid from coordinates
-    lon_vectors, lat_vectors = np.meshgrid(lonitudes, latitudes)
+    lon_vectors, lat_vectors = np.meshgrid(grid_longitudes, grid_latitudes)
 
-    dlon = np.radians(lon_vectors - longitude)
-    dlat = np.radians(lat_vectors - latitude)
-    latm = np.radians((lat_vectors + latitude) / 2)
+    dlon = np.radians(lon_vectors - point_longitude)
+    dlat = np.radians(lat_vectors - point_latitude)
+    latm = np.radians((lat_vectors + point_latitude) / 2)
 
     # approximate radius of earth in km
     radius = 6373.0
