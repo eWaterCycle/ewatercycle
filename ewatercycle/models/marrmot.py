@@ -12,7 +12,7 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
-from ewatercycle.forcing.marrmot import MarrmotForcing
+from ewatercycle.forcing._marrmot import MarrmotForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.util import get_time
 

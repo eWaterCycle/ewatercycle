@@ -14,7 +14,7 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
-from ewatercycle.forcing.wflow import WflowForcing
+from ewatercycle.forcing._wflow import WflowForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.util import get_time
@@ -32,20 +32,17 @@ class WflowParameterSet:
     """Input folder path."""
     default_config: Union[str, PathLike]
     """Path to (default) model configuration file consistent with `input_data`."""
-
     def __setattr__(self, name: str, value: Union[str, PathLike]):
         self.__dict__[name] = Path(value).expanduser().resolve()
 
     def __str__(self):
         """Nice formatting of parameter set."""
-        return "\n".join(
-            [
-                "Wflow parameterset",
-                "------------------",
-                f"Directory: {self.input_data}",
-                f"Default configuration file: {self.default_config}",
-            ]
-        )
+        return "\n".join([
+            "Wflow parameterset",
+            "------------------",
+            f"Directory: {self.input_data}",
+            f"Default configuration file: {self.default_config}",
+        ])
 
 
 class Wflow(AbstractModel):
@@ -61,9 +58,8 @@ class Wflow(AbstractModel):
         bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
 
-    available_versions = ("2020.1.1",)
+    available_versions = ("2020.1.1", )
     """Show supported WFlow versions in eWaterCycle"""
-
     def __init__(
         self,
         version: str,
@@ -95,7 +91,8 @@ class Wflow(AbstractModel):
 
         cfg.set("framework", "netcdfinput", Path(forcing.netcdfinput).name)
         cfg.set("inputmapstacks", "Precipitation", forcing.Precipitation)
-        cfg.set("inputmapstacks", "EvapoTranspiration", forcing.EvapoTranspiration)
+        cfg.set("inputmapstacks", "EvapoTranspiration",
+                forcing.EvapoTranspiration)
         cfg.set("inputmapstacks", "Temperature", forcing.Temperature)
         cfg.set("run", "starttime", _iso_to_wflow(forcing.start_time))
         cfg.set("run", "endtime", _iso_to_wflow(forcing.end_time))
@@ -136,7 +133,8 @@ class Wflow(AbstractModel):
         working_directory = CFG["output_dir"] / f"wflow_{timestamp}"
         self.work_dir = working_directory.resolve()
 
-        shutil.copytree(src=self.parameter_set.input_data, dst=working_directory)
+        shutil.copytree(src=self.parameter_set.input_data,
+                        dst=working_directory)
         forcing_path = Path(self.forcing.directory) / self.forcing.netcdfinput
         shutil.copy(src=forcing_path, dst=working_directory)
 
@@ -161,10 +159,10 @@ class Wflow(AbstractModel):
                     " time limit (15 seconds). You may try building it with "
                     f"`!singularity run docker://{self.docker_image}` and try "
                     "again. Please also inform the system administrator that "
-                    "the singularity image was missing."
-                )
+                    "the singularity image was missing.")
         else:
-            raise ValueError(f"Unknown container technology: {CFG['container_engine']}")
+            raise ValueError(
+                f"Unknown container technology: {CFG['container_engine']}")
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
