@@ -13,7 +13,7 @@ def get_grdc_data(station_id: str,
                   start_time: str,
                   end_time: str,
                   parameter: str = 'Q',
-                  data_home: str = None) -> Tuple[pd.DataFrame, Dict[str, Union[str, int, float]]]:
+                  data_home: str = None) -> Tuple[pd.core.frame.DataFrame, Dict[str, Union[str, int, float]]]:
     """Get river discharge data from Global Runoff Data Centre (GRDC).
 
     Requires the GRDC daily data files in a local directory. The GRDC daily data
