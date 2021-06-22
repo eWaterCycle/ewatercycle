@@ -68,6 +68,7 @@ setup(
             'recommonmark',
             'sphinx',
             'sphinx_rtd_theme',
+            'nbsphinx'
          ],
     }
 )
