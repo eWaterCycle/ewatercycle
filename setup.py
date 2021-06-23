@@ -65,10 +65,10 @@ setup(
             'pycodestyle',
             'yapf',
             # Dependencies for documentation generation
+            'nbsphinx',
             'recommonmark',
             'sphinx',
             'sphinx_rtd_theme',
-            'nbsphinx',
             # ipython syntax highlighting is required in doc notebooks
             'ipython',
          ],

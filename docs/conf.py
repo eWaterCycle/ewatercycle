@@ -228,7 +228,7 @@ nbsphinx_execute = 'never'
 
 # Hacky way to 'remove' the cell count from the prompt.
 # Inspired by https://github.com/spatialaudio/nbsphinx/issues/126
-nbsphinx_prompt_width = 0
+nbsphinx_prompt_width = '0'
 nbsphinx_input_prompt = '%s         In:'
 nbsphinx_output_prompt = '%s       Out:'
 
