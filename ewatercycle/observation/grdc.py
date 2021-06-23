@@ -55,7 +55,7 @@ def get_grdc_data(station_id: str,
             max	   11300.000000
 
             meta
-            {'grdc_file_name': '/home/verhoes/git/eWaterCycle/ewatercycle/6335020_Q_Day.Cmd.txt',
+            {'grdc_file_name': '/home/myusername/git/eWaterCycle/ewatercycle/6335020_Q_Day.Cmd.txt',
             'id_from_grdc': 6335020,
             'file_generation_date': '2019-03-27',
             'river_name': 'RHINE RIVER',
