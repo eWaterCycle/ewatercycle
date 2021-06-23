@@ -58,6 +58,19 @@ class AbstractModel(metaclass=ABCMeta):
         """
         return self.bmi.get_value(name)
 
+    def get_value_at_coords(self, name, lat: Iterable[float], lon: Iterable[float]) -> np.ndarray:
+        """Get a copy of values of the given variable at lat/lon coordinates.
+
+        Args:
+            name: Name of variable
+            lat: Latitudinal value
+            lon: Longitudinal value
+
+        """
+        indices, _, _ = self._coords_to_indices(name, lat, lon)
+        indices = np.array(indices)
+        return self.bmi.get_value_at_indices(name, indices)
+
     def set_value(self, name: str, value: np.ndarray) -> None:
         """Specify a new value for a model variable.
 
@@ -67,6 +80,30 @@ class AbstractModel(metaclass=ABCMeta):
 
         """
         self.bmi.set_value(name, value)
+
+    def set_value_at_coords(self, name: str, lat: Iterable[float], lon: Iterable[float], values: np.ndarray) -> None:
+        """Specify a new value for a model variable at at lat/lon coordinates.
+
+        Args:
+            name: Name of variable
+            lat: Latitudinal value
+            lon: Longitudinal value
+            value: The new value for the specified variable.
+
+        """
+        indices, _, _ = self._coords_to_indices(name, lat, lon)
+        indices = np.array(indices)
+        self.bmi.set_value_at_indices(name, indices, values)
+
+    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Tuple[Iterable[int], Iterable[float], Iterable[float]]:
+        """Converts lat/lon values to index.
+
+        Args:
+            lat: Latitudinal value
+            lon: Longitudinal value
+
+        """
+        raise NotImplementedError("Method to convert from coordinates to model indices not implemented for this model.")
 
     @abstractmethod
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
