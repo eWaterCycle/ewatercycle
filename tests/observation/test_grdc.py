@@ -91,7 +91,7 @@ def expected_results(tmp_path, sample_grdc_file):
 
 def test_get_grdc_data_with_datahome(tmp_path, expected_results):
     expected_data, expected_metadata = expected_results
-    result_data, result_metadata = get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z', data_home=tmp_path)
+    result_data, result_metadata = get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z', data_home=str(tmp_path))
 
     assert_frame_equal(result_data, expected_data)
     assert result_metadata == expected_metadata
