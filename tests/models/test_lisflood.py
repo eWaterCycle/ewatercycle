@@ -136,6 +136,7 @@ class TestLFlatlonUseCase:
 
 
 class MockedBmi(Bmi):
+    """Mimic a real use case with realistic shape and abitrary high precision."""
     def get_var_grid(self, name):
         return 0
 
@@ -166,7 +167,6 @@ class MockedBmi(Bmi):
     def get_value_at_indices(self, name, indices):
         self.indices = indices
         return np.array([1.0])
-
 
 
 
