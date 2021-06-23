@@ -3,7 +3,6 @@ Examples
 ========
 
 .. toctree::
-  :glob:
 
   Platform tutorial <examples/ewatercycle_api_notebook.ipynb>
   Pre-processing input <examples/preprocessing.ipynb>
