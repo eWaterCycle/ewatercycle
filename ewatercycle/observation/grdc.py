@@ -7,7 +7,7 @@ import pandas as pd
 from ewatercycle import CFG
 from ewatercycle.util import get_time
 
-logger = logging.getLogger(Path(__file__).name)
+logger = logging.getLogger(__name__)
 
 def get_grdc_data(station_id: str,
                   start_time: str,
