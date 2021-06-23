@@ -19,7 +19,6 @@ Content
   :maxdepth: 3
   :glob:
 
-  ewatercycle_api_notebook
   examples
   hpc_to_cluster
   API Reference <apidocs/ewatercycle.rst>
