@@ -105,14 +105,6 @@ class AbstractModel(metaclass=ABCMeta):
         """
         raise NotImplementedError("Method to convert from coordinates to model indices not implemented for this model.")
 
-    def _indices_to_coords(self, name: str, indices: Iterable[int]) -> Tuple[Iterable[float], Iterable[float]]:
-        """Convert index to lat/lon values.
-
-        Args: index: The index into lat/lon values
-
-        """
-        raise NotImplementedError("Method to convert from indices to model coordinates not implemented for this model.")
-
     @abstractmethod
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Get a copy values of the given variable as xarray DataArray.

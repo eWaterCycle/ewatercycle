@@ -255,36 +255,19 @@ class Lisflood(AbstractModel):
         # in lisflood, x corresponds to lon, and y to lat.
         # this might not be the case for other models!
         for x, y in zip(lon, lat):
-            distance, index = find_closest_point(x_model, y_model, x, y)            
+            distance, index = find_closest_point(x_model, y_model, x, y)
             idy, idx = np.unravel_index(index, shape)
-            
+
             # consider a threshold twice of the grid spacing
             # and convert spacing_model to km using this approximation: 1 degree ~ 111km
             if distance[idy, idx] > max(spacing_model) * 111 * 2:
                 raise ValueError("This point is outside of the model grid.")
-            
+
             indices.append(index)
             lon_converted.append(round(x_model[idx], 4)) # use 4 digits in round
             lat_converted.append(round(y_model[idy], 4)) # use 4 digits in round
 
         return np.array(indices), np.array(lon_converted), np.array(lat_converted)
-
-    def _indices_to_coords(self, name: str, indices: Iterable[int]) -> Tuple[Iterable[float], Iterable[float]]:
-        """Convert index to lat/lon values."""
-        grid_id = self.bmi.get_var_grid(name)
-        shape = self.bmi.get_grid_shape(grid_id) # shape returns (len(y), len(x))
-        indices = np.array(indices)
-        idy, idx = np.unravel_index(indices, shape)
-        x_model = self.bmi.get_grid_x(grid_id)
-        y_model = self.bmi.get_grid_y(grid_id)
-        lon = []
-        lat = []
-        # in lisflood, x corresponds to lon, and y to lat.
-        # this might not be the case for other models!
-        for x, y in zip(idx, idy):
-            lon.append(x_model[x])
-            lat.append(y_model[y])
-        return np.array(lon), np.array(lat)
 
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
