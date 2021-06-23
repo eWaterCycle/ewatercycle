@@ -128,7 +128,7 @@ def test_get_grdc_data_wrong_path(tmp_path):
 
 def test_get_grdc_data_without_file(tmp_path):
     with pytest.raises(ValueError) as excinfo:
-        get_grdc_data('42424243', '2000-01-01T00:00Z', '2000-02-01T00:00Z', data_home=tmp_path)
+        get_grdc_data('42424243', '2000-01-01T00:00Z', '2000-02-01T00:00Z', data_home=str(tmp_path))
     msg = str(excinfo.value)
     print(msg)
     assert 'file' in msg
