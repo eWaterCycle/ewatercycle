@@ -149,14 +149,8 @@ def _parse_example_parameter_sets() -> List[ExampleParameterSet]:
     ]
 
 
-def download_example_parameter_sets(config_file: Union[str, Path]):
-    """Downloads a couple of example parameter sets and adds them to the config_file
-
-    Args:
-        config_file: Config file for ewatercycle.
-            For example `/etc/ewatercycle.yaml` or `~/.config/.ewatercycle/ewatercycle.yaml`
-
-    """
+def download_example_parameter_sets():
+    """Downloads a couple of example parameter sets and adds them to the config_file."""
     logger.info("Downloaded parameter sets: ...")
     examples = _parse_example_parameter_sets()
 
@@ -169,12 +163,15 @@ def download_example_parameter_sets(config_file: Union[str, Path]):
 
 
     cp = CFG.copy()
+    config_file = cp.pop("ewatercycle_config")
     cp["esmvaltool_config"] = str(cp["esmvaltool_config"])
     cp["grdc_location"] = str(cp["grdc_location"])
     cp["singularity_dir"] = str(cp["singularity_dir"])
     cp["output_dir"] = str(cp["output_dir"])
     cp["parameterset_dir"] = str(cp["parameterset_dir"])
-    old_config_file = cp.pop("ewatercycle_config")
+
+    if config_file is None:
+        config_file = "./ewatercycle.yaml"
 
     yaml = YAML()
     with open(config_file, "w") as f:
@@ -183,3 +180,7 @@ def download_example_parameter_sets(config_file: Union[str, Path]):
     logger.info(
         f"{len(examples)} example parameter sets were downloaded and added to {config_file}"
     )
+
+
+# TODO make function to download single parameterset.
+# TODO don't overwrite
