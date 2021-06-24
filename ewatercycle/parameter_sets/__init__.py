@@ -37,7 +37,8 @@ def available_parameter_sets(target_model: str = None) -> Iterable[str]:
     return (
         name
         for name, ps in all_parameter_sets.items()
-        if ps.is_available and (target_model is None or ps.target_model == target_model)
+        if ps.is_available
+        and (target_model is None or ps.target_model == target_model)
     )
 
 
@@ -66,16 +67,26 @@ def download_parameter_sets(zenodo_doi: str, target_model: str, config: str):
 
 
 class ExampleParameterSet(ParameterSet):
-    def __init__(self, config_url: str, datafiles_url: str, name, directory: str, config: str, doi="N/A",
-                 target_model="generic"):
+    def __init__(
+        self,
+        config_url: str,
+        datafiles_url: str,
+        name,
+        directory: str,
+        config: str,
+        doi="N/A",
+        target_model="generic",
+    ):
         super().__init__(name, directory, config, doi, target_model)
         self.config_url = config_url
         self.datafiles_url = datafiles_url
 
     def download(self):
         if self.directory.exists():
-            raise ValueError('Directory already exists, will not overwrite')
-        subprocess.check_call(['svn', 'export', self.datafiles_url, self.directory])
+            raise ValueError("Directory already exists, will not overwrite")
+        subprocess.check_call(
+            ["svn", "export", self.datafiles_url, self.directory]
+        )
         # TODO replace subversion with alternative see https://stackoverflow.com/questions/33066582/how-to-download-a-folder-from-github/48948711
         with urlopen(self.config_url) as response:
             self.config.write_text(response.read().decode())
@@ -91,7 +102,7 @@ class ExampleParameterSet(ParameterSet):
 
 def _abbreviate(path: Path):
     try:
-        return path.relative_to(CFG['parameterset_dir'])
+        return path.relative_to(CFG["parameterset_dir"])
     except ValueError:
         return path
 
@@ -105,11 +116,11 @@ def _parse_example_parameter_sets() -> List[ExampleParameterSet]:
             name="pcrglobwb_example_case",
             # Relative to CFG['parameterset_dir']
             config="pcrglobwb_example_case/setup_natural_test.ini",
-            datafiles_url='https://github.com/UU-Hydro/PCR-GLOBWB_input_example/trunk/RhineMeuse30min',
+            datafiles_url="https://github.com/UU-Hydro/PCR-GLOBWB_input_example/trunk/RhineMeuse30min",
             # Raw url to config file
-            config_url='https://raw.githubusercontent.com/UU-Hydro/PCR-GLOBWB_input_example/master/ini_and_batch_files_for_pcrglobwb_course/rhine_meuse_30min_using_input_example/setup_natural_test.ini',
+            config_url="https://raw.githubusercontent.com/UU-Hydro/PCR-GLOBWB_input_example/master/ini_and_batch_files_for_pcrglobwb_course/rhine_meuse_30min_using_input_example/setup_natural_test.ini",
             doi="N/A",
-            target_model="pcrglobwb"
+            target_model="pcrglobwb",
         ),
         ExampleParameterSet(
             # Relative to CFG['parameterset_dir']
@@ -117,11 +128,11 @@ def _parse_example_parameter_sets() -> List[ExampleParameterSet]:
             name="wflow_rhine_sbm_nc",
             # Relative to CFG['parameterset_dir']
             config="wflow_rhine_sbm_nc/wflow_sbm_NC.ini",
-            datafiles_url='https://github.com/openstreams/wflow/trunk/examples/wflow_rhine_sbm_nc',
+            datafiles_url="https://github.com/openstreams/wflow/trunk/examples/wflow_rhine_sbm_nc",
             # Raw url to config file
-            config_url='https://github.com/openstreams/wflow/raw/master/examples/wflow_rhine_sbm_nc/wflow_sbm_NC.ini',
+            config_url="https://github.com/openstreams/wflow/raw/master/examples/wflow_rhine_sbm_nc/wflow_sbm_NC.ini",
             doi="N/A",
-            target_model="wflow"
+            target_model="wflow",
         ),
         ExampleParameterSet(
             # Relative to CFG['parameterset_dir']
@@ -129,11 +140,11 @@ def _parse_example_parameter_sets() -> List[ExampleParameterSet]:
             name="lisflood_fraser",
             # Relative to CFG['parameterset_dir']
             config="lisflood_fraser/settings_lat_lon-Run.xml",
-            datafiles_url='https://github.com/ec-jrc/lisflood-usecases/trunk/LF_lat_lon_UseCase',
+            datafiles_url="https://github.com/ec-jrc/lisflood-usecases/trunk/LF_lat_lon_UseCase",
             # Raw url to config file
-            config_url='https://github.com/ec-jrc/lisflood-usecases/raw/master/LF_lat_lon_UseCase/settings_lat_lon-Run.xml',
+            config_url="https://github.com/ec-jrc/lisflood-usecases/raw/master/LF_lat_lon_UseCase/settings_lat_lon-Run.xml",
             doi="N/A",
-            target_model="lisflood"
+            target_model="lisflood",
         ),
     ]
 
@@ -146,22 +157,25 @@ def download_example_parameter_sets(config_file: Union[str, Path]):
             For example `/etc/ewatercycle.yaml` or `~/.config/.ewatercycle/ewatercycle.yaml`
 
     """
-    logger.info(
-        "Downloaded parameter sets: ...")
+    logger.info("Downloaded parameter sets: ...")
     examples = _parse_example_parameter_sets()
-    if not CFG['parameter_sets']:
-        CFG['parameter_sets'] = {}
+
+    if not CFG["parameter_sets"]:
+        CFG["parameter_sets"] = {}
+
     for example in examples:
         example.download()
-        CFG['parameter_sets'][example.name] = example.to_config()
+        CFG["parameter_sets"][example.name] = example.to_config()
+
     yaml = YAML()
-    with open(config_file, 'w') as f:
+
+    with open(config_file, "w") as f:
         cp = CFG.copy()
-        cp['esmvaltool_config'] = str(cp['esmvaltool_config'])
-        cp['grdc_location'] = str(cp['grdc_location'])
-        cp['singularity_dir'] = str(cp['singularity_dir'])
-        cp['output_dir'] = str(cp['output_dir'])
-        cp['parameterset_dir'] = str(cp['parameterset_dir'])
+        cp["esmvaltool_config"] = str(cp["esmvaltool_config"])
+        cp["grdc_location"] = str(cp["grdc_location"])
+        cp["singularity_dir"] = str(cp["singularity_dir"])
+        cp["output_dir"] = str(cp["output_dir"])
+        cp["parameterset_dir"] = str(cp["parameterset_dir"])
         yaml.dump(cp, f)
 
     logger.info(

@@ -150,4 +150,5 @@ _validators = {
     "output_dir": validate_path_or_none,
     "parameterset_dir": validate_path_or_none,
     "parameter_sets": validate_dict_parameterset,
+    "ewatercycle_config": validate_path_or_none,
 }
