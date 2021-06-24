@@ -167,15 +167,17 @@ def download_example_parameter_sets(config_file: Union[str, Path]):
         example.download()
         CFG["parameter_sets"][example.name] = example.to_config()
 
-    yaml = YAML()
 
+    cp = CFG.copy()
+    cp["esmvaltool_config"] = str(cp["esmvaltool_config"])
+    cp["grdc_location"] = str(cp["grdc_location"])
+    cp["singularity_dir"] = str(cp["singularity_dir"])
+    cp["output_dir"] = str(cp["output_dir"])
+    cp["parameterset_dir"] = str(cp["parameterset_dir"])
+    old_config_file = cp.pop("ewatercycle_config")
+
+    yaml = YAML()
     with open(config_file, "w") as f:
-        cp = CFG.copy()
-        cp["esmvaltool_config"] = str(cp["esmvaltool_config"])
-        cp["grdc_location"] = str(cp["grdc_location"])
-        cp["singularity_dir"] = str(cp["singularity_dir"])
-        cp["output_dir"] = str(cp["output_dir"])
-        cp["parameterset_dir"] = str(cp["parameterset_dir"])
         yaml.dump(cp, f)
 
     logger.info(
