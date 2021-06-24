@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(here, '..')))
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'nbsphinx']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -222,6 +222,15 @@ autodoc_mock_imports = [
 
 # Prevent alphabetic sorting of (@data)class attributes/methods
 autodoc_member_order = 'bysource'
+
+# nbsphinx configuration values cf. https://nbsphinx.readthedocs.io/en/0.8.6/usage.html
+nbsphinx_execute = 'never'
+
+# Hacky way to 'remove' the cell count from the prompt.
+# Inspired by https://github.com/spatialaudio/nbsphinx/issues/126
+nbsphinx_prompt_width = '0'
+nbsphinx_input_prompt = '%s         In:'
+nbsphinx_output_prompt = '%s       Out:'
 
 # Nice formatting of model-specific input parameters
 napoleon_custom_sections = [
