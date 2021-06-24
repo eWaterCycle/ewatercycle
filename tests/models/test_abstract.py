@@ -54,6 +54,7 @@ def model(bmi: Bmi):
     m.setup(bmi=bmi)
     return m
 
+
 def test_construct():
     with pytest.raises(TypeError) as excinfo:
         AbstractModel()
@@ -83,11 +84,10 @@ def test_finalize(model: MockedModel, bmi):
     bmi.finalize.assert_called_once_with()
 
 
-def test_finalize_destroys_bmi(model: MockedModel, bmi):
+def test_finalize_resets_bmi(model: MockedModel, bmi):
     model.finalize()
 
-    with pytest.raises(AttributeError, match="object has no attribute 'bmi'"):
-        model.bmi
+    assert model.bmi is None
 
 
 def test_update(model: MockedModel, bmi):
@@ -193,7 +193,7 @@ def test_get_value_as_xarray(model: MockedModel):
     xr.testing.assert_equal(dataarray, expected)
 
 
-def test_delete_model_destroys_bmi():
+def test_delete_model_resets_bmi():
 
     class Object():
         """Target for weakref finalizer."""
@@ -204,5 +204,6 @@ def test_delete_model_destroys_bmi():
     thismodel.setup(bmi=Object())
     bmiref = weakref.finalize(thismodel.bmi, print, "Bmi got destroyed")
 
+    assert bmiref.alive
     del thismodel
     assert not bmiref.alive
