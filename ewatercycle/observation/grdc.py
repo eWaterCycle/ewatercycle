@@ -1,92 +1,123 @@
 import os
-from datetime import datetime
+from pathlib import Path
+from typing import Dict, Tuple, Union
+import logging
 
 import pandas as pd
+from ewatercycle import CFG
+from ewatercycle.util import get_time
 
+logger = logging.getLogger(__name__)
 
-def get_grdc_data(station_id,
-                  start_date,
-                  end_date,
-                  parameter='Q',
-                  data_home=None):
+def get_grdc_data(station_id: str,
+                  start_time: str,
+                  end_time: str,
+                  parameter: str = 'Q',
+                  data_home: str = None) -> Tuple[pd.core.frame.DataFrame, Dict[str, Union[str, int, float]]]:
+    """Get river discharge data from Global Runoff Data Centre (GRDC).
+
+    Requires the GRDC daily data files in a local directory. The GRDC daily data
+    files can be ordered at
+    https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/riverdischarge_node.html
+
+    Args:
+        station_id: The station id to get. The station id can be found in the
+            catalogues at
+            https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/212_prjctlgs/project_catalogue_node.html
+        start_time: Start time of model in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        end_time: End time of model in  UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        parameter: optional. The parameter code to get, e.g. ('Q') discharge,
+            cubic meters per second.
+        data_home : optional. The directory where the daily grdc data is
+            located. If left out will use the grdc_location in the eWaterCycle
+            configuration file.
+
+    Returns:
+        grdc data in a dataframe and metadata.
+
+    Examples:
+        .. code-block:: python
+
+            from ewatercycle.observation.grdc import get_grdc_data
+
+            df, meta = get_grdc_data('6335020', '2000-01-01T00:00Z', '2001-01-01T00:00Z', data_home='.')
+            df.describe()
+                     streamflow
+            count   4382.000000
+            mean    2328.992469
+            std	    1190.181058
+            min	     881.000000
+            25%	    1550.000000
+            50%	    2000.000000
+            75%	    2730.000000
+            max	   11300.000000
+
+            meta
+            {'grdc_file_name': '/home/myusername/git/eWaterCycle/ewatercycle/6335020_Q_Day.Cmd.txt',
+            'id_from_grdc': 6335020,
+            'file_generation_date': '2019-03-27',
+            'river_name': 'RHINE RIVER',
+            'station_name': 'REES',
+            'country_code': 'DE',
+            'grdc_latitude_in_arc_degree': 51.756918,
+            'grdc_longitude_in_arc_degree': 6.395395,
+            'grdc_catchment_area_in_km2': 159300.0,
+            'altitude_masl': 8.0,
+            'dataSetContent': 'MEAN DAILY DISCHARGE (Q)',
+            'units': 'm³/s',
+            'time_series': '1814-11 - 2016-12',
+            'no_of_years': 203,
+            'last_update': '2018-05-24',
+            'nrMeasurements': 'NA',
+            'UserStartTime': '2000-01-01T00:00Z',
+            'UserEndTime': '2001-01-01T00:00Z',
+            'nrMissingData': 0}
     """
-    Get river discharge data from Global Runoff Data Centre (GRDC).
+    if data_home:
+        data_path = Path(data_home).expanduser().resolve()
+    else:
+        if CFG["grdc_location"]:
+            data_path = Path(CFG["grdc_location"]).expanduser().resolve()
+        else:
+            raise ValueError(
+                f'Provide the grdc path using `data_home` argument '
+                f'or using `grdc_location` in ewatercycle configuration file.'
+                )
 
-    Requires the GRDC daily data files in a local directory.
-    The GRDC daily data files can be ordered at https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/riverdischarge_node.html
-
-    Parameters
-    ----------
-    station_id : str
-        The station id to get.
-        The station id can be found in the catalogues at https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/212_prjctlgs/project_catalogue_node.html
-    start_date : str
-        String for start date in the format: 'YYYY-MM-dd', e.g. '1980-01-01'
-    end_date : str
-        String for start date in the format: 'YYYY-MM-dd', e.g. '2018-12-31'
-    parameter : str, optional
-        The parameter code to get, e.g. ('Q') discharge, cubic meters per second
-    data_home : str, optional
-        The directory where the daily grdc data is located.
-        If left out will use the environment variable GRDC_DATA_HOME
-
-    Examples
-    --------
-    >>> from ewatercycle.observation.grdc import get_grdc_data
-    >>> data = get_grdc_data('6335020', '2000-01-01', '2001-01-01', data_home='.')
-    >>> data
-        <xarray.Dataset>
-        Dimensions:     (time: 367)
-        Coordinates:
-        * time        (time) datetime64[ns] 2000-01-01 2000-01-02 ... 2001-01-01
-        Data variables:
-            streamflow  (time) float64 ...
-        Attributes:
-            grdc_file_name:                6335020_Q_Day.Cmd
-            id_from_grdc:                  6335020
-            file_generation_date:          2019-03-27
-            river_name:                    RHINE RIVER
-            station_name:                  REES
-            country_code:                  DE
-            grdc_latitude_in_arc_degree:   51.756918
-            grdc_longitude_in_arc_degree:  6.395395
-            grdc_catchment_area_in_km2:    159300.0
-            altitude_masl:                 8.0
-            dataSetContent:                MEAN DAILY DISCHARGE (Q)
-            units:                         m�/s
-            time_series:                   1814-11 - 2016-12
-            no_of_years:                   203
-            last_update:                   2018-05-24
-            nrMeasurements:                NA
-    """
-    if data_home is None:
-        data_home = os.environ.get('GRDC_DATA_HOME', None)
-    if data_home is None:
-        raise ValueError('Missing data_home argument or GRDC_DATA_HOME env var to find GRDC data files')
+    if not data_path.exists():
+        raise ValueError(f'The grdc directory {data_path} does not exist!')
 
     # Read the raw data
-    raw_file = os.path.join(data_home, station_id + "_" + parameter + "_Day.Cmd.txt")
+    raw_file = data_path / f"{station_id}_{parameter}_Day.Cmd.txt"
+    if not raw_file.exists():
+        raise ValueError(f'The grdc file {raw_file} does not exist!')
+
     # Convert the raw data to an xarray
     metadata, df = _grdc_read(
         raw_file,
-        start=datetime.strptime(start_date, "%Y-%m-%d"),
-        end=datetime.strptime(end_date, "%Y-%m-%d"))
+        start=get_time(start_time).date(),
+        end=get_time(end_time).date())
 
-    # Create the xarray dataset
-    ds = df.to_xarray()
-    ds.attrs = metadata
+    # Add start/end_time to metadata
+    metadata["UserStartTime"] = start_time
+    metadata["UserEndTime"] = end_time
 
-    return ds
+    # Add number of missing data to metadata
+    metadata["nrMissingData"] = _count_missing_data(df)
+
+    # Shpw info about data
+    _log_metadata(metadata)
+
+    return df, metadata
 
 
 def _grdc_read(grdc_station_path, start, end):
-    if not os.path.exists(grdc_station_path):
-        raise ValueError("Data file ", grdc_station_path, " does not exist!")
-    else:
-        with open(
-                grdc_station_path, 'r', encoding='utf-8',
-                errors='ignore') as file:
-            data = file.read()
+    with open(
+            grdc_station_path, 'r', encoding='cp1252',
+            errors='ignore') as file:
+        data = file.read()
 
     metadata = _grdc_metadata_reader(grdc_station_path, data)
 
@@ -97,19 +128,17 @@ def _grdc_read(grdc_station_path, start, end):
             break
 
     # Import GRDC data into dataframe and modify dataframe format
-    grdc_station_df = pd.read_csv(
+    grdc_data = pd.read_csv(
         grdc_station_path,
         skiprows=header,
         delimiter=';',
         parse_dates=['YYYY-MM-DD'],
         na_values='-999')
-    grdc_station_df = grdc_station_df.rename(columns={
-        'YYYY-MM-DD': 'time',
-        ' Value': 'streamflow'
-    })
-    grdc_station_df = grdc_station_df.reset_index().set_index(
-        pd.DatetimeIndex(grdc_station_df['time']))
-    grdc_station_df = grdc_station_df.drop(columns=['hh:mm', 'index', 'time'])
+    grdc_station_df = pd.DataFrame(
+        {'streamflow': grdc_data[' Value'].values},
+        index = grdc_data['YYYY-MM-DD'].values,
+        )
+    grdc_station_df.index.rename('time', inplace=True)
 
     # Select GRDC station data that matches the forecast results Date
     grdc_station_select = grdc_station_df.loc[start:end]
@@ -149,7 +178,7 @@ def _grdc_metadata_reader(grdc_station_path, allLines):
 
     if id_from_grdc is not None:
 
-        attributeGRDC["grdc_file_name"] = grdc_station_path
+        attributeGRDC["grdc_file_name"] = str(grdc_station_path)
         attributeGRDC["id_from_grdc"] = id_from_grdc
 
         try:
@@ -238,3 +267,25 @@ def _grdc_metadata_reader(grdc_station_path, allLines):
             attributeGRDC["nrMeasurements"] = "NA"
 
     return attributeGRDC
+
+
+def _count_missing_data(df):
+    """Return number of missing data."""
+    return df['streamflow'].isna().sum()
+
+
+def _log_metadata(metadata):
+    """Print some information about data."""
+    coords = (
+        metadata['grdc_latitude_in_arc_degree'],
+        metadata['grdc_longitude_in_arc_degree']
+        )
+    message = (
+        f"GRDC station {metadata['id_from_grdc']} is selected. "
+        f"The river name is: {metadata['river_name']}."
+        f"The coordinates are: {coords}."
+        f"The catchment area in km2 is: {metadata['grdc_catchment_area_in_km2']}. "
+        f"There are {metadata['nrMissingData']} missing values "
+        f"during {metadata['UserStartTime']}_{metadata['UserEndTime']} at this station. "
+        f"See the metadata for more information.")
+    logger.info("%s", message)

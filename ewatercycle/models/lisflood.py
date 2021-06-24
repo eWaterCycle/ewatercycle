@@ -2,7 +2,7 @@ import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Tuple, Union
+from typing import Any, Iterable, List, Tuple, Union
 
 import numpy as np
 import xarray as xr
@@ -14,7 +14,7 @@ from ewatercycle import CFG
 from ewatercycle.forcing._lisflood import LisfloodForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parametersetdb.config import AbstractConfig
-from ewatercycle.util import get_time
+from ewatercycle.util import get_time, find_closest_point
 
 
 @dataclass
@@ -240,6 +240,34 @@ class Lisflood(AbstractModel):
         )
 
         return da
+
+    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Tuple[Iterable[int], Iterable[float], Iterable[float]]:
+        """Convert lat, lon coordinates into model indices."""
+        grid_id = self.bmi.get_var_grid(name)
+        shape = self.bmi.get_grid_shape(grid_id) # shape returns (len(y), len(x))
+        x_model = self.bmi.get_grid_x(grid_id)
+        y_model = self.bmi.get_grid_y(grid_id)
+        spacing_model = self.bmi.get_grid_spacing(grid_id)
+
+        indices = []
+        lon_converted = []
+        lat_converted = []
+        # in lisflood, x corresponds to lon, and y to lat.
+        # this might not be the case for other models!
+        for x, y in zip(lon, lat):
+            distance, index = find_closest_point(x_model, y_model, x, y)
+            idy, idx = np.unravel_index(index, shape)
+
+            # consider a threshold twice of the grid spacing
+            # and convert spacing_model to km using this approximation: 1 degree ~ 111km
+            if distance[idy, idx] > max(spacing_model) * 111 * 2:
+                raise ValueError("This point is outside of the model grid.")
+
+            indices.append(index)
+            lon_converted.append(round(x_model[idx], 4)) # use 4 digits in round
+            lat_converted.append(round(y_model[idy], 4)) # use 4 digits in round
+
+        return np.array(indices), np.array(lon_converted), np.array(lat_converted)
 
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
