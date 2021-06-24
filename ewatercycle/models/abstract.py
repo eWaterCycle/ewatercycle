@@ -16,6 +16,9 @@ class AbstractModel(metaclass=ABCMeta):
     def __init__(self):
         self.bmi: Bmi = None  # bmi should set in setup() before calling its methods
 
+    def __del__(self):
+        del self.bmi
+
     @abstractmethod
     def setup(self, *args, **kwargs) -> Tuple[PathLike, PathLike]:
         """Performs model setup.
@@ -43,7 +46,7 @@ class AbstractModel(metaclass=ABCMeta):
     def finalize(self) -> None:
         """Perform tear-down tasks for the model."""
         self.bmi.finalize()
-        # TODO terminate container if running?
+        del self.bmi
 
     def update(self) -> None:
         """Advance model state by one time step."""

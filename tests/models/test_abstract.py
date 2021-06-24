@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any, Iterable, Tuple
 from unittest.mock import patch
 
+import weakref
 import numpy as np
 import pytest
 import xarray as xr
@@ -80,6 +81,13 @@ def test_finalize(model: MockedModel, bmi):
     model.finalize()
 
     bmi.finalize.assert_called_once_with()
+
+
+def test_finalize_destroys_bmi(model: MockedModel, bmi):
+    model.finalize()
+
+    with pytest.raises(AttributeError, match="object has no attribute 'bmi'"):
+        model.bmi
 
 
 def test_update(model: MockedModel, bmi):
@@ -183,3 +191,22 @@ def test_get_value_as_xarray(model: MockedModel):
     dataarray = model.get_value_as_xarray("Temperature")
 
     xr.testing.assert_equal(dataarray, expected)
+
+
+def test_delete_model_destroys_bmi():
+
+    class Object():
+        """Target for weakref finalizer."""
+        pass
+
+    def callback():
+        """Called by weakref finalizer."""
+        raise  "Bmi got destroyed"
+
+    # Cannot use the `model` fixture, it doesn't play well with weakref
+    thismodel = MockedModel()
+    thismodel.setup(bmi=Object())
+    bmiref = weakref.finalize(thismodel.bmi, print, "Bmi got destroyed")
+
+    del thismodel
+    assert not bmiref.alive
