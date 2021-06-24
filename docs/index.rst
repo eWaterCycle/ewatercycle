@@ -16,8 +16,9 @@ Content
 =============
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 3
 
+  examples
   hpc_to_cluster
   API Reference <apidocs/ewatercycle.rst>
 

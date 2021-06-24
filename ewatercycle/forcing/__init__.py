@@ -3,8 +3,8 @@ from typing import Optional, Dict, Type
 
 from ruamel.yaml import YAML
 
+from ._default import DefaultForcing, FORCING_YAML
 from . import _hype, _lisflood, _marrmot, _pcrglobwb, _wflow
-from ._default import DefaultForcing
 
 FORCING_CLASSES: Dict[str, Type[DefaultForcing]] = {
     "hype": _hype.HypeForcing,
@@ -25,13 +25,17 @@ def load(directory: str) -> DefaultForcing:
     Returns: Forcing object
     """
     yaml = YAML()
-    source = Path(directory) / 'ewatercycle_forcing.yaml'
+    source = Path(directory) / FORCING_YAML
     # TODO give nicer error
     yaml.register_class(DefaultForcing)
     for forcing_cls in FORCING_CLASSES.values():
         yaml.register_class(forcing_cls)
-    forcing_info = yaml.load(source)
-    forcing_info.directory = str(Path(directory).expanduser().resolve())
+    content = source.read_text()
+    # Set directory in yaml string to parent of yaml file
+    # Because in DefaultForcing.save the directory was removed
+    abs_dir = str(source.parent.expanduser().resolve())
+    content += f'directory: {abs_dir}\n'
+    forcing_info = yaml.load(content)
     return forcing_info
 
 

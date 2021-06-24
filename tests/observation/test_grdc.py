@@ -1,10 +1,11 @@
 from datetime import datetime
+import pandas as pd
 
 import pytest
-import xarray as xa
 import numpy as np
-from xarray.testing import assert_equal
+from pandas.testing import assert_frame_equal
 
+from ewatercycle import CFG
 from ewatercycle.observation.grdc import get_grdc_data
 
 
@@ -26,7 +27,7 @@ def sample_grdc_file(tmp_path):
 # Country:               NA
 # Latitude (DD):       52.356154
 # Longitude (DD):      4.955153
-# Catchment area (km�):      4242.0
+# Catchment area (km²):      4242.0
 # Altitude (m ASL):        8.0
 # Next downstream station:      42424243
 # Remarks:
@@ -34,7 +35,7 @@ def sample_grdc_file(tmp_path):
 #
 # Data Set Content:      MEAN DAILY DISCHARGE (Q)
 #                        --------------------
-# Unit of measure:                  m�/s
+# Unit of measure:                   m³/s
 # Time series:           2000-01 - 2000-01
 # No. of years:          1
 # Last update:           2000-02-01
@@ -51,18 +52,20 @@ YYYY-MM-DD;hh:mm; Value
 2000-01-01;--:--;    123.000
 2000-01-02;--:--;    456.000
 2000-01-03;--:--;    -999.000'''
-    with open(fn, 'w') as f:
+    with open(fn, 'w', encoding='cp1252') as f:
         f.write(s)
     return fn
 
 
-def test_get_grdc_data(tmp_path, sample_grdc_file):
-    result = get_grdc_data('42424242', '2000-01-01', '2000-02-01', data_home=tmp_path)
+@pytest.fixture
+def expected_results(tmp_path, sample_grdc_file):
 
-    expected = xa.Dataset(
-        {'streamflow': ('time', [123., 456., np.NaN])},
-        coords={'time': [datetime(2000, 1, 1), datetime(2000, 1, 2), datetime(2000, 1, 3)]},
-        attrs={
+    data = pd.DataFrame(
+        {'streamflow': [123., 456., np.NaN]},
+        index = [datetime(2000, 1, 1), datetime(2000, 1, 2), datetime(2000, 1, 3)],
+    )
+    data.index.rename('time', inplace=True)
+    metadata = {
             'altitude_masl': 8.0,
             'country_code': 'NA',
             'dataSetContent': 'MEAN DAILY DISCHARGE (Q)',
@@ -78,9 +81,54 @@ def test_get_grdc_data(tmp_path, sample_grdc_file):
             'river_name': 'SOME RIVER',
             'station_name': 'SOME',
             'time_series': '2000-01 - 2000-01',
-            'units': 'm�/s'
+            'units': 'm³/s',
+            'UserEndTime': '2000-02-01T00:00Z',
+            'UserStartTime': '2000-01-01T00:00Z',
+            'nrMissingData': 1,
         }
-    )
+    return data, metadata
 
-    assert_equal(result, expected)
-    assert result.attrs == expected.attrs
+
+def test_get_grdc_data_with_datahome(tmp_path, expected_results):
+    expected_data, expected_metadata = expected_results
+    result_data, result_metadata = get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z', data_home=str(tmp_path))
+
+    assert_frame_equal(result_data, expected_data)
+    assert result_metadata == expected_metadata
+
+
+def test_get_grdc_data_with_CFG(expected_results, tmp_path):
+    CFG['grdc_location'] = str(tmp_path)
+    expected_data, expected_metadata = expected_results
+    result_data, result_metadata = get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z')
+
+    assert_frame_equal(result_data, expected_data)
+    assert result_metadata == expected_metadata
+
+
+def test_get_grdc_data_without_path():
+    CFG['grdc_location'] = None
+    with pytest.raises(ValueError) as excinfo:
+        get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z')
+    msg = str(excinfo.value)
+    print(msg)
+    assert 'data_home' in msg
+    assert 'grdc_location' in msg
+
+
+def test_get_grdc_data_wrong_path(tmp_path):
+    CFG['grdc_location'] = f'{tmp_path}_data'
+
+    with pytest.raises(ValueError) as excinfo:
+        get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z')
+    msg = str(excinfo.value)
+    print(msg)
+    assert 'directory' in msg
+
+
+def test_get_grdc_data_without_file(tmp_path):
+    with pytest.raises(ValueError) as excinfo:
+        get_grdc_data('42424243', '2000-01-01T00:00Z', '2000-02-01T00:00Z', data_home=str(tmp_path))
+    msg = str(excinfo.value)
+    print(msg)
+    assert 'file' in msg
