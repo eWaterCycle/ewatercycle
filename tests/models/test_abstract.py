@@ -1,9 +1,9 @@
+import weakref
 from os import PathLike
 from pathlib import Path
 from typing import Any, Iterable, Tuple
 from unittest.mock import patch
 
-import weakref
 import numpy as np
 import pytest
 import xarray as xr
@@ -198,10 +198,6 @@ def test_delete_model_destroys_bmi():
     class Object():
         """Target for weakref finalizer."""
         pass
-
-    def callback():
-        """Called by weakref finalizer."""
-        raise  "Bmi got destroyed"
 
     # Cannot use the `model` fixture, it doesn't play well with weakref
     thismodel = MockedModel()
