@@ -17,7 +17,6 @@ Content
 
 .. toctree::
   :maxdepth: 3
-  :glob:
 
   examples
   hpc_to_cluster
