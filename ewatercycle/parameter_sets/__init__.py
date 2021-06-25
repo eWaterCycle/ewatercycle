@@ -84,6 +84,9 @@ class ExampleParameterSet(ParameterSet):
     def download(self):
         if self.directory.exists():
             raise ValueError("Directory already exists, will not overwrite")
+
+        logger.info(f"Downloading example parameter set {self.name} to {self.directory}...")
+
         subprocess.check_call(
             ["svn", "export", self.datafiles_url, self.directory]
         )
@@ -91,8 +94,15 @@ class ExampleParameterSet(ParameterSet):
         with urlopen(self.config_url) as response:
             self.config.write_text(response.read().decode())
 
+        logger.info("Download complete.")
+
     def to_config(self):
-        return dict(
+        logger.info(f"Adding parameterset {self.name} to ewatercycle.CFG... ")
+
+        if not CFG["parameter_sets"]:
+            CFG["parameter_sets"] = {}
+
+        CFG["parameter_sets"][example.name] = dict(
             directory=str(_abbreviate(self.directory)),
             config=str(_abbreviate(self.config)),
             doi=self.doi,
@@ -107,7 +117,7 @@ def _abbreviate(path: Path):
         return path
 
 
-def _parse_example_parameter_sets() -> List[ExampleParameterSet]:
+def example_parameter_sets() -> List[ExampleParameterSet]:
     # TODO how to add a new model docs should be updated with this part
     return [
         ExampleParameterSet(
@@ -149,38 +159,43 @@ def _parse_example_parameter_sets() -> List[ExampleParameterSet]:
     ]
 
 
-def download_example_parameter_sets():
-    """Downloads a couple of example parameter sets and adds them to the config_file."""
-    logger.info("Downloaded parameter sets: ...")
-    examples = _parse_example_parameter_sets()
-
-    if not CFG["parameter_sets"]:
-        CFG["parameter_sets"] = {}
-
-    for example in examples:
-        example.download()
-        CFG["parameter_sets"][example.name] = example.to_config()
-
-
+def export_config(config_file=None):
     cp = CFG.copy()
-    config_file = cp.pop("ewatercycle_config")
+    old_config_file = cp.pop("ewatercycle_config", d=None)
+
     cp["esmvaltool_config"] = str(cp["esmvaltool_config"])
     cp["grdc_location"] = str(cp["grdc_location"])
     cp["singularity_dir"] = str(cp["singularity_dir"])
     cp["output_dir"] = str(cp["output_dir"])
     cp["parameterset_dir"] = str(cp["parameterset_dir"])
 
-    if config_file is None:
-        config_file = "./ewatercycle.yaml"
+    if config_file is None
+        if old_config_file is None:
+            config_file = "./ewatercycle.yaml"
+        else:
+            # TODO Catch read-only?
+            config_file = old_config_file
 
     yaml = YAML()
     with open(config_file, "w") as f:
         yaml.dump(cp, f)
 
+    logger.info(f"Config written to {config_file}")
+
+    return config_file
+
+
+def download_example_parameter_sets(export_config=True):
+    """Downloads a couple of example parameter sets and adds them to the config_file."""
+    examples = example_parameter_sets()
+
+    for example in examples:
+        example.download()
+        example.to_config()
+
+    if export_config:
+        config_file = export_config()
+
     logger.info(
         f"{len(examples)} example parameter sets were downloaded and added to {config_file}"
     )
-
-
-# TODO make function to download single parameterset.
-# TODO don't overwrite
