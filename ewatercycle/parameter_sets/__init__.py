@@ -34,8 +34,7 @@ def available_parameter_sets(target_model: str = None) -> Iterable[str]:
     return (
         name
         for name, ps in all_parameter_sets.items()
-        if ps.is_available
-        and (target_model is None or ps.target_model == target_model)
+        if ps.is_available and (target_model is None or ps.target_model == target_model)
     )
 
 
@@ -58,9 +57,7 @@ def download_parameter_sets(zenodo_doi: str, target_model: str, config: str):
     # TODO download archive matching doi from Zenodo
     # TODO unpack archive in CFG['parameterset_dir'] subdirectory
     # TODO print yaml snippet with target_model and config to add to ewatercycle.yaml
-    raise NotImplementedError(
-        "Auto download of parameter sets not yet supported"
-    )
+    raise NotImplementedError("Auto download of parameter sets not yet supported")
 
 
 def example_parameter_sets() -> Iterable[ExampleParameterSet]:
@@ -82,19 +79,15 @@ def download_example_parameter_sets():
         example.to_config()
         i += 1
 
-    logger.info(
-        f"{i} example parameter sets were downloaded"
-    )
+    logger.info(f"{i} example parameter sets were downloaded")
 
     try:
         config_file = CFG.save_to_file()
-        logger.info(
-            f"Saved parameter sets to configuration file {config_file}"
-        )
+        logger.info(f"Saved parameter sets to configuration file {config_file}")
     except OSError as e:
         raise OSError(
-            f'Failed to write parameter sets to configuration file. '
-            f'Manually save content below to {USER_HOME_CONFIG} '
-            f'or {SYSTEM_CONFIG} file: {linesep}'
-            f'{CFG.dump_to_yaml()}'
+            f"Failed to write parameter sets to configuration file. "
+            f"Manually save content below to {USER_HOME_CONFIG} "
+            f"or {SYSTEM_CONFIG} file: {linesep}"
+            f"{CFG.dump_to_yaml()}"
         ) from e

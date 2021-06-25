@@ -28,11 +28,11 @@ class ExampleParameterSet(ParameterSet):
         if self.directory.exists():
             raise ValueError("Directory already exists, will not overwrite")
 
-        logger.info(f"Downloading example parameter set {self.name} to {self.directory}...")
-
-        subprocess.check_call(
-            ["svn", "export", self.datafiles_url, self.directory]
+        logger.info(
+            f"Downloading example parameter set {self.name} to {self.directory}..."
         )
+
+        subprocess.check_call(["svn", "export", self.datafiles_url, self.directory])
         # TODO replace subversion with alternative see https://stackoverflow.com/questions/33066582/how-to-download-a-folder-from-github/48948711
         with urlopen(self.config_url) as response:
             self.config.write_text(response.read().decode())

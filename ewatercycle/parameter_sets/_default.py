@@ -41,8 +41,4 @@ class ParameterSet:
 
 def make_absolute(input_path: str) -> Path:
     pathlike = Path(input_path)
-    return (
-        pathlike
-        if pathlike.is_absolute()
-        else CFG["parameterset_dir"] / pathlike
-    )
+    return pathlike if pathlike.is_absolute() else CFG["parameterset_dir"] / pathlike
