@@ -1,13 +1,17 @@
 """Importable config object."""
 
 import os
+from io import StringIO
+from logging import getLogger
 from pathlib import Path
-from typing import Union, Optional
+from typing import Union, Optional, TextIO
 
-from ruamel import yaml
+from ruamel.yaml import YAML
 
 from ._validators import _validators
 from ._validated_config import ValidatedConfig
+
+logger = getLogger(__name__)
 
 
 class Config(ValidatedConfig):
@@ -66,6 +70,49 @@ class Config(ValidatedConfig):
         filename = self.get('ewatercycle_config', DEFAULT_CONFIG)
         self.load_from_file(filename)
 
+    def dump_to_yaml(self) -> str:
+        """Dumps YAML formatted string of Config object
+        """
+        stream = StringIO()
+        self._save_to_stream(stream)
+        return stream.getvalue()
+
+    def _save_to_stream(self, stream: TextIO):
+        cp = self.copy()
+
+        # Exclude own path from dump
+        cp.pop("ewatercycle_config", None)
+
+        cp["esmvaltool_config"] = str(cp["esmvaltool_config"])
+        cp["grdc_location"] = str(cp["grdc_location"])
+        cp["singularity_dir"] = str(cp["singularity_dir"])
+        cp["output_dir"] = str(cp["output_dir"])
+        cp["parameterset_dir"] = str(cp["parameterset_dir"])
+
+        yaml = YAML(typ='safe')
+        yaml.dump(cp, stream)
+
+    def save_to_file(self, config_file: Optional[Union[os.PathLike, str]] = None):
+        """Write conf object to a file.
+
+        Args:
+            config_file: File to write configuration object to.
+                If not given then will try to use `CFG['ewatercycle_config']` location
+                and if `CFG['ewatercycle_config']` is not set then will use the location in users home directory.
+        """
+        # Exclude own path from dump
+        old_config_file = self.get("ewatercycle_config", None)
+
+        if config_file is None:
+            config_file = USER_HOME_CONFIG if old_config_file is None else old_config_file
+
+        with open(config_file, "w") as f:
+            self._save_to_stream(f)
+
+        logger.info(f"Config written to {config_file}")
+
+        return config_file
+
 
 def read_config_file(config_file: Union[os.PathLike, str]) -> dict:
     """Read config user file and store settings in a dictionary."""
@@ -74,15 +121,16 @@ def read_config_file(config_file: Union[os.PathLike, str]) -> dict:
         raise IOError(f'Config file `{config_file}` does not exist.')
 
     with open(config_file, 'r') as file:
-        cfg = yaml.safe_load(file)
+        yaml = YAML(typ='safe')
+        cfg = yaml.load(file)
 
     return cfg
 
 
-def find_user_config(sources: tuple, filename: str) -> Optional[os.PathLike]:
+def find_user_config(sources: tuple) -> Optional[os.PathLike]:
     """Find user config in list of source directories."""
     for source in sources:
-        user_config = source / filename
+        user_config = source
         if user_config.exists():
             return user_config
     return None
@@ -90,12 +138,15 @@ def find_user_config(sources: tuple, filename: str) -> Optional[os.PathLike]:
 
 FILENAME = 'ewatercycle.yaml'
 
+USER_HOME_CONFIG = Path.home() / os.environ.get('XDG_CONFIG_HOME', '.config') / 'ewatercycle' / FILENAME
+SYSTEM_CONFIG = Path('/etc') / FILENAME
+
 SOURCES = (
-    Path.home() / os.environ.get('XDG_CONFIG_HOME', '.config') / '.ewatercycle',
-    Path('/etc'),
+    USER_HOME_CONFIG,
+    SYSTEM_CONFIG
 )
 
-USER_CONFIG = find_user_config(SOURCES, FILENAME)
+USER_CONFIG = find_user_config(SOURCES)
 DEFAULT_CONFIG = Path(__file__).parent / FILENAME
 
 CFG_DEFAULT = Config._load_default_config(DEFAULT_CONFIG)

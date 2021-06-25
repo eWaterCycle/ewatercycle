@@ -1,16 +1,14 @@
 import subprocess
 from logging import getLogger
+from os import linesep
 from pathlib import Path
+from typing import Iterable, List
 from urllib.request import urlopen
 
-from ruamel.yaml import YAML
-
 from ewatercycle import CFG
-
-from typing import Iterable, Union, List
-
 from ._default import ParameterSet
 from ._lisflood import LisfloodParameterSet
+from ..config import SYSTEM_CONFIG, USER_HOME_CONFIG
 
 logger = getLogger(__name__)
 
@@ -102,7 +100,7 @@ class ExampleParameterSet(ParameterSet):
         if not CFG["parameter_sets"]:
             CFG["parameter_sets"] = {}
 
-        CFG["parameter_sets"][example.name] = dict(
+        CFG["parameter_sets"][self.name] = dict(
             directory=str(_abbreviate(self.directory)),
             config=str(_abbreviate(self.config)),
             doi=self.doi,
@@ -119,7 +117,9 @@ def _abbreviate(path: Path):
 
 def example_parameter_sets() -> List[ExampleParameterSet]:
     # TODO how to add a new model docs should be updated with this part
+
     return [
+        # TODO move to ./_pcrglobwb.py
         ExampleParameterSet(
             # Relative to CFG['parameterset_dir']
             directory="pcrglobwb_example_case",
@@ -132,6 +132,7 @@ def example_parameter_sets() -> List[ExampleParameterSet]:
             doi="N/A",
             target_model="pcrglobwb",
         ),
+        # TODO move to ./_wflow.py
         ExampleParameterSet(
             # Relative to CFG['parameterset_dir']
             directory="wflow_rhine_sbm_nc",
@@ -144,6 +145,7 @@ def example_parameter_sets() -> List[ExampleParameterSet]:
             doi="N/A",
             target_model="wflow",
         ),
+        # TODO move to ./_lisflood.py
         ExampleParameterSet(
             # Relative to CFG['parameterset_dir']
             directory="lisflood_fraser",
@@ -159,33 +161,7 @@ def example_parameter_sets() -> List[ExampleParameterSet]:
     ]
 
 
-def export_config(config_file=None):
-    cp = CFG.copy()
-    old_config_file = cp.pop("ewatercycle_config", d=None)
-
-    cp["esmvaltool_config"] = str(cp["esmvaltool_config"])
-    cp["grdc_location"] = str(cp["grdc_location"])
-    cp["singularity_dir"] = str(cp["singularity_dir"])
-    cp["output_dir"] = str(cp["output_dir"])
-    cp["parameterset_dir"] = str(cp["parameterset_dir"])
-
-    if config_file is None
-        if old_config_file is None:
-            config_file = "./ewatercycle.yaml"
-        else:
-            # TODO Catch read-only?
-            config_file = old_config_file
-
-    yaml = YAML()
-    with open(config_file, "w") as f:
-        yaml.dump(cp, f)
-
-    logger.info(f"Config written to {config_file}")
-
-    return config_file
-
-
-def download_example_parameter_sets(export_config=True):
+def download_example_parameter_sets():
     """Downloads a couple of example parameter sets and adds them to the config_file."""
     examples = example_parameter_sets()
 
@@ -193,9 +169,19 @@ def download_example_parameter_sets(export_config=True):
         example.download()
         example.to_config()
 
-    if export_config:
-        config_file = export_config()
-
     logger.info(
-        f"{len(examples)} example parameter sets were downloaded and added to {config_file}"
+        f"{len(examples)} example parameter sets were downloaded"
     )
+
+    try:
+        config_file = CFG.save_to_file()
+        logger.info(
+            f"Saved parameter sets to configuration file {config_file}"
+        )
+    except OSError as e:
+        raise OSError(
+            f'Failed to write parameter sets to configuration file. '
+            f'Manually save content below to {USER_HOME_CONFIG} '
+            f'or {SYSTEM_CONFIG} file: {linesep}'
+            f'{CFG.dump_to_yaml()}'
+        ) from e
