@@ -1,12 +1,24 @@
+from unittest.mock import patch
+
 import pytest
 
 from ewatercycle import CFG
-from ewatercycle.parameter_sets import available_parameter_sets, get_parameter_set
+from ewatercycle.config._config_object import DEFAULT_CONFIG
+from ewatercycle.parameter_sets import available_parameter_sets, get_parameter_set, example_parameter_sets, \
+    download_example_parameter_sets, ExampleParameterSet
 
 
 @pytest.fixture
-def mocked_parameterset_dir(tmp_path):
+def setup_config(tmp_path):
     CFG['parameterset_dir'] = tmp_path
+    CFG['ewatercycle_config'] = tmp_path / 'ewatercycle.yaml'
+    yield CFG
+    CFG['ewatercycle_config'] = DEFAULT_CONFIG
+    CFG.reload()
+
+
+@pytest.fixture
+def mocked_parameterset_dir(setup_config, tmp_path):
     ps1_dir = tmp_path / 'ps1'
     ps1_dir.mkdir()
     config1 = ps1_dir / 'mymockedconfig1.ini'
@@ -60,3 +72,17 @@ class TestGetParameterSet:
     def test_unavailable(self, mocked_parameterset_dir):
         with pytest.raises(ValueError):
             get_parameter_set('ps3')
+
+
+def test_example_parameter_sets(setup_config):
+    examples = example_parameter_sets()
+    assert len(list(examples)) > 0
+
+
+@patch.object(ExampleParameterSet, 'download')
+def test_download_example_parameter_sets(mocked_download, setup_config, tmp_path):
+    download_example_parameter_sets()
+
+    assert mocked_download.call_count > 0
+    assert CFG['ewatercycle_config'].read_text() == CFG.dump_to_yaml()
+    assert len(CFG['parameter_sets']) > 0

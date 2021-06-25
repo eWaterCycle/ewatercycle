@@ -12,7 +12,7 @@ from ..config import SYSTEM_CONFIG, USER_HOME_CONFIG
 logger = getLogger(__name__)
 
 CONSTRUCTORS = {
-    "Lisflood": _lisflood.LisfloodParameterSet,  # TODO remove when MaskMap is no longer in parameter set see #121
+    "lisflood": _lisflood.LisfloodParameterSet,  # TODO remove when MaskMap is no longer in parameter set see #121
 }
 
 

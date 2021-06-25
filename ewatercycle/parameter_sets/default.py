@@ -8,8 +8,10 @@ class ParameterSet:
 
     Attributes:
         name (str): Name of parameter set
-        directory (Path): Location on disk where files of parameter set are stored
-        config (Path): Model configuration file which uses files from :py:attr:`~directory`
+        directory (Path): Location on disk where files of parameter set are stored.
+            If Path is relative then relative to CFG['parameterset_dir'].
+        config (Path): Model configuration file which uses files from :py:attr:`~directory`.
+            If Path is relative then relative to CFG['parameterset_dir'].
         doi (str): Persistent identifier of parameter set. For a example a DOI for a Zenodo record.
         target_model (str): Name of model that parameter set can work with
     """
@@ -51,4 +53,9 @@ class ParameterSet:
 
 def _make_absolute(input_path: str) -> Path:
     pathlike = Path(input_path)
-    return pathlike if pathlike.is_absolute() else CFG["parameterset_dir"] / pathlike
+    if pathlike.is_absolute():
+        return pathlike
+    if CFG["parameterset_dir"]:
+        return CFG["parameterset_dir"] / pathlike
+    else:
+        raise ValueError(f'CFG["parameterset_dir"] is not set. Unable to make {input_path} relative to it')

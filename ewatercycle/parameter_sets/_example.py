@@ -1,7 +1,7 @@
 import subprocess
 from logging import getLogger
 from pathlib import Path
-from urllib.request import urlopen
+from urllib import request
 
 from ewatercycle import CFG
 from .default import ParameterSet
@@ -22,7 +22,9 @@ class ExampleParameterSet(ParameterSet):
     ):
         super().__init__(name, directory, config, doi, target_model)
         self.config_url = config_url
+        """URL where model configuration file can be downloaded"""
         self.datafiles_url = datafiles_url
+        """GitHub subversion URL where datafiles can be svn-exported from"""
 
     def download(self):
         if self.directory.exists():
@@ -34,8 +36,8 @@ class ExampleParameterSet(ParameterSet):
 
         subprocess.check_call(["svn", "export", self.datafiles_url, self.directory])
         # TODO replace subversion with alternative see https://stackoverflow.com/questions/33066582/how-to-download-a-folder-from-github/48948711
-        with urlopen(self.config_url) as response:
-            self.config.write_text(response.read().decode())
+        response = request.urlopen(self.config_url)
+        self.config.write_text(response.read().decode())
 
         logger.info("Download complete.")
 

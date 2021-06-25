@@ -106,6 +106,9 @@ class Config(ValidatedConfig):
         if config_file is None:
             config_file = USER_HOME_CONFIG if old_config_file is None else old_config_file
 
+        if config_file == DEFAULT_CONFIG:
+            raise PermissionError(f'Not allowed to write to {config_file}', config_file)
+
         with open(config_file, "w") as f:
             self._save_to_stream(f)
 
