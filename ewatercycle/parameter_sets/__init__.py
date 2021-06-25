@@ -5,7 +5,7 @@ from typing import Iterable
 
 from ewatercycle import CFG
 from . import _pcrglobwb, _lisflood, _wflow
-from ._default import ParameterSet
+from .default import ParameterSet
 from ._example import ExampleParameterSet
 from ..config import SYSTEM_CONFIG, USER_HOME_CONFIG
 
@@ -29,7 +29,14 @@ def _parse_parametersets():
 
 
 def available_parameter_sets(target_model: str = None) -> Iterable[str]:
-    # TODO add docstring
+    """List available parameter sets on this machine.
+
+    Args:
+        target_model: Filter parameter sets on a model name
+
+    Returns: Names of available parameter sets on current machine.
+
+    """
     all_parameter_sets = _parse_parametersets()
     return (
         name
@@ -38,8 +45,15 @@ def available_parameter_sets(target_model: str = None) -> Iterable[str]:
     )
 
 
-def get_parameter_set(name: str):
-    # TODO add docstring
+def get_parameter_set(name: str) -> ParameterSet:
+    """Get parameter set object available on this machine so it can be used in a model.
+
+    Args:
+        name: Name of parameter set
+
+    Returns: Parameter set object that can be used in an ewatercycle model constructor.
+
+    """
     all_parameter_sets = _parse_parametersets()
 
     ps = all_parameter_sets.get(name)
@@ -61,6 +75,8 @@ def download_parameter_sets(zenodo_doi: str, target_model: str, config: str):
 
 
 def example_parameter_sets() -> Iterable[ExampleParameterSet]:
+    """Lists example parameter sets that can be downloaded with :py:func:`~download_example_parameter_sets`.
+    """
     # TODO how to add a new model docs should be updated with this part
     return chain(
         _wflow.example_parameter_sets(),
@@ -70,7 +86,10 @@ def example_parameter_sets() -> Iterable[ExampleParameterSet]:
 
 
 def download_example_parameter_sets():
-    """Downloads a couple of example parameter sets and adds them to the config_file."""
+    """Downloads all of the example parameter sets and adds them to the config_file.
+
+    Downloads to `parameterset_dir` directory defined in :py:data:`ewatercycle.config.CFG`.
+    """
     examples = example_parameter_sets()
 
     i = 0

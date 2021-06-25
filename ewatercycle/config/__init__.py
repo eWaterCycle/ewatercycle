@@ -42,7 +42,7 @@ Or, if the value entered cannot be converted to the expected type:
     >>> CFG['output_dir'] = 123
     InvalidConfigParameter: Key `output_dir`: Expected a path, but got 123
 
-By default, the config is loaded from the default location (i.e. ``~/.config/.ewatercycle/ewatercycle.yaml``).
+By default, the config is loaded from the default location (i.e. ``~/.config/ewatercycle/ewatercycle.yaml``).
 If it does not exist, it falls back to the default values.
 to load a different file:
 
@@ -62,8 +62,8 @@ eWaterCycle configuration object.
 
 The configuration is loaded from:
 
- 1. ``~/$XDG_CONFIG_HOME/.ewatercycle/ewatercycle.yaml``
- 2. ``~/.config/.ewatercycle/ewatercycle.yaml``
+ 1. ``~/$XDG_CONFIG_HOME/ewatercycle/ewatercycle.yaml``
+ 2. ``~/.config/ewatercycle/ewatercycle.yaml``
  3. ``/etc/ewatercycle.yaml``
  4. Fall back to empty configuration
 

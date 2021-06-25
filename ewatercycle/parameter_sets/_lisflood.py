@@ -1,7 +1,7 @@
 from typing import Optional, Iterable
 
 from ._example import ExampleParameterSet
-from ._default import ParameterSet, make_absolute
+from .default import ParameterSet, _make_absolute
 
 
 class LisfloodParameterSet(ParameterSet):
@@ -21,7 +21,7 @@ class LisfloodParameterSet(ParameterSet):
             doi=doi,
             target_model=target_model,
         )
-        self.MaskMap = make_absolute(MaskMap) if MaskMap is not None else None
+        self.MaskMap = _make_absolute(MaskMap) if MaskMap is not None else None
 
     @property
     def is_available(self):

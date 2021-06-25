@@ -4,7 +4,7 @@ from pathlib import Path
 from urllib.request import urlopen
 
 from ewatercycle import CFG
-from ._default import ParameterSet
+from .default import ParameterSet
 
 logger = getLogger(__name__)
 

@@ -4,21 +4,30 @@ from ewatercycle import CFG
 
 
 class ParameterSet:
-    """Container object for parameter set options."""
+    """Container object for parameter set options.
+
+    Attributes:
+        name (str): Name of parameter set
+        directory (Path): Location on disk where files of parameter set are stored
+        config (Path): Model configuration file which uses files from :py:attr:`~directory`
+        doi (str): Persistent identifier of parameter set. For a example a DOI for a Zenodo record.
+        target_model (str): Name of model that parameter set can work with
+    """
 
     def __init__(
         self,
-        name,
+        name: str,
         directory: str,
         config: str,
         doi="N/A",
         target_model="generic",
     ):
         self.name = name
-        self.directory = make_absolute(directory)
-        self.config = make_absolute(config)
+        self.directory = _make_absolute(directory)
+        self.config = _make_absolute(config)
         self.doi = doi
         self.target_model = target_model
+        # TODO add supported_model_versions attribute
 
     def __repr__(self):
         options = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())
@@ -35,10 +44,11 @@ class ParameterSet:
         )
 
     @property
-    def is_available(self):
+    def is_available(self) -> bool:
+        """Tests if directory and config file is available on this machine"""
         return self.directory.exists() and self.config.exists()
 
 
-def make_absolute(input_path: str) -> Path:
+def _make_absolute(input_path: str) -> Path:
     pathlike = Path(input_path)
     return pathlike if pathlike.is_absolute() else CFG["parameterset_dir"] / pathlike
