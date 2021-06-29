@@ -25,7 +25,7 @@ class Wflow(AbstractModel[WflowForcing]):
 
     Args:
         version: pick a version from :py:attr:`~available_versions`
-        parameter_set: instance of :py:class:`~WflowParameterSet`.
+        parameter_set: instance of :py:class:`~ewatercycle.parameter_sets.default.ParameterSet`.
         forcing: instance of :py:class:`~WflowForcing` or None.
             If None, it is assumed that forcing is included with the parameter_set.
 
