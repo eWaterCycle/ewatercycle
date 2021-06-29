@@ -16,5 +16,6 @@ def example_parameter_sets() -> Iterable[ExampleParameterSet]:
             config_url="https://github.com/openstreams/wflow/raw/master/examples/wflow_rhine_sbm_nc/wflow_sbm_NC.ini",
             doi="N/A",
             target_model="wflow",
+            supported_model_versions={"2020.1.1"}
         )
     ]

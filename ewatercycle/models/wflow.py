@@ -20,7 +20,7 @@ from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.util import get_time
 
 
-class Wflow(AbstractModel):
+class Wflow(AbstractModel[WflowForcing]):
     """Create an instance of the Wflow model class.
 
     Args:
@@ -42,11 +42,7 @@ class Wflow(AbstractModel):
         forcing: Optional[WflowForcing] = None,
     ):
 
-        super().__init__()
-        self.version = version
-        self.parameter_set = parameter_set
-        self.forcing = forcing
-
+        super().__init__(version, parameter_set, forcing)
         self._set_docker_image()
         self._setup_default_config()
 

@@ -20,7 +20,7 @@ class TestDefaults:
         return ParameterSet(
             name='justatest',
             directory=str(tmp_path),
-            config=mocked_config.name
+            config=mocked_config.name,
         )
 
     def test_directory(self, parameter_set: ParameterSet, tmp_path):
@@ -28,6 +28,9 @@ class TestDefaults:
 
     def test_config(self, parameter_set: ParameterSet, mocked_config):
         assert parameter_set.config == mocked_config
+
+    def test_supported_model_versions(self, parameter_set: ParameterSet):
+        assert parameter_set.supported_model_versions == set()
 
     def test_is_available(self, parameter_set: ParameterSet):
         assert parameter_set.is_available
@@ -37,7 +40,7 @@ class TestDefaults:
             "ParameterSet(name='justatest', "
             f"directory=PosixPath('{tmp_path}'), "
             f"config=PosixPath('{tmp_path}/mymockedconfig.ini'), "
-            "doi='N/A', target_model='generic')"
+            "doi='N/A', target_model='generic', supported_model_versions=set())"
         )
         assert repr(parameter_set) == expected
 
@@ -49,6 +52,7 @@ class TestDefaults:
             f"directory=PosixPath('{tmp_path}')\n"
             f"config=PosixPath('{tmp_path}/mymockedconfig.ini')\n"
             "doi='N/A'\n"
-            "target_model='generic'"
+            "target_model='generic'\n"
+            "supported_model_versions=set()"
         )
         assert str(parameter_set) == expected

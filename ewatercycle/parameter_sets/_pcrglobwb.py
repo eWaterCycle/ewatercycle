@@ -16,5 +16,6 @@ def example_parameter_sets() -> Iterable[ExampleParameterSet]:
             config_url="https://raw.githubusercontent.com/UU-Hydro/PCR-GLOBWB_input_example/master/ini_and_batch_files_for_pcrglobwb_course/rhine_meuse_30min_using_input_example/setup_natural_test.ini",
             doi="N/A",
             target_model="pcrglobwb",
+            supported_model_versions={"setters"}
         )
     ]

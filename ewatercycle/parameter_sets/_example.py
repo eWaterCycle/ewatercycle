@@ -1,6 +1,7 @@
 import subprocess
 from logging import getLogger
 from pathlib import Path
+from typing import Set
 from urllib import request
 
 from ewatercycle import CFG
@@ -17,10 +18,11 @@ class ExampleParameterSet(ParameterSet):
         name,
         directory: str,
         config: str,
+        supported_model_versions: Set[str] = None,
         doi="N/A",
         target_model="generic",
     ):
-        super().__init__(name, directory, config, doi, target_model)
+        super().__init__(name, directory, config, doi, target_model, supported_model_versions)
         self.config_url = config_url
         """URL where model configuration file can be downloaded"""
         self.datafiles_url = datafiles_url
@@ -52,6 +54,7 @@ class ExampleParameterSet(ParameterSet):
             config=str(_abbreviate(self.config)),
             doi=self.doi,
             target_model=self.target_model,
+            supported_model_versions=self.supported_model_versions,
         )
 
 

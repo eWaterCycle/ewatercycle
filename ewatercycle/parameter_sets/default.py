@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Set, Optional
 
 from ewatercycle import CFG
 
@@ -14,6 +15,8 @@ class ParameterSet:
             If Path is relative then relative to CFG['parameterset_dir'].
         doi (str): Persistent identifier of parameter set. For a example a DOI for a Zenodo record.
         target_model (str): Name of model that parameter set can work with
+        supported_model_versions (Set[str]): Set of model versions that are supported by this parameter set.
+            If not set then parameter set will be supported by all versions of model
     """
 
     def __init__(
@@ -23,13 +26,14 @@ class ParameterSet:
         config: str,
         doi="N/A",
         target_model="generic",
+        supported_model_versions: Optional[Set[str]] = None,
     ):
         self.name = name
         self.directory = _make_absolute(directory)
         self.config = _make_absolute(config)
         self.doi = doi
         self.target_model = target_model
-        # TODO add supported_model_versions attribute
+        self.supported_model_versions = set() if supported_model_versions is None else supported_model_versions
 
     def __repr__(self):
         options = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())

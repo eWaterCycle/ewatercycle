@@ -9,8 +9,7 @@ from xarray.testing import assert_allclose
 
 from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
-from ewatercycle.models import MarrmotM01
-from ewatercycle.models.marrmot import Solver
+from ewatercycle.models.marrmot import Solver, MarrmotM01
 
 
 @pytest.fixture

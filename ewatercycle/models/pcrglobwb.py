@@ -18,7 +18,7 @@ from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.util import get_time
 
 
-class PCRGlobWB(AbstractModel):
+class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
     """eWaterCycle implementation of PCRGlobWB hydrological model.
 
     Args:
@@ -41,12 +41,7 @@ class PCRGlobWB(AbstractModel):
         parameter_set: ParameterSet,
         forcing: PCRGlobWBForcing,
     ):
-        super().__init__()
-
-        self.version = version
-        self.parameter_set = parameter_set
-        self.forcing = forcing
-
+        super().__init__(version, parameter_set, forcing)
         self._set_docker_image()
 
         self._setup_work_dir()

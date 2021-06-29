@@ -24,6 +24,7 @@ class TestGoldenPath:
             datafiles_url='https://github.com/mymodelorg/mymodelrepo/trunk/mymodelexample',
             directory='mymodelexample',
             config='mymodelexample/config.ini',
+            supported_model_versions={'0.4.2'},
         )
 
     def test_to_config(self, example):
@@ -35,6 +36,7 @@ class TestGoldenPath:
             target_model='generic',
             directory='mymodelexample',
             config='mymodelexample/config.ini',
+            supported_model_versions={'0.4.2'},
         )
         assert CFG['parameter_sets']['firstexample'] == expected
 

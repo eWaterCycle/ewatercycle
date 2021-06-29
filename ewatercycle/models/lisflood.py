@@ -17,7 +17,7 @@ from ewatercycle.parametersetdb.config import AbstractConfig
 from ewatercycle.util import get_time, find_closest_point
 
 
-class Lisflood(AbstractModel):
+class Lisflood(AbstractModel[LisfloodForcing]):
     """eWaterCycle implementation of Lisflood hydrological model.
 
     Args:
@@ -36,11 +36,9 @@ class Lisflood(AbstractModel):
 
     def __init__(self, version: str, parameter_set: ParameterSet, forcing: LisfloodForcing):
         """Construct Lisflood model with initial values. """
-        super().__init__()
-        self.version = version
+        super().__init__(version, parameter_set, forcing)
         self._check_forcing(forcing)
-        self.parameter_set = parameter_set
-        self.cfg = XmlConfig(self.parameter_set.config)
+        self.cfg = XmlConfig(parameter_set.config)
 
     def _set_docker_image(self):
         images = {
@@ -92,6 +90,7 @@ class Lisflood(AbstractModel):
         work_dir = _generate_workdir(work_dir)
         config_file = self._create_lisflood_config(work_dir, start_time, end_time, IrrigationEfficiency, MaskMap)
 
+        assert self.parameter_set is not None
         input_dirs = [
                     str(self.parameter_set.directory),
                     str(self.forcing_dir)
@@ -138,6 +137,8 @@ class Lisflood(AbstractModel):
     def _create_lisflood_config(self, work_dir: Path, start_time_iso: str = None, end_time_iso: str = None,
                                 IrrigationEfficiency: str = None, MaskMap: Path = None) -> Path:
         """Create lisflood config file"""
+        assert self.parameter_set is not None
+        assert self.forcing is not None
         # overwrite dates if given
         if start_time_iso is not None:
             start_time = get_time(start_time_iso)
@@ -252,6 +253,8 @@ class Lisflood(AbstractModel):
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the parameters for this model."""
+        assert self.parameter_set is not None
+        assert self.forcing is not None
         # TODO fix issue #60
         parameters = [
             ('IrrigationEfficiency', self._get_textvar_value('IrrigationEfficiency')),

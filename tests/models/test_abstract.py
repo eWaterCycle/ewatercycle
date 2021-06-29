@@ -1,3 +1,4 @@
+import logging
 from os import PathLike
 from pathlib import Path
 from typing import Any, Iterable, Tuple
@@ -9,10 +10,25 @@ import xarray as xr
 from basic_modeling_interface import Bmi
 from numpy.testing import assert_array_equal
 
+from ewatercycle import CFG
+from ewatercycle.config._config_object import DEFAULT_CONFIG
 from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.parameter_sets import ParameterSet
+
+
+@pytest.fixture
+def setup_config(tmp_path):
+    CFG['parameterset_dir'] = tmp_path
+    CFG['ewatercycle_config'] = tmp_path / 'ewatercycle.yaml'
+    yield CFG
+    CFG['ewatercycle_config'] = DEFAULT_CONFIG
+    CFG.reload()
 
 
 class MockedModel(AbstractModel):
+    def __init__(self, version: str = '0.4.2', parameter_set: ParameterSet = None):
+        super().__init__(version, parameter_set)
+
     def setup(self, *args, **kwargs) -> Tuple[PathLike, PathLike]:
         if 'bmi' in kwargs:
             # sub-class of AbstractModel should construct bmi
@@ -24,17 +40,17 @@ class MockedModel(AbstractModel):
         return xr.DataArray(
             data=[[1.0, 2.0], [3.0, 4.0]],
             coords={
-                "latitude":[42.25, 42.21],
-                "longitude":[-99.83, -99.32],
-                "time":'2014-09-06'},
+                "latitude": [42.25, 42.21],
+                "longitude": [-99.83, -99.32],
+                "time": '2014-09-06'},
             dims=["longitude", "latitude"],
             name='Temperature',
             attrs=dict(units="degC"),
         )
 
-    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Tuple[Iterable[int], Iterable[float], Iterable[float]]:
+    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Tuple[
+        Iterable[int], Iterable[float], Iterable[float]]:
         return np.array([0]), np.array([-99.83]), np.array([42.25])
-
 
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
@@ -53,9 +69,10 @@ def model(bmi: Bmi):
     m.setup(bmi=bmi)
     return m
 
+
 def test_construct():
     with pytest.raises(TypeError) as excinfo:
-        AbstractModel()
+        AbstractModel(version='0.4.2')
     msg = str(excinfo.value)
     assert "Can't instantiate abstract class" in msg
     assert 'setup' in msg
@@ -161,25 +178,80 @@ def test_time_step(bmi, model: MockedModel):
 
 
 def test_output_var_names(bmi, model: MockedModel):
-    bmi.get_output_var_names.return_value = ('discharge', )
+    bmi.get_output_var_names.return_value = ('discharge',)
 
     names = model.output_var_names
 
-    assert names == ('discharge', )
+    assert names == ('discharge',)
 
 
 def test_get_value_as_xarray(model: MockedModel):
     expected = xr.DataArray(
-            data=[[1.0, 2.0], [3.0, 4.0]],
-            coords={
-                "latitude":[42.25, 42.21],
-                "longitude":[-99.83, -99.32],
-                "time":'2014-09-06'},
-            dims=["longitude", "latitude"],
-            name='Temperature',
-            attrs=dict(units="degC"),
-        )
+        data=[[1.0, 2.0], [3.0, 4.0]],
+        coords={
+            "latitude": [42.25, 42.21],
+            "longitude": [-99.83, -99.32],
+            "time": '2014-09-06'},
+        dims=["longitude", "latitude"],
+        name='Temperature',
+        attrs=dict(units="degC"),
+    )
 
     dataarray = model.get_value_as_xarray("Temperature")
 
     xr.testing.assert_equal(dataarray, expected)
+
+
+class TestCheckParameterSet:
+    def test_correct_version(self, setup_config):
+        ps = ParameterSet(
+            name='justatest',
+            directory='justatest',
+            config='justatest/config.ini',
+            target_model='mockedmodel',  # == lowered class name
+            supported_model_versions={'0.4.2'}
+        )
+        m = MockedModel(parameter_set=ps)
+        assert m.parameter_set == ps
+
+    def test_wrong_model(self, setup_config):
+        ps = ParameterSet(
+            name='justatest',
+            directory='justatest',
+            config='justatest/config.ini',
+            target_model='wrongmodel',
+            supported_model_versions={'0.4.2'}
+        )
+        with pytest.raises(ValueError) as excinf:
+            MockedModel(parameter_set=ps)
+
+        expected = 'Parameter set has wrong target model'
+        assert expected in str(excinf.value)
+
+    def test_any_version(self, caplog, setup_config):
+        ps = ParameterSet(
+            name='justatest',
+            directory='justatest',
+            config='justatest/config.ini',
+            target_model='mockedmodel',  # == lowered class name
+            supported_model_versions=set()
+        )
+        with caplog.at_level(logging.WARNING):
+            MockedModel(parameter_set=ps)
+
+        expected = 'Model expects parameter set to support version'
+        assert expected in caplog.text
+
+    def test_unsupported_version(self, setup_config):
+        ps = ParameterSet(
+            name='justatest',
+            directory='justatest',
+            config='justatest/config.ini',
+            target_model='mockedmodel',
+            supported_model_versions={'1.2.3'}
+        )
+        with pytest.raises(ValueError) as excinf:
+            MockedModel(parameter_set=ps)
+
+        expected = 'Parameter set is not supported with version'
+        assert expected in str(excinf.value)

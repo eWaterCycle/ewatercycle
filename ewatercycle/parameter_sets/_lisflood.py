@@ -16,5 +16,6 @@ def example_parameter_sets() -> Iterable[ExampleParameterSet]:
             config_url="https://github.com/ec-jrc/lisflood-usecases/raw/master/LF_lat_lon_UseCase/settings_lat_lon-Run.xml",
             doi="N/A",
             target_model="lisflood",
+            supported_model_versions={"20.10"}
         )
     ]
