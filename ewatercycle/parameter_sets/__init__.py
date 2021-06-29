@@ -11,18 +11,11 @@ from ..config import SYSTEM_CONFIG, USER_HOME_CONFIG
 
 logger = getLogger(__name__)
 
-CONSTRUCTORS = {
-    "lisflood": _lisflood.LisfloodParameterSet,  # TODO remove when MaskMap is no longer in parameter set see #121
-}
-
 
 def _parse_parametersets():
     parametersets = {}
     for name, options in CFG["parameter_sets"].items():
-        model = options["target_model"]
-        constructor = CONSTRUCTORS.get(model, ParameterSet)
-
-        parameterset = constructor(name=name, **options)
+        parameterset = ParameterSet(name=name, **options)
         parametersets[name] = parameterset
 
     return parametersets
