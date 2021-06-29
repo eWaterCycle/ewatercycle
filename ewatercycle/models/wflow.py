@@ -1,10 +1,9 @@
 import shutil
 import time
-from dataclasses import dataclass
 from datetime import datetime
 from os import PathLike
 from pathlib import Path
-from typing import Any, Iterable, Optional, Tuple, Union
+from typing import Any, Iterable, Optional, Tuple
 
 import numpy as np
 import xarray as xr
@@ -16,33 +15,9 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 from ewatercycle import CFG
 from ewatercycle.forcing._wflow import WflowForcing
 from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.util import get_time
-
-
-@dataclass
-class WflowParameterSet:
-    """Parameter set for the Wflow model class.
-
-    A valid wflow parameter set consists of a input data files
-    and should always include a default configuration file.
-    """
-
-    input_data: Union[str, PathLike]
-    """Input folder path."""
-    default_config: Union[str, PathLike]
-    """Path to (default) model configuration file consistent with `input_data`."""
-    def __setattr__(self, name: str, value: Union[str, PathLike]):
-        self.__dict__[name] = Path(value).expanduser().resolve()
-
-    def __str__(self):
-        """Nice formatting of parameter set."""
-        return "\n".join([
-            "Wflow parameterset",
-            "------------------",
-            f"Directory: {self.input_data}",
-            f"Default configuration file: {self.default_config}",
-        ])
 
 
 class Wflow(AbstractModel):
@@ -63,7 +38,7 @@ class Wflow(AbstractModel):
     def __init__(
         self,
         version: str,
-        parameter_set: WflowParameterSet,
+        parameter_set: ParameterSet,
         forcing: Optional[WflowForcing] = None,
     ):
 
@@ -83,7 +58,7 @@ class Wflow(AbstractModel):
         self.docker_image = images[self.version]
 
     def _setup_default_config(self):
-        config_file = self.parameter_set.default_config
+        config_file = self.parameter_set.config
         forcing = self.forcing
 
         cfg = CaseConfigParser()
@@ -133,7 +108,7 @@ class Wflow(AbstractModel):
         working_directory = CFG["output_dir"] / f"wflow_{timestamp}"
         self.work_dir = working_directory.resolve()
 
-        shutil.copytree(src=self.parameter_set.input_data,
+        shutil.copytree(src=self.parameter_set.directory,
                         dst=working_directory)
         forcing_path = Path(self.forcing.directory) / self.forcing.netcdfinput
         shutil.copy(src=forcing_path, dst=working_directory)

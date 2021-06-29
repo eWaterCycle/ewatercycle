@@ -11,8 +11,9 @@ from basic_modeling_interface import Bmi
 
 from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
+from ewatercycle.parameter_sets._lisflood import LisfloodParameterSet
 from ewatercycle.parametersetdb.datafiles import SubversionCopier
-from ewatercycle.models.lisflood import Lisflood, LisfloodParameterSet, XmlConfig
+from ewatercycle.models.lisflood import Lisflood, XmlConfig
 
 
 @pytest.fixture
@@ -39,9 +40,9 @@ class TestLFlatlonUseCase:
             mask_dir / 'model_mask',
         )
         return LisfloodParameterSet(
-            PathRoot=root,
+            directory=root,
             MaskMap=mask_dir / 'model_mask',
-            config_template=root / 'settings_lat_lon-Run.xml',
+            config=root / 'settings_lat_lon-Run.xml',
         )
 
     @pytest.fixture
@@ -79,20 +80,19 @@ class TestLFlatlonUseCase:
             ('IrrigationEfficiency', '0.75'),
             ('PathRoot', f'{tmp_path}/input'),
             ('MaskMap', f'{tmp_path}/mask'),
-            ('config_template',  f'{tmp_path}/input/settings_lat_lon-Run.xml'),
+            ('config_template', f'{tmp_path}/input/settings_lat_lon-Run.xml'),
             ('start_time', '1986-01-02T00:00:00Z'),
             ('end_time', '2018-01-02T00:00:00Z'),
             ('forcing directory', f'{tmp_path}/forcing'),
         ]
         assert model.parameters == expected_parameters
 
-
     @pytest.fixture
     def model_with_setup(self, mocked_config, model: Lisflood):
         with patch.object(BmiClientSingularity, '__init__', return_value=None) as mocked_constructor, patch(
-              'time.strftime', return_value='42'):
+            'time.strftime', return_value='42'):
             config_file, config_dir = model.setup(
-                IrrigationEfficiency = '0.8',
+                IrrigationEfficiency='0.8',
             )
         return config_file, config_dir, mocked_constructor
 
@@ -130,43 +130,41 @@ class TestLFlatlonUseCase:
         def test_get_value_at_coords_faraway(self, model: Lisflood):
             model.bmi = MockedBmi()
             with pytest.raises(ValueError) as excinfo:
-                    model.get_value_at_coords('Discharge', lon=[0.0], lat=[0.0])
+                model.get_value_at_coords('Discharge', lon=[0.0], lat=[0.0])
             msg = str(excinfo.value)
             assert "This point is outside of the model grid." in msg
 
 
 class MockedBmi(Bmi):
     """Mimic a real use case with realistic shape and abitrary high precision."""
+
     def get_var_grid(self, name):
         return 0
 
     def get_grid_shape(self, grid_id):
-        return (14, 31) #shape returns (len(y), len(x))
+        return 14, 31  # shape returns (len(y), len(x))
 
     def get_grid_x(self, grid_id):
-         return np.array([-124.450000000003, -124.350000000003, -124.250000000003,
-                -124.150000000003, -124.050000000003, -123.950000000003,
-                -123.850000000003, -123.750000000003, -123.650000000003,
-                -123.550000000003, -123.450000000003, -123.350000000003,
-                -123.250000000003, -123.150000000003, -123.050000000003,
-                -122.950000000003, -122.850000000003, -122.750000000003,
-                -122.650000000003, -122.550000000003, -122.450000000003,
-                -122.350000000003, -122.250000000003, -122.150000000003,
-                -122.050000000003, -121.950000000003, -121.850000000003,
-                -121.750000000003, -121.650000000003, -121.550000000003, -121.450000000003])
+        return np.array([-124.450000000003, -124.350000000003, -124.250000000003,
+                         -124.150000000003, -124.050000000003, -123.950000000003,
+                         -123.850000000003, -123.750000000003, -123.650000000003,
+                         -123.550000000003, -123.450000000003, -123.350000000003,
+                         -123.250000000003, -123.150000000003, -123.050000000003,
+                         -122.950000000003, -122.850000000003, -122.750000000003,
+                         -122.650000000003, -122.550000000003, -122.450000000003,
+                         -122.350000000003, -122.250000000003, -122.150000000003,
+                         -122.050000000003, -121.950000000003, -121.850000000003,
+                         -121.750000000003, -121.650000000003, -121.550000000003, -121.450000000003])
 
     def get_grid_y(self, grid_id):
-         return np.array([53.950000000002, 53.8500000000021, 53.7500000000021, 53.6500000000021,
-                53.5500000000021, 53.4500000000021, 53.3500000000021, 53.2500000000021,
-                53.1500000000021, 53.0500000000021, 52.9500000000021, 52.8500000000021,
-                52.7500000000021, 52.6500000000021 ])
+        return np.array([53.950000000002, 53.8500000000021, 53.7500000000021, 53.6500000000021,
+                         53.5500000000021, 53.4500000000021, 53.3500000000021, 53.2500000000021,
+                         53.1500000000021, 53.0500000000021, 52.9500000000021, 52.8500000000021,
+                         52.7500000000021, 52.6500000000021])
 
     def get_grid_spacing(self, grid_id):
-        return (0.1, 0.1)
+        return 0.1, 0.1
 
     def get_value_at_indices(self, name, indices):
         self.indices = indices
         return np.array([1.0])
-
-
-

@@ -1,8 +1,7 @@
 import time
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, List, Tuple, Union
+from typing import Any, Iterable, Tuple
 
 import numpy as np
 import xarray as xr
@@ -13,33 +12,9 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 from ewatercycle import CFG
 from ewatercycle.forcing._lisflood import LisfloodForcing
 from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.parameter_sets._lisflood import LisfloodParameterSet
 from ewatercycle.parametersetdb.config import AbstractConfig
 from ewatercycle.util import get_time, find_closest_point
-
-
-@dataclass
-class LisfloodParameterSet:
-    """Input files specific for parameter_set, model boundaries, and configuration template files
-
-    Example:
-
-    .. code-block::
-
-        parameter_set = LisfloodParameterSet(
-            PathRoot='/projects/0/wtrcycle/comparison/lisflood_input/Lisflood01degree_masked',
-            MaskMap='/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD/model_mask.nc',
-            config_template='/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml',
-        )
-    """
-    PathRoot: Path
-    """Directory with input files"""
-    MaskMap: Path
-    """A NetCDF file with model boundaries"""
-    config_template: Path
-    """Config file used as template for a lisflood run"""
-
-    def __setattr__(self, name: str, value: Union[str, Path]):
-        self.__dict__[name] = Path(value).expanduser().resolve()
 
 
 class Lisflood(AbstractModel):
@@ -65,7 +40,7 @@ class Lisflood(AbstractModel):
         self.version = version
         self._check_forcing(forcing)
         self.parameter_set = parameter_set
-        self.cfg = XmlConfig(self.parameter_set.config_template)
+        self.cfg = XmlConfig(self.parameter_set.config)
 
     def _set_docker_image(self):
         images = {
@@ -87,7 +62,6 @@ class Lisflood(AbstractModel):
         raise KeyError(
             f'Name {name} not found in the config file.'
         )
-
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
@@ -178,7 +152,7 @@ class Lisflood(AbstractModel):
             "CalendarDayStart": self._start.strftime("%d/%m/%Y 00:00"),
             "StepStart": "1",
             "StepEnd": str((self._end - self._start).days),
-            "PathRoot": f"{self.parameter_set.PathRoot}",
+            "PathRoot": f"{self.parameter_set.directory}",
             "MaskMap": f"{self.parameter_set.MaskMap}".rstrip('.nc'),
             "PathMeteo": f"{self.forcing_dir}",
             "PathOut": f"{work_dir}",
@@ -275,9 +249,9 @@ class Lisflood(AbstractModel):
         #TODO fix issue #60
         parameters = [
             ('IrrigationEfficiency', self._get_textvar_value('IrrigationEfficiency')),
-            ('PathRoot', str(self.parameter_set.PathRoot)),
+            ('PathRoot', str(self.parameter_set.directory)),
             ('MaskMap', str(self.parameter_set.MaskMap.parent)),
-            ('config_template', str(self.parameter_set.config_template)),
+            ('config_template', str(self.parameter_set.config)),
             ('start_time', self._start.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ('end_time', self._end.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ('forcing directory',  str(self.forcing_dir)),
