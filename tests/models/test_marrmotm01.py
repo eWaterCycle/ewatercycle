@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-import numpy as np
 import pytest
 import xarray as xr
 from numpy.testing import assert_almost_equal
@@ -50,7 +49,6 @@ class TestWithDefaultsAndExampleData:
         return model, cfg_file, cfg_dir
 
     def test_parameters(self, model, forcing_file):
-
         expected = [
             ('maximum_soil_moisture_storage', 10.0),
             ('initial_soil_moisture_storage', 5.0),
@@ -124,12 +122,12 @@ class TestWithCustomSetupAndExampleData:
     @pytest.fixture
     def generate_forcing(self, forcing_file):
         forcing = load_foreign('marrmot',
-                                directory=str(Path(forcing_file).parent),
-                                start_time='1989-01-01T00:00:00Z',
-                                end_time='1992-12-31T00:00:00Z',
-                                forcing_info={
-                                    'forcing_file': str(Path(forcing_file).name)
-                                })
+                               directory=str(Path(forcing_file).parent),
+                               start_time='1989-01-01T00:00:00Z',
+                               end_time='1992-12-31T00:00:00Z',
+                               forcing_info={
+                                   'forcing_file': str(Path(forcing_file).name)
+                               })
         return forcing
 
     @pytest.fixture
@@ -159,8 +157,8 @@ class TestWithCustomSetupAndExampleData:
         assert actual['model_name'] == "m_01_collie1_1p_1s"
         assert actual['parameters'] == [[1234]]
         assert actual['store_ini'] == [[4321]]
-        assert_almost_equal(actual['time_start'], [[1990,   1,   1,    0,    0,    0]])
-        assert_almost_equal(actual['time_end'], [[1991,   12,   31,    0,    0,    0]])
+        assert_almost_equal(actual['time_start'], [[1990, 1, 1, 0, 0, 0]])
+        assert_almost_equal(actual['time_end'], [[1991, 12, 31, 0, 0, 0]])
 
 
 class TestWithDatesOutsideRangeSetupAndExampleData:
@@ -171,12 +169,12 @@ class TestWithDatesOutsideRangeSetupAndExampleData:
     @pytest.fixture
     def generate_forcing(self, forcing_file):
         forcing = load_foreign('marrmot',
-                                directory=str(Path(forcing_file).parent),
-                                start_time='1989-01-01T00:00:00Z',
-                                end_time='1992-12-31T00:00:00Z',
-                                forcing_info={
-                                    'forcing_file': str(Path(forcing_file).name)
-                                })
+                               directory=str(Path(forcing_file).parent),
+                               start_time='1989-01-01T00:00:00Z',
+                               end_time='1992-12-31T00:00:00Z',
+                               forcing_info={
+                                   'forcing_file': str(Path(forcing_file).name)
+                               })
         return forcing
 
     @pytest.fixture
