@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Optional, Iterable
 
 from ._example import ExampleParameterSet
@@ -21,11 +22,11 @@ class LisfloodParameterSet(ParameterSet):
             doi=doi,
             target_model=target_model,
         )
-        self.MaskMap = _make_absolute(MaskMap) if MaskMap is not None else None
+        self.MaskMap: Optional[Path] = _make_absolute(MaskMap) if MaskMap is not None else None
 
     @property
     def is_available(self):
-        return super().is_available and self.MaskMap.exists()
+        return super().is_available and (self.MaskMap is None or self.MaskMap.exists())
 
 
 def example_parameter_sets() -> Iterable[ExampleParameterSet]:
