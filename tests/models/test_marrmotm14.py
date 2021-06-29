@@ -127,6 +127,13 @@ class TestWithDefaultsAndExampleData:
         )
         assert cfg_dir == tmp_path
 
+    def test_setup_create_work_dir(self, tmp_path, mocked_config, model: MarrmotM14):
+        work_dir = tmp_path / 'output'
+        cfg_file, cfg_dir = model.setup(
+            work_dir=work_dir
+        )
+        assert cfg_dir == work_dir
+
 
 class TestWithCustomSetupAndExampleData:
     @pytest.fixture

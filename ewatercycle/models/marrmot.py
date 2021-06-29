@@ -30,14 +30,14 @@ class Solver:
 def _generate_work_dir(work_dir: Path = None) -> Path:
     """
     Args:
-        work_dir: If work dir is None then create sub-directory in CFG['output_dir']
+        work_dir: If work dir is None or does not exist then create sub-directory in CFG['output_dir']
     """
     if work_dir is None:
         scratch_dir = CFG['output_dir']
         # TODO this timestamp isnot safe for parallel processing
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         work_dir = Path(scratch_dir) / f'marrmot_{timestamp}'
-        work_dir.mkdir(parents=True, exist_ok=True)
+    work_dir.mkdir(parents=True, exist_ok=True)
     return work_dir
 
 
