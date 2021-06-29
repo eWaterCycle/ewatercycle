@@ -95,8 +95,12 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                     str(self.parameter_set.directory),
                     str(self.forcing_dir)
                 ]
-        if MaskMap is not None and not MaskMap.is_relative_to(self.parameter_set.directory):
-            input_dirs.append(str(MaskMap.parent))
+        if MaskMap is not None:
+            try:
+                MaskMap.relative_to(self.parameter_set.directory)
+            except ValueError:
+                # If not relative add dir
+                input_dirs.append(str(MaskMap.parent))
 
         if CFG['container_engine'].lower() == 'singularity':
             self._set_singularity_image(CFG['singularity_dir'])
