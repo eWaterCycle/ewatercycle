@@ -178,10 +178,10 @@ class Lisflood(AbstractModel):
             "CalendarDayStart": self._start.strftime("%d/%m/%Y 00:00"),
             "StepStart": "1",
             "StepEnd": str((self._end - self._start).days),
-            "PathRoot": f"{self.parameter_set.PathRoot}",
-            "MaskMap": f"{self.parameter_set.MaskMap.stem}",
-            "PathMeteo": f"{self.forcing_dir}",
-            "PathOut": f"{work_dir}",
+            "PathRoot": str(self.parameter_set.PathRoot),
+            "MaskMap": self.parameter_set.MaskMap.stem,
+            "PathMeteo": str(self.forcing_dir),
+            "PathOut": str(work_dir),
         }
 
         if IrrigationEfficiency is not None:
@@ -203,9 +203,9 @@ class Lisflood(AbstractModel):
 
             # maps_prefixes dictionary contains lisvap filenames in lisflood config
             maps_prefixes = {
-                'E0Maps': {'name': 'PrefixE0', 'value': f"{Path(self.forcing.PrefixE0).stem}"},
-                'ES0Maps': {'name': 'PrefixES0', 'value': f"{Path(self.forcing.PrefixES0).stem}"},
-                'ET0Maps': {'name': 'PrefixET0', 'value': f"{Path(self.forcing.PrefixET0).stem}"},
+                'E0Maps': {'name': 'PrefixE0', 'value': Path(self.forcing.PrefixE0).stem},
+                'ES0Maps': {'name': 'PrefixES0', 'value': Path(self.forcing.PrefixES0).stem},
+                'ET0Maps': {'name': 'PrefixET0', 'value': Path(self.forcing.PrefixET0).stem},
             }
             # output of lisvap
             for map_var, prefix in maps_prefixes.items():
