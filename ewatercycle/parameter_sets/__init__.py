@@ -1,19 +1,21 @@
 from itertools import chain
 from logging import getLogger
 from os import linesep
-from typing import Iterable, Dict
+from typing import Dict, Tuple
 
 from ewatercycle import CFG
 from . import _pcrglobwb, _lisflood, _wflow
-from .default import ParameterSet
 from ._example import ExampleParameterSet
-from ..config import SYSTEM_CONFIG, USER_HOME_CONFIG
+from .default import ParameterSet
+from ..config import DEFAULT_CONFIG, SYSTEM_CONFIG, USER_HOME_CONFIG
 
 logger = getLogger(__name__)
 
 
 def _parse_parametersets():
     parametersets = {}
+    if CFG["parameter_sets"] is None:
+        return []
     for name, options in CFG["parameter_sets"].items():
         parameterset = ParameterSet(name=name, **options)
         parametersets[name] = parameterset
@@ -21,7 +23,7 @@ def _parse_parametersets():
     return parametersets
 
 
-def available_parameter_sets(target_model: str = None) -> Iterable[str]:
+def available_parameter_sets(target_model: str = None) -> Tuple[str, ...]:
     """List available parameter sets on this machine.
 
     Args:
@@ -31,11 +33,23 @@ def available_parameter_sets(target_model: str = None) -> Iterable[str]:
 
     """
     all_parameter_sets = _parse_parametersets()
-    return (
+    if not all_parameter_sets:
+        if CFG['ewatercycle_config'] == DEFAULT_CONFIG:
+            raise ValueError(f'No configuration file found.')
+        raise ValueError(f'No parameter sets defined in {CFG["ewatercycle_config"]}. '
+                         f'Use `ewatercycle.parareter_sets.download_example_parameter_sets` to download examples '
+                         f'or define your own or ask whoever setup the ewatercycle system to do it.')
+        # TODO explain somewhere how to add new parameter sets
+    filtered = tuple(
         name
         for name, ps in all_parameter_sets.items()
         if ps.is_available and (target_model is None or ps.target_model == target_model)
     )
+    if not filtered:
+        raise ValueError(f'No parameter sets defined for {target_model} model in {CFG["ewatercycle_config"]}. '
+                         f'Use `ewatercycle.parareter_sets.download_example_parameter_sets` to download examples '
+                         f'or define your own or ask whoever setup the ewatercycle system to do it.')
+    return filtered
 
 
 def get_parameter_set(name: str) -> ParameterSet:

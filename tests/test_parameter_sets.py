@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 
 from ewatercycle import CFG
-from ewatercycle.config._config_object import DEFAULT_CONFIG
+from ewatercycle.config import DEFAULT_CONFIG
 from ewatercycle.parameter_sets import available_parameter_sets, get_parameter_set, example_parameter_sets, \
     download_example_parameter_sets, ExampleParameterSet
 
@@ -49,9 +49,32 @@ def mocked_parameterset_dir(setup_config, tmp_path):
     }
 
 
-def test_available_parameter_sets(mocked_parameterset_dir):
-    names = available_parameter_sets('generic')
-    assert set(names) == {'ps1', 'ps2'}  # ps3 is filtered due to not being available
+class TestAvailableParameterSets:
+    def test_filled(self, mocked_parameterset_dir):
+        names = available_parameter_sets('generic')
+        assert set(names) == {'ps1', 'ps2'}  # ps3 is filtered due to not being available
+
+    def test_no_config(self, tmp_path):
+        # Load default config shipped with package
+        CFG['ewatercycle_config'] = DEFAULT_CONFIG
+        CFG.reload()
+
+        with pytest.raises(ValueError) as excinf:
+            available_parameter_sets()
+
+        assert 'No configuration file found' in str(excinf.value)
+
+    def test_no_sets_in_config(self, setup_config):
+        with pytest.raises(ValueError) as excinf:
+            available_parameter_sets()
+
+        assert 'No parameter sets defined in' in str(excinf.value)
+
+    def test_no_sets_for_model(self, mocked_parameterset_dir):
+        with pytest.raises(ValueError) as excinf:
+            available_parameter_sets('somemodel')
+
+        assert 'No parameter sets defined for somemodel model in' in str(excinf.value)
 
 
 class TestGetParameterSet:
