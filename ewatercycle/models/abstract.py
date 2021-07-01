@@ -189,5 +189,5 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
 
     def _check_version(self):
         if self.version not in self.available_versions:
-            raise ValueError(f'Version {self.version} is not supported by this model. '
+            raise ValueError(f'Supplied version {self.version} is not supported by this model. '
                              f'Available versions are {self.available_versions}.')

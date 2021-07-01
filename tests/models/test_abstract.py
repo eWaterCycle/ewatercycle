@@ -85,7 +85,7 @@ def test_construct_with_unsupported_version():
     with pytest.raises(ValueError) as excinfo:
         MockedModel(version='1.2.3')
 
-    assert "Version 1.2.3 is not supported by this model. Available versions are ('0.4.2',)." in str(excinfo.value)
+    assert "Supplied version 1.2.3 is not supported by this model. Available versions are ('0.4.2',)." in str(excinfo.value)
 
 
 def test_setup(model):
@@ -262,5 +262,5 @@ class TestCheckParameterSet:
         with pytest.raises(ValueError) as excinfo:
             MockedModel(parameter_set=ps)
 
-        expected = 'Parameter set is not supported with version'
+        expected = 'Parameter set is not compatible with version'
         assert expected in str(excinfo.value)
