@@ -1,7 +1,7 @@
 import logging
 from abc import ABCMeta, abstractmethod
 from os import PathLike
-from typing import Tuple, Iterable, Any, TypeVar, Generic, Optional
+from typing import Tuple, Iterable, Any, TypeVar, Generic, Optional, ClassVar, Set
 
 import numpy as np
 import xarray as xr
@@ -21,6 +21,8 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
     Attributes
         bmi (Bmi): Basic Modeling Interface object
     """
+    available_versions: ClassVar[Tuple[str, ...]] = tuple()
+    """Versions of model that are available in this class"""
 
     def __init__(self,
                  version: str,
@@ -30,6 +32,7 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
         self.version = version
         self.parameter_set = parameter_set
         self.forcing: Optional[ForcingT] = forcing
+        self._check_version()
         self._check_parameter_set()
         self.bmi: Bmi = None  # bmi should set in setup() before calling its methods
 
@@ -184,4 +187,8 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
             raise ValueError(
                 f'Parameter set is not supported with version {self.version} of model, '
                 f'parameter set only supports {self.parameter_set.supported_model_versions}')
-        # TODO check against self.available_versions
+
+    def _check_version(self):
+        if self.version not in self.available_versions:
+            raise ValueError(f'Version {self.version} is not supported by this model. '
+                             f'Available versions are {self.available_versions}.')

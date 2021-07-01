@@ -11,7 +11,7 @@ from basic_modeling_interface import Bmi
 from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
-from ewatercycle.config._config_object import DEFAULT_CONFIG
+from ewatercycle.config import DEFAULT_CONFIG
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 
@@ -26,6 +26,8 @@ def setup_config(tmp_path):
 
 
 class MockedModel(AbstractModel):
+    available_versions = ('0.4.2',)
+
     def __init__(self, version: str = '0.4.2', parameter_set: ParameterSet = None):
         super().__init__(version, parameter_set)
 
@@ -77,6 +79,13 @@ def test_construct():
     assert "Can't instantiate abstract class" in msg
     assert 'setup' in msg
     assert 'parameters' in msg
+
+
+def test_construct_with_unsupported_version():
+    with pytest.raises(ValueError) as excinfo:
+        MockedModel(version='1.2.3')
+
+    assert "Version 1.2.3 is not supported by this model. Available versions are ('0.4.2',)." in str(excinfo.value)
 
 
 def test_setup(model):
@@ -222,11 +231,11 @@ class TestCheckParameterSet:
             target_model='wrongmodel',
             supported_model_versions={'0.4.2'}
         )
-        with pytest.raises(ValueError) as excinf:
+        with pytest.raises(ValueError) as excinfo:
             MockedModel(parameter_set=ps)
 
         expected = 'Parameter set has wrong target model'
-        assert expected in str(excinf.value)
+        assert expected in str(excinfo.value)
 
     def test_any_version(self, caplog, setup_config):
         ps = ParameterSet(
@@ -250,8 +259,8 @@ class TestCheckParameterSet:
             target_model='mockedmodel',
             supported_model_versions={'1.2.3'}
         )
-        with pytest.raises(ValueError) as excinf:
+        with pytest.raises(ValueError) as excinfo:
             MockedModel(parameter_set=ps)
 
         expected = 'Parameter set is not supported with version'
-        assert expected in str(excinf.value)
+        assert expected in str(excinfo.value)

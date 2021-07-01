@@ -31,7 +31,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
     Example:
         See examples/lisflood.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
-    available_versions = ["20.10"]
+    available_versions = ("20.10",)
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     def __init__(self, version: str, parameter_set: ParameterSet, forcing: LisfloodForcing):

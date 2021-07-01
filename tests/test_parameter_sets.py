@@ -59,22 +59,22 @@ class TestAvailableParameterSets:
         CFG['ewatercycle_config'] = DEFAULT_CONFIG
         CFG.reload()
 
-        with pytest.raises(ValueError) as excinf:
+        with pytest.raises(ValueError) as excinfo:
             available_parameter_sets()
 
-        assert 'No configuration file found' in str(excinf.value)
+        assert 'No configuration file found' in str(excinfo.value)
 
     def test_no_sets_in_config(self, setup_config):
-        with pytest.raises(ValueError) as excinf:
+        with pytest.raises(ValueError) as excinfo:
             available_parameter_sets()
 
-        assert 'No parameter sets defined in' in str(excinf.value)
+        assert 'No parameter sets defined in' in str(excinfo.value)
 
     def test_no_sets_for_model(self, mocked_parameterset_dir):
-        with pytest.raises(ValueError) as excinf:
+        with pytest.raises(ValueError) as excinfo:
             available_parameter_sets('somemodel')
 
-        assert 'No parameter sets defined for somemodel model in' in str(excinf.value)
+        assert 'No parameter sets defined for somemodel model in' in str(excinfo.value)
 
 
 class TestGetParameterSet:
