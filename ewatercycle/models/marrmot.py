@@ -269,7 +269,7 @@ M14_PARAMS = ('maximum_soil_moisture_storage',
               'gamma_distribution_phi_parameter')
 
 
-class MarrmotM14(AbstractModel):
+class MarrmotM14(AbstractModel[MarrmotForcing]):
     """eWaterCycle implementation of Marrmot Top Model hydrological model.
 
     It sets MarrmotM14 parameter with an initial value that is the mean value of the range specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_14_topmodel_7p_2s_parameter_ranges.m>`_.
