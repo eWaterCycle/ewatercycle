@@ -184,7 +184,7 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
                            f'but parameter set supports any version')
         elif self.version not in self.parameter_set.supported_model_versions:
             raise ValueError(
-                f'Parameter set is not supported with version {self.version} of model, '
+                f'Parameter set is not compatible with version {self.version} of model, '
                 f'parameter set only supports {self.parameter_set.supported_model_versions}')
 
     def _check_version(self):
