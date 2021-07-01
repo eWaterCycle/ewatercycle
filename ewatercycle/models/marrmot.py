@@ -59,7 +59,7 @@ class MarrmotM01(AbstractModel):
     """
     model_name = "m_01_collie1_1p_1s"
     """Name of model in Matlab code."""
-    available_versions = ["2020.11"]
+    available_versions = ("2020.11", )
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     def __init__(self, version: str, forcing: MarrmotForcing):
@@ -287,7 +287,7 @@ class MarrmotM14(AbstractModel):
     """
     model_name = "m_14_topmodel_7p_2s"
     """Name of model in Matlab code."""
-    available_versions = ["2020.11"]
+    available_versions = ("2020.11", )
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     def __init__(self, version: str, forcing: MarrmotForcing):
