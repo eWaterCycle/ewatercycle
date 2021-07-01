@@ -28,9 +28,6 @@ class Wflow(AbstractModel[WflowForcing]):
         parameter_set: instance of :py:class:`~ewatercycle.parameter_sets.default.ParameterSet`.
         forcing: instance of :py:class:`~WflowForcing` or None.
             If None, it is assumed that forcing is included with the parameter_set.
-
-    Attributes:
-        bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
 
     available_versions = ("2020.1.1", )

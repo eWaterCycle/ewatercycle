@@ -28,9 +28,6 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
         forcing: ewatercycle forcing container;
             see :py:mod:`ewatercycle.forcing`.
 
-    Attributes:
-
-        bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
 
     available_versions = ("setters",)

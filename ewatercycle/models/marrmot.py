@@ -51,9 +51,6 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
         forcing: a MarrmotForcing object.
             If forcing file contains parameter and other settings, those are used and can be changed in :py:meth:`setup`.
 
-    Attributes:
-        bmi (Bmi): Basic Modeling Interface object
-
     Example:
         See examples/marrmotM01.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
@@ -278,9 +275,6 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
         version: pick a version for which an ewatercycle grpc4bmi docker image is available.
         forcing: a MarrmotForcing object.
             If forcing file contains parameter and other settings, those are used and can be changed in :py:meth:`setup`.
-
-    Attributes:
-        bmi (Bmi): Basic Modeling Interface object
 
     Example:
         See examples/marrmotM14.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_

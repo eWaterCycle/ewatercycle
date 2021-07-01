@@ -25,9 +25,6 @@ class Lisflood(AbstractModel[LisfloodForcing]):
       parameter_set: LISFLOOD input files. Any included forcing data will be ignored.
       forcing: a LisfloodForcing object.
 
-    Attributes:
-        bmi (Bmi): Basic Modeling Interface object
-
     Example:
         See examples/lisflood.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
