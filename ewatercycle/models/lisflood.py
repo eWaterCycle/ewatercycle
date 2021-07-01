@@ -263,9 +263,9 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         assert self.forcing is not None
         # TODO fix issue #84
         parameters = [
-            ('IrrigationEfficiency', self._get_textvar_value('IrrigationEfficiency'), 0.75),
+            ('IrrigationEfficiency', self._get_textvar_value('IrrigationEfficiency', 0.75)),
             ('PathRoot', str(self.parameter_set.directory)),
-            ('MaskMap', self._get_textvar_value('MaskMap'), 'area'),
+            ('MaskMap', self._get_textvar_value('MaskMap', 'area')),
             ('config_template', str(self.parameter_set.config)),
             ('start_time', self._start.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ('end_time', self._end.strftime("%Y-%m-%dT%H:%M:%SZ")),
