@@ -62,7 +62,6 @@ class TestWithDefaultsAndExampleData:
             ('solver', Solver()),
             ('start time', '1989-01-01T00:00:00Z'),
             ('end time', '1992-12-31T00:00:00Z'),
-            ('forcing_file', f'{Path(__file__).parent}/data/BMI_testcase_m01_BuffaloRiver_TN_USA.mat')
         ]
         assert model.parameters == expected
 
@@ -98,7 +97,6 @@ class TestWithDefaultsAndExampleData:
             ('solver', Solver()),
             ('start time', '1989-01-01T00:00:00Z'),
             ('end time', '1992-12-31T00:00:00Z'),
-            ('forcing_file', f'{Path(__file__).parent}/data/BMI_testcase_m01_BuffaloRiver_TN_USA.mat')
         ]
         assert model.parameters == expected
 

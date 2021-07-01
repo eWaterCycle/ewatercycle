@@ -256,7 +256,6 @@ class MarrmotM01(AbstractModel):
             ('solver', self.solver),
             ('start time', self.forcing_start_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ('end time', self.forcing_end_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
-            ('forcing_file', self.forcing_file),
         ]
         return p
 
@@ -510,6 +509,5 @@ class MarrmotM14(AbstractModel):
             ('solver', self.solver),
             ('start time', self.forcing_start_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ('end time', self.forcing_end_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
-            ('forcing_file', self.forcing_file),
         ]
         return p

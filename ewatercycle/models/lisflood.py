@@ -275,12 +275,9 @@ class Lisflood(AbstractModel):
         #TODO fix issue #60
         parameters = [
             ('IrrigationEfficiency', self._get_textvar_value('IrrigationEfficiency')),
-            ('PathRoot', str(self.parameter_set.PathRoot)),
             ('MaskMap', str(self.parameter_set.MaskMap.parent)),
-            ('config_template', str(self.parameter_set.config_template)),
             ('start_time', self._start.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ('end_time', self._end.strftime("%Y-%m-%dT%H:%M:%SZ")),
-            ('forcing directory',  str(self.forcing_dir)),
         ]
         return parameters
 
