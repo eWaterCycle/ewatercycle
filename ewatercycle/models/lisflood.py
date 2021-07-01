@@ -52,11 +52,13 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         }
         self.singularity_image = singularity_dir / images[self.version]
 
-    def _get_textvar_value(self, name: str):
+    def _get_textvar_value(self, name: str, default: Any = None):
         for textvar in self.cfg.config.iter("textvar"):
             textvar_name = textvar.attrib["name"]
             if name == textvar_name:
                 return textvar.get('value')
+        if default is not None:
+            return default
         raise KeyError(
             f'Name {name} not found in the config file.'
         )
@@ -92,9 +94,9 @@ class Lisflood(AbstractModel[LisfloodForcing]):
 
         assert self.parameter_set is not None
         input_dirs = [
-                    str(self.parameter_set.directory),
-                    str(self.forcing_dir)
-                ]
+            str(self.parameter_set.directory),
+            str(self.forcing_dir)
+        ]
         if MaskMap is not None:
             try:
                 MaskMap.relative_to(self.parameter_set.directory)
@@ -259,11 +261,11 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         """List the parameters for this model."""
         assert self.parameter_set is not None
         assert self.forcing is not None
-        # TODO fix issue #60
+        # TODO fix issue #84
         parameters = [
-            ('IrrigationEfficiency', self._get_textvar_value('IrrigationEfficiency')),
+            ('IrrigationEfficiency', self._get_textvar_value('IrrigationEfficiency'), 0.75),
             ('PathRoot', str(self.parameter_set.directory)),
-            ('MaskMap', self._get_textvar_value('MaskMap')),
+            ('MaskMap', self._get_textvar_value('MaskMap'), 'area'),
             ('config_template', str(self.parameter_set.config)),
             ('start_time', self._start.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ('end_time', self._end.strftime("%Y-%m-%dT%H:%M:%SZ")),
