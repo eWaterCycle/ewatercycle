@@ -2,7 +2,7 @@ import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Iterable, List, Tuple
-import warnings
+import logging
 
 import numpy as np
 import scipy.io as sio
@@ -16,6 +16,7 @@ from ewatercycle.forcing._marrmot import MarrmotForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.util import get_time
 
+logger = logging.getLogger(__name__)
 
 @dataclass
 class Solver:
@@ -403,12 +404,14 @@ class MarrmotM14(AbstractModel):
             if len(forcing_data['parameters']) == len(self._parameters):
                 self._parameters = forcing_data['parameters']
             else:
-                warnings.warn(f"The length of parameters in forcing {self.forcing_file} does not match the length of M14 parameters that is seven.")
+                message = f"The length of parameters in forcing {self.forcing_file} does not match the length of M14 parameters that is seven."
+                logger.warning("%s", message)
         if 'store_ini' in forcing_data:
             if len(forcing_data['store_ini']) == len(self.store_ini):
                 self.store_ini = forcing_data['store_ini']
             else:
-                warnings.warn(f"The length of initial stores in forcing {self.forcing_file} does not match the length of M14 iniatial stores that is two.")
+                message = f"The length of initial stores in forcing {self.forcing_file} does not match the length of M14 iniatial stores that is two."
+                logger.warning("%s", message)
         if 'solver' in forcing_data:
             forcing_solver = forcing_data['solver']
             self.solver.name = forcing_solver['name'][0][0][0]
