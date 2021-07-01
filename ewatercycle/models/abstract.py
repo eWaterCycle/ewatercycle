@@ -18,8 +18,6 @@ ForcingT = TypeVar('ForcingT', bound=DefaultForcing)
 class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
     """Abstract class of a eWaterCycle model.
 
-    Attributes
-        bmi (Bmi): Basic Modeling Interface object
     """
     available_versions: ClassVar[Tuple[str, ...]] = tuple()
     """Versions of model that are available in this class"""
@@ -35,6 +33,7 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
         self._check_version()
         self._check_parameter_set()
         self.bmi: Bmi = None  # bmi should set in setup() before calling its methods
+        """Basic Modeling Interface object"""
 
     @abstractmethod
     def setup(self, *args, **kwargs) -> Tuple[PathLike, PathLike]:
