@@ -77,6 +77,8 @@ class TestGetParameterSet:
 def test_example_parameter_sets(setup_config):
     examples = example_parameter_sets()
     assert len(list(examples)) > 0
+    for name in examples:
+        assert name == examples[name].name
 
 
 @patch.object(ExampleParameterSet, 'download')

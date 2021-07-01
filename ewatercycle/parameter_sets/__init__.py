@@ -1,7 +1,7 @@
 from itertools import chain
 from logging import getLogger
 from os import linesep
-from typing import Iterable
+from typing import Iterable, Dict
 
 from ewatercycle import CFG
 from . import _pcrglobwb, _lisflood, _wflow
@@ -67,15 +67,16 @@ def download_parameter_sets(zenodo_doi: str, target_model: str, config: str):
     raise NotImplementedError("Auto download of parameter sets not yet supported")
 
 
-def example_parameter_sets() -> Iterable[ExampleParameterSet]:
+def example_parameter_sets() -> Dict[str, ExampleParameterSet]:
     """Lists example parameter sets that can be downloaded with :py:func:`~download_example_parameter_sets`.
     """
     # TODO how to add a new model docs should be updated with this part
-    return chain(
+    examples = chain(
         _wflow.example_parameter_sets(),
         _pcrglobwb.example_parameter_sets(),
         _lisflood.example_parameter_sets(),
     )
+    return {e.name: e for e in examples}
 
 
 def download_example_parameter_sets():
@@ -86,7 +87,7 @@ def download_example_parameter_sets():
     examples = example_parameter_sets()
 
     i = 0
-    for example in examples:
+    for example in examples.values():
         example.download()
         example.to_config()
         i += 1
