@@ -87,7 +87,10 @@ def test_finalize(model: MockedModel, bmi):
 def test_finalize_resets_bmi(model: MockedModel, bmi):
     model.finalize()
 
-    assert model.bmi is None
+    with pytest.raises(AttributeError) as excinfo:
+        model.bmi
+
+    assert "has no attribute 'bmi'" in str(excinfo.value)
 
 
 def test_update(model: MockedModel, bmi):
