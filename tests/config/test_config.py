@@ -169,19 +169,3 @@ def test_config_class():
     assert isinstance(cfg['grdc_location'], Path)
     assert isinstance(cfg['output_dir'], Path)
     assert isinstance(cfg['singularity_dir'], Path)
-
-
-def test_get_subset():
-    """Test getting a subset of config params."""
-    config = {
-        'wflow.singularity_image': "ewatercycle-wflow-grpc4bmi.sif",
-        'wflow.docker_image': "ewatercycle/wflow-grpc4bmi:latest",
-    }
-
-    cfg = Config(config)
-    subset = cfg.get_subset('wflow')
-
-    assert 'singularity_image' in subset
-    assert 'docker_image' in subset
-    assert 'wflow.singularity_image' not in subset
-    assert 'wflow.docker_image' not in subset

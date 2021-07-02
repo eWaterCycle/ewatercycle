@@ -1,22 +1,41 @@
+import logging
 from abc import ABCMeta, abstractmethod
 from os import PathLike
-from typing import Tuple, Iterable, Any
 from datetime import datetime
+from typing import Tuple, Iterable, Any, TypeVar, Generic, Optional, ClassVar, Set
 
 import numpy as np
 import xarray as xr
 from cftime import num2date
 from basic_modeling_interface import Bmi
 
+from ewatercycle.forcing import DefaultForcing
+from ewatercycle.parameter_sets import ParameterSet
 
-class AbstractModel(metaclass=ABCMeta):
+logger = logging.getLogger(__name__)
+
+ForcingT = TypeVar('ForcingT', bound=DefaultForcing)
+
+
+class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
     """Abstract class of a eWaterCycle model.
 
-    Attributes
-        bmi (Bmi): Basic Modeling Interface object
     """
-    def __init__(self):
+    available_versions: ClassVar[Tuple[str, ...]] = tuple()
+    """Versions of model that are available in this class"""
+
+    def __init__(self,
+                 version: str,
+                 parameter_set: ParameterSet = None,
+                 forcing: Optional[ForcingT] = None,
+                 ):
+        self.version = version
+        self.parameter_set = parameter_set
+        self.forcing: Optional[ForcingT] = forcing
+        self._check_version()
+        self._check_parameter_set()
         self.bmi: Bmi = None  # bmi should set in setup() before calling its methods
+        """Basic Modeling Interface object"""
 
     @abstractmethod
     def setup(self, *args, **kwargs) -> Tuple[PathLike, PathLike]:
@@ -97,7 +116,8 @@ class AbstractModel(metaclass=ABCMeta):
         indices = np.array(indices)
         self.bmi.set_value_at_indices(name, indices, values)
 
-    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Tuple[Iterable[int], Iterable[float], Iterable[float]]:
+    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Tuple[
+        Iterable[int], Iterable[float], Iterable[float]]:
         """Converts lat/lon values to index.
 
         Args:
@@ -194,3 +214,24 @@ class AbstractModel(metaclass=ABCMeta):
         """Current time of the model as a datetime object'.
         """
         return num2date(self.bmi.get_current_time(), self.bmi.get_time_units())
+
+    def _check_parameter_set(self):
+        if not self.parameter_set:
+            # Nothing to check
+            return
+        model_name = self.__class__.__name__.lower()
+        if model_name != self.parameter_set.target_model:
+            raise ValueError(f'Parameter set has wrong target model, '
+                             f'expected {model_name} got {self.parameter_set.target_model}')
+        if self.parameter_set.supported_model_versions == set():
+            logger.info(f'Model version {self.version} is not explicitly listed in the supported model versions '
+                        f'of this parameter set. This can lead to compatibility issues.')
+        elif self.version not in self.parameter_set.supported_model_versions:
+            raise ValueError(
+                f'Parameter set is not compatible with version {self.version} of model, '
+                f'parameter set only supports {self.parameter_set.supported_model_versions}')
+
+    def _check_version(self):
+        if self.version not in self.available_versions:
+            raise ValueError(f'Supplied version {self.version} is not supported by this model. '
+                             f'Available versions are {self.available_versions}.')

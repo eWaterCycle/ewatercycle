@@ -41,7 +41,7 @@ def _generate_work_dir(work_dir: Path = None) -> Path:
     return work_dir
 
 
-class MarrmotM01(AbstractModel):
+class MarrmotM01(AbstractModel[MarrmotForcing]):
     """eWaterCycle implementation of Marrmot Collie River 1 (traditional bucket) hydrological model.
 
     It sets MarrmotM01 parameter with an initial value that is the mean value of the range specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
@@ -49,23 +49,19 @@ class MarrmotM01(AbstractModel):
     Args:
         version: pick a version for which an ewatercycle grpc4bmi docker image is available.
         forcing: a MarrmotForcing object.
-            If forcing file contains parameter and other settings, those are used and can be changed in :py:meth:`steup`.
-
-    Attributes:
-        bmi (Bmi): Basic Modeling Interface object
+            If forcing file contains parameter and other settings, those are used and can be changed in :py:meth:`setup`.
 
     Example:
         See examples/marrmotM01.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
     model_name = "m_01_collie1_1p_1s"
     """Name of model in Matlab code."""
-    available_versions = ["2020.11"]
+    available_versions = ("2020.11",)
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     def __init__(self, version: str, forcing: MarrmotForcing):
         """Construct MarrmotM01 with initial values. """
-        super().__init__()
-        self.version = version
+        super().__init__(version)
         self._parameters = [1000.0]
         self.store_ini = [900.0]
         self.solver = Solver()
@@ -262,14 +258,15 @@ class MarrmotM01(AbstractModel):
 
 
 M14_PARAMS = ('maximum_soil_moisture_storage',
-            'threshold_flow_generation_evap_change',
-            'leakage_saturated_zone_flow_coefficient',
-            'zero_deficit_base_flow_speed',
-            'baseflow_coefficient',
-            'gamma_distribution_chi_parameter',
-            'gamma_distribution_phi_parameter')
+              'threshold_flow_generation_evap_change',
+              'leakage_saturated_zone_flow_coefficient',
+              'zero_deficit_base_flow_speed',
+              'baseflow_coefficient',
+              'gamma_distribution_chi_parameter',
+              'gamma_distribution_phi_parameter')
 
-class MarrmotM14(AbstractModel):
+
+class MarrmotM14(AbstractModel[MarrmotForcing]):
     """eWaterCycle implementation of Marrmot Top Model hydrological model.
 
     It sets MarrmotM14 parameter with an initial value that is the mean value of the range specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_14_topmodel_7p_2s_parameter_ranges.m>`_.
@@ -279,21 +276,17 @@ class MarrmotM14(AbstractModel):
         forcing: a MarrmotForcing object.
             If forcing file contains parameter and other settings, those are used and can be changed in :py:meth:`setup`.
 
-    Attributes:
-        bmi (Bmi): Basic Modeling Interface object
-
     Example:
         See examples/marrmotM14.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
     model_name = "m_14_topmodel_7p_2s"
     """Name of model in Matlab code."""
-    available_versions = ["2020.11"]
+    available_versions = ("2020.11",)
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     def __init__(self, version: str, forcing: MarrmotForcing):
         """Construct MarrmotM14 with initial values. """
-        super().__init__()
-        self.version = version
+        super().__init__(version)
         self._parameters = [1000.0, 0.5, 0.5, 100.0, 0.5, 4.25, 2.5]
         self.store_ini = [900.0, 900.0]
         self.solver = Solver()
@@ -404,12 +397,14 @@ class MarrmotM14(AbstractModel):
             if len(forcing_data['parameters']) == len(self._parameters):
                 self._parameters = forcing_data['parameters']
             else:
-                warnings.warn(f"The length of parameters in forcing {self.forcing_file} does not match the length of M14 parameters that is seven.")
+                warnings.warn(
+                    f"The length of parameters in forcing {self.forcing_file} does not match the length of M14 parameters that is seven.")
         if 'store_ini' in forcing_data:
             if len(forcing_data['store_ini']) == len(self.store_ini):
                 self.store_ini = forcing_data['store_ini']
             else:
-                warnings.warn(f"The length of initial stores in forcing {self.forcing_file} does not match the length of M14 iniatial stores that is two.")
+                warnings.warn(
+                    f"The length of initial stores in forcing {self.forcing_file} does not match the length of M14 iniatial stores that is two.")
         if 'solver' in forcing_data:
             forcing_solver = forcing_data['solver']
             self.solver.name = forcing_solver['name'][0][0][0]
@@ -503,7 +498,7 @@ class MarrmotM14(AbstractModel):
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the parameters for this model."""
-        p:List[Tuple[str, Any]] = list(zip(M14_PARAMS, self._parameters))
+        p: List[Tuple[str, Any]] = list(zip(M14_PARAMS, self._parameters))
         p += [
             ('initial_upper_zone_storage', self.store_ini[0]),
             ('initial_saturated_zone_storage', self.store_ini[1]),
