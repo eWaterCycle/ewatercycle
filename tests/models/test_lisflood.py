@@ -137,7 +137,7 @@ class TestLFlatlonUseCase:
             with patch.object(BmiClientSingularity, '__init__', return_value=None) as mocked_constructor, patch(
                 'time.strftime', return_value='42'):
                 config_file, config_dir = model.setup(
-                    MaskMap=tmp_path / 'custommask/mask.map'
+                    MaskMap=str(tmp_path / 'custommask/mask.map')
                 )
             return config_file, config_dir, mocked_constructor
 

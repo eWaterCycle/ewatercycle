@@ -63,7 +63,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
               IrrigationEfficiency: str = None,
               start_time: str = None,
               end_time: str = None,
-              MaskMap: Path = None,
+              MaskMap: str = None,
               work_dir: Path = None
               ) -> Tuple[Path, Path]:
         """Configure model run
@@ -93,11 +93,12 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                     str(self.forcing_dir)
                 ]
         if MaskMap is not None:
+            mask_map = Path(MaskMap).expanduser().resolve()
             try:
-                MaskMap.relative_to(self.parameter_set.directory)
+                mask_map.relative_to(self.parameter_set.directory)
             except ValueError:
                 # If not relative add dir
-                input_dirs.append(str(MaskMap.parent))
+                input_dirs.append(str(mask_map.parent))
 
         if CFG['container_engine'].lower() == 'singularity':
             self._set_singularity_image(CFG['singularity_dir'])
@@ -158,15 +159,16 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             "CalendarDayStart": self._start.strftime("%d/%m/%Y 00:00"),
             "StepStart": "1",
             "StepEnd": str((self._end - self._start).days),
-            "PathRoot": f"{self.parameter_set.directory}",
-            "PathMeteo": f"{self.forcing_dir}",
-            "PathOut": f"{work_dir}",
+            "PathRoot": str(self.parameter_set.directory),
+            "PathMeteo": str(self.forcing_dir),
+            "PathOut": str(work_dir),
         }
 
         if IrrigationEfficiency is not None:
             settings['IrrigationEfficiency'] = IrrigationEfficiency
         if MaskMap is not None:
-            settings['MaskMap'] = str(MaskMap).rstrip('.nc').rstrip('.map')
+            mask_map = Path(MaskMap).expanduser().resolve()
+            settings['MaskMap'] = str(mask_map.with_suffix(''))
 
         for textvar in self.cfg.config.iter("textvar"):
             textvar_name = textvar.attrib["name"]
@@ -178,15 +180,15 @@ class Lisflood(AbstractModel[LisfloodForcing]):
 
             # input for lisflood
             if "PrefixPrecipitation" in textvar_name:
-                textvar.set("value", self.forcing.PrefixPrecipitation.rstrip('.nc'))
+                textvar.set("value", Path(self.forcing.PrefixPrecipitation).stem)
             if "PrefixTavg" in textvar_name:
-                textvar.set("value", self.forcing.PrefixTavg.rstrip('.nc'))
+                textvar.set("value", Path(self.forcing.PrefixTavg).stem)
 
             # maps_prefixes dictionary contains lisvap filenames in lisflood config
             maps_prefixes = {
-                'E0Maps': {'name': 'PrefixE0', 'value': f"{self.forcing.PrefixE0.rstrip('.nc')}"},
-                'ES0Maps': {'name': 'PrefixES0', 'value': f"{self.forcing.PrefixES0.rstrip('.nc')}"},
-                'ET0Maps': {'name': 'PrefixET0', 'value': f"{self.forcing.PrefixET0.rstrip('.nc')}"},
+                'E0Maps': {'name': 'PrefixE0', 'value': Path(self.forcing.PrefixE0).stem},
+                'ES0Maps': {'name': 'PrefixES0', 'value': Path(self.forcing.PrefixES0).stem},
+                'ET0Maps': {'name': 'PrefixET0', 'value': Path(self.forcing.PrefixET0).stem},
             }
             # output of lisvap
             for map_var, prefix in maps_prefixes.items():
