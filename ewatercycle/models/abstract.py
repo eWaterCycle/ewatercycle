@@ -180,7 +180,8 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
             raise ValueError(f'Parameter set has wrong target model, '
                              f'expected {model_name} got {self.parameter_set.target_model}')
         if self.parameter_set.supported_model_versions == set():
-            logger.info(f'Model version {self.version} is not explicitly listed in the supported model versions of this parameter set. This can lead to compatibility issues.')
+            logger.info(f'Model version {self.version} is not explicitly listed in the supported model versions '
+                        f'of this parameter set. This can lead to compatibility issues.')
         elif self.version not in self.parameter_set.supported_model_versions:
             raise ValueError(
                 f'Parameter set is not compatible with version {self.version} of model, '

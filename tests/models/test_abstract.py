@@ -245,10 +245,10 @@ class TestCheckParameterSet:
             target_model='mockedmodel',  # == lowered class name
             supported_model_versions=set()
         )
-        with caplog.at_level(logging.WARNING):
+        with caplog.at_level(logging.INFO):
             MockedModel(parameter_set=ps)
 
-        expected = 'Model expects parameter set to support version'
+        expected = 'is not explicitly listed in the supported model versions'
         assert expected in caplog.text
 
     def test_unsupported_version(self, setup_config):
