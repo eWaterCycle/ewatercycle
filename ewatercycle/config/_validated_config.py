@@ -81,11 +81,3 @@ class ValidatedConfig(MutableMapping):
     def clear(self):
         """Clear Config."""
         self._mapping.clear()
-
-    def get_subset(self, key: str) -> dict:
-        """Return a dict with the subset of this config dict whose keys
-        start with `{key}.`
-        """
-        pattern_re = re.compile(f'^{key}\.')
-        return dict((pattern_re.sub('', key), value)
-                    for key, value in self.items() if pattern_re.search(key))

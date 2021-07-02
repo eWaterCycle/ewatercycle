@@ -20,11 +20,11 @@ class LisfloodForcing(DefaultForcing):
         end_time: str,
         directory: str,
         shape: Optional[str] = None,
-        PrefixPrecipitation: Optional[str] = 'pr.nc',
-        PrefixTavg: Optional[str] = 'tas.nc',
-        PrefixE0: Optional[str] = 'e0.nc',
-        PrefixES0: Optional[str] = 'es0.nc',
-        PrefixET0: Optional[str] = 'et0.nc',
+        PrefixPrecipitation: str = 'pr.nc',
+        PrefixTavg: str = 'tas.nc',
+        PrefixE0: str = 'e0.nc',
+        PrefixES0: str = 'es0.nc',
+        PrefixET0: str = 'et0.nc',
     ):
         """
             PrefixPrecipitation: Path to a NetCDF or pcraster file with
