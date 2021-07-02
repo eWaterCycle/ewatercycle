@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from os import PathLike
 from typing import Tuple, Iterable, Any
+from datetime import datetime
 
 import numpy as np
 import xarray as xr
@@ -158,8 +159,7 @@ class AbstractModel(metaclass=ABCMeta):
 
         In UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         """
-        time_as_datetime = num2date(self.bmi.get_start_time(), self.bmi.get_time_units())
-        return time_as_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
+        return self.start_time_as_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     @property
     def end_time_as_isostr(self) -> str:
@@ -167,8 +167,7 @@ class AbstractModel(metaclass=ABCMeta):
 
         In UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         """
-        time_as_datetime = num2date(self.bmi.get_end_time(), self.bmi.get_time_units())
-        return time_as_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
+        return self.end_time_as_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     @property
     def time_as_isostr(self) -> str:
@@ -176,5 +175,22 @@ class AbstractModel(metaclass=ABCMeta):
 
         In UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         """
-        time_as_datetime = num2date(self.bmi.get_current_time(), self.bmi.get_time_units())
-        return time_as_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
+        return self.time_as_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    @property
+    def start_time_as_datetime(self) -> datetime:
+        """Start time of the model as a datetime object.
+        """
+        return num2date(self.bmi.get_start_time(), self.bmi.get_time_units())
+
+    @property
+    def end_time_as_datetime(self) -> datetime:
+        """End time of the model as a datetime object'.
+        """
+        return num2date(self.bmi.get_end_time(), self.bmi.get_time_units())
+
+    @property
+    def time_as_datetime(self) -> datetime:
+        """Current time of the model as a datetime object'.
+        """
+        return num2date(self.bmi.get_current_time(), self.bmi.get_time_units())
