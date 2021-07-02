@@ -137,7 +137,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             )
 
     def _create_lisflood_config(self, work_dir: Path, start_time_iso: str = None, end_time_iso: str = None,
-                                IrrigationEfficiency: str = None, MaskMap: Path = None) -> Path:
+                                IrrigationEfficiency: str = None, MaskMap: str = None) -> Path:
         """Create lisflood config file"""
         assert self.parameter_set is not None
         assert self.forcing is not None
