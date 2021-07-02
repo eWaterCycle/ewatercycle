@@ -1,4 +1,4 @@
-import time
+import datetime
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Iterable, Tuple
@@ -309,7 +309,7 @@ def _generate_workdir(work_dir: Path = None) -> Path:
     if work_dir is None:
         scratch_dir = CFG['output_dir']
         # TODO this timestamp isnot safe for parallel processing
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
         work_dir = Path(scratch_dir) / f'lisflood_{timestamp}'
         work_dir.mkdir(parents=True, exist_ok=True)
     return work_dir

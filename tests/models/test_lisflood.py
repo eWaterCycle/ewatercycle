@@ -1,4 +1,5 @@
 import shutil
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
 
@@ -23,6 +24,15 @@ def mocked_config(tmp_path):
     CFG['parameter_sets'] = {}
 
 
+def find_values_in_xml(tree, name):
+    values = []
+    for textvar in tree.iter('textvar'):
+        textvar_name = textvar.attrib['name']
+        if textvar_name == name:
+            values.append(textvar.get('value'))
+    return set(values)
+
+
 class TestLFlatlonUseCase:
     @pytest.fixture
     def parameterset(self, mocked_config):
@@ -38,16 +48,16 @@ class TestLFlatlonUseCase:
         meteo_dir = Path(parameterset.directory) / 'meteo'
         # Create the case where forcing data arenot part of parameter_set
         for file in meteo_dir.glob('*.nc'):
-            shutil.copy(file, forcing_dir)
+            shutil.copy(file, forcing_dir / f'my{file.stem}.nc')
 
         return load_foreign(target_model='lisflood',
                             directory=str(forcing_dir),
                             start_time='1986-01-02T00:00:00Z',
                             end_time='2018-01-02T00:00:00Z',
                             forcing_info={
-                                'PrefixPrecipitation': 'tp.nc',
-                                'PrefixTavg': 'ta.nc',
-                                'PrefixE0': 'e0.nc',
+                                'PrefixPrecipitation': 'mytp.nc',
+                                'PrefixTavg': 'myta.nc',
+                                'PrefixE0': 'mye0.nc',
                             })
 
     @pytest.fixture
@@ -74,7 +84,8 @@ class TestLFlatlonUseCase:
     @pytest.fixture
     def model_with_setup(self, mocked_config, model: Lisflood):
         with patch.object(BmiClientSingularity, '__init__', return_value=None) as mocked_constructor, patch(
-                'time.strftime', return_value='42'):
+                'datetime.datetime') as mocked_datetime:
+            mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
             config_file, config_dir = model.setup(
                 IrrigationEfficiency='0.8',
             )
@@ -82,21 +93,35 @@ class TestLFlatlonUseCase:
 
     def test_setup(self, model_with_setup, tmp_path):
         config_file, config_dir, mocked_constructor = model_with_setup
-        _cfg = XmlConfig(str(config_file))
+
+        # Check setup returns
+        assert 'lisflood_20210102_030405' in str(config_dir)
+        assert config_file.name == 'lisflood_setting.xml'
+
+        # Check container started
         mocked_constructor.assert_called_once_with(
             image=f'{tmp_path}/ewatercycle-lisflood-grpc4bmi_20.10.sif',
             input_dirs=[
                 f'{tmp_path}/psr/lisflood_fraser',
                 f'{tmp_path}/forcing'],
-            work_dir=f'{tmp_path}/lisflood_42')
-        assert 'lisflood_42' in str(config_dir)
-        assert config_file.name == 'lisflood_setting.xml'
-        for textvar in _cfg.config.iter("textvar"):
-            textvar_name = textvar.attrib["name"]
-            if textvar_name == 'IrrigationEfficiency':
-                assert textvar.get('value') == '0.8'
+            work_dir=f'{tmp_path}/lisflood_20210102_030405')
 
-    class TestGetValueAtCoords():
+        # Check content config file
+        _cfg = XmlConfig(str(config_file))
+        assert find_values_in_xml(_cfg.config, 'CalendarDayStart') == {'02/01/1986 00:00'}
+        assert find_values_in_xml(_cfg.config, 'StepStart') == {'1'}
+        assert find_values_in_xml(_cfg.config, 'StepEnd') == {'11688'}
+        assert find_values_in_xml(_cfg.config, 'PathMeteo') == {f'{tmp_path}/forcing'}
+        assert find_values_in_xml(_cfg.config, 'PathOut') == {str(config_dir)}
+        assert find_values_in_xml(_cfg.config, 'IrrigationEfficiency') == {'0.8'}
+        assert find_values_in_xml(_cfg.config, 'MaskMap') == {'$(PathMaps)/masksmall.map', '$(MaskMap)'}
+        assert find_values_in_xml(_cfg.config, 'PrefixPrecipitation') == {'mytp'}
+        assert find_values_in_xml(_cfg.config, 'PrefixTavg') == {'myta'}
+        assert find_values_in_xml(_cfg.config, 'PrefixE0') == {'mye0'}
+        assert find_values_in_xml(_cfg.config, 'PrefixES0') == {'es0'}
+        assert find_values_in_xml(_cfg.config, 'PrefixET0') == {'et0'}
+
+    class TestGetValueAtCoords:
 
         def test_get_value_at_coords_single(self, model: Lisflood):
             expected = np.array([1.0])
@@ -135,7 +160,8 @@ class TestLFlatlonUseCase:
         @pytest.fixture
         def model_with_setup(self, tmp_path, mocked_config, model: Lisflood):
             with patch.object(BmiClientSingularity, '__init__', return_value=None) as mocked_constructor, patch(
-                'time.strftime', return_value='42'):
+                    'datetime.datetime') as mocked_datetime:
+                mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
                 config_file, config_dir = model.setup(
                     MaskMap=str(tmp_path / 'custommask/mask.map')
                 )
@@ -143,7 +169,12 @@ class TestLFlatlonUseCase:
 
         def test_setup(self, model_with_setup, tmp_path):
             config_file, config_dir, mocked_constructor = model_with_setup
-            _cfg = XmlConfig(str(config_file))
+
+            # Check setup returns
+            assert 'lisflood_20210102_030405' in str(config_dir)
+            assert config_file.name == 'lisflood_setting.xml'
+
+            # Check container started
             mocked_constructor.assert_called_once_with(
                 image=f'{tmp_path}/ewatercycle-lisflood-grpc4bmi_20.10.sif',
                 input_dirs=[
@@ -151,15 +182,22 @@ class TestLFlatlonUseCase:
                     f'{tmp_path}/forcing',
                     f'{tmp_path}/custommask',
                 ],
-                work_dir=f'{tmp_path}/lisflood_42')
-            assert 'lisflood_42' in str(config_dir)
-            assert config_file.name == 'lisflood_setting.xml'
-            for textvar in _cfg.config.iter("textvar"):
-                textvar_name = textvar.attrib["name"]
-                if textvar_name == 'IrrigationEfficiency':
-                    assert textvar.get('value') in ['0.75', '$(IrrigationEfficiency)']
-                if textvar_name == 'MaskMap':
-                    assert textvar.get('value') == f'{tmp_path}/custommask/mask'
+                work_dir=f'{tmp_path}/lisflood_20210102_030405')
+
+            # Check content config file
+            _cfg = XmlConfig(str(config_file))
+            assert find_values_in_xml(_cfg.config, 'CalendarDayStart') == {'02/01/1986 00:00'}
+            assert find_values_in_xml(_cfg.config, 'StepStart') == {'1'}
+            assert find_values_in_xml(_cfg.config, 'StepEnd') == {'11688'}
+            assert find_values_in_xml(_cfg.config, 'PathMeteo') == {f'{tmp_path}/forcing'}
+            assert find_values_in_xml(_cfg.config, 'PathOut') == {str(config_dir)}
+            assert find_values_in_xml(_cfg.config, 'IrrigationEfficiency') == {'0.75', '$(IrrigationEfficiency)'}
+            assert find_values_in_xml(_cfg.config, 'MaskMap') == {f'{tmp_path}/custommask/mask'}
+            assert find_values_in_xml(_cfg.config, 'PrefixPrecipitation') == {'mytp'}
+            assert find_values_in_xml(_cfg.config, 'PrefixTavg') == {'myta'}
+            assert find_values_in_xml(_cfg.config, 'PrefixE0') == {'mye0'}
+            assert find_values_in_xml(_cfg.config, 'PrefixES0') == {'es0'}
+            assert find_values_in_xml(_cfg.config, 'PrefixET0') == {'et0'}
 
         def test_parameters_after_setup(self, model_with_setup, model: Lisflood, tmp_path):
             expected_parameters = [
