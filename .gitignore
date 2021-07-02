@@ -24,3 +24,6 @@ docs/apidocs/
 .scannerwork/
 
 .ipynb_checkpoints
+
+docs/examples/parameter-sets
+docs/examples/ewatercycle.yaml

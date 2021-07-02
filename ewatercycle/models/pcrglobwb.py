@@ -1,64 +1,33 @@
 import time
-from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
-from typing import Any, Iterable, Tuple, Union
+from typing import Any, Iterable, Tuple
 
 import numpy as np
 import xarray as xr
 from cftime import num2date
+from grpc import FutureTimeoutError
 from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
 from ewatercycle.forcing._pcrglobwb import PCRGlobWBForcing
 from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.util import get_time
-from grpc import FutureTimeoutError
 
 
-@dataclass
-class PCRGlobWBParameterSet:
-    """Parameter set for the PCRGlobWB model class.
-
-    A valid pcrglobwb parameter set consists of a folder with input data files
-    and should always include a default configuration file.
-    """
-
-    input_dir: Union[str, PathLike]
-    """Input folder path."""
-    default_config: Union[str, PathLike]
-    """Path to (default) model configuration file consistent with `input_data`."""
-
-    def __setattr__(self, name: str, value: Union[str, PathLike]):
-        self.__dict__[name] = Path(value).expanduser().resolve()
-
-    def __str__(self):
-        """Nice formatting of the parameterset object."""
-        return "\n".join(
-            [
-                "Wflow parameter set",
-                "-------------------",
-                f"Directory: {self.input_dir}",
-                f"Default configuration file: {self.default_config}",
-            ]
-        )
-
-
-class PCRGlobWB(AbstractModel):
+class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
     """eWaterCycle implementation of PCRGlobWB hydrological model.
 
     Args:
 
         version: pick a version from :py:attr:`~available_versions`
-        parameter_set: instance of :py:class:`~PCRGlobWBParameterSet`.
+        parameter_set: instance of :py:class:`~ewatercycle.parameter_sets.default.ParameterSet`.
         forcing: ewatercycle forcing container;
             see :py:mod:`ewatercycle.forcing`.
 
-    Attributes:
-
-        bmi (Bmi): GRPC4BMI Basic Modeling Interface object
     """
 
     available_versions = ("setters",)
@@ -66,15 +35,10 @@ class PCRGlobWB(AbstractModel):
     def __init__(
         self,
         version: str,
-        parameter_set: PCRGlobWBParameterSet,
+        parameter_set: ParameterSet,
         forcing: PCRGlobWBForcing,
     ):
-        super().__init__()
-
-        self.version = version
-        self.parameter_set = parameter_set
-        self.forcing = forcing
-
+        super().__init__(version, parameter_set, forcing)
         self._set_docker_image()
 
         self._setup_work_dir()
@@ -94,8 +58,8 @@ class PCRGlobWB(AbstractModel):
         self.work_dir = work_dir.expanduser().resolve()
 
     def _setup_default_config(self):
-        config_file = self.parameter_set.default_config
-        input_dir = self.parameter_set.input_dir
+        config_file = self.parameter_set.config
+        input_dir = self.parameter_set.directory
 
         cfg = CaseConfigParser()
         cfg.read(config_file)
@@ -207,7 +171,7 @@ class PCRGlobWB(AbstractModel):
 
     def _start_container(self):
         additional_input_dirs = [
-            str(self.parameter_set.input_dir),
+            str(self.parameter_set.directory),
             str(self.forcing.directory),
         ]
 

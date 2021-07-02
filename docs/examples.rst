@@ -12,3 +12,4 @@ Examples
   PCRGlobWB <examples/pcrglobwb.ipynb>
   Wflow <examples/wflow.ipynb>
   Irrigation experiment <examples/Irrigation.ipynb>
+  System setup <examples/system_setup.ipynb>

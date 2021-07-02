@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-import numpy as np
 import pytest
 import xarray as xr
 from numpy.testing import assert_almost_equal, assert_array_equal
@@ -10,8 +9,7 @@ from xarray.testing import assert_allclose
 
 from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
-from ewatercycle.models import MarrmotM14
-from ewatercycle.models.marrmot import Solver
+from ewatercycle.models.marrmot import Solver, MarrmotM14
 
 
 @pytest.fixture
@@ -26,12 +24,12 @@ class TestWithDefaultsAndExampleData:
         # Downloaded from
         # https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
         forcing = load_foreign('marrmot',
-                                directory=f'{Path(__file__).parent}/data',
-                                start_time='1989-01-01T00:00:00Z',
-                                end_time='1992-12-31T00:00:00Z',
-                                forcing_info={
-                                    'forcing_file': 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
-                                })
+                               directory=f'{Path(__file__).parent}/data',
+                               start_time='1989-01-01T00:00:00Z',
+                               end_time='1992-12-31T00:00:00Z',
+                               forcing_info={
+                                   'forcing_file': 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
+                               })
         return forcing
 
     @pytest.fixture
@@ -128,6 +126,13 @@ class TestWithDefaultsAndExampleData:
         )
         assert cfg_dir == tmp_path
 
+    def test_setup_create_work_dir(self, tmp_path, mocked_config, model: MarrmotM14):
+        work_dir = tmp_path / 'output'
+        cfg_file, cfg_dir = model.setup(
+            work_dir=work_dir
+        )
+        assert cfg_dir == work_dir
+
 
 class TestWithCustomSetupAndExampleData:
     @pytest.fixture
@@ -135,12 +140,12 @@ class TestWithCustomSetupAndExampleData:
         # Downloaded from
         # https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
         forcing = load_foreign('marrmot',
-                                directory=f'{Path(__file__).parent}/data',
-                                start_time='1989-01-01T00:00:00Z',
-                                end_time='1992-12-31T00:00:00Z',
-                                forcing_info={
-                                    'forcing_file': 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
-                                })
+                               directory=f'{Path(__file__).parent}/data',
+                               start_time='1989-01-01T00:00:00Z',
+                               end_time='1992-12-31T00:00:00Z',
+                               forcing_info={
+                                   'forcing_file': 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
+                               })
         return forcing
 
     @pytest.fixture
@@ -171,8 +176,8 @@ class TestWithCustomSetupAndExampleData:
         assert actual['model_name'] == "m_14_topmodel_7p_2s"
         assert_array_equal(actual['parameters'], [[1234.0, 0.5, 0.5, 100.0, 0.5, 4.25, 2.5]])
         assert_array_equal(actual['store_ini'], [[4321, 900]])
-        assert_almost_equal(actual['time_start'], [[1990,   1,   1,    0,    0,    0]])
-        assert_almost_equal(actual['time_end'], [[1991,   12,   31,    0,    0,    0]])
+        assert_almost_equal(actual['time_start'], [[1990, 1, 1, 0, 0, 0]])
+        assert_almost_equal(actual['time_end'], [[1991, 12, 31, 0, 0, 0]])
 
 
 class TestWithDatesOutsideRangeSetupAndExampleData:
@@ -181,12 +186,12 @@ class TestWithDatesOutsideRangeSetupAndExampleData:
         # Downloaded from
         # https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
         forcing = load_foreign('marrmot',
-                                directory=f'{Path(__file__).parent}/data',
-                                start_time='1989-01-01T00:00:00Z',
-                                end_time='1992-12-31T00:00:00Z',
-                                forcing_info={
-                                    'forcing_file': 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
-                                })
+                               directory=f'{Path(__file__).parent}/data',
+                               start_time='1989-01-01T00:00:00Z',
+                               end_time='1992-12-31T00:00:00Z',
+                               forcing_info={
+                                   'forcing_file': 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat'
+                               })
         return forcing
 
     @pytest.fixture
