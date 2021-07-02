@@ -93,16 +93,21 @@ def example_parameter_sets() -> Dict[str, ExampleParameterSet]:
     return {e.name: e for e in examples}
 
 
-def download_example_parameter_sets():
+def download_example_parameter_sets(skip_existing=True):
     """Downloads all of the example parameter sets and adds them to the config_file.
 
     Downloads to `parameterset_dir` directory defined in :py:data:`ewatercycle.config.CFG`.
+
+    Args:
+        skip_existing: When true will not download any parameter set which already has a local directory.
+            When false will raise ValueError exception when parameter set already exists.
+
     """
     examples = example_parameter_sets()
 
     i = 0
     for example in examples.values():
-        example.download()
+        example.download(skip_existing)
         example.to_config()
         i += 1
 

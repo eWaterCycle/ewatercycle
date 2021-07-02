@@ -1,4 +1,4 @@
-from io import StringIO, BytesIO
+import logging
 from unittest.mock import patch, Mock
 
 import pytest
@@ -68,5 +68,19 @@ def test_download_already_exists(example, tmp_path):
     with pytest.raises(ValueError) as excinfo:
         example.download()
 
-    assert str(excinfo.value) == 'Directory already exists, will not overwrite'
+    assert 'already exists, will not overwrite.' in str(excinfo.value)
 
+
+@patch('urllib.request.urlopen')
+@patch('subprocess.check_call')
+def test_download_already_exists_but_skipped(mock_check_call, mock_urlopen, example, tmp_path, caplog):
+    ps_dir = tmp_path / 'mymodelexample'
+    ps_dir.mkdir()
+
+    with caplog.at_level(logging.INFO):
+        example.download(skip_existing=True)
+
+    mock_urlopen.assert_not_called()
+    mock_check_call.assert_not_called()
+
+    assert 'already exists, skipping download.' in caplog.text

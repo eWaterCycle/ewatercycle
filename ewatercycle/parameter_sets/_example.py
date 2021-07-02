@@ -28,10 +28,16 @@ class ExampleParameterSet(ParameterSet):
         self.datafiles_url = datafiles_url
         """GitHub subversion URL where datafiles can be svn-exported from"""
 
-    def download(self):
+    def download(self, skip_existing=False):
         if self.directory.exists():
-            raise ValueError("Directory already exists, will not overwrite")
+            if not skip_existing:
+                raise ValueError(f"Directory {self.directory} for parameter set {self.name}"
+                                 f" already exists, will not overwrite. "
+                                 f"Try again with skip_existing=True or remove {self.directory} directory.")
 
+            logger.info(f'Directory {self.directory} for parameter set {self.name}'
+                        f' already exists, skipping download.')
+            return
         logger.info(
             f"Downloading example parameter set {self.name} to {self.directory}..."
         )
