@@ -105,13 +105,13 @@ class TestWithDefaultsAndExampleData:
         )
         assert_allclose(actual, expected)
 
-    def test_setup_with_own_work_dir(self, tmp_path, mocked_config, model: MarrmotM01):
+    def test_setup_with_own_cfg_dir(self, tmp_path, mocked_config, model: MarrmotM01):
         cfg_file, cfg_dir = model.setup(
             cfg_dir=tmp_path
         )
         assert cfg_dir == tmp_path
 
-    def test_setup_create_work_dir(self, tmp_path, mocked_config, model: MarrmotM01):
+    def test_setup_create_cfg_dir(self, tmp_path, mocked_config, model: MarrmotM01):
         work_dir = tmp_path / 'output'
         cfg_file, cfg_dir = model.setup(
             cfg_dir=work_dir
