@@ -183,3 +183,27 @@ def test_get_value_as_xarray(model: MockedModel):
     dataarray = model.get_value_as_xarray("Temperature")
 
     xr.testing.assert_equal(dataarray, expected)
+
+
+def start_time_as_isostr(bmi, model: MockedModel):
+    bmi.get_start_time.return_value = 42.0
+    bmi.get_time_units.return_value = 'days since 1970-01-01 00:00:00.0 00:00'
+    actual = model.start_time_as_isostr
+    expected = '1970-02-12T00:00:00Z'
+    assert expected == actual
+
+
+def end_time_as_isostr(bmi, model: MockedModel):
+    bmi.get_end_time.return_value = 42.0
+    bmi.get_time_units.return_value = 'days since 1970-01-01 00:00:00.0 00:00'
+    actual = model.end_time_as_isostr
+    expected = '1970-02-12T00:00:00Z'
+    assert expected == actual
+
+
+def time_as_isostr(bmi, model: MockedModel):
+    bmi.get_current_time.return_value = 42.0
+    bmi.get_time_units.return_value = 'days since 1970-01-01 00:00:00.0 00:00'
+    actual = model.time_as_isostr
+    expected = '1970-02-12T00:00:00Z'
+    assert expected == actual
