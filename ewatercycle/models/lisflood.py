@@ -1,8 +1,7 @@
 import time
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, List, Tuple, Union
+from typing import Any, Iterable, Tuple
 
 import numpy as np
 import xarray as xr
@@ -13,36 +12,12 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 from ewatercycle import CFG
 from ewatercycle.forcing._lisflood import LisfloodForcing
 from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import AbstractConfig
 from ewatercycle.util import get_time, find_closest_point
 
 
-@dataclass
-class LisfloodParameterSet:
-    """Input files specific for parameter_set, model boundaries, and configuration template files
-
-    Example:
-
-    .. code-block::
-
-        parameter_set = LisfloodParameterSet(
-            PathRoot='/projects/0/wtrcycle/comparison/lisflood_input/Lisflood01degree_masked',
-            MaskMap='/projects/0/wtrcycle/comparison/recipes_auxiliary_datasets/LISFLOOD/model_mask.nc',
-            config_template='/projects/0/wtrcycle/comparison/lisflood_input/settings_templates/settings_lisflood.xml',
-        )
-    """
-    PathRoot: Path
-    """Directory with input files"""
-    MaskMap: Path
-    """A NetCDF file with model boundaries"""
-    config_template: Path
-    """Config file used as template for a lisflood run"""
-
-    def __setattr__(self, name: str, value: Union[str, Path]):
-        self.__dict__[name] = Path(value).expanduser().resolve()
-
-
-class Lisflood(AbstractModel):
+class Lisflood(AbstractModel[LisfloodForcing]):
     """eWaterCycle implementation of Lisflood hydrological model.
 
     Args:
@@ -50,22 +25,17 @@ class Lisflood(AbstractModel):
       parameter_set: LISFLOOD input files. Any included forcing data will be ignored.
       forcing: a LisfloodForcing object.
 
-    Attributes:
-        bmi (Bmi): Basic Modeling Interface object
-
     Example:
         See examples/lisflood.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
     available_versions = ("20.10", )
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
-    def __init__(self, version: str, parameter_set: LisfloodParameterSet, forcing: LisfloodForcing):
+    def __init__(self, version: str, parameter_set: ParameterSet, forcing: LisfloodForcing):
         """Construct Lisflood model with initial values. """
-        super().__init__()
-        self.version = version
+        super().__init__(version, parameter_set, forcing)
         self._check_forcing(forcing)
-        self.parameter_set = parameter_set
-        self.cfg = XmlConfig(self.parameter_set.config_template)
+        self.cfg = XmlConfig(parameter_set.config)
 
     def _set_docker_image(self):
         images = {
@@ -88,13 +58,14 @@ class Lisflood(AbstractModel):
             f'Name {name} not found in the config file.'
         )
 
-
     # unable to subclass with more specialized arguments so ignore type
     def setup(self,  # type: ignore
               IrrigationEfficiency: str = None,
               start_time: str = None,
               end_time: str = None,
-              cfg_dir: Path = None) -> Tuple[Path, Path]:
+              MaskMap: str = None,
+              cfg_dir: Path = None
+              ) -> Tuple[Path, Path]:
         """Configure model run
 
         1. Creates config file and config directory based on the forcing variables and time range
@@ -104,25 +75,36 @@ class Lisflood(AbstractModel):
             IrrigationEfficiency: Field application irrigation efficiency max 1, ~0.90 drip irrigation, ~0.75 sprinkling
             start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
             end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
+            MaskMap: Mask map to use instead of one supplied in parameter set.
+                Path to a NetCDF or pcraster file with same dimensions as parameter set map files and a boolean variable.
             cfg_dir: a run directory given by user or created for user.
 
         Returns:
             Path to config file and path to config directory
         """
 
-        #TODO forcing can be a part of parameter_set
+        # TODO forcing can be a part of parameter_set
         cfg_dir = _generate_workdir(cfg_dir)
-        config_file = self._create_lisflood_config(cfg_dir, start_time, end_time, IrrigationEfficiency)
+        config_file = self._create_lisflood_config(cfg_dir, start_time, end_time, IrrigationEfficiency, MaskMap)
+
+        assert self.parameter_set is not None
+        input_dirs = [
+                    str(self.parameter_set.directory),
+                    str(self.forcing_dir)
+                ]
+        if MaskMap is not None:
+            mask_map = Path(MaskMap).expanduser().resolve()
+            try:
+                mask_map.relative_to(self.parameter_set.directory)
+            except ValueError:
+                # If not relative add dir
+                input_dirs.append(str(mask_map.parent))
 
         if CFG['container_engine'].lower() == 'singularity':
             self._set_singularity_image(CFG['singularity_dir'])
             self.bmi = BmiClientSingularity(
                 image=str(self.singularity_image),
-                input_dirs=[
-                    str(self.parameter_set.PathRoot),
-                    str(self.parameter_set.MaskMap.parent),
-                    str(self.forcing_dir)
-                ],
+                input_dirs=input_dirs,
                 work_dir=str(cfg_dir),
             )
         elif CFG['container_engine'].lower() == 'docker':
@@ -130,11 +112,7 @@ class Lisflood(AbstractModel):
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
-                input_dirs=[
-                    str(self.parameter_set.PathRoot),
-                    str(self.parameter_set.MaskMap.parent),
-                    str(self.forcing_dir)
-                ],
+                input_dirs=input_dirs,
                 work_dir=str(cfg_dir),
             )
         else:
@@ -158,18 +136,21 @@ class Lisflood(AbstractModel):
                 f"Unknown forcing type: {forcing}. Please supply a LisfloodForcing object."
             )
 
-    def _create_lisflood_config(self, cfg_dir: Path, start_time_iso: str = None, end_time_iso: str = None, IrrigationEfficiency: str = None) -> Path:
+    def _create_lisflood_config(self, cfg_dir: Path, start_time_iso: str = None, end_time_iso: str = None,
+                                IrrigationEfficiency: str = None, MaskMap: str = None) -> Path:
         """Create lisflood config file"""
+        assert self.parameter_set is not None
+        assert self.forcing is not None
         # overwrite dates if given
         if start_time_iso is not None:
             start_time = get_time(start_time_iso)
-            if self._start  <= start_time <= self._end:
+            if self._start <= start_time <= self._end:
                 self._start = start_time
             else:
                 raise ValueError('start_time outside forcing time range')
         if end_time_iso is not None:
             end_time = get_time(end_time_iso)
-            if self._start  <= end_time <= self._end:
+            if self._start <= end_time <= self._end:
                 self._end = end_time
             else:
                 raise ValueError('end_time outside forcing time range')
@@ -178,14 +159,16 @@ class Lisflood(AbstractModel):
             "CalendarDayStart": self._start.strftime("%d/%m/%Y 00:00"),
             "StepStart": "1",
             "StepEnd": str((self._end - self._start).days),
-            "PathRoot": str(self.parameter_set.PathRoot),
-            "MaskMap": self.parameter_set.MaskMap.stem,
+            "PathRoot": str(self.parameter_set.directory),
             "PathMeteo": str(self.forcing_dir),
             "PathOut": str(cfg_dir),
         }
 
         if IrrigationEfficiency is not None:
             settings['IrrigationEfficiency'] = IrrigationEfficiency
+        if MaskMap is not None:
+            mask_map = Path(MaskMap).expanduser().resolve()
+            settings['MaskMap'] = str(mask_map.with_suffix(''))
 
         for textvar in self.cfg.config.iter("textvar"):
             textvar_name = textvar.attrib["name"]
@@ -241,10 +224,11 @@ class Lisflood(AbstractModel):
 
         return da
 
-    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Tuple[Iterable[int], Iterable[float], Iterable[float]]:
+    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Tuple[
+        Iterable[int], Iterable[float], Iterable[float]]:
         """Convert lat, lon coordinates into model indices."""
         grid_id = self.bmi.get_var_grid(name)
-        shape = self.bmi.get_grid_shape(grid_id) # shape returns (len(y), len(x))
+        shape = self.bmi.get_grid_shape(grid_id)  # shape returns (len(y), len(x))
         x_model = self.bmi.get_grid_x(grid_id)
         y_model = self.bmi.get_grid_y(grid_id)
         spacing_model = self.bmi.get_grid_spacing(grid_id)
@@ -264,22 +248,25 @@ class Lisflood(AbstractModel):
                 raise ValueError("This point is outside of the model grid.")
 
             indices.append(index)
-            lon_converted.append(round(x_model[idx], 4)) # use 4 digits in round
-            lat_converted.append(round(y_model[idy], 4)) # use 4 digits in round
+            lon_converted.append(round(x_model[idx], 4))  # use 4 digits in round
+            lat_converted.append(round(y_model[idy], 4))  # use 4 digits in round
 
         return np.array(indices), np.array(lon_converted), np.array(lat_converted)
 
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the parameters for this model."""
-        #TODO fix issue #60
+        assert self.parameter_set is not None
+        assert self.forcing is not None
+        # TODO fix issue #60
         parameters = [
             ('IrrigationEfficiency', self._get_textvar_value('IrrigationEfficiency')),
-            ('MaskMap', str(self.parameter_set.MaskMap.parent)),
+            ('MaskMap', self._get_textvar_value('MaskMap')),
             ('start_time', self._start.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ('end_time', self._end.strftime("%Y-%m-%dT%H:%M:%SZ")),
         ]
         return parameters
+
 
 # TODO it needs fix regarding forcing
 # def reindex_forcings(mask_map: Path, forcing: LisfloodForcing, output_dir: Path = None) -> Path:

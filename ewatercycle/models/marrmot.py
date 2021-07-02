@@ -42,7 +42,7 @@ def _generate_cfg_dir(cfg_dir: Path = None) -> Path:
     return cfg_dir
 
 
-class MarrmotM01(AbstractModel):
+class MarrmotM01(AbstractModel[MarrmotForcing]):
     """eWaterCycle implementation of Marrmot Collie River 1 (traditional bucket) hydrological model.
 
     It sets MarrmotM01 parameter with an initial value that is the mean value of the range specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
@@ -50,10 +50,7 @@ class MarrmotM01(AbstractModel):
     Args:
         version: pick a version for which an ewatercycle grpc4bmi docker image is available.
         forcing: a MarrmotForcing object.
-            If forcing file contains parameter and other settings, those are used and can be changed in :py:meth:`steup`.
-
-    Attributes:
-        bmi (Bmi): Basic Modeling Interface object
+            If forcing file contains parameter and other settings, those are used and can be changed in :py:meth:`setup`.
 
     Example:
         See examples/marrmotM01.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
@@ -65,8 +62,7 @@ class MarrmotM01(AbstractModel):
 
     def __init__(self, version: str, forcing: MarrmotForcing):
         """Construct MarrmotM01 with initial values. """
-        super().__init__()
-        self.version = version
+        super().__init__(version)
         self._parameters = [1000.0]
         self.store_ini = [900.0]
         self.solver = Solver()
@@ -262,14 +258,15 @@ class MarrmotM01(AbstractModel):
 
 
 M14_PARAMS = ('maximum_soil_moisture_storage',
-            'threshold_flow_generation_evap_change',
-            'leakage_saturated_zone_flow_coefficient',
-            'zero_deficit_base_flow_speed',
-            'baseflow_coefficient',
-            'gamma_distribution_chi_parameter',
-            'gamma_distribution_phi_parameter')
+              'threshold_flow_generation_evap_change',
+              'leakage_saturated_zone_flow_coefficient',
+              'zero_deficit_base_flow_speed',
+              'baseflow_coefficient',
+              'gamma_distribution_chi_parameter',
+              'gamma_distribution_phi_parameter')
 
-class MarrmotM14(AbstractModel):
+
+class MarrmotM14(AbstractModel[MarrmotForcing]):
     """eWaterCycle implementation of Marrmot Top Model hydrological model.
 
     It sets MarrmotM14 parameter with an initial value that is the mean value of the range specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_14_topmodel_7p_2s_parameter_ranges.m>`_.
@@ -278,9 +275,6 @@ class MarrmotM14(AbstractModel):
         version: pick a version for which an ewatercycle grpc4bmi docker image is available.
         forcing: a MarrmotForcing object.
             If forcing file contains parameter and other settings, those are used and can be changed in :py:meth:`setup`.
-
-    Attributes:
-        bmi (Bmi): Basic Modeling Interface object
 
     Example:
         See examples/marrmotM14.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
@@ -292,8 +286,7 @@ class MarrmotM14(AbstractModel):
 
     def __init__(self, version: str, forcing: MarrmotForcing):
         """Construct MarrmotM14 with initial values. """
-        super().__init__()
-        self.version = version
+        super().__init__(version)
         self._parameters = [1000.0, 0.5, 0.5, 100.0, 0.5, 4.25, 2.5]
         self.store_ini = [900.0, 900.0]
         self.solver = Solver()
@@ -505,7 +498,7 @@ class MarrmotM14(AbstractModel):
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the parameters for this model."""
-        p:List[Tuple[str, Any]] = list(zip(M14_PARAMS, self._parameters))
+        p: List[Tuple[str, Any]] = list(zip(M14_PARAMS, self._parameters))
         p += [
             ('initial_upper_zone_storage', self.store_ini[0]),
             ('initial_saturated_zone_storage', self.store_ini[1]),
