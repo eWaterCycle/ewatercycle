@@ -300,7 +300,7 @@ def _generate_workdir(cfg_dir: Path = None) -> Path:
     """
 
     Args:
-        cfg_dir: If work dir is None then create sub-directory in CFG['output_dir']
+        cfg_dir: If cfg dir is None then create sub-directory in CFG['output_dir']
 
     """
     if cfg_dir is None:
