@@ -1,10 +1,12 @@
 import logging
 from abc import ABCMeta, abstractmethod
 from os import PathLike
+from datetime import datetime
 from typing import Tuple, Iterable, Any, TypeVar, Generic, Optional, ClassVar, Set
 
 import numpy as np
 import xarray as xr
+from cftime import num2date
 from basic_modeling_interface import Bmi
 
 from ewatercycle.forcing import DefaultForcing
@@ -176,6 +178,48 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
     def output_var_names(self) -> Iterable[str]:
         """List of a model's output variables."""
         return self.bmi.get_output_var_names()
+
+    @property
+    def start_time_as_isostr(self) -> str:
+        """Start time of the model.
+
+        In UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+        """
+        return self.start_time_as_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    @property
+    def end_time_as_isostr(self) -> str:
+        """End time of the model.
+
+        In UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+        """
+        return self.end_time_as_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    @property
+    def time_as_isostr(self) -> str:
+        """Current time of the model.
+
+        In UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+        """
+        return self.time_as_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    @property
+    def start_time_as_datetime(self) -> datetime:
+        """Start time of the model as a datetime object.
+        """
+        return num2date(self.bmi.get_start_time(), self.bmi.get_time_units())
+
+    @property
+    def end_time_as_datetime(self) -> datetime:
+        """End time of the model as a datetime object'.
+        """
+        return num2date(self.bmi.get_end_time(), self.bmi.get_time_units())
+
+    @property
+    def time_as_datetime(self) -> datetime:
+        """Current time of the model as a datetime object'.
+        """
+        return num2date(self.bmi.get_current_time(), self.bmi.get_time_units())
 
     def _check_parameter_set(self):
         if not self.parameter_set:

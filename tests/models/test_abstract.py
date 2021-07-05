@@ -4,6 +4,7 @@ from os import PathLike
 from pathlib import Path
 from typing import Any, Iterable, Tuple
 from unittest.mock import patch
+from datetime import datetime, timezone
 
 import numpy as np
 import pytest
@@ -63,7 +64,12 @@ class MockedModel(AbstractModel):
 @pytest.fixture
 @patch('basic_modeling_interface.Bmi')
 def bmi(MockedBmi):
-    return MockedBmi()
+    mocked_bmi = MockedBmi()
+    mocked_bmi.get_start_time.return_value = 42.0
+    mocked_bmi.get_current_time.return_value = 43.0
+    mocked_bmi.get_end_time.return_value = 44.0
+    mocked_bmi.get_time_units.return_value = 'days since 1970-01-01 00:00:00.0 00:00'
+    return mocked_bmi
 
 
 @pytest.fixture
@@ -156,36 +162,28 @@ def test_set_value_at_coords(model: MockedModel, bmi):
     bmi.set_value_at_indices.assert_called_once_with('precipitation', [0], value)
 
 
-def test_start_time(bmi, model: MockedModel):
-    bmi.get_start_time.return_value = 42.0
-
+def test_start_time(model: MockedModel):
     time = model.start_time
 
     assert time == pytest.approx(42.0)
 
 
-def test_end_time(bmi, model: MockedModel):
-    bmi.get_end_time.return_value = 42.0
-
+def test_end_time(model: MockedModel):
     time = model.end_time
 
-    assert time == pytest.approx(42.0)
+    assert time == pytest.approx(44.0)
 
 
-def test_time(bmi, model: MockedModel):
-    bmi.get_current_time.return_value = 42.0
-
+def test_time(model: MockedModel):
     time = model.time
 
-    assert time == pytest.approx(42.0)
+    assert time == pytest.approx(43.0)
 
 
-def test_time_units(bmi, model: MockedModel):
-    bmi.get_time_units.return_value = 'd'
-
+def test_time_units(model: MockedModel):
     units = model.time_units
 
-    assert units == 'd'
+    assert units == 'days since 1970-01-01 00:00:00.0 00:00'
 
 
 def test_time_step(bmi, model: MockedModel):
@@ -219,6 +217,48 @@ def test_get_value_as_xarray(model: MockedModel):
     dataarray = model.get_value_as_xarray("Temperature")
 
     xr.testing.assert_equal(dataarray, expected)
+
+
+def start_time_as_isostr(model: MockedModel):
+    actual = model.start_time_as_isostr
+
+    expected = '1970-02-12T00:00:00Z'
+    assert expected == actual
+
+
+def end_time_as_isostr(model: MockedModel):
+    actual = model.end_time_as_isostr
+
+    expected = '1970-02-14T00:00:00Z'
+    assert expected == actual
+
+
+def time_as_isostr(model: MockedModel):
+    actual = model.time_as_isostr
+
+    expected = '1970-02-13T00:00:00Z'
+    assert expected == actual
+
+
+def start_time_as_datetime(model: MockedModel):
+    actual = model.start_time_as_isostr
+
+    expected = datetime(1970, 2, 12,  tzinfo=timezone.utc)
+    assert expected == actual
+
+
+def end_time_as_datetime(model: MockedModel):
+    actual = model.end_time_as_isostr
+
+    expected = datetime(1970, 2, 14,  tzinfo=timezone.utc)
+    assert expected == actual
+
+
+def time_as_datetime(model: MockedModel):
+    actual = model.time_as_isostr
+
+    expected = datetime(1970, 2, 13,  tzinfo=timezone.utc)
+    assert expected == actual
 
 
 def test_delete_model_resets_bmi():
