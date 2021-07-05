@@ -1,4 +1,4 @@
-import time
+import datetime
 from os import PathLike
 from pathlib import Path
 from typing import Any, Iterable, Tuple
@@ -41,7 +41,6 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
         super().__init__(version, parameter_set, forcing)
         self._set_docker_image()
 
-        self._setup_work_dir()
         self._setup_default_config()
 
     def _set_docker_image(self):
@@ -50,12 +49,15 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
         }
         self.docker_image = images[self.version]
 
-    def _setup_work_dir(self):
-        # Must exist before setting up default config
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        work_dir = Path(CFG["output_dir"]) / f"pcrglobwb_{timestamp}"
-        work_dir.mkdir()
+    def _setup_work_dir(self, cfg_dir: str = None):
+        if cfg_dir:
+            work_dir = Path(cfg_dir)
+        else:
+            # Must exist before setting up default config
+            timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
+            work_dir = Path(CFG["output_dir"]) / f"pcrglobwb_{timestamp}"
         self.work_dir = work_dir.expanduser().resolve()
+        self.work_dir.mkdir(parents=True, exist_ok=True)
 
     def _setup_default_config(self):
         config_file = self.parameter_set.config
@@ -64,7 +66,6 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
         cfg = CaseConfigParser()
         cfg.read(config_file)
         cfg.set("globalOptions", "inputDir", str(input_dir))
-        cfg.set("globalOptions", "outputDir", str(self.work_dir))
         cfg.set(
             "globalOptions",
             "startTime",
@@ -96,15 +97,18 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
         self.config = cfg
 
-    def setup(self, **kwargs) -> Tuple[str, str]:  # type: ignore
+    def setup(self, cfg_dir: str = None, **kwargs) -> Tuple[str, str]:  # type: ignore
         """Start model inside container and return config file and work dir.
 
         Args:
+            cfg_dir: a run directory given by user or created for user.
             **kwargs: Use :py:meth:`parameters` to see the current values
                 configurable options for this model,
 
         Returns: Path to config file and work dir
         """
+        self._setup_work_dir(cfg_dir)
+
         self._update_config(**kwargs)
 
         cfg_file = self._export_config()
@@ -162,6 +166,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
             )
 
     def _export_config(self) -> PathLike:
+        self.config.set("globalOptions", "outputDir", str(self.work_dir))
         new_cfg_file = Path(self.work_dir) / "pcrglobwb_ewatercycle.ini"
         with new_cfg_file.open("w") as filename:
             self.config.write(filename)

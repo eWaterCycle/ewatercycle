@@ -1,7 +1,5 @@
 import shutil
-import time
-from datetime import datetime
-from os import PathLike
+import datetime
 from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple
 
@@ -57,27 +55,29 @@ class Wflow(AbstractModel[WflowForcing]):
         cfg = CaseConfigParser()
         cfg.read(config_file)
 
-        cfg.set("framework", "netcdfinput", Path(forcing.netcdfinput).name)
-        cfg.set("inputmapstacks", "Precipitation", forcing.Precipitation)
-        cfg.set("inputmapstacks", "EvapoTranspiration",
-                forcing.EvapoTranspiration)
-        cfg.set("inputmapstacks", "Temperature", forcing.Temperature)
-        cfg.set("run", "starttime", _iso_to_wflow(forcing.start_time))
-        cfg.set("run", "endtime", _iso_to_wflow(forcing.end_time))
+        if forcing:
+            cfg.set("framework", "netcdfinput", Path(forcing.netcdfinput).name)
+            cfg.set("inputmapstacks", "Precipitation", forcing.Precipitation)
+            cfg.set("inputmapstacks", "EvapoTranspiration",
+                    forcing.EvapoTranspiration)
+            cfg.set("inputmapstacks", "Temperature", forcing.Temperature)
+            cfg.set("run", "starttime", _iso_to_wflow(forcing.start_time))
+            cfg.set("run", "endtime", _iso_to_wflow(forcing.end_time))
 
         self.config = cfg
 
-    def setup(self, **kwargs) -> Tuple[str, str]:  # type: ignore
+    def setup(self, cfg_dir: str = None, **kwargs) -> Tuple[str, str]:  # type: ignore
         """Start the model inside a container and return a valid config file.
 
         Args:
+            cfg_dir: a run directory given by user or created for user.
             **kwargs (optional, dict): see :py:attr:`~parameters` for all
                 configurable model parameters.
 
         Returns:
             Path to config file and working directory
         """
-        self._setup_working_directory()
+        self._setup_working_directory(cfg_dir)
         cfg = self.config
 
         if "start_time" in kwargs:
@@ -96,15 +96,22 @@ class Wflow(AbstractModel[WflowForcing]):
             str(self.work_dir),
         )
 
-    def _setup_working_directory(self):
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        working_directory = CFG["output_dir"] / f"wflow_{timestamp}"
-        self.work_dir = working_directory.resolve()
+    def _setup_working_directory(self, cfg_dir: str = None):
+        if cfg_dir:
+            working_directory = Path(cfg_dir)
+        else:
+            timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
+            working_directory = CFG["output_dir"] / f"wflow_{timestamp}"
+        self.work_dir = working_directory.expanduser().resolve()
+        # Make sure parents exist
+        self.work_dir.parent.mkdir(parents=True, exist_ok=True)
 
+        assert self.parameter_set
         shutil.copytree(src=self.parameter_set.directory,
-                        dst=working_directory)
-        forcing_path = Path(self.forcing.directory) / self.forcing.netcdfinput
-        shutil.copy(src=forcing_path, dst=working_directory)
+                        dst=self.work_dir)
+        if self.forcing:
+            forcing_path = Path(self.forcing.directory) / self.forcing.netcdfinput
+            shutil.copy(src=forcing_path, dst=self.work_dir)
 
     def _start_container(self):
         if CFG["container_engine"] == "docker":
@@ -166,7 +173,7 @@ class Wflow(AbstractModel[WflowForcing]):
 
 
 def _wflow_to_iso(t):
-    dt = datetime.fromisoformat(t)
+    dt = datetime.datetime.fromisoformat(t)
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
