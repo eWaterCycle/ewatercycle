@@ -92,8 +92,9 @@ class TestLFlatlonUseCase:
         config_file, config_dir, mocked_constructor = model_with_setup
 
         # Check setup returns
-        assert 'lisflood_20210102_030405' in str(config_dir)
-        assert config_file.name == 'lisflood_setting.xml'
+        expected_cfg_dir = CFG['output_dir'] / 'lisflood_20210102_030405'
+        assert config_dir == str(expected_cfg_dir)
+        assert config_file == str(expected_cfg_dir / 'lisflood_setting.xml')
 
         # Check container started
         mocked_constructor.assert_called_once_with(
@@ -168,8 +169,9 @@ class TestLFlatlonUseCase:
             config_file, config_dir, mocked_constructor = model_with_setup
 
             # Check setup returns
-            assert 'lisflood_20210102_030405' in str(config_dir)
-            assert config_file.name == 'lisflood_setting.xml'
+            expected_cfg_dir = CFG['output_dir'] / 'lisflood_20210102_030405'
+            assert config_dir == str(expected_cfg_dir)
+            assert config_file == str(expected_cfg_dir / 'lisflood_setting.xml')
 
             # Check container started
             mocked_constructor.assert_called_once_with(
