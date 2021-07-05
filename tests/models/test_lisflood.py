@@ -72,12 +72,9 @@ class TestLFlatlonUseCase:
     def test_default_parameters(self, model: Lisflood, tmp_path):
         expected_parameters = [
             ('IrrigationEfficiency', '0.75'),
-            ('PathRoot', f'{tmp_path}/psr/lisflood_fraser'),
             ('MaskMap', '$(PathMaps)/masksmall.map'),
-            ('config_template', f'{tmp_path}/psr/lisflood_fraser/settings_lat_lon-Run.xml'),
             ('start_time', '1986-01-02T00:00:00Z'),
             ('end_time', '2018-01-02T00:00:00Z'),
-            ('forcing directory', f'{tmp_path}/forcing'),
         ]
         assert model.parameters == expected_parameters
 
@@ -202,12 +199,9 @@ class TestLFlatlonUseCase:
         def test_parameters_after_setup(self, model_with_setup, model: Lisflood, tmp_path):
             expected_parameters = [
                 ('IrrigationEfficiency', '0.75'),
-                ('PathRoot', f'{tmp_path}/psr/lisflood_fraser'),
                 ('MaskMap', f'{tmp_path}/custommask/mask'),
-                ('config_template', f'{tmp_path}/psr/lisflood_fraser/settings_lat_lon-Run.xml'),
                 ('start_time', '1986-01-02T00:00:00Z'),
                 ('end_time', '2018-01-02T00:00:00Z'),
-                ('forcing directory', f'{tmp_path}/forcing'),
             ]
             assert model.parameters == expected_parameters
 

@@ -28,7 +28,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
     Example:
         See examples/lisflood.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
-    available_versions = ("20.10",)
+    available_versions = ("20.10", )
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     def __init__(self, version: str, parameter_set: ParameterSet, forcing: LisfloodForcing):
@@ -64,7 +64,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
               start_time: str = None,
               end_time: str = None,
               MaskMap: str = None,
-              work_dir: Path = None
+              cfg_dir: Path = None
               ) -> Tuple[Path, Path]:
         """Configure model run
 
@@ -77,15 +77,15 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
             MaskMap: Mask map to use instead of one supplied in parameter set.
                 Path to a NetCDF or pcraster file with same dimensions as parameter set map files and a boolean variable.
-            work_dir: a working directory given by user or created for user.
+            cfg_dir: a run directory given by user or created for user.
 
         Returns:
             Path to config file and path to config directory
         """
 
         # TODO forcing can be a part of parameter_set
-        work_dir = _generate_workdir(work_dir)
-        config_file = self._create_lisflood_config(work_dir, start_time, end_time, IrrigationEfficiency, MaskMap)
+        cfg_dir = _generate_workdir(cfg_dir)
+        config_file = self._create_lisflood_config(cfg_dir, start_time, end_time, IrrigationEfficiency, MaskMap)
 
         assert self.parameter_set is not None
         input_dirs = [
@@ -105,7 +105,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             self.bmi = BmiClientSingularity(
                 image=str(self.singularity_image),
                 input_dirs=input_dirs,
-                work_dir=str(work_dir),
+                work_dir=str(cfg_dir),
             )
         elif CFG['container_engine'].lower() == 'docker':
             self._set_docker_image()
@@ -113,13 +113,13 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                 image=self.docker_image,
                 image_port=55555,
                 input_dirs=input_dirs,
-                work_dir=str(work_dir),
+                work_dir=str(cfg_dir),
             )
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        return config_file, work_dir
+        return config_file, cfg_dir
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
@@ -136,7 +136,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                 f"Unknown forcing type: {forcing}. Please supply a LisfloodForcing object."
             )
 
-    def _create_lisflood_config(self, work_dir: Path, start_time_iso: str = None, end_time_iso: str = None,
+    def _create_lisflood_config(self, cfg_dir: Path, start_time_iso: str = None, end_time_iso: str = None,
                                 IrrigationEfficiency: str = None, MaskMap: str = None) -> Path:
         """Create lisflood config file"""
         assert self.parameter_set is not None
@@ -161,7 +161,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             "StepEnd": str((self._end - self._start).days),
             "PathRoot": str(self.parameter_set.directory),
             "PathMeteo": str(self.forcing_dir),
-            "PathOut": str(work_dir),
+            "PathOut": str(cfg_dir),
         }
 
         if IrrigationEfficiency is not None:
@@ -198,7 +198,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                     textvar.set('value', f"$(PathMeteo)/$({prefix['name']})")
 
         # Write to new setting file
-        lisflood_file = work_dir / "lisflood_setting.xml"
+        lisflood_file = cfg_dir / "lisflood_setting.xml"
         self.cfg.save(str(lisflood_file))
         return lisflood_file
 
@@ -261,12 +261,9 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         # TODO fix issue #60
         parameters = [
             ('IrrigationEfficiency', self._get_textvar_value('IrrigationEfficiency')),
-            ('PathRoot', str(self.parameter_set.directory)),
             ('MaskMap', self._get_textvar_value('MaskMap')),
-            ('config_template', str(self.parameter_set.config)),
             ('start_time', self._start.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ('end_time', self._end.strftime("%Y-%m-%dT%H:%M:%SZ")),
-            ('forcing directory', str(self.forcing_dir)),
         ]
         return parameters
 
@@ -299,20 +296,20 @@ class Lisflood(AbstractModel[LisfloodForcing]):
 #     return output_dir
 
 
-def _generate_workdir(work_dir: Path = None) -> Path:
+def _generate_workdir(cfg_dir: Path = None) -> Path:
     """
 
     Args:
-        work_dir: If work dir is None then create sub-directory in CFG['output_dir']
+        cfg_dir: If cfg dir is None then create sub-directory in CFG['output_dir']
 
     """
-    if work_dir is None:
+    if cfg_dir is None:
         scratch_dir = CFG['output_dir']
         # TODO this timestamp isnot safe for parallel processing
         timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
-        work_dir = Path(scratch_dir) / f'lisflood_{timestamp}'
-        work_dir.mkdir(parents=True, exist_ok=True)
-    return work_dir
+        cfg_dir = Path(scratch_dir) / f'lisflood_{timestamp}'
+        cfg_dir.mkdir(parents=True, exist_ok=True)
+    return cfg_dir
 
 
 class XmlConfig(AbstractConfig):

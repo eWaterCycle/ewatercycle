@@ -60,7 +60,6 @@ class TestWithDefaultsAndExampleData:
             ('solver', Solver()),
             ('start time', '1989-01-01T00:00:00Z'),
             ('end time', '1992-12-31T00:00:00Z'),
-            ('forcing_file', f'{Path(__file__).parent}/data/BMI_testcase_m01_BuffaloRiver_TN_USA.mat')
         ]
         assert model.parameters == expected
 
@@ -96,7 +95,6 @@ class TestWithDefaultsAndExampleData:
             ('solver', Solver()),
             ('start time', '1989-01-01T00:00:00Z'),
             ('end time', '1992-12-31T00:00:00Z'),
-            ('forcing_file', f'{Path(__file__).parent}/data/BMI_testcase_m01_BuffaloRiver_TN_USA.mat')
         ]
         assert model.parameters == expected
 
@@ -120,16 +118,16 @@ class TestWithDefaultsAndExampleData:
         )
         assert_allclose(actual, expected)
 
-    def test_setup_with_own_work_dir(self, tmp_path, mocked_config, model: MarrmotM14):
+    def test_setup_with_own_cfg_dir(self, tmp_path, mocked_config, model: MarrmotM14):
         cfg_file, cfg_dir = model.setup(
-            work_dir=tmp_path
+            cfg_dir=tmp_path
         )
         assert cfg_dir == tmp_path
 
-    def test_setup_create_work_dir(self, tmp_path, mocked_config, model: MarrmotM14):
+    def test_setup_create_cfg_dir(self, tmp_path, mocked_config, model: MarrmotM14):
         work_dir = tmp_path / 'output'
         cfg_file, cfg_dir = model.setup(
-            work_dir=work_dir
+            cfg_dir=work_dir
         )
         assert cfg_dir == work_dir
 
