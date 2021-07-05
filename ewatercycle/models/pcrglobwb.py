@@ -1,4 +1,4 @@
-import time
+import datetime
 from os import PathLike
 from pathlib import Path
 from typing import Any, Iterable, Tuple
@@ -52,7 +52,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
     def _setup_work_dir(self):
         # Must exist before setting up default config
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
         work_dir = Path(CFG["output_dir"]) / f"pcrglobwb_{timestamp}"
         work_dir.mkdir()
         self.work_dir = work_dir.expanduser().resolve()
@@ -96,7 +96,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
         self.config = cfg
 
-    def setup(self, **kwargs) -> Tuple[PathLike, PathLike]:  # type: ignore
+    def setup(self, **kwargs) -> Tuple[str, str]:  # type: ignore
         """Start model inside container and return config file and work dir.
 
         Args:
@@ -123,7 +123,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
                 "if you're using singularity, and then try again."
             )
 
-        return cfg_file, work_dir
+        return str(cfg_file), str(work_dir)
 
     def _update_config(self, **kwargs):
         cfg = self.config
