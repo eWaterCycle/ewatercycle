@@ -57,13 +57,14 @@ class Wflow(AbstractModel[WflowForcing]):
         cfg = CaseConfigParser()
         cfg.read(config_file)
 
-        cfg.set("framework", "netcdfinput", Path(forcing.netcdfinput).name)
-        cfg.set("inputmapstacks", "Precipitation", forcing.Precipitation)
-        cfg.set("inputmapstacks", "EvapoTranspiration",
-                forcing.EvapoTranspiration)
-        cfg.set("inputmapstacks", "Temperature", forcing.Temperature)
-        cfg.set("run", "starttime", _iso_to_wflow(forcing.start_time))
-        cfg.set("run", "endtime", _iso_to_wflow(forcing.end_time))
+        if self.forcing is not None:
+            cfg.set("framework", "netcdfinput", Path(forcing.netcdfinput).name)
+            cfg.set("inputmapstacks", "Precipitation", forcing.Precipitation)
+            cfg.set("inputmapstacks", "EvapoTranspiration",
+                    forcing.EvapoTranspiration)
+            cfg.set("inputmapstacks", "Temperature", forcing.Temperature)
+            cfg.set("run", "starttime", _iso_to_wflow(forcing.start_time))
+            cfg.set("run", "endtime", _iso_to_wflow(forcing.end_time))
 
         self.config = cfg
 
@@ -103,8 +104,10 @@ class Wflow(AbstractModel[WflowForcing]):
 
         shutil.copytree(src=self.parameter_set.directory,
                         dst=working_directory)
-        forcing_path = Path(self.forcing.directory) / self.forcing.netcdfinput
-        shutil.copy(src=forcing_path, dst=working_directory)
+
+        if self.forcing is not None:
+            forcing_path = Path(self.forcing.directory) / self.forcing.netcdfinput
+            shutil.copy(src=forcing_path, dst=working_directory)
 
     def _start_container(self):
         if CFG["container_engine"] == "docker":
