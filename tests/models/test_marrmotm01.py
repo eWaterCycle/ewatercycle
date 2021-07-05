@@ -47,14 +47,14 @@ class TestWithDefaultsAndExampleData:
         cfg_file, cfg_dir = model.setup()
         return model, cfg_file, cfg_dir
 
-    def test_parameters(self, model, forcing_file):
+    def test_parameters(self, model):
+
         expected = [
             ('maximum_soil_moisture_storage', 10.0),
             ('initial_soil_moisture_storage', 5.0),
             ('solver', Solver()),
             ('start time', '1989-01-01T00:00:00Z'),
             ('end time', '1992-12-31T00:00:00Z'),
-            ('forcing_file', forcing_file)
         ]
         assert model.parameters == expected
 
@@ -74,7 +74,7 @@ class TestWithDefaultsAndExampleData:
         # TODO assert solver
         # assert actual['solver'] == asdict(Solver())
 
-    def test_parameters_after_setup(self, model_with_setup, forcing_file):
+    def test_parameters_after_setup(self, model_with_setup):
         model = model_with_setup[0]
         expected = [
             ('maximum_soil_moisture_storage', 10.0),
@@ -82,7 +82,6 @@ class TestWithDefaultsAndExampleData:
             ('solver', Solver()),
             ('start time', '1989-01-01T00:00:00Z'),
             ('end time', '1992-12-31T00:00:00Z'),
-            ('forcing_file', forcing_file)
         ]
         assert model.parameters == expected
 
@@ -106,16 +105,16 @@ class TestWithDefaultsAndExampleData:
         )
         assert_allclose(actual, expected)
 
-    def test_setup_with_own_work_dir(self, tmp_path, mocked_config, model: MarrmotM01):
+    def test_setup_with_own_cfg_dir(self, tmp_path, mocked_config, model: MarrmotM01):
         cfg_file, cfg_dir = model.setup(
-            work_dir=tmp_path
+            cfg_dir=tmp_path
         )
         assert cfg_dir == tmp_path
 
-    def test_setup_create_work_dir(self, tmp_path, mocked_config, model: MarrmotM01):
+    def test_setup_create_cfg_dir(self, tmp_path, mocked_config, model: MarrmotM01):
         work_dir = tmp_path / 'output'
         cfg_file, cfg_dir = model.setup(
-            work_dir=work_dir
+            cfg_dir=work_dir
         )
         assert cfg_dir == work_dir
 

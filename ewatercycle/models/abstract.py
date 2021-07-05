@@ -37,6 +37,12 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
         self.bmi: Bmi = None  # bmi should set in setup() before calling its methods
         """Basic Modeling Interface object"""
 
+    def __del__(self):
+        try:
+            del self.bmi
+        except AttributeError:
+            pass
+
     @abstractmethod
     def setup(self, *args, **kwargs) -> Tuple[PathLike, PathLike]:
         """Performs model setup.
@@ -64,7 +70,7 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
     def finalize(self) -> None:
         """Perform tear-down tasks for the model."""
         self.bmi.finalize()
-        # TODO terminate container if running?
+        del self.bmi
 
     def update(self) -> None:
         """Advance model state by one time step."""
