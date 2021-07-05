@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 import xarray as xr
@@ -44,8 +45,11 @@ class TestWithDefaultsAndExampleData:
 
     @pytest.fixture
     def model_with_setup(self, model: MarrmotM01):
-        cfg_file, cfg_dir = model.setup()
-        return model, cfg_file, cfg_dir
+        with patch('datetime.datetime') as mocked_datetime:
+            mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
+
+            cfg_file, cfg_dir = model.setup()
+            return model, cfg_file, cfg_dir
 
     def test_parameters(self, model):
 
@@ -61,11 +65,12 @@ class TestWithDefaultsAndExampleData:
     def test_setup(self, model_with_setup, forcing_file):
         model, cfg_file, cfg_dir = model_with_setup
 
+        expected_cfg_dir = CFG['output_dir'] / 'marrmot_20210102_030405'
+        assert cfg_dir == str(expected_cfg_dir)
+        assert cfg_file == str(expected_cfg_dir / 'marrmot-m01_config.mat')
+        assert model.bmi
         actual = loadmat(str(cfg_file))
         expected_forcing = loadmat(forcing_file)
-
-        assert cfg_file.name == 'marrmot-m01_config.mat'
-        assert model.bmi
         assert actual['model_name'] == "m_01_collie1_1p_1s"
         assert_almost_equal(actual['time_start'], expected_forcing['time_start'])
         assert_almost_equal(actual['time_end'], expected_forcing['time_end'])
@@ -87,7 +92,7 @@ class TestWithDefaultsAndExampleData:
 
     def test_get_value_as_xarray(self, model_with_setup):
         model, cfg_file, cfg_dir = model_with_setup
-        model.initialize(str(cfg_file))
+        model.initialize(cfg_file)
         model.update()
 
         actual = model.get_value_as_xarray('flux_out_Q')
@@ -109,14 +114,14 @@ class TestWithDefaultsAndExampleData:
         cfg_file, cfg_dir = model.setup(
             cfg_dir=tmp_path
         )
-        assert cfg_dir == tmp_path
+        assert cfg_dir == str(tmp_path)
 
     def test_setup_create_cfg_dir(self, tmp_path, mocked_config, model: MarrmotM01):
         work_dir = tmp_path / 'output'
         cfg_file, cfg_dir = model.setup(
             cfg_dir=work_dir
         )
-        assert cfg_dir == work_dir
+        assert cfg_dir == str(work_dir)
 
 
 class TestWithCustomSetupAndExampleData:
@@ -145,20 +150,25 @@ class TestWithCustomSetupAndExampleData:
 
     @pytest.fixture
     def model_with_setup(self, model: MarrmotM01):
-        cfg_file, cfg_dir = model.setup(
-            maximum_soil_moisture_storage=1234,
-            initial_soil_moisture_storage=4321,
-            start_time='1990-01-01T00:00:00Z',
-            end_time='1991-12-31T00:00:00Z',
-        )
-        return model, cfg_file, cfg_dir
+        with patch('datetime.datetime') as mocked_datetime:
+            mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
+
+            cfg_file, cfg_dir = model.setup(
+                maximum_soil_moisture_storage=1234,
+                initial_soil_moisture_storage=4321,
+                start_time='1990-01-01T00:00:00Z',
+                end_time='1991-12-31T00:00:00Z',
+            )
+            return model, cfg_file, cfg_dir
 
     def test_setup(self, model_with_setup):
         model, cfg_file, cfg_dir = model_with_setup
 
-        actual = loadmat(str(cfg_file))
-        assert cfg_file.name == 'marrmot-m01_config.mat'
+        expected_cfg_dir = CFG['output_dir'] / 'marrmot_20210102_030405'
+        assert cfg_dir == str(expected_cfg_dir)
+        assert cfg_file == str(expected_cfg_dir / 'marrmot-m01_config.mat')
         assert model.bmi
+        actual = loadmat(str(cfg_file))
         assert actual['model_name'] == "m_01_collie1_1p_1s"
         assert actual['parameters'] == [[1234]]
         assert actual['store_ini'] == [[4321]]

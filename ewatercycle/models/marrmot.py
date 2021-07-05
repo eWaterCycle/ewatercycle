@@ -1,5 +1,5 @@
-import time
 from dataclasses import asdict, dataclass
+import datetime
 from pathlib import Path
 from typing import Any, Iterable, List, Tuple
 import logging
@@ -17,6 +17,7 @@ from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.util import get_time
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class Solver:
@@ -36,7 +37,7 @@ def _generate_cfg_dir(cfg_dir: Path = None) -> Path:
     if cfg_dir is None:
         scratch_dir = CFG['output_dir']
         # TODO this timestamp isnot safe for parallel processing
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
         cfg_dir = Path(scratch_dir) / f'marrmot_{timestamp}'
     cfg_dir.mkdir(parents=True, exist_ok=True)
     return cfg_dir
@@ -91,7 +92,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
               start_time: str = None,
               end_time: str = None,
               solver: Solver = None,
-              cfg_dir: Path = None) -> Tuple[Path, Path]:
+              cfg_dir: Path = None) -> Tuple[str, str]:
         """Configure model run.
 
         1. Creates config file and config directory based on the forcing variables and time range
@@ -134,7 +135,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        return config_file, cfg_dir
+        return str(config_file), str(cfg_dir)
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
