@@ -51,13 +51,12 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
     def _setup_work_dir(self, cfg_dir: str = None):
         if cfg_dir:
-
-            self.work_dir = Path(cfg_dir)
+            work_dir = Path(cfg_dir)
         else:
             # Must exist before setting up default config
             timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
             work_dir = Path(CFG["output_dir"]) / f"pcrglobwb_{timestamp}"
-            self.work_dir = work_dir.expanduser().resolve()
+        self.work_dir = work_dir.expanduser().resolve()
         self.work_dir.mkdir(parents=True, exist_ok=True)
 
     def _setup_default_config(self):
