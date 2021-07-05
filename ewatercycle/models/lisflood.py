@@ -64,8 +64,8 @@ class Lisflood(AbstractModel[LisfloodForcing]):
               start_time: str = None,
               end_time: str = None,
               MaskMap: str = None,
-              cfg_dir: Path = None
-              ) -> Tuple[Path, Path]:
+              cfg_dir: str = None
+              ) -> Tuple[str, str]:
         """Configure model run
 
         1. Creates config file and config directory based on the forcing variables and time range
@@ -84,8 +84,9 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         """
 
         # TODO forcing can be a part of parameter_set
-        cfg_dir = _generate_workdir(cfg_dir)
-        config_file = self._create_lisflood_config(cfg_dir, start_time, end_time, IrrigationEfficiency, MaskMap)
+        cfg_dir_as_path = Path(cfg_dir) if cfg_dir else None
+        cfg_dir_as_path = _generate_workdir(cfg_dir_as_path)
+        config_file = self._create_lisflood_config(cfg_dir_as_path, start_time, end_time, IrrigationEfficiency, MaskMap)
 
         assert self.parameter_set is not None
         input_dirs = [
@@ -105,7 +106,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             self.bmi = BmiClientSingularity(
                 image=str(self.singularity_image),
                 input_dirs=input_dirs,
-                work_dir=str(cfg_dir),
+                work_dir=str(cfg_dir_as_path),
             )
         elif CFG['container_engine'].lower() == 'docker':
             self._set_docker_image()
@@ -113,13 +114,13 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                 image=self.docker_image,
                 image_port=55555,
                 input_dirs=input_dirs,
-                work_dir=str(cfg_dir),
+                work_dir=str(cfg_dir_as_path),
             )
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        return config_file, cfg_dir
+        return str(config_file), str(cfg_dir_as_path)
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
@@ -308,7 +309,7 @@ def _generate_workdir(cfg_dir: Path = None) -> Path:
         # TODO this timestamp isnot safe for parallel processing
         timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
         cfg_dir = Path(scratch_dir) / f'lisflood_{timestamp}'
-        cfg_dir.mkdir(parents=True, exist_ok=True)
+    cfg_dir.mkdir(parents=True, exist_ok=True)
     return cfg_dir
 
 

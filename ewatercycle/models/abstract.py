@@ -1,6 +1,5 @@
 import logging
 from abc import ABCMeta, abstractmethod
-from os import PathLike
 from datetime import datetime
 from typing import Tuple, Iterable, Any, TypeVar, Generic, Optional, ClassVar, Set
 
@@ -44,7 +43,7 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
             pass
 
     @abstractmethod
-    def setup(self, *args, **kwargs) -> Tuple[PathLike, PathLike]:
+    def setup(self, *args, **kwargs) -> Tuple[str, str]:
         """Performs model setup.
 
         1. Creates config file and config directory

@@ -67,7 +67,7 @@ class Wflow(AbstractModel[WflowForcing]):
 
         self.config = cfg
 
-    def setup(self, **kwargs) -> Tuple[PathLike, PathLike]:  # type: ignore
+    def setup(self, **kwargs) -> Tuple[str, str]:  # type: ignore
         """Start the model inside a container and return a valid config file.
 
         Args:
@@ -92,8 +92,8 @@ class Wflow(AbstractModel[WflowForcing]):
         self._start_container()
 
         return (
-            updated_cfg_file.expanduser().resolve(),
-            self.work_dir,
+            str(updated_cfg_file.expanduser().resolve()),
+            str(self.work_dir),
         )
 
     def _setup_working_directory(self):

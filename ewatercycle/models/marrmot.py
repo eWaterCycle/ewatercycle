@@ -1,5 +1,5 @@
-import time
 from dataclasses import asdict, dataclass
+import datetime
 from pathlib import Path
 from typing import Any, Iterable, List, Tuple
 import logging
@@ -17,6 +17,7 @@ from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.util import get_time
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class Solver:
@@ -36,7 +37,7 @@ def _generate_cfg_dir(cfg_dir: Path = None) -> Path:
     if cfg_dir is None:
         scratch_dir = CFG['output_dir']
         # TODO this timestamp isnot safe for parallel processing
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
         cfg_dir = Path(scratch_dir) / f'marrmot_{timestamp}'
     cfg_dir.mkdir(parents=True, exist_ok=True)
     return cfg_dir
@@ -91,7 +92,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
               start_time: str = None,
               end_time: str = None,
               solver: Solver = None,
-              cfg_dir: Path = None) -> Tuple[Path, Path]:
+              cfg_dir: str = None) -> Tuple[str, str]:
         """Configure model run.
 
         1. Creates config file and config directory based on the forcing variables and time range
@@ -113,28 +114,29 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             self.store_ini = [initial_soil_moisture_storage]
         if solver:
             self.solver = solver
+        cfg_dir_as_path = Path(cfg_dir) if cfg_dir else None
 
-        cfg_dir = _generate_cfg_dir(cfg_dir)
-        config_file = self._create_marrmot_config(cfg_dir, start_time, end_time)
+        cfg_dir_as_path = _generate_cfg_dir(cfg_dir_as_path)
+        config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)
 
         if CFG['container_engine'].lower() == 'singularity':
             message = f"The singularity image {self.singularity_image} does not exist."
             assert self.singularity_image.exists(), message
             self.bmi = BmiClientSingularity(
                 image=str(self.singularity_image),
-                work_dir=str(cfg_dir),
+                work_dir=str(cfg_dir_as_path),
             )
         elif CFG['container_engine'].lower() == 'docker':
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
-                work_dir=str(cfg_dir),
+                work_dir=str(cfg_dir_as_path),
             )
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        return config_file, cfg_dir
+        return str(config_file), str(cfg_dir_as_path)
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
@@ -322,7 +324,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
               start_time: str = None,
               end_time: str = None,
               solver: Solver = None,
-              cfg_dir: Path = None) -> Tuple[Path, Path]:
+              cfg_dir: str = None) -> Tuple[str, str]:
         """Configure model run.
 
         1. Creates config file and config directory based on the forcing variables and time range
@@ -356,28 +358,29 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             self.store_ini[1] = initial_saturated_zone_storage
         if solver:
             self.solver = solver
+        cfg_dir_as_path = Path(cfg_dir) if cfg_dir else None
 
-        cfg_dir = _generate_cfg_dir(cfg_dir)
-        config_file = self._create_marrmot_config(cfg_dir, start_time, end_time)
+        cfg_dir_as_path = _generate_cfg_dir(cfg_dir_as_path)
+        config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)
 
         if CFG['container_engine'].lower() == 'singularity':
             message = f"The singularity image {self.singularity_image} does not exist."
             assert self.singularity_image.exists(), message
             self.bmi = BmiClientSingularity(
                 image=str(self.singularity_image),
-                work_dir=str(cfg_dir),
+                work_dir=str(cfg_dir_as_path),
             )
         elif CFG['container_engine'].lower() == 'docker':
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
-                work_dir=str(cfg_dir),
+                work_dir=str(cfg_dir_as_path),
             )
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        return config_file, cfg_dir
+        return str(config_file), str(cfg_dir_as_path)
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""

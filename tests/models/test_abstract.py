@@ -1,7 +1,5 @@
 import logging
 import weakref
-from os import PathLike
-from pathlib import Path
 from typing import Any, Iterable, Tuple
 from unittest.mock import patch
 from datetime import datetime, timezone
@@ -33,12 +31,12 @@ class MockedModel(AbstractModel):
     def __init__(self, version: str = '0.4.2', parameter_set: ParameterSet = None):
         super().__init__(version, parameter_set)
 
-    def setup(self, *args, **kwargs) -> Tuple[PathLike, PathLike]:
+    def setup(self, *args, **kwargs) -> Tuple[str, str]:
         if 'bmi' in kwargs:
             # sub-class of AbstractModel should construct bmi
             # using grpc4bmi Docker or Singularity client
             self.bmi = kwargs['bmi']
-        return Path('foobar.cfg'), Path('.')
+        return 'foobar.cfg', '.'
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         return xr.DataArray(
@@ -98,7 +96,7 @@ def test_construct_with_unsupported_version():
 def test_setup(model):
     result = model.setup()
 
-    expected = Path('foobar.cfg'), Path('.')
+    expected = 'foobar.cfg', '.'
     assert result == expected
 
 
