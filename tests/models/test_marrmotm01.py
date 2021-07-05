@@ -112,14 +112,14 @@ class TestWithDefaultsAndExampleData:
 
     def test_setup_with_own_cfg_dir(self, tmp_path, mocked_config, model: MarrmotM01):
         cfg_file, cfg_dir = model.setup(
-            cfg_dir=tmp_path
+            cfg_dir=str(tmp_path)
         )
         assert cfg_dir == str(tmp_path)
 
     def test_setup_create_cfg_dir(self, tmp_path, mocked_config, model: MarrmotM01):
         work_dir = tmp_path / 'output'
         cfg_file, cfg_dir = model.setup(
-            cfg_dir=work_dir
+            cfg_dir=str(work_dir)
         )
         assert cfg_dir == str(work_dir)
 
