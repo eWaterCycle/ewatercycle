@@ -1,4 +1,5 @@
 import logging
+import weakref
 from os import PathLike
 from pathlib import Path
 from typing import Any, Iterable, Tuple
@@ -108,6 +109,15 @@ def test_finalize(model: MockedModel, bmi):
     bmi.finalize.assert_called_once_with()
 
 
+def test_finalize_resets_bmi(model: MockedModel, bmi):
+    model.finalize()
+
+    with pytest.raises(AttributeError) as excinfo:
+        model.bmi
+
+    assert "has no attribute 'bmi'" in str(excinfo.value)
+
+
 def test_update(model: MockedModel, bmi):
     model.update()
 
@@ -209,6 +219,22 @@ def test_get_value_as_xarray(model: MockedModel):
     dataarray = model.get_value_as_xarray("Temperature")
 
     xr.testing.assert_equal(dataarray, expected)
+
+
+def test_delete_model_resets_bmi():
+
+    class Object():
+        """Target for weakref finalizer."""
+        pass
+
+    # Cannot use the `model` fixture, it doesn't play well with weakref
+    thismodel = MockedModel()
+    thismodel.setup(bmi=Object())
+    bmiref = weakref.finalize(thismodel.bmi, print, "Bmi got destroyed")
+
+    assert bmiref.alive
+    del thismodel
+    assert not bmiref.alive
 
 
 class TestCheckParameterSet:

@@ -130,6 +130,7 @@ def _grdc_read(grdc_station_path, start, end):
     # Import GRDC data into dataframe and modify dataframe format
     grdc_data = pd.read_csv(
         grdc_station_path,
+        encoding='cp1252',
         skiprows=header,
         delimiter=';',
         parse_dates=['YYYY-MM-DD'],
