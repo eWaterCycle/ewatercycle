@@ -15,7 +15,7 @@ from ewatercycle.forcing._wflow import WflowForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser
-from ewatercycle.util import get_time
+from ewatercycle.util import get_time, to_absolute_path
 
 
 class Wflow(AbstractModel[WflowForcing]):
@@ -85,24 +85,23 @@ class Wflow(AbstractModel[WflowForcing]):
         if "end_time" in kwargs:
             cfg.set("run", "endtime", _iso_to_wflow(kwargs["end_time"]))
 
-        updated_cfg_file = self.work_dir / "wflow_ewatercycle.ini"
+        updated_cfg_file = to_absolute_path("wflow_ewatercycle.ini", parent = self.work_dir)
         with updated_cfg_file.open("w") as filename:
             cfg.write(filename)
 
         self._start_container()
 
         return (
-            str(updated_cfg_file.expanduser().resolve()),
+            str(updated_cfg_file),
             str(self.work_dir),
         )
 
     def _setup_working_directory(self, cfg_dir: str = None):
         if cfg_dir:
-            working_directory = Path(cfg_dir)
+            self.work_dir = to_absolute_path(cfg_dir)
         else:
             timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
-            working_directory = CFG["output_dir"] / f"wflow_{timestamp}"
-        self.work_dir = working_directory.expanduser().resolve()
+            self.work_dir = to_absolute_path(f"wflow_{timestamp}", parent=CFG["output_dir"])
         # Make sure parents exist
         self.work_dir.parent.mkdir(parents=True, exist_ok=True)
 
@@ -110,7 +109,7 @@ class Wflow(AbstractModel[WflowForcing]):
         shutil.copytree(src=self.parameter_set.directory,
                         dst=self.work_dir)
         if self.forcing:
-            forcing_path = Path(self.forcing.directory) / self.forcing.netcdfinput
+            forcing_path = to_absolute_path(self.forcing.netcdfinput, parent= self.forcing.directory)
             shutil.copy(src=forcing_path, dst=self.work_dir)
 
     def _start_container(self):
