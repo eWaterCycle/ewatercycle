@@ -37,7 +37,7 @@ class ParameterSet:
         self.supported_model_versions = set() if supported_model_versions is None else supported_model_versions
 
     def __repr__(self):
-        options = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())
+        options = ", ".join(f"{k}={v!s}" for k, v in self.__dict__.items())
         return f"ParameterSet({options})"
 
     def __str__(self):
@@ -47,7 +47,7 @@ class ParameterSet:
                 "Parameter set",
                 "-------------",
             ]
-            + [f"{k}={v!r}" for k, v in self.__dict__.items()]
+            + [f"{k}={v!s}" for k, v in self.__dict__.items()]
         )
 
     @property
