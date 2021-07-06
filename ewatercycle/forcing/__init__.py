@@ -33,9 +33,10 @@ def load(directory: str) -> DefaultForcing:
     content = source.read_text()
     # Set directory in yaml string to parent of yaml file
     # Because in DefaultForcing.save the directory was removed
-    abs_dir = str(source.parent.expanduser().resolve())
-    content += f'directory: {abs_dir}\n'
+    abs_dir = source.parent.expanduser().resolve()
+    # content += f'directory: {abs_dir!r}\n'
     forcing_info = yaml.load(content)
+    forcing_info.directory = abs_dir
     return forcing_info
 
 
