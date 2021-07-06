@@ -1,4 +1,6 @@
+from os import PathLike
 from typing import Any, Iterable, Tuple, Dict
+from pathlib import Path
 
 import fiona
 import numpy as np
@@ -169,3 +171,16 @@ def data_files_from_recipe_output(recipe_output: RecipeOutput) -> Tuple[str, Dic
     # TODO simplify (recipe_output.location) when next esmvalcore release is made
     directory = str(data_files[0].filename.parent)
     return directory, forcing_files
+
+
+def to_absolute_path(input_path: str, parent: Path = None, must_exist: bool = False) -> Path:
+    """Parse input string as pathlib.Path object."""
+    pathlike = Path(input_path)
+    if parent:
+        pathlike = parent.joinpath(pathlike)
+    parsed_path = Path(pathlike).expanduser().resolve()
+    if must_exist and not parsed_path.exists():
+        raise ValueError(f"Got non-existent path {input_path}.")
+    return parsed_path
+
+
