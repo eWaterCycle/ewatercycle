@@ -49,9 +49,11 @@ class DefaultForcing:
         yaml.register_class(self.__class__)
         target = self.directory / FORCING_YAML
         # We want to make the yaml and its parent movable,
-        # so the directory should not be included in the yaml file
+        # so the directory and shape should not be included in the yaml file
         clone = copy(self)
         del clone.directory
+        clone.shape = None
+
         with open(target, 'w') as f:
             yaml.dump(clone, f)
         return target

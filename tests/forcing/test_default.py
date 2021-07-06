@@ -31,7 +31,7 @@ def sample_forcing_yaml_content(sample_shape, tmp_path):
         '!DefaultForcing\n',
         "start_time: '1989-01-02T00:00:00Z'\n",
         "end_time: '1999-01-02T00:00:00Z'\n",
-        f'shape: {sample_shape}\n'
+        "shape:\n"
     ])
 
 
@@ -57,7 +57,6 @@ def test_load(sample_shape, tmp_path, sample_forcing_yaml_content):
         directory=str(tmp_path),
         start_time='1989-01-02T00:00:00Z',
         end_time='1999-01-02T00:00:00Z',
-        shape=sample_shape
     )
     assert result == expected
 
