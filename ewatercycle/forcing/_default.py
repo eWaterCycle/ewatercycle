@@ -5,6 +5,8 @@ from typing import Optional
 
 from ruamel.yaml import YAML
 
+from ewatercycle.util import to_absolute_path
+
 FORCING_YAML = 'ewatercycle_forcing.yaml'
 
 
@@ -26,8 +28,8 @@ class DefaultForcing:
                  shape: Optional[str] = None):
         self.start_time = start_time
         self.end_time = end_time
-        self.directory = directory
-        self.shape = shape
+        self.directory = to_absolute_path(directory)
+        self.shape = to_absolute_path(shape) if shape is not None else shape
 
     @classmethod
     def generate(
@@ -45,7 +47,7 @@ class DefaultForcing:
         """Export forcing data for later use."""
         yaml = YAML()
         yaml.register_class(self.__class__)
-        target = Path(self.directory) / FORCING_YAML
+        target = self.directory / FORCING_YAML
         # We want to make the yaml and its parent movable,
         # so the directory should not be included in the yaml file
         clone = copy(self)
