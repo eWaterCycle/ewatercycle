@@ -31,6 +31,16 @@ class DefaultForcing:
         self.directory = to_absolute_path(directory)
         self.shape = to_absolute_path(shape) if shape is not None else shape
 
+    def __str__(self):
+        """Nice formatting of forcing object."""
+        return "\n".join(
+            [
+                "eWaterCycle forcing",
+                "-------------------",
+            ]
+            + [f"{k}={v!s}" for k, v in self.__dict__.items()]
+        )
+
     @classmethod
     def generate(
         cls,

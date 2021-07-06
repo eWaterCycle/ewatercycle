@@ -42,6 +42,16 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
         except AttributeError:
             pass
 
+    def __str__(self):
+        """Nice formatting of model object."""
+        return "\n".join(
+            [
+                f"eWaterCycle {self.__class__.__name__}",
+                "-------------------",
+            ]
+            + [f"{k}={v!s}" for k, v in self.__dict__.items()]
+        )
+
     @abstractmethod
     def setup(self, *args, **kwargs) -> Tuple[str, str]:
         """Performs model setup.
