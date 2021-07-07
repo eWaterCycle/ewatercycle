@@ -4,7 +4,7 @@ from typing import Dict, Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ..util import get_extents, get_time, to_absolute_path
+from ..util import get_extents, get_time
 from ._default import DefaultForcing
 from .datasets import DATASETS
 
