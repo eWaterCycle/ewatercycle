@@ -14,7 +14,7 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 from ewatercycle import CFG
 from ewatercycle.forcing._marrmot import MarrmotForcing
 from ewatercycle.models.abstract import AbstractModel
-from ewatercycle.util import get_time
+from ewatercycle.util import get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ def _generate_cfg_dir(cfg_dir: Path = None) -> Path:
         scratch_dir = CFG['output_dir']
         # TODO this timestamp isnot safe for parallel processing
         timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
-        cfg_dir = Path(scratch_dir) / f'marrmot_{timestamp}'
+        cfg_dir = to_absolute_path(f'marrmot_{timestamp}', parent=Path(scratch_dir))
     cfg_dir.mkdir(parents=True, exist_ok=True)
     return cfg_dir
 
@@ -141,7 +141,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
         if isinstance(forcing, MarrmotForcing):
-            forcing_dir = Path(forcing.directory).expanduser().resolve()
+            forcing_dir = to_absolute_path(forcing.directory)
             self.forcing_file = str(forcing_dir / forcing.forcing_file)
             # convert date_strings to datetime objects
             self.forcing_start_time = get_time(forcing.start_time)
@@ -385,7 +385,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
         if isinstance(forcing, MarrmotForcing):
-            forcing_dir = Path(forcing.directory).expanduser().resolve()
+            forcing_dir = to_absolute_path(forcing.directory)
             self.forcing_file = str(forcing_dir / forcing.forcing_file)
             # convert date_strings to datetime objects
             self.forcing_start_time = get_time(forcing.start_time)
