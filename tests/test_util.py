@@ -62,6 +62,13 @@ def test_to_absolute_path_with_relative_input_and_parent(tmp_path):
     assert parsed == expected
 
 
+def test_to_absolute_path_with_relative_input_and_no_parent():
+    input_path = "nonexistent_file.txt"
+    parsed = to_absolute_path(input_path)
+    expected =  Path.cwd() / "nonexistent_file.txt"
+    assert parsed == expected
+    
+    
 def test_to_absolute_path_with_relative_input_and_relative_parent():
     input_path = "nonexistent_file.txt"
     parsed = to_absolute_path(input_path, parent = Path('.'))
