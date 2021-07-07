@@ -14,7 +14,7 @@ from ewatercycle.forcing._lisflood import LisfloodForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import AbstractConfig
-from ewatercycle.util import get_time, find_closest_point
+from ewatercycle.util import get_time, find_closest_point, to_absolute_path
 
 
 class Lisflood(AbstractModel[LisfloodForcing]):
@@ -94,7 +94,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                     str(self.forcing_dir)
                 ]
         if MaskMap is not None:
-            mask_map = Path(MaskMap).expanduser().resolve()
+            mask_map = to_absolute_path(MaskMap)
             try:
                 mask_map.relative_to(self.parameter_set.directory)
             except ValueError:
@@ -128,7 +128,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         # if not warn users to run reindex_forcings
         if isinstance(forcing, LisfloodForcing):
             self.forcing = forcing
-            self.forcing_dir = Path(forcing.directory).expanduser().resolve()
+            self.forcing_dir = to_absolute_path(forcing.directory)
             # convert date_strings to datetime objects
             self._start = get_time(forcing.start_time)
             self._end = get_time(forcing.end_time)
@@ -168,7 +168,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         if IrrigationEfficiency is not None:
             settings['IrrigationEfficiency'] = IrrigationEfficiency
         if MaskMap is not None:
-            mask_map = Path(MaskMap).expanduser().resolve()
+            mask_map = to_absolute_path(MaskMap)
             settings['MaskMap'] = str(mask_map.with_suffix(''))
 
         for textvar in self.cfg.config.iter("textvar"):
@@ -308,7 +308,7 @@ def _generate_workdir(cfg_dir: Path = None) -> Path:
         scratch_dir = CFG['output_dir']
         # TODO this timestamp isnot safe for parallel processing
         timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
-        cfg_dir = Path(scratch_dir) / f'lisflood_{timestamp}'
+        cfg_dir = to_absolute_path(f'lisflood_{timestamp}', parent=Path(scratch_dir))
     cfg_dir.mkdir(parents=True, exist_ok=True)
     return cfg_dir
 
