@@ -178,9 +178,5 @@ def to_absolute_path(input_path: str, parent: Path = None, must_exist: bool = Fa
     pathlike = Path(input_path)
     if parent:
         pathlike = parent.joinpath(pathlike)
-    parsed_path = Path(pathlike).expanduser().resolve()
-    if must_exist and not parsed_path.exists():
-        raise ValueError(f"Got non-existent path {input_path}.")
-    return parsed_path
-
+    return pathlike.expanduser().resolve(strict=must_exist)
 
