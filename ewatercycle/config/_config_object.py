@@ -11,6 +11,8 @@ from ruamel.yaml import YAML
 from ._validators import _validators
 from ._validated_config import ValidatedConfig
 
+from ewatercycle.util import to_absolute_path
+
 logger = getLogger(__name__)
 
 
@@ -57,7 +59,7 @@ class Config(ValidatedConfig):
 
     def load_from_file(self, filename: Union[os.PathLike, str]) -> None:
         """Load user configuration from the given file."""
-        path = Path(filename).expanduser()
+        path = to_absolute_path(filename)
         if not path.exists():
             raise FileNotFoundError(f'Cannot find: `{filename}')
 
