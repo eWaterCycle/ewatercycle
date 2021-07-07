@@ -51,7 +51,7 @@ def test_to_absolute_path_must_exist():
 
 def test_to_absolute_path_with_absolute_input_and_parent(tmp_path):
     input_path = tmp_path / "nonexistent_file.txt"
-    parsed = to_absolute_path(input_path, parent = tmp_path)
+    parsed = to_absolute_path(str(input_path), parent = tmp_path)
     assert parsed == input_path
 
 
