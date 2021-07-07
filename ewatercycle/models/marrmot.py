@@ -1,8 +1,8 @@
-import time
 from dataclasses import asdict, dataclass
+import datetime
 from pathlib import Path
 from typing import Any, Iterable, List, Tuple
-import warnings
+import logging
 
 import numpy as np
 import scipy.io as sio
@@ -16,6 +16,8 @@ from ewatercycle.forcing._marrmot import MarrmotForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.util import get_time
 
+logger = logging.getLogger(__name__)
+
 
 @dataclass
 class Solver:
@@ -27,18 +29,18 @@ class Solver:
     resnorm_maxiter: float = 6.0
 
 
-def _generate_work_dir(work_dir: Path = None) -> Path:
+def _generate_cfg_dir(cfg_dir: Path = None) -> Path:
     """
     Args:
-        work_dir: If work dir is None or does not exist then create sub-directory in CFG['output_dir']
+        cfg_dir: If cfg dir is None or does not exist then create sub-directory in CFG['output_dir']
     """
-    if work_dir is None:
+    if cfg_dir is None:
         scratch_dir = CFG['output_dir']
         # TODO this timestamp isnot safe for parallel processing
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        work_dir = Path(scratch_dir) / f'marrmot_{timestamp}'
-    work_dir.mkdir(parents=True, exist_ok=True)
-    return work_dir
+        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
+        cfg_dir = Path(scratch_dir) / f'marrmot_{timestamp}'
+    cfg_dir.mkdir(parents=True, exist_ok=True)
+    return cfg_dir
 
 
 class MarrmotM01(AbstractModel[MarrmotForcing]):
@@ -56,7 +58,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
     """
     model_name = "m_01_collie1_1p_1s"
     """Name of model in Matlab code."""
-    available_versions = ("2020.11",)
+    available_versions = ("2020.11", )
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     def __init__(self, version: str, forcing: MarrmotForcing):
@@ -90,7 +92,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
               start_time: str = None,
               end_time: str = None,
               solver: Solver = None,
-              work_dir: Path = None) -> Tuple[Path, Path]:
+              cfg_dir: str = None) -> Tuple[str, str]:
         """Configure model run.
 
         1. Creates config file and config directory based on the forcing variables and time range
@@ -102,7 +104,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
             end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
             solver: Solver settings
-            work_dir: a working directory given by user or created for user.
+            cfg_dir: a run directory given by user or created for user.
         Returns:
             Path to config file and path to config directory
         """
@@ -112,28 +114,29 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             self.store_ini = [initial_soil_moisture_storage]
         if solver:
             self.solver = solver
+        cfg_dir_as_path = Path(cfg_dir) if cfg_dir else None
 
-        work_dir = _generate_work_dir(work_dir)
-        config_file = self._create_marrmot_config(work_dir, start_time, end_time)
+        cfg_dir_as_path = _generate_cfg_dir(cfg_dir_as_path)
+        config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)
 
         if CFG['container_engine'].lower() == 'singularity':
             message = f"The singularity image {self.singularity_image} does not exist."
             assert self.singularity_image.exists(), message
             self.bmi = BmiClientSingularity(
                 image=str(self.singularity_image),
-                work_dir=str(work_dir),
+                work_dir=str(cfg_dir_as_path),
             )
         elif CFG['container_engine'].lower() == 'docker':
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
-                work_dir=str(work_dir),
+                work_dir=str(cfg_dir_as_path),
             )
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        return config_file, work_dir
+        return str(config_file), str(cfg_dir_as_path)
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
@@ -159,14 +162,14 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             self.solver.resnorm_tolerance = forcing_solver['resnorm_tolerance'][0][0][0]
             self.solver.resnorm_maxiter = forcing_solver['resnorm_maxiter'][0][0][0]
 
-    def _create_marrmot_config(self, work_dir: Path, start_time_iso: str = None, end_time_iso: str = None) -> Path:
+    def _create_marrmot_config(self, cfg_dir: Path, start_time_iso: str = None, end_time_iso: str = None) -> Path:
         """Write model configuration file.
 
         Adds the model parameters to forcing file for the given period
         and writes this information to a model configuration file.
 
         Args:
-            work_dir: a working directory given by user or created for user.
+            cfg_dir: a run directory given by user or created for user.
             start_time_iso: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
             end_time_iso: End time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
 
@@ -213,7 +216,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             store_ini=self.store_ini,
         )
 
-        config_file = work_dir / 'marrmot-m01_config.mat'
+        config_file = cfg_dir / 'marrmot-m01_config.mat'
         sio.savemat(config_file, forcing_data)
         return config_file
 
@@ -252,7 +255,6 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             ('solver', self.solver),
             ('start time', self.forcing_start_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ('end time', self.forcing_end_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
-            ('forcing_file', self.forcing_file),
         ]
         return p
 
@@ -281,7 +283,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
     """
     model_name = "m_14_topmodel_7p_2s"
     """Name of model in Matlab code."""
-    available_versions = ("2020.11",)
+    available_versions = ("2020.11", )
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     def __init__(self, version: str, forcing: MarrmotForcing):
@@ -322,7 +324,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
               start_time: str = None,
               end_time: str = None,
               solver: Solver = None,
-              work_dir: Path = None) -> Tuple[Path, Path]:
+              cfg_dir: str = None) -> Tuple[str, str]:
         """Configure model run.
 
         1. Creates config file and config directory based on the forcing variables and time range
@@ -341,7 +343,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
             end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
             solver: Solver settings
-            work_dir: a working directory given by user or created for user.
+            cfg_dir: a run directory given by user or created for user.
         Returns:
             Path to config file and path to config directory
         """
@@ -356,28 +358,29 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             self.store_ini[1] = initial_saturated_zone_storage
         if solver:
             self.solver = solver
+        cfg_dir_as_path = Path(cfg_dir) if cfg_dir else None
 
-        work_dir = _generate_work_dir(work_dir)
-        config_file = self._create_marrmot_config(work_dir, start_time, end_time)
+        cfg_dir_as_path = _generate_cfg_dir(cfg_dir_as_path)
+        config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)
 
         if CFG['container_engine'].lower() == 'singularity':
             message = f"The singularity image {self.singularity_image} does not exist."
             assert self.singularity_image.exists(), message
             self.bmi = BmiClientSingularity(
                 image=str(self.singularity_image),
-                work_dir=str(work_dir),
+                work_dir=str(cfg_dir_as_path),
             )
         elif CFG['container_engine'].lower() == 'docker':
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
-                work_dir=str(work_dir),
+                work_dir=str(cfg_dir_as_path),
             )
         else:
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
-        return config_file, work_dir
+        return str(config_file), str(cfg_dir_as_path)
 
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
@@ -397,28 +400,28 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             if len(forcing_data['parameters']) == len(self._parameters):
                 self._parameters = forcing_data['parameters']
             else:
-                warnings.warn(
-                    f"The length of parameters in forcing {self.forcing_file} does not match the length of M14 parameters that is seven.")
+                message = f"The length of parameters in forcing {self.forcing_file} does not match the length of M14 parameters that is seven."
+                logger.warning("%s", message)
         if 'store_ini' in forcing_data:
             if len(forcing_data['store_ini']) == len(self.store_ini):
                 self.store_ini = forcing_data['store_ini']
             else:
-                warnings.warn(
-                    f"The length of initial stores in forcing {self.forcing_file} does not match the length of M14 iniatial stores that is two.")
+                message = f"The length of initial stores in forcing {self.forcing_file} does not match the length of M14 iniatial stores that is two."
+                logger.warning("%s", message)
         if 'solver' in forcing_data:
             forcing_solver = forcing_data['solver']
             self.solver.name = forcing_solver['name'][0][0][0]
             self.solver.resnorm_tolerance = forcing_solver['resnorm_tolerance'][0][0][0]
             self.solver.resnorm_maxiter = forcing_solver['resnorm_maxiter'][0][0][0]
 
-    def _create_marrmot_config(self, work_dir: Path, start_time_iso: str = None, end_time_iso: str = None) -> Path:
+    def _create_marrmot_config(self, cfg_dir: Path, start_time_iso: str = None, end_time_iso: str = None) -> Path:
         """Write model configuration file.
 
         Adds the model parameters to forcing file for the given period
         and writes this information to a model configuration file.
 
         Args:
-            work_dir: a working directory given by user or created for user.
+            cfg_dir: a run directory given by user or created for user.
             start_time_iso: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
             end_time_iso: End time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
 
@@ -465,7 +468,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             store_ini=self.store_ini,
         )
 
-        config_file = work_dir / 'marrmot-m14_config.mat'
+        config_file = cfg_dir / 'marrmot-m14_config.mat'
         sio.savemat(config_file, forcing_data)
         return config_file
 
@@ -505,6 +508,5 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             ('solver', self.solver),
             ('start time', self.forcing_start_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ('end time', self.forcing_end_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
-            ('forcing_file', self.forcing_file),
         ]
         return p
