@@ -174,7 +174,16 @@ def data_files_from_recipe_output(recipe_output: RecipeOutput) -> Tuple[str, Dic
 
 
 def to_absolute_path(input_path: str, parent: Path = None, must_exist: bool = False) -> Path:
-    """Parse input string as pathlib.Path object."""
+    """Parse input string as pathlib.Path object.
+
+    Args:
+        input_path: Input string path that can be a relative or absolute path.
+        parent: Optional parent path of the input path
+        must_exist: Optional argument to check if the input path exists.
+
+    Returns:
+        The input path that is an absolute path and a pathlib.Path object.
+    """
     pathlike = Path(input_path)
     if parent:
         pathlike = parent.joinpath(pathlike)
