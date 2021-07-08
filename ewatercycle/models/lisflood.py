@@ -230,8 +230,8 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         """Convert lat, lon coordinates into model indices."""
         grid_id = self.bmi.get_var_grid(name)
         shape = self.bmi.get_grid_shape(grid_id)  # shape returns (len(y), len(x))
-        x_model = self.bmi.get_grid_x(grid_id)
-        y_model = self.bmi.get_grid_y(grid_id)
+        grid_lon = self.bmi.get_grid_x(grid_id)
+        grid_lat = self.bmi.get_grid_y(grid_id)
         spacing_model = self.bmi.get_grid_spacing(grid_id)
 
         indices = []
@@ -239,8 +239,8 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         lat_converted = []
         # in lisflood, x corresponds to lon, and y to lat.
         # this might not be the case for other models!
-        for x, y in zip(lon, lat):
-            distance, index = find_closest_point(x_model, y_model, x, y)
+        for point_lon, point_lat in zip(lon, lat):
+            distance, index = find_closest_point(grid_lon, grid_lat, point_lon, point_lat)
             indices.append(index)
 
             # consider a threshold twice of the grid spacing
@@ -248,9 +248,9 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             if distance > max(spacing_model) * 111 * 2:
                 raise ValueError("This point is outside of the model grid.")
 
-            idy, idx = np.unravel_index(index, shape)
-            lon_converted.append(round(x_model[idx], 4))  # use 4 digits in round
-            lat_converted.append(round(y_model[idy], 4))  # use 4 digits in round
+            idx_lat, idx_lon = np.unravel_index(index, shape)
+            lon_converted.append(round(grid_lon[idx_lon], 4))  # use 4 digits in round
+            lat_converted.append(round(grid_lat[idx_lat], 4))  # use 4 digits in round
 
         return np.array(indices), np.array(lon_converted), np.array(lat_converted)
 
