@@ -27,7 +27,7 @@ def test_get_time_without_tz():
 
 
 def test_find_closest_point():
-    distance, idx_lon, idx_lat = find_closest_point(
+    idx_lon, idx_lat = find_closest_point(
         grid_longitudes=[-99.83, -99.32],
         grid_latitudes=[42.25, 42.21],
         point_longitude=-99.32,
@@ -35,7 +35,6 @@ def test_find_closest_point():
     )
     assert idx_lon == 1
     assert idx_lat == 0
-    assert_array_almost_equal(distance, [111.22983323])
 
 
 def test_to_absolute_path():
