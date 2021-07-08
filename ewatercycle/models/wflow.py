@@ -85,7 +85,7 @@ class Wflow(AbstractModel[WflowForcing]):
         if "end_time" in kwargs:
             cfg.set("run", "endtime", _iso_to_wflow(kwargs["end_time"]))
 
-        updated_cfg_file = to_absolute_path("wflow_ewatercycle.ini", parent = self.work_dir)
+        updated_cfg_file = to_absolute_path("wflow_ewatercycle.ini", parent= self.work_dir)
         with updated_cfg_file.open("w") as filename:
             cfg.write(filename)
 
