@@ -99,7 +99,7 @@ def find_closest_point(
     grid_latitudes: Iterable[float],
     point_longitude: float,
     point_latitude: float,
-) -> Tuple[np.ndarray, int]:
+) -> Tuple[np.ndarray, int, int]:
     """Find closest grid cell to a point based on Geographical distances.
 
     It uses Spherical Earth projected to a plane formula:
