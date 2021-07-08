@@ -160,8 +160,8 @@ class Wflow(AbstractModel[WflowForcing]):
         """
         grid_id = self.bmi.get_var_grid(name)
         shape = self.bmi.get_grid_shape(grid_id)  # (len(x), len(y))
-        grid_lat = self.bmi.get_grid_x(grid_id)  # x and y swapped in BMI
-        grid_lon = self.bmi.get_grid_y(grid_id)
+        grid_lat = self.bmi.get_grid_x(grid_id)  # x is latitude
+        grid_lon = self.bmi.get_grid_y(grid_id) # y is longitude
         grid_spacing = self.bmi.get_grid_spacing(grid_id)
 
         indices = []
@@ -176,7 +176,7 @@ class Wflow(AbstractModel[WflowForcing]):
             # distance should not exceed 2 grid cells (1 degree ~ 111km)
             if distance > max(grid_spacing) * 111 * 2:
                 raise ValueError(
-                    f"Point {point_lon, point_lat} is outside of the model grid."
+                    f"Point {point_lon, point_lat} is outside the model grid."
                 )
 
             indices.append(idx_flat)

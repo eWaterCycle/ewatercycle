@@ -225,35 +225,46 @@ class Lisflood(AbstractModel[LisfloodForcing]):
 
         return da
 
-    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Tuple[
-        Iterable[int], Iterable[float], Iterable[float]]:
-        """Convert lat, lon coordinates into model indices."""
+    def _coords_to_indices(
+        self, name: str, lat: Iterable[float], lon: Iterable[float]
+    ) -> Tuple[Iterable[int], Iterable[float], Iterable[float]]:
+        """Converts lat/lon values to index.
+
+        Args:
+            lat: Latitudinal value
+            lon: Longitudinal value
+
+        """
         grid_id = self.bmi.get_var_grid(name)
-        shape = self.bmi.get_grid_shape(grid_id)  # shape returns (len(y), len(x))
-        grid_lon = self.bmi.get_grid_x(grid_id)
-        grid_lat = self.bmi.get_grid_y(grid_id)
-        spacing_model = self.bmi.get_grid_spacing(grid_id)
+        shape = self.bmi.get_grid_shape(grid_id)  # (len(y), len(x))
+        grid_lon = self.bmi.get_grid_x(grid_id)  # x is longitude
+        grid_lat = self.bmi.get_grid_y(grid_id)  # y is latitude
+        grid_spacing = self.bmi.get_grid_spacing(grid_id)
 
         indices = []
-        lon_converted = []
-        lat_converted = []
-        # in lisflood, x corresponds to lon, and y to lat.
-        # this might not be the case for other models!
+        lon_results = []
+        lat_results = []
         for point_lon, point_lat in zip(lon, lat):
-            distance, idx_lon, idx_lat = find_closest_point(grid_lon, grid_lat, point_lon, point_lat)
-
-            # consider a threshold twice of the grid spacing
-            # and convert spacing_model to km using this approximation: 1 degree ~ 111km
-            if distance > max(spacing_model) * 111 * 2:
-                raise ValueError("This point is outside of the model grid.")
-
-            lon_converted.append(round(grid_lon[idx_lon], 4))  # use 4 digits in round
-            lat_converted.append(round(grid_lat[idx_lat], 4))  # use 4 digits in round
-
+            distance, idx_lon, idx_lat = find_closest_point(
+                grid_lon, grid_lat, point_lon, point_lat
+            )
             idx_flat = np.ravel_multi_index((idx_lat, idx_lon), shape)
-            indices.append(idx_flat)
 
-        return np.array(indices), np.array(lon_converted), np.array(lat_converted)
+            # distance should not exceed 2 grid cells (1 degree ~ 111km)
+            if distance > max(grid_spacing) * 111 * 2:
+                raise ValueError(
+                    f"Point {point_lon, point_lat} is outside of the model grid."
+                )
+
+            indices.append(idx_flat)
+            lon_results.append(round(grid_lon[idx_lon], 4))
+            lat_results.append(round(grid_lat[idx_lat], 4))
+
+        return (
+            np.array(indices),
+            np.array(lon_results),
+            np.array(lat_results),
+        )
 
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
