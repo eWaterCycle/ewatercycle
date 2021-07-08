@@ -28,7 +28,7 @@ which can be installed easiest using `Conda <https://conda.io/>`__ package
 management system.
 
 Instal Conda by using the `miniconda
-installer <https://docs.conda.io/en/latest/miniconda.html>`__.
+installer <https://docs.conda.io/en/latest/miniconda.html>`__. For more thourough instuctions see `HPC to cluster <hpc_to_cluster.rst>`_ chapter.
 
 After conda is installed you can install the software dependencies with
 a `conda environment
