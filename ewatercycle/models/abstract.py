@@ -1,4 +1,5 @@
 import logging
+import textwrap
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from typing import Tuple, Iterable, Any, TypeVar, Generic, Optional, ClassVar, Set
@@ -48,10 +49,11 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
             [
                 f"eWaterCycle {self.__class__.__name__}",
                 "-------------------",
+                f"Version = {self.version}",
+                f"Parameter set = {self.parameter_set}",
+                f"Forcing = ",
+                f"{textwrap.indent(str(self.forcing), '  ')}",
             ]
-            + [f"Parameter set = {self.parameter_set}]
-            + [f"Forcing = {self.forcing}]
-            + [f"Version = {self.version}]
         )
 
     @abstractmethod

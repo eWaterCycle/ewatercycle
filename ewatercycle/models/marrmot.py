@@ -63,7 +63,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
 
     def __init__(self, version: str, forcing: MarrmotForcing):
         """Construct MarrmotM01 with initial values. """
-        super().__init__(version)
+        super().__init__(version, forcing=forcing)
         self._parameters = [1000.0]
         self.store_ini = [900.0]
         self.solver = Solver()
@@ -288,7 +288,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
 
     def __init__(self, version: str, forcing: MarrmotForcing):
         """Construct MarrmotM14 with initial values. """
-        super().__init__(version)
+        super().__init__(version, forcing=forcing)
         self._parameters = [1000.0, 0.5, 0.5, 100.0, 0.5, 4.25, 2.5]
         self.store_ini = [900.0, 900.0]
         self.solver = Solver()
