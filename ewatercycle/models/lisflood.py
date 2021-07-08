@@ -240,17 +240,18 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         # in lisflood, x corresponds to lon, and y to lat.
         # this might not be the case for other models!
         for point_lon, point_lat in zip(lon, lat):
-            distance, index = find_closest_point(grid_lon, grid_lat, point_lon, point_lat)
-            indices.append(index)
+            distance, idx_lon, idx_lat = find_closest_point(grid_lon, grid_lat, point_lon, point_lat)
 
             # consider a threshold twice of the grid spacing
             # and convert spacing_model to km using this approximation: 1 degree ~ 111km
             if distance > max(spacing_model) * 111 * 2:
                 raise ValueError("This point is outside of the model grid.")
 
-            idx_lat, idx_lon = np.unravel_index(index, shape)
             lon_converted.append(round(grid_lon[idx_lon], 4))  # use 4 digits in round
             lat_converted.append(round(grid_lat[idx_lat], 4))  # use 4 digits in round
+
+            idx_flat = np.ravel_multi_index((idx_lat, idx_lon), shape)
+            indices.append(idx_flat)
 
         return np.array(indices), np.array(lon_converted), np.array(lat_converted)
 

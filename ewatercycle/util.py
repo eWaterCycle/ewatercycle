@@ -92,7 +92,7 @@ def find_closest_point(grid_longitudes: Iterable[float], grid_latitudes: Iterabl
     It uses Spherical Earth projected to a plane formula:
     https://en.wikipedia.org/wiki/Geographical_distance
     """
-    # Create a grid from coordinates
+    # Create a grid from coordinates (shape will be (nlat, nlon))
     lon_vectors, lat_vectors = np.meshgrid(grid_longitudes, grid_latitudes)
 
     dlon = np.radians(lon_vectors - point_longitude)
@@ -102,9 +102,9 @@ def find_closest_point(grid_longitudes: Iterable[float], grid_latitudes: Iterabl
     # approximate radius of earth in km
     radius = 6373.0
     distances = radius * np.sqrt(dlat ** 2  + (np.cos(latm) * dlon) ** 2)
-    index = distances.argmin()
+    idx_lat, idx_lon = np.unravel_index(distances.argmin(), distances.shape)
     distance = distances.min()
-    return distance, index
+    return distance, idx_lon, idx_lat
 
 
 # TODO rename to to_utcdatetime
