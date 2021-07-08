@@ -50,9 +50,10 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
                 f"eWaterCycle {self.__class__.__name__}",
                 "-------------------",
                 f"Version = {self.version}",
-                f"Parameter set = {textwrap.indent(str(self.parameter_set), '  ')}",
-                f"Forcing = ",
-                f"{textwrap.indent(str(self.forcing), '  ')}",
+                "Parameter set = ",
+                textwrap.indent(str(self.parameter_set), '  '),
+                "Forcing = ",
+                textwrap.indent(str(self.forcing), '  '),
             ]
         )
 

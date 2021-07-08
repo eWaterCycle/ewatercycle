@@ -42,12 +42,13 @@ def model(parameter_set):
 
 def test_str(model, tmp_path):
     actual = str(model)
-    expected =  "\n".join(
+    expected = "\n".join(
         [
             "eWaterCycle Wflow",
             "-------------------",
             "Version = 2020.1.1",
-            "Parameter set =   Parameter set",
+            "Parameter set = ",
+            "  Parameter set",
             "  -------------",
             "  name=wflow_testcase",
             f"  directory={str(tmp_path / 'wflow_testcase')}",
