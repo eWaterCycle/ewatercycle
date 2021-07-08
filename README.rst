@@ -40,6 +40,9 @@ The ewatercycle package is installed with
     pip install git+https://github.com/eWaterCycle/ewatercycle.git#egg=ewatercycle
 
 
+Besides installing software you will need to create a configuration file, download several data sets and get container images.
+See the `setup guide <https://ewatercycle.readthedocs.org/en/latest/system_setup.html>`_ for instructions.
+
 Usage
 -----
 
