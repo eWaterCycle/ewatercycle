@@ -11,6 +11,8 @@ from ruamel.yaml import YAML
 from ._validators import _validators
 from ._validated_config import ValidatedConfig
 
+from ewatercycle.util import to_absolute_path
+
 logger = getLogger(__name__)
 
 
@@ -35,7 +37,6 @@ class Config(ValidatedConfig):
             Name of the config file, must be yaml format
         """
         new = cls()
-
         mapping = read_config_file(filename)
         mapping['ewatercycle_config'] = filename
 
@@ -45,11 +46,9 @@ class Config(ValidatedConfig):
         return new
 
     @classmethod
-    def _load_default_config(cls, filename: Union[os.PathLike,
-                                                  str]) -> 'Config':
+    def _load_default_config(cls, filename: Union[os.PathLike, str]) -> 'Config':
         """Load the default configuration."""
         new = cls()
-
         mapping = read_config_file(filename)
         new.update(mapping)
 
@@ -57,7 +56,7 @@ class Config(ValidatedConfig):
 
     def load_from_file(self, filename: Union[os.PathLike, str]) -> None:
         """Load user configuration from the given file."""
-        path = Path(filename).expanduser()
+        path = to_absolute_path(str(filename))
         if not path.exists():
             raise FileNotFoundError(f'Cannot find: `{filename}')
 
@@ -119,7 +118,7 @@ class Config(ValidatedConfig):
 
 def read_config_file(config_file: Union[os.PathLike, str]) -> dict:
     """Read config user file and store settings in a dictionary."""
-    config_file = Path(config_file)
+    config_file = to_absolute_path(str(config_file))
     if not config_file.exists():
         raise IOError(f'Config file `{config_file}` does not exist.')
 

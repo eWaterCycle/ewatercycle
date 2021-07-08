@@ -27,7 +27,7 @@ class MockedBmi(Bmi):
     def get_grid_x(self, grid_id):
         return np.array([45.0, 46.0, 47.0])  # x are lats in wflow
 
-    def get_grid_y(self, grid_id):   # y are lons in wflow
+    def get_grid_y(self, grid_id):  # y are lons in wflow
         return np.array([5.0, 6.0])
 
     def get_grid_spacing(self, grid_id):
@@ -43,7 +43,7 @@ def mocked_config(tmp_path):
     CFG["output_dir"] = tmp_path
     CFG["container_engine"] = "singularity"
     CFG["singularity_dir"] = tmp_path
-    CFG["parameterset_dir"] = tmp_path / "psr"
+    CFG["parameterset_dir"] = tmp_path / "wflow_testcase"
     CFG["parameter_sets"] = {}
 
 
@@ -76,6 +76,29 @@ def initialized_model(model):
     return model
 
 
+def test_str(model, tmp_path):
+    actual = str(model)
+    expected = "\n".join(
+        [
+            "eWaterCycle Wflow",
+            "-------------------",
+            "Version = 2020.1.1",
+            "Parameter set = ",
+            "  Parameter set",
+            "  -------------",
+            "  name=wflow_testcase",
+            f"  directory={str(tmp_path / 'wflow_testcase')}",
+            f"  config={str(tmp_path / 'wflow_testcase' / 'wflow_sbm_nc.ini')}",
+            "  doi=N/A",
+            "  target_model=wflow",
+            "  supported_model_versions=set()",
+            "Forcing = ",
+            "  None",
+        ]
+    )
+    assert actual == expected
+
+
 def test_setup(model):
     with patch.object(
         BmiClientSingularity, "__init__", return_value=None
@@ -83,7 +106,6 @@ def test_setup(model):
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
 
         cfg_file, cfg_dir = model.setup()
-
     expected_cfg_dir = CFG["output_dir"] / "wflow_20210102_030405"
     assert cfg_dir == str(expected_cfg_dir)
     assert cfg_file == str(expected_cfg_dir / "wflow_ewatercycle.ini")

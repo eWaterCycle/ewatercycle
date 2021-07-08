@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Set, Optional
 
 from ewatercycle import CFG
+from ewatercycle.util import to_absolute_path
 
 
 class ParameterSet:
@@ -29,14 +30,14 @@ class ParameterSet:
         supported_model_versions: Optional[Set[str]] = None,
     ):
         self.name = name
-        self.directory = _make_absolute(directory)
-        self.config = _make_absolute(config)
+        self.directory = to_absolute_path(directory, parent = CFG.get("parameterset_dir"))
+        self.config = to_absolute_path(config, parent = CFG.get("parameterset_dir"))
         self.doi = doi
         self.target_model = target_model
         self.supported_model_versions = set() if supported_model_versions is None else supported_model_versions
 
     def __repr__(self):
-        options = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())
+        options = ", ".join(f"{k}={v!s}" for k, v in self.__dict__.items())
         return f"ParameterSet({options})"
 
     def __str__(self):
@@ -46,7 +47,7 @@ class ParameterSet:
                 "Parameter set",
                 "-------------",
             ]
-            + [f"{k}={v!r}" for k, v in self.__dict__.items()]
+            + [f"{k}={v!s}" for k, v in self.__dict__.items()]
         )
 
     @property
@@ -54,12 +55,3 @@ class ParameterSet:
         """Tests if directory and config file is available on this machine"""
         return self.directory.exists() and self.config.exists()
 
-
-def _make_absolute(input_path: str) -> Path:
-    pathlike = Path(input_path)
-    if pathlike.is_absolute():
-        return pathlike
-    if CFG["parameterset_dir"]:
-        return CFG["parameterset_dir"] / pathlike
-    else:
-        raise ValueError(f'CFG["parameterset_dir"] is not set. Unable to make {input_path} relative to it')

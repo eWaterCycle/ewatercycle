@@ -2,8 +2,13 @@
 from copy import copy
 from pathlib import Path
 from typing import Optional
+import logging
 
 from ruamel.yaml import YAML
+
+from ewatercycle.util import to_absolute_path
+
+logger = logging.getLogger(__name__)
 
 FORCING_YAML = 'ewatercycle_forcing.yaml'
 
@@ -26,8 +31,18 @@ class DefaultForcing:
                  shape: Optional[str] = None):
         self.start_time = start_time
         self.end_time = end_time
-        self.directory = directory
-        self.shape = shape
+        self.directory = to_absolute_path(directory)
+        self.shape = to_absolute_path(shape) if shape is not None else shape
+
+    def __str__(self):
+        """Nice formatting of forcing object."""
+        return "\n".join(
+            [
+                "eWaterCycle forcing",
+                "-------------------",
+            ]
+            + [f"{k}={v!s}" for k, v in self.__dict__.items()]
+        )
 
     @classmethod
     def generate(
@@ -45,11 +60,19 @@ class DefaultForcing:
         """Export forcing data for later use."""
         yaml = YAML()
         yaml.register_class(self.__class__)
-        target = Path(self.directory) / FORCING_YAML
+        target = self.directory / FORCING_YAML
         # We want to make the yaml and its parent movable,
-        # so the directory should not be included in the yaml file
+        # so the directory and shape should not be included in the yaml file
         clone = copy(self)
         del clone.directory
+
+        if clone.shape:
+            try:
+                clone.shape = str(clone.shape.relative_to(self.directory))
+            except ValueError:
+                clone.shape = None
+                logger.info(f"Shapefile {self.shape} is not in forcing directory {self.directory}. So, it won't be saved in {target}.")
+
         with open(target, 'w') as f:
             yaml.dump(clone, f)
         return target

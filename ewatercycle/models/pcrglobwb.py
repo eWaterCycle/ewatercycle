@@ -1,6 +1,5 @@
 import datetime
 from os import PathLike
-from pathlib import Path
 from typing import Any, Iterable, Tuple
 
 import numpy as np
@@ -15,7 +14,7 @@ from ewatercycle.forcing._pcrglobwb import PCRGlobWBForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser
-from ewatercycle.util import get_time, find_closest_point
+from ewatercycle.util import find_closest_point, get_time, to_absolute_path
 
 
 class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
@@ -51,12 +50,15 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
     def _setup_work_dir(self, cfg_dir: str = None):
         if cfg_dir:
-            work_dir = Path(cfg_dir)
+            self.work_dir = to_absolute_path(cfg_dir)
         else:
             # Must exist before setting up default config
-            timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
-            work_dir = Path(CFG["output_dir"]) / f"pcrglobwb_{timestamp}"
-        self.work_dir = work_dir.expanduser().resolve()
+            timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
+                "%Y%m%d_%H%M%S"
+            )
+            self.work_dir = to_absolute_path(
+                f"pcrglobwb_{timestamp}", parent=CFG["output_dir"]
+            )
         self.work_dir.mkdir(parents=True, exist_ok=True)
 
     def _setup_default_config(self):
@@ -80,18 +82,18 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
             "meteoOptions",
             "temperatureNC",
             str(
-                (Path(self.forcing.directory) / self.forcing.temperatureNC)
-                .expanduser()
-                .resolve()
+                to_absolute_path(
+                    self.forcing.temperatureNC, parent=self.forcing.directory
+                )
             ),
         )
         cfg.set(
             "meteoOptions",
             "precipitationNC",
             str(
-                (Path(self.forcing.directory) / self.forcing.precipitationNC)
-                .expanduser()
-                .resolve()
+                to_absolute_path(
+                    self.forcing.precipitationNC, parent=self.forcing.directory
+                )
             ),
         )
 
@@ -167,11 +169,13 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
     def _export_config(self) -> PathLike:
         self.config.set("globalOptions", "outputDir", str(self.work_dir))
-        new_cfg_file = Path(self.work_dir) / "pcrglobwb_ewatercycle.ini"
+        new_cfg_file = to_absolute_path(
+            "pcrglobwb_ewatercycle.ini", parent=self.work_dir
+        )
         with new_cfg_file.open("w") as filename:
             self.config.write(filename)
 
-        self.cfg_file = new_cfg_file.expanduser().resolve()
+        self.cfg_file = new_cfg_file
         return self.cfg_file
 
     def _start_container(self):

@@ -14,7 +14,7 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 from ewatercycle import CFG
 from ewatercycle.forcing._marrmot import MarrmotForcing
 from ewatercycle.models.abstract import AbstractModel
-from ewatercycle.util import get_time
+from ewatercycle.util import get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ def _generate_cfg_dir(cfg_dir: Path = None) -> Path:
         scratch_dir = CFG['output_dir']
         # TODO this timestamp isnot safe for parallel processing
         timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
-        cfg_dir = Path(scratch_dir) / f'marrmot_{timestamp}'
+        cfg_dir = to_absolute_path(f'marrmot_{timestamp}', parent=Path(scratch_dir))
     cfg_dir.mkdir(parents=True, exist_ok=True)
     return cfg_dir
 
@@ -63,7 +63,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
 
     def __init__(self, version: str, forcing: MarrmotForcing):
         """Construct MarrmotM01 with initial values. """
-        super().__init__(version)
+        super().__init__(version, forcing=forcing)
         self._parameters = [1000.0]
         self.store_ini = [900.0]
         self.solver = Solver()
@@ -114,7 +114,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             self.store_ini = [initial_soil_moisture_storage]
         if solver:
             self.solver = solver
-        cfg_dir_as_path = Path(cfg_dir) if cfg_dir else None
+        cfg_dir_as_path = to_absolute_path(cfg_dir) if cfg_dir else None
 
         cfg_dir_as_path = _generate_cfg_dir(cfg_dir_as_path)
         config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)
@@ -141,7 +141,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
         if isinstance(forcing, MarrmotForcing):
-            forcing_dir = Path(forcing.directory).expanduser().resolve()
+            forcing_dir = to_absolute_path(forcing.directory)
             self.forcing_file = str(forcing_dir / forcing.forcing_file)
             # convert date_strings to datetime objects
             self.forcing_start_time = get_time(forcing.start_time)
@@ -288,7 +288,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
 
     def __init__(self, version: str, forcing: MarrmotForcing):
         """Construct MarrmotM14 with initial values. """
-        super().__init__(version)
+        super().__init__(version, forcing=forcing)
         self._parameters = [1000.0, 0.5, 0.5, 100.0, 0.5, 4.25, 2.5]
         self.store_ini = [900.0, 900.0]
         self.solver = Solver()
@@ -358,7 +358,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             self.store_ini[1] = initial_saturated_zone_storage
         if solver:
             self.solver = solver
-        cfg_dir_as_path = Path(cfg_dir) if cfg_dir else None
+        cfg_dir_as_path = to_absolute_path(cfg_dir) if cfg_dir else None
 
         cfg_dir_as_path = _generate_cfg_dir(cfg_dir_as_path)
         config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)
@@ -385,7 +385,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
     def _check_forcing(self, forcing):
         """"Check forcing argument and get path, start and end time of forcing data."""
         if isinstance(forcing, MarrmotForcing):
-            forcing_dir = Path(forcing.directory).expanduser().resolve()
+            forcing_dir = to_absolute_path(forcing.directory)
             self.forcing_file = str(forcing_dir / forcing.forcing_file)
             # convert date_strings to datetime objects
             self.forcing_start_time = get_time(forcing.start_time)
