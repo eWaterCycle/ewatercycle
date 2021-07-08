@@ -15,7 +15,7 @@ def mocked_config(tmp_path):
     CFG['output_dir'] = tmp_path
     CFG['container_engine'] = 'singularity'
     CFG['singularity_dir'] = tmp_path
-    CFG['parameterset_dir'] = tmp_path / 'psr'
+    CFG['parameterset_dir'] = tmp_path / 'wflow_testcase'
     CFG['parameter_sets'] = {}
 
 
@@ -40,12 +40,33 @@ def model(parameter_set):
     return Wflow(version="2020.1.1", parameter_set=parameter_set)
 
 
+def test_str(model, tmp_path):
+    actual = str(model)
+    expected = "\n".join(
+        [
+            "eWaterCycle Wflow",
+            "-------------------",
+            "Version = 2020.1.1",
+            "Parameter set = ",
+            "  Parameter set",
+            "  -------------",
+            "  name=wflow_testcase",
+            f"  directory={str(tmp_path / 'wflow_testcase')}",
+            f"  config={str(tmp_path / 'wflow_testcase' / 'wflow_sbm_nc.ini')}",
+            "  doi=N/A",
+            "  target_model=wflow",
+            "  supported_model_versions=set()",
+            "Forcing = ",
+            "  None",
+        ])
+    assert actual == expected
+
+
 def test_setup(model):
     with patch.object(BmiClientSingularity, '__init__', return_value=None), patch('datetime.datetime') as mocked_datetime:
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
 
         cfg_file, cfg_dir = model.setup()
-
     expected_cfg_dir = CFG['output_dir'] / 'wflow_20210102_030405'
     assert cfg_dir == str(expected_cfg_dir)
     assert cfg_file == str(expected_cfg_dir / 'wflow_ewatercycle.ini')

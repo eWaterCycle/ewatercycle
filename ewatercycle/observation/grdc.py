@@ -1,11 +1,10 @@
 import os
-from pathlib import Path
 from typing import Dict, Tuple, Union
 import logging
 
 import pandas as pd
 from ewatercycle import CFG
-from ewatercycle.util import get_time
+from ewatercycle.util import get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 
@@ -76,10 +75,10 @@ def get_grdc_data(station_id: str,
             'nrMissingData': 0}
     """
     if data_home:
-        data_path = Path(data_home).expanduser().resolve()
+        data_path = to_absolute_path(data_home)
     else:
         if CFG["grdc_location"]:
-            data_path = Path(CFG["grdc_location"]).expanduser().resolve()
+            data_path = to_absolute_path(CFG["grdc_location"])
         else:
             raise ValueError(
                 f'Provide the grdc path using `data_home` argument '

@@ -1,4 +1,5 @@
 import logging
+import textwrap
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from typing import Tuple, Iterable, Any, TypeVar, Generic, Optional, ClassVar, Set
@@ -41,6 +42,20 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
             del self.bmi
         except AttributeError:
             pass
+
+    def __str__(self):
+        """Nice formatting of model object."""
+        return "\n".join(
+            [
+                f"eWaterCycle {self.__class__.__name__}",
+                "-------------------",
+                f"Version = {self.version}",
+                "Parameter set = ",
+                textwrap.indent(str(self.parameter_set), '  '),
+                "Forcing = ",
+                textwrap.indent(str(self.forcing), '  '),
+            ]
+        )
 
     @abstractmethod
     def setup(self, *args, **kwargs) -> Tuple[str, str]:
