@@ -4,18 +4,21 @@ System setup
 To use ewatercycle package you need to setup the system with software
 and data.
 
+This chapter is for system administators or Research Software Engineers who need to setup a system for the eWatercycle platform.
+
 The setup steps:
 
-1.  `Conda environment <#Conda-environment>`__
-2.  `Install ewatercycle package <#Install-ewatercycle-package>`__
-3.  `Configure ESMValTool <#Configure-ESMValTool>`__
-4.  `Download climate data <#Download-climate-data>`__
-5.  `Install container engine <#Install-container-engine>`__
-6.  `Configure ewatercycle <#Configure-ewatercycle>`__
-7.  `Model container images <#Model-container-images>`__
-8.  `Download example parameter sets <#Download-example-parameter-sets>`__
-9.  `Download example forcing <#Download-example-forcing>`__
-10. `Download observation data <#Download-observation-data>`__
+1.  `Conda environment <#conda-environment>`__
+2.  `Install ewatercycle package <#install-ewatercycle-package>`__
+3.  `Configure ESMValTool <#configure-ESMValTool>`__
+4.  `Download climate data <#download-climate-data>`__
+5.  `Install container engine <#install-container-engine>`__
+6.  `Configure ewatercycle <#configure-ewatercycle>`__
+7.  `Model container images <#model-container-images>`__
+8.  `Download example parameter sets <#download-example-parameter-sets>`__
+9.  `Prepare other parameter sets <#prepare-other-parameter-sets>`_
+10. `Download example forcing <#download-example-forcing>`__
+11. `Download observation data <#download-observation-data>`__
 
 Conda environment
 -----------------
@@ -328,6 +331,36 @@ configuration file.
 The ``parameter_set`` variable can be passed to a model class
 constructor.
 
+Prepare other parameter sets
+----------------------------
+
+The example pararmeter sets downloaded in previous section are nice to show off the plaform features, but are a bit small.
+To preform more advanced experiments additonal parameter sets are needed.
+Users could use :py:class:`ewatercycle.parameter_sets.ParameterSet` to construct parameter sets themselves.
+Or they can be made available via :py:func:`ewatercycle.parameter_sets.available_parameter_sets` and :py:func:`ewatercycle.parameter_sets.get_parameter_set` by extending the configuration file (ewatercycle.yaml).
+
+A new parameter set should be added as a key/value pair in the `parameter_sets` map of the configuration file.
+The key should be a unique string on the current system.
+The value is a dictionary with the following items:
+
+* directory: Location on disk where files of parameter set are stored. If Path is relative then relative to :py:const:`ewatercycle.CFG['parameterset_dir']`.
+* config: Model configuration file which uses files from directory. If Path is relative then relative to :py:const:`ewatercycle.CFG['parameterset_dir']`.
+* doi: Persistent identifier of parameter set. For a example a DOI for a Zenodo record.
+* target_model: Name of model that parameter set can work with
+* supported_model_versions: Set of model versions that are supported by this parameter set. If not set then parameter set will be supported by all versions of model
+
+For example the parameter set for PCR-GLOBWB from https://doi.org/10.5281/zenodo.1045339 after downloading and unpacking to `/data/pcrglobwb2_input/` could be added with following config:
+
+.. code:: yaml
+
+    pcrglobwb_example_case:
+        directory: /data/pcrglobwb2_input/global_30min/
+        config: /data/pcrglobwb2_input/global_30min/iniFileExample/setup_30min_non-natural.ini
+        doi: https://doi.org/10.5281/zenodo.1045339
+        target_model: pcrglobwb
+        supported_model_versions: !!set {setters: null}
+
+
 Download example forcing
 ------------------------
 
@@ -345,8 +378,8 @@ file <https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01
 Download observation data
 -------------------------
 
-To calculate metrics or plot hydrograph observation data is needed. The
-ewatercycle package can use `Global Runoff Data Centre
+Observation data is needed to calculate metrics of the model performance or plot a hydrograph . The
+ewatercycle package can use`Global Runoff Data Centre
 (GRDC) <https://www.bafg.de/GRDC>`__ or `U.S. Geological Survey Water
 Services (USGS) <https://waterservices.usgs.gov/>`__ data.
 

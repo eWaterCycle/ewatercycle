@@ -41,7 +41,7 @@ The ewatercycle package is installed with
 
 
 Besides installing software you will need to create a configuration file, download several data sets and get container images.
-See the `setup guide <https://ewatercycle.readthedocs.org/en/latest/system_setup.html>`_ for instructions.
+See the `system setup chapter <https://ewatercycle.readthedocs.org/en/latest/system_setup.html>`_ for instructions.
 
 Usage
 -----
