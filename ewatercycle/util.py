@@ -103,7 +103,8 @@ def find_closest_point(grid_longitudes: Iterable[float], grid_latitudes: Iterabl
     radius = 6373.0
     distances = radius * np.sqrt(dlat ** 2  + (np.cos(latm) * dlon) ** 2)
     index = distances.argmin()
-    return distances, index
+    distance = distances.min()
+    return distance, index
 
 
 # TODO rename to to_utcdatetime
