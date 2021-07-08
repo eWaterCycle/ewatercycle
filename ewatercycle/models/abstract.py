@@ -49,7 +49,9 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
                 f"eWaterCycle {self.__class__.__name__}",
                 "-------------------",
             ]
-            + [f"{k}={v!s}" for k, v in self.__dict__.items()]
+            + [f"Parameter set = {self.parameter_set}]
+            + [f"Forcing = {self.forcing}]
+            + [f"Version = {self.version}]
         )
 
     @abstractmethod
