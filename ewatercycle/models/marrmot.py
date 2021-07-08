@@ -114,7 +114,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             self.store_ini = [initial_soil_moisture_storage]
         if solver:
             self.solver = solver
-        cfg_dir_as_path = Path(cfg_dir) if cfg_dir else None
+        cfg_dir_as_path = to_absolute_path(cfg_dir) if cfg_dir else None
 
         cfg_dir_as_path = _generate_cfg_dir(cfg_dir_as_path)
         config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)
@@ -358,7 +358,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             self.store_ini[1] = initial_saturated_zone_storage
         if solver:
             self.solver = solver
-        cfg_dir_as_path = Path(cfg_dir) if cfg_dir else None
+        cfg_dir_as_path = to_absolute_path(cfg_dir) if cfg_dir else None
 
         cfg_dir_as_path = _generate_cfg_dir(cfg_dir_as_path)
         config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)

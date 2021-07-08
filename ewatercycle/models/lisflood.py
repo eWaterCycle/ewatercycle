@@ -84,7 +84,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         """
 
         # TODO forcing can be a part of parameter_set
-        cfg_dir_as_path = Path(cfg_dir) if cfg_dir else None
+        cfg_dir_as_path = to_absolute_path(cfg_dir) if cfg_dir else None
         cfg_dir_as_path = _generate_workdir(cfg_dir_as_path)
         config_file = self._create_lisflood_config(cfg_dir_as_path, start_time, end_time, IrrigationEfficiency, MaskMap)
 
