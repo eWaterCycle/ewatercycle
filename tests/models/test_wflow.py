@@ -25,9 +25,9 @@ class MockedBmi(Bmi):
         return 3, 2  # shape returns (len(x), len(y))
 
     def get_grid_x(self, grid_id):
-        return np.array([45.0, 46.0, 47.0])
+        return np.array([45.0, 46.0, 47.0])  # x are lats in wflow
 
-    def get_grid_y(self, grid_id):
+    def get_grid_y(self, grid_id):   # y are lons in wflow
         return np.array([5.0, 6.0])
 
     def get_grid_spacing(self, grid_id):
@@ -106,6 +106,6 @@ def test_get_value_as_coords(initialized_model):
     model = initialized_model
 
     expected = np.array([1.0])
-    result = model.get_value_at_coords("RiverRunoff", lon=[5.2], lat=[46.8])
+    result = model.get_value_at_coords("discharge", lon=[5.2], lat=[46.8])
     assert result == expected
     assert model.bmi.indices == [4]
