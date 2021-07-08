@@ -1,4 +1,3 @@
-fiona
 ruamel.yaml
 nbsphinx
 ipython
