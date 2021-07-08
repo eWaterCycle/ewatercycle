@@ -253,7 +253,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             # distance should not exceed 2 grid cells (1 degree ~ 111km)
             if distance > max(grid_spacing) * 111 * 2:
                 raise ValueError(
-                    f"Point {point_lon, point_lat} is outside of the model grid."
+                    f"Point {point_lon, point_lat} is outside the model grid."
                 )
 
             indices.append(idx_flat)

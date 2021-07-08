@@ -138,7 +138,7 @@ class TestLFlatlonUseCase:
             with pytest.raises(ValueError) as excinfo:
                 model.get_value_at_coords('Discharge', lon=[0.0], lat=[0.0])
             msg = str(excinfo.value)
-            assert "This point is outside of the model grid." in msg
+            assert "is outside the model grid." in msg
 
     class TestCustomMaskMap:
         @pytest.fixture

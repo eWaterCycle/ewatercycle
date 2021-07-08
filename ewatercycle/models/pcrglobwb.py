@@ -213,7 +213,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
         grid_id = self.bmi.get_var_grid(name)
         shape = self.bmi.get_grid_shape(grid_id)  # (len(x), len(y))
         grid_lat = self.bmi.get_grid_x(grid_id)  # x is latitude
-        grid_lon = self.bmi.get_grid_y(grid_id) # y is longitude
+        grid_lon = self.bmi.get_grid_y(grid_id)  # y is longitude
         grid_spacing = self.bmi.get_grid_spacing(grid_id)
 
         indices = []
