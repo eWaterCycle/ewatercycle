@@ -187,5 +187,7 @@ def to_absolute_path(input_path: str, parent: Path = None, must_exist: bool = Fa
     pathlike = Path(input_path)
     if parent:
         pathlike = parent.joinpath(pathlike)
+        if not pathlike.is_relative_to(parent):
+            raise ValueError(f"Input path {input_path} is not a subpath of parent {parent}")
     return pathlike.expanduser().resolve(strict=must_exist)
 

@@ -44,9 +44,8 @@ def test_to_absolute_path():
 
 def test_to_absolute_path_must_exist():
     input_path = "~/nonexistent_file.txt"
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(FileNotFoundError):
         to_absolute_path(input_path, must_exist=True)
-    assert "Got non-existent path" in str(excinfo.value)
 
 
 def test_to_absolute_path_with_absolute_input_and_parent(tmp_path):
@@ -67,10 +66,20 @@ def test_to_absolute_path_with_relative_input_and_no_parent():
     parsed = to_absolute_path(input_path)
     expected =  Path.cwd() / "nonexistent_file.txt"
     assert parsed == expected
-    
-    
+
+
 def test_to_absolute_path_with_relative_input_and_relative_parent():
     input_path = "nonexistent_file.txt"
     parsed = to_absolute_path(input_path, parent = Path('.'))
     expected =  Path.cwd() / "nonexistent_file.txt"
     assert parsed == expected
+
+
+def test_to_absolute_path_with_absolute_input_and_nonrelative_parent(tmp_path):
+    parent = tmp_path / 'parent_dir'
+    input_path = tmp_path / "nonexistent_file.txt"
+
+    with pytest.raises(ValueError)as excinfo:
+        to_absolute_path(str(input_path), parent = parent)
+
+    assert "is not a subpath of parent" in str(excinfo.value)
