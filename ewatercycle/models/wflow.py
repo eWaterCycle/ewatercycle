@@ -28,8 +28,9 @@ class Wflow(AbstractModel[WflowForcing]):
             If None, it is assumed that forcing is included with the parameter_set.
     """
 
-    available_versions = ("2020.1.1", )
+    available_versions = ("2020.1.1",)
     """Show supported WFlow versions in eWaterCycle"""
+
     def __init__(
         self,
         version: str,
@@ -58,8 +59,11 @@ class Wflow(AbstractModel[WflowForcing]):
         if forcing:
             cfg.set("framework", "netcdfinput", Path(forcing.netcdfinput).name)
             cfg.set("inputmapstacks", "Precipitation", forcing.Precipitation)
-            cfg.set("inputmapstacks", "EvapoTranspiration",
-                    forcing.EvapoTranspiration)
+            cfg.set(
+                "inputmapstacks",
+                "EvapoTranspiration",
+                forcing.EvapoTranspiration,
+            )
             cfg.set("inputmapstacks", "Temperature", forcing.Temperature)
             cfg.set("run", "starttime", _iso_to_wflow(forcing.start_time))
             cfg.set("run", "endtime", _iso_to_wflow(forcing.end_time))
@@ -100,17 +104,20 @@ class Wflow(AbstractModel[WflowForcing]):
         if cfg_dir:
             working_directory = Path(cfg_dir)
         else:
-            timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
+                "%Y%m%d_%H%M%S"
+            )
             working_directory = CFG["output_dir"] / f"wflow_{timestamp}"
         self.work_dir = working_directory.expanduser().resolve()
         # Make sure parents exist
         self.work_dir.parent.mkdir(parents=True, exist_ok=True)
 
         assert self.parameter_set
-        shutil.copytree(src=self.parameter_set.directory,
-                        dst=self.work_dir)
+        shutil.copytree(src=self.parameter_set.directory, dst=self.work_dir)
         if self.forcing:
-            forcing_path = Path(self.forcing.directory) / self.forcing.netcdfinput
+            forcing_path = (
+                Path(self.forcing.directory) / self.forcing.netcdfinput
+            )
             shutil.copy(src=forcing_path, dst=self.work_dir)
 
     def _start_container(self):
@@ -134,10 +141,12 @@ class Wflow(AbstractModel[WflowForcing]):
                     " time limit (15 seconds). You may try building it with "
                     f"`!singularity run docker://{self.docker_image}` and try "
                     "again. Please also inform the system administrator that "
-                    "the singularity image was missing.")
+                    "the singularity image was missing."
+                )
         else:
             raise ValueError(
-                f"Unknown container technology: {CFG['container_engine']}")
+                f"Unknown container technology: {CFG['container_engine']}"
+            )
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
