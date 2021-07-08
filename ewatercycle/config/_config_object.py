@@ -62,7 +62,7 @@ class Config(ValidatedConfig):
 
         self.clear()
         self.update(CFG_DEFAULT)
-        self.update(Config._load_user_config(filename))
+        self.update(Config._load_user_config(path))
 
     def reload(self) -> None:
         """Reload the config file."""
