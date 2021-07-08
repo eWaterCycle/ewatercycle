@@ -15,7 +15,7 @@ from ewatercycle.forcing._wflow import WflowForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser
-from ewatercycle.util import get_time
+from ewatercycle.util import get_time, find_closest_point
 
 
 class Wflow(AbstractModel[WflowForcing]):
@@ -147,6 +147,47 @@ class Wflow(AbstractModel[WflowForcing]):
             raise ValueError(
                 f"Unknown container technology: {CFG['container_engine']}"
             )
+
+    def _coords_to_indices(
+        self, name: str, lat: Iterable[float], lon: Iterable[float]
+    ) -> Tuple[Iterable[int], Iterable[float], Iterable[float]]:
+        """Converts lat/lon values to index.
+
+        Args:
+            lat: Latitudinal value
+            lon: Longitudinal value
+
+        """
+        grid_id = self.bmi.get_var_grid(name)
+        shape = self.bmi.get_grid_shape(grid_id)  # (len(x), len(y))
+        grid_lat = self.bmi.get_grid_x(grid_id)  # x and y swapped in BMI
+        grid_lon = self.bmi.get_grid_y(grid_id)
+        grid_spacing = self.bmi.get_grid_spacing(grid_id)
+
+        indices = []
+        lon_results = []
+        lat_results = []
+        for point_lon, point_lat in zip(lon, lat):
+            distance, idx_lon, idx_lat = find_closest_point(
+                grid_lon, grid_lat, point_lon, point_lat
+            )
+            idx_flat = np.ravel_multi_index((idx_lat, idx_lon), shape)
+
+            # distance should not exceed 2 grid cells (1 degree ~ 111km)
+            if distance > max(grid_spacing) * 111 * 2:
+                raise ValueError(
+                    f"Point {point_lon, point_lat} is outside of the model grid."
+                )
+
+            indices.append(idx_flat)
+            lon_results.append(round(grid_lon[idx_lon], 4))
+            lat_results.append(round(grid_lat[idx_lat], 4))
+
+        return (
+            np.array(indices),
+            np.array(lon_results),
+            np.array(lat_results),
+        )
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""

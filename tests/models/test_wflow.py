@@ -108,5 +108,4 @@ def test_get_value_as_coords(initialized_model):
     expected = np.array([1.0])
     result = model.get_value_at_coords("RiverRunoff", lon=[5.2], lat=[46.8])
     assert result == expected
-    assert model.bmi.indices == [2]
-    return Wflow(version="2020.1.1", parameter_set=parameter_set)
+    assert model.bmi.indices == [4]
