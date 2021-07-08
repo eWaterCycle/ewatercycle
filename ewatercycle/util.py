@@ -14,7 +14,7 @@ def find_closest_point(
     grid_latitudes: Iterable[float],
     point_longitude: float,
     point_latitude: float,
-) -> Tuple[np.ndarray, int, int]:
+) -> Tuple[int, int]:
     """Find closest grid cell to a point based on Geographical distances.
 
     It uses Spherical Earth projected to a plane formula:
@@ -32,7 +32,16 @@ def find_closest_point(
     distances = radius * np.sqrt(dlat ** 2 + (np.cos(latm) * dlon) ** 2)
     idx_lat, idx_lon = np.unravel_index(distances.argmin(), distances.shape)
     distance = distances.min()
-    return distance, idx_lon, idx_lat
+
+    # Rough check to see if point is in or near the grid
+    dx = np.diff(grid_longitudes).max() * 111  # (1 degree ~ 111km)
+    dy = np.diff(grid_latitudes).max() * 111  # (1 degree ~ 111km)
+    if distance > max(dx, dy) * 2:
+        raise ValueError(
+            f"Point {point_longitude, point_latitude} outside model grid."
+        )
+
+    return idx_lon, idx_lat
 
 
 # TODO rename to to_utcdatetime

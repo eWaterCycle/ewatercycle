@@ -214,22 +214,15 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
         shape = self.bmi.get_grid_shape(grid_id)  # (len(x), len(y))
         grid_lat = self.bmi.get_grid_x(grid_id)  # x is latitude
         grid_lon = self.bmi.get_grid_y(grid_id)  # y is longitude
-        grid_spacing = self.bmi.get_grid_spacing(grid_id)
 
         indices = []
         lon_results = []
         lat_results = []
         for point_lon, point_lat in zip(lon, lat):
-            distance, idx_lon, idx_lat = find_closest_point(
+            idx_lon, idx_lat = find_closest_point(
                 grid_lon, grid_lat, point_lon, point_lat
             )
             idx_flat = np.ravel_multi_index((idx_lat, idx_lon), shape)
-
-            # distance should not exceed 2 grid cells (1 degree ~ 111km)
-            if distance > max(grid_spacing) * 111 * 2:
-                raise ValueError(
-                    f"Point {point_lon, point_lat} is outside the model grid."
-                )
 
             indices.append(idx_flat)
             lon_results.append(round(grid_lon[idx_lon], 4))
