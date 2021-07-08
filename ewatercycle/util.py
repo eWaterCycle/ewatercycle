@@ -10,6 +10,7 @@ from dateutil.parser import parse
 from esmvalcore.experimental.recipe_output import RecipeOutput
 from shapely import geometry
 
+
 def var_to_xarray(model, variable):
     """Get grid properties from model (x = latitude !!)
     could be speedup, lots of bmi calls are done here that dont change between updates
@@ -28,12 +29,13 @@ def var_to_xarray(model, variable):
     data = np.reshape(data, shape)
 
     # Create xarray object
-    da = xr.DataArray(data,
-                      coords={'longitude': lon, 'latitude': lat, 'time': time},
-                      dims=['latitude', 'longitude'],
-                      name=variable,
-                      attrs={'units': model.get_var_units(variable)}
-                      )
+    da = xr.DataArray(
+        data,
+        coords={"longitude": lon, "latitude": lat, "time": time},
+        dims=["latitude", "longitude"],
+        name=variable,
+        attrs={"units": model.get_var_units(variable)},
+    )
 
     # Masked invalid values on return array:
     return da.where(da != -999)
@@ -65,7 +67,9 @@ def lat_lon_to_closest_variable_indices(model, variable, lats, lons):
     return np.array(output)
 
 
-def lat_lon_boundingbox_to_variable_indices(model, variable, lat_min, lat_max, lon_min, lon_max):
+def lat_lon_boundingbox_to_variable_indices(
+    model, variable, lat_min, lat_max, lon_min, lon_max
+):
     """Translate bounding boxes of lat, lon coordinates into BMI model
     indices, which are used to get and set variable values.
     """
@@ -75,8 +79,12 @@ def lat_lon_boundingbox_to_variable_indices(model, variable, lat_min, lat_max, l
     lon_model = model.get_grid_y(model.get_var_grid(variable))
     nx = len(lat_model)
 
-    idx = [i for i, v in enumerate(lat_model) if ((v > lat_min) and (v < lat_max))]
-    idy = [i for i, v in enumerate(lon_model) if ((v > lon_min) and (v < lon_max))]
+    idx = [
+        i for i, v in enumerate(lat_model) if ((v > lat_min) and (v < lat_max))
+    ]
+    idy = [
+        i for i, v in enumerate(lon_model) if ((v > lon_min) and (v < lon_max))
+    ]
 
     output = []
     for x in idx:
@@ -86,7 +94,12 @@ def lat_lon_boundingbox_to_variable_indices(model, variable, lat_min, lat_max, l
     return np.array(output)
 
 
-def find_closest_point(grid_longitudes: Iterable[float], grid_latitudes: Iterable[float], point_longitude: float, point_latitude: float) -> Tuple[np.ndarray, int]:
+def find_closest_point(
+    grid_longitudes: Iterable[float],
+    grid_latitudes: Iterable[float],
+    point_longitude: float,
+    point_latitude: float,
+) -> Tuple[np.ndarray, int]:
     """Find closest grid cell to a point based on Geographical distances.
 
     It uses Spherical Earth projected to a plane formula:
@@ -101,7 +114,7 @@ def find_closest_point(grid_longitudes: Iterable[float], grid_latitudes: Iterabl
 
     # approximate radius of earth in km
     radius = 6373.0
-    distances = radius * np.sqrt(dlat ** 2  + (np.cos(latm) * dlon) ** 2)
+    distances = radius * np.sqrt(dlat ** 2 + (np.cos(latm) * dlon) ** 2)
     idx_lat, idx_lon = np.unravel_index(distances.argmin(), distances.shape)
     distance = distances.min()
     return distance, idx_lon, idx_lat
@@ -115,7 +128,7 @@ def get_time(time_iso: str) -> datetime:
     and check if it is in UTC.
     """
     time = parse(time_iso)
-    if not time.tzname() == 'UTC':
+    if not time.tzname() == "UTC":
         raise ValueError(
             f"The time is not in UTC. The ISO format for a UTC time is 'YYYY-MM-DDTHH:MM:SSZ'"
         )
@@ -133,22 +146,22 @@ def get_extents(shapefile: Any, pad=0) -> Dict[str, float]:
         Dict with `start_longitude`, `start_latitude`, `end_longitude`, `end_latitude`
     """
     shape = fiona.open(shapefile)
-    x0, y0, x1, y1 = [
-        geometry.shape(p["geometry"]).bounds for p in shape
-    ][0]
+    x0, y0, x1, y1 = [geometry.shape(p["geometry"]).bounds for p in shape][0]
     x0 = round((x0 - pad), 1)
     y0 = round((y0 - pad), 1)
     x1 = round((x1 + pad), 1)
     y1 = round((y1 + pad), 1)
     return {
-        'start_longitude': x0,
-        'start_latitude': y0,
-        'end_longitude': x1,
-        'end_latitude': y1,
+        "start_longitude": x0,
+        "start_latitude": y0,
+        "end_longitude": x1,
+        "end_latitude": y1,
     }
 
 
-def data_files_from_recipe_output(recipe_output: RecipeOutput) -> Tuple[str, Dict[str, str]]:
+def data_files_from_recipe_output(
+    recipe_output: RecipeOutput,
+) -> Tuple[str, Dict[str, str]]:
     """Get data files from a ESMVaLTool recipe output
 
     Expects first diagnostic task to produce files with single var each.
