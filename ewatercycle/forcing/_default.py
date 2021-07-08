@@ -2,10 +2,13 @@
 from copy import copy
 from pathlib import Path
 from typing import Optional
+import logging
 
 from ruamel.yaml import YAML
 
 from ewatercycle.util import to_absolute_path
+
+logger = logging.getLogger(__name__)
 
 FORCING_YAML = 'ewatercycle_forcing.yaml'
 
@@ -62,7 +65,13 @@ class DefaultForcing:
         # so the directory and shape should not be included in the yaml file
         clone = copy(self)
         del clone.directory
-        clone.shape = None
+
+        if clone.shape:
+            try:
+                clone.shape = str(clone.shape.relative_to(self.directory))
+            except ValueError:
+                clone.shape = None
+                logger.info(f"Shapefile {self.shape} is not in forcing directory {self.directory}. So, it won't be saved in {target}.")
 
         with open(target, 'w') as f:
             yaml.dump(clone, f)

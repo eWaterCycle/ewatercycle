@@ -36,6 +36,9 @@ def load(directory: str) -> DefaultForcing:
     # Because in DefaultForcing.save the directory was removed
     forcing_info = yaml.load(source / FORCING_YAML)
     forcing_info.directory = source
+    if forcing_info.shape:
+        forcing_info.shape = to_absolute_path(forcing_info.shape, parent = source)
+
     return forcing_info
 
 
