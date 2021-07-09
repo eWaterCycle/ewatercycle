@@ -109,8 +109,6 @@ reproduction studies and its smaller size. The ERA-Interim data files
 can be downloaded at
 https://www.ecmwf.int/en/forecasts/datasets/reanalysis-datasets/era-interim
 
-Installing a container engine requires root permission on the machine.
-
 Install container engine
 ------------------------
 
@@ -118,6 +116,8 @@ In eWaterCycle package, the hydrological models are run in containers
 with engines like `Singularity <https://singularity.lbl.gov/>`__ or
 `Docker <https://www.docker.com/>`__. At least Singularity or Docker
 should be installed.
+
+Installing a container engine requires root permission on the machine.
 
 Singularity
 ~~~~~~~~~~~
