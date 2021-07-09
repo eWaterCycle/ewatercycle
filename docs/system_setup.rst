@@ -86,20 +86,34 @@ To download ERA5 data files you can use the
 
     pip install era5cli
 
+Follow `instructions <https://era5cli.readthedocs.io/en/stable/instructions.html>`_ to get access to data.
+
 To run the example notebooks the hourly ERA5 data files for year 1990
 and 1991 and for variables: pr, psl, tas, taxmin, tasmax, tdps, uas,
-vas, rsds, rsdt and fx orog need to be downloaded with
+vas, rsds, rsdt and orog need to be downloaded with
 
 .. code:: shell
 
     # TODO is era5cli command is correct?
-    cd <ESMValTool raw directory>
-    era5cli hourly --startyear 1990 --endyear 1991 --variables pr psl tas taxmin tasmax tdps uas vas rsds rsdt orog
+    cd <ESMValTool ERA5 raw directory for example /projects/0/wtrcycle/comparison/rawobs/Tier3/ERA5/1>
+    era5cli hourly --startyear 1990 --endyear 1991 --variables total_precipitation
+    era5cli hourly --startyear 1990 --endyear 1991 --variables mean_sea_level_pressure
+    era5cli hourly --startyear 1990 --endyear 1991 --variables 2m_temperature
+    era5cli hourly --startyear 1990 --endyear 1991 --variables minimum_2m_temperature_since_previous_post_processing
+    era5cli hourly --startyear 1990 --endyear 1991 --variables maximum_2m_temperature_since_previous_post_processing
+    era5cli hourly --startyear 1990 --endyear 1991 --variables 2m_dewpoint_temperature
+    era5cli hourly --startyear 1990 --endyear 1991 --variables 10m_u_component_of_wind
+    era5cli hourly --startyear 1990 --endyear 1991 --variables 10m_v_component_of_wind
+    era5cli hourly --startyear 1990 --endyear 1991 --variables surface_solar_radiation_downwards
+    era5cli hourly --startyear 1990 --endyear 1991 --variables toa_incident_solar_radiation
+    era5cli hourly --startyear 1990 --endyear 1991 --variables orography
     cd -
+
+The hourly data needs need be converted to daily using a `ESMValTool recipe <https://docs.esmvaltool.org/en/latest/input.html#cmorization-as-a-fix>`_
 
 .. code:: shell
 
-    # TODO cmorize files?
+    esmvaltool run cmorizers/recipe_era5.yml
 
 ERA-Interim
 ~~~~~~~~~~~
