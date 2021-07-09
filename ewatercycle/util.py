@@ -21,6 +21,16 @@ def find_closest_point(
 
     It uses Spherical Earth projected to a plane formula:
     https://en.wikipedia.org/wiki/Geographical_distance
+
+    args:
+        grid_longitudes: 1d array of model grid longitudes in degrees
+        grid_latitudes: 1d array of model grid latitudes in degrees
+        point_longitude: longitude in degrees of target coordinate
+        point_latitude: latitude in degrees of target coordinate
+
+    returns:
+        idx_lon: index of closest grid point in the original longitude array
+        idx_lat: index of closest grid point in the original latitude array
     """
     # Create a grid from coordinates (shape will be (nlat, nlon))
     lon_vectors, lat_vectors = np.meshgrid(grid_longitudes, grid_latitudes)
@@ -131,4 +141,3 @@ def to_absolute_path(input_path: str, parent: Path = None, must_exist: bool = Fa
             raise ValueError(f"Input path {input_path} is not a subpath of parent {parent}")
 
     return pathlike.expanduser().resolve(strict=must_exist)
-
