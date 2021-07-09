@@ -25,6 +25,7 @@ Content
   system_setup
   examples
   hpc_to_cluster
+  observations
   API Reference <apidocs/ewatercycle.rst>
 
 
