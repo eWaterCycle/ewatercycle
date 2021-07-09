@@ -234,14 +234,14 @@ Singularity
 Singularity images should be stored in configured directory
 (``ewatercycle.CFG['singularity_dir']``) and can build from Docker with:
 
-.. code:: ipython3
+.. code:: shell
 
-    !cd {ewatercycle.CFG['singularity_dir']}
-    !singularity build ewatercycle-lisflood-grpc4bmi.sif docker://ewatercycle/lisflood-grpc4bmi:latest
-    !singularity build ewatercycle-pcrg-grpc4bmi.sif docker://ewatercycle/pcrg-grpc4bmi:latest
-    !singularity build ewatercycle-marrmot-grpc4bmi.sif docker://ewatercycle/marrmot-grpc4bmi:latest
-    !singularity build ewatercycle-wflow-grpc4bmi.sif docker://ewatercycle/wflow-grpc4bmi:latest
-    !cd -
+    cd {ewatercycle.CFG['singularity_dir']}
+    singularity build ewatercycle-lisflood-grpc4bmi_20.10.sif docker://ewatercycle/lisflood-grpc4bmi:20.10
+    singularity build ewatercycle-marrmot-grpc4bmi_2020.11.sif docker://ewatercycle/marrmot-grpc4bmi:2020.11
+    singularity exec docker://ewatercycle/pcrg-grpc4bmi:setters run-bmi-server -h
+    singularity exec docker://ewatercycle/wflow-grpc4bmi:2020.1.1 run-bmi-server -h
+    cd -
 
 Download example parameter sets
 -------------------------------
