@@ -98,12 +98,14 @@ https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environme
 
 Make sure that Jupyter Lab is installed in the Conda environment:
 
-- ``conda activate {YourEnvironmentName}``
+- ``wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/master/environment.yml``
+- ``conda env create --file environment.yml``
+- ``conda activate ewatercycle``
 - ``conda install -c conda-forge jupyterlab``
 
-Install GRPC4BMI:
+Install eWatercycle package:
 
-- ``pip install grpc4bmi==0.2.*``
+- ``pip install git+https://github.com/eWaterCycle/ewatercycle.git#egg=ewatercycle``
 
 **4. Create Singularity Container**
 
