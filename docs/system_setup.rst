@@ -123,6 +123,16 @@ reproduction studies and its smaller size. The ERA-Interim data files
 can be downloaded at
 https://www.ecmwf.int/en/forecasts/datasets/reanalysis-datasets/era-interim
 
+Or you can use the `download_era_interim.py <https://github.com/ESMValGroup/ESMValTool/blob/main/esmvaltool/cmorizers/obs/download_scripts/download_era_interim.py>`_ 
+script to download ERA-Interim data files. See first lines of script for documentation.
+The files should be downloaded to the ESMValTool ERA-Interim raw directory for example ``/projects/0/wtrcycle/comparison/rawobs/Tier3/ERA-Interim``.
+
+The ERA5-Interim raw data files need to be cmorized using `script <https://docs.esmvaltool.org/en/latest/input.html#using-a-cmorizer-script>`_:
+
+.. code:: shell
+
+    cmorize_obs -o ERA-Interim
+
 Install container engine
 ------------------------
 
