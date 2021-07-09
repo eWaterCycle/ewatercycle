@@ -55,8 +55,6 @@ The Python package can be installed using pip
 
 .. code:: shell
 
-    # TODO once released install from PyPi instead of GitHub
-    # pip install ewatercycle
     pip install git+https://github.com/eWaterCycle/ewatercycle.git#egg=ewatercycle
 
 
@@ -94,7 +92,6 @@ vas, rsds, rsdt and fx orog are downloaded as:
 
 .. code:: shell
 
-    # TODO is era5cli command is correct?
     cd <ESMValTool ERA5 raw directory for example /projects/0/wtrcycle/comparison/rawobs/Tier3/ERA5/1>
     era5cli hourly --startyear 1990 --endyear 1991 --variables total_precipitation
     era5cli hourly --startyear 1990 --endyear 1991 --variables mean_sea_level_pressure
@@ -337,19 +334,26 @@ configuration file.
 
 .. parsed-literal::
 
-    ('wflow_rhine_sbm_nc', 'pcrglobwb_example_case', 'lisflood_fraser')
+    ('lisflood_fraser', 'pcrglobwb_example_case', 'wflow_rhine_sbm_nc')
 
 
 
 .. code:: ipython3
 
     parameter_set = ewatercycle.parameter_sets.get_parameter_set('pcrglobwb_example_case')
-    parameter_set
+    print(parameter_set)
 
 
 .. parsed-literal::
 
-    ParameterSet(name='pcrglobwb_example_case', directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/docs/examples/parameter-sets/pcrglobwb_example_case'), config=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/docs/examples/parameter-sets/pcrglobwb_example_case/setup_natural_test.ini'), doi='N/A', target_model='pcrglobwb', supported_model_versions={'setters'})
+    Parameter set
+    -------------
+    name=pcrglobwb_example_case
+    directory=/home/verhoes/git/eWaterCycle/ewatercycle/docs/examples/parameter-sets/pcrglobwb_example_case
+    config=/home/verhoes/git/eWaterCycle/ewatercycle/docs/examples/parameter-sets/pcrglobwb_example_case/setup_natural_test.ini
+    doi=N/A
+    target_model=pcrglobwb
+    supported_model_versions={'setters'}
 
 The ``parameter_set`` variable can be passed to a model class
 constructor.
@@ -362,7 +366,7 @@ To perform more advanced experiments, additional parameter sets are needed.
 Users could use :py:class:`ewatercycle.parameter_sets.ParameterSet` to construct parameter sets themselves.
 Or they can be made available via :py:func:`ewatercycle.parameter_sets.available_parameter_sets` and :py:func:`ewatercycle.parameter_sets.get_parameter_set` by extending the configuration file (ewatercycle.yaml).
 
-A new parameter set should be added as a key/value pair in the `parameter_sets` map of the configuration file.
+A new parameter set should be added as a key/value pair in the ``parameter_sets`` map of the configuration file.
 The key should be a unique string on the current system.
 The value is a dictionary with the following items:
 
@@ -372,7 +376,7 @@ The value is a dictionary with the following items:
 * target_model: Name of the model that parameter set can work with
 * supported_model_versions: Set of model versions that are supported by this parameter set. If not set then parameter set will be supported by all versions of model
 
-For example the parameter set for PCR-GLOBWB from https://doi.org/10.5281/zenodo.1045339 after downloading and unpacking to `/data/pcrglobwb2_input/` could be added with following config:
+For example the parameter set for PCR-GLOBWB from https://doi.org/10.5281/zenodo.1045339 after downloading and unpacking to ``/data/pcrglobwb2_input/`` could be added with following config:
 
 .. code:: yaml
 
@@ -402,7 +406,7 @@ Download observation data
 -------------------------
 
 Observation data is needed to calculate metrics of the model performance or plot a hydrograph . The
-ewatercycle package can use`Global Runoff Data Centre
+ewatercycle package can use `Global Runoff Data Centre
 (GRDC) <https://www.bafg.de/GRDC>`__ or `U.S. Geological Survey Water
 Services (USGS) <https://waterservices.usgs.gov/>`__ data.
 
