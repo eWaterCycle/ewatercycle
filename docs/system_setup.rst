@@ -1,10 +1,10 @@
 System setup
 ============
 
-To use ewatercycle package you need to setup the system with software
+To use eWaterCycle package you need to setup the system with software
 and data.
 
-This chapter is for system administators or Research Software Engineers who need to setup a system for the eWatercycle platform.
+This chapter is for system administrators or Research Software Engineers who need to set up a system for the eWaterCycle platform.
 
 The setup steps:
 
@@ -23,11 +23,11 @@ The setup steps:
 Conda environment
 -----------------
 
-The ewatercycle Python package uses a lot of geospatial dependencies
-which can be installed easiest using `Conda <https://conda.io/>`__ package
+The eWaterCycle Python package uses a lot of geospatial dependencies
+which can be installed using `Conda <https://conda.io/>`__ package
 management system.
 
-Instal Conda by using the `miniconda
+Install Conda by using the `miniconda
 installer <https://docs.conda.io/en/latest/miniconda.html>`__. For more thourough instuctions see `HPC to cluster <hpc_to_cluster.rst>`_ chapter.
 
 After conda is installed you can install the software dependencies with
@@ -46,9 +46,9 @@ file <https://github.com/eWaterCycle/ewatercycle/blob/master/environment.yml>`__
 
     conda activate ewatercycle
 
-Do not forget that any terminal or Jupyter kernel should activate the conda environment before the ewatercycle Python package can be used.
+Do not forget that any terminal or Jupyter kernel should activate the conda environment before the eWaterCycle Python package can be used.
 
-Install ewatercycle package
+Install eWaterCycle package
 ---------------------------
 
 The Python package can be installed using pip
@@ -64,17 +64,17 @@ Configure ESMValTool
 --------------------
 
 ESMValTool is used to generate forcing (temperature, precipitation,
-etc.) files from climate data sets for hydrological models. The
+etc.) files from climate data for hydrological models. The
 ESMValTool has been installed as a dependency of the package.
 
 See https://docs.esmvaltool.org/en/latest/quickstart/configuration.html
-how configure ESMValTool
+how configure ESMValTool.
 
 Download climate data
 ---------------------
 
-The ERA5 and ERA-Interim climate datasets can be used to generate
-forcings
+The ERA5 and ERA-Interim data can be used to generate
+forcings.
 
 ERA5
 ~~~~
@@ -114,7 +114,7 @@ Installing a container engine requires root permission on the machine.
 Install container engine
 ------------------------
 
-In ewatercycle package the hydrological models are run in containers
+In eWaterCycle package, the hydrological models are run in containers
 with engines like `Singularity <https://singularity.lbl.gov/>`__ or
 `Docker <https://www.docker.com/>`__. At least Singularity or Docker
 should be installed.
@@ -133,11 +133,11 @@ Install Docker using
 should be configured so it can be `called without
 sudo <https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user>`__
 
-Configure ewatercycle
+Configure eWaterCycle
 ---------------------
 
-The ewatercycle package simplifies the API by reading some of the
-directories and other configurations from a configuration file.
+The eWaterCycle package simplifies the API by reading some of the
+directories and settings from a configuration file.
 
 The configuration can be set in Python with
 
@@ -181,8 +181,8 @@ system it should be copied to ``/etc/ewatercycle.yaml`` .
 Configuration file for Cartesius system
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Users part of the ewatercycle project on the Cartesius system of
-SURFSara can use the following configuration file:
+Users part of the eWaterCycle project can use the following configurations on the Cartesius system of
+SURFSara:
 
 .. code:: yaml
 
@@ -195,8 +195,8 @@ SURFSara can use the following configuration file:
 Configuration file for ewatecycle Jupyter machine
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-On systems constructed with ewatercycle application on SURF Research
-Cloud can use the following configuration file:
+Users can use the following configurations on systems constructed with eWaterCycle application on SURF Research
+Cloud:
 
 .. code:: yaml
 
@@ -209,7 +209,7 @@ Cloud can use the following configuration file:
 Model container images
 ----------------------
 
-As hydrological models run in container their container images should be
+As hydrological models run in containers, their container images should be
 made available on the system.
 
 The names of the images can be found in the ``ewatercycle.models.*``
@@ -334,8 +334,8 @@ constructor.
 Prepare other parameter sets
 ----------------------------
 
-The example pararmeter sets downloaded in previous section are nice to show off the plaform features, but are a bit small.
-To preform more advanced experiments additonal parameter sets are needed.
+The example parameter sets downloaded in the previous section are nice to show off the platform features but are a bit small.
+To perform more advanced experiments, additional parameter sets are needed.
 Users could use :py:class:`ewatercycle.parameter_sets.ParameterSet` to construct parameter sets themselves.
 Or they can be made available via :py:func:`ewatercycle.parameter_sets.available_parameter_sets` and :py:func:`ewatercycle.parameter_sets.get_parameter_set` by extending the configuration file (ewatercycle.yaml).
 
@@ -343,10 +343,10 @@ A new parameter set should be added as a key/value pair in the `parameter_sets` 
 The key should be a unique string on the current system.
 The value is a dictionary with the following items:
 
-* directory: Location on disk where files of parameter set are stored. If Path is relative then relative to :py:const:`ewatercycle.CFG['parameterset_dir']`.
+* directory: Location on disk where files of the parameter set are stored. If Path is relative then relative to :py:const:`ewatercycle.CFG['parameterset_dir']`.
 * config: Model configuration file which uses files from directory. If Path is relative then relative to :py:const:`ewatercycle.CFG['parameterset_dir']`.
-* doi: Persistent identifier of parameter set. For a example a DOI for a Zenodo record.
-* target_model: Name of model that parameter set can work with
+* doi: Persistent identifier of the parameter set. For example a DOI for a Zenodo record.
+* target_model: Name of the model that parameter set can work with
 * supported_model_versions: Set of model versions that are supported by this parameter set. If not set then parameter set will be supported by all versions of model
 
 For example the parameter set for PCR-GLOBWB from https://doi.org/10.5281/zenodo.1045339 after downloading and unpacking to `/data/pcrglobwb2_input/` could be added with following config:
