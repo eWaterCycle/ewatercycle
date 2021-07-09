@@ -1,4 +1,5 @@
 import datetime
+import logging
 import shutil
 from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple
@@ -16,6 +17,8 @@ from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.util import find_closest_point, get_time, to_absolute_path
+
+logger = logging.getLogger(__name__)
 
 
 class Wflow(AbstractModel[WflowForcing]):
@@ -167,23 +170,20 @@ class Wflow(AbstractModel[WflowForcing]):
         grid_lon = self.bmi.get_grid_y(grid_id)  # y is longitude
 
         indices = []
-        lon_results = []
-        lat_results = []
         for point_lon, point_lat in zip(lon, lat):
             idx_lon, idx_lat = find_closest_point(
                 grid_lon, grid_lat, point_lon, point_lat
             )
             idx_flat = np.ravel_multi_index((idx_lat, idx_lon), shape)
-
             indices.append(idx_flat)
-            lon_results.append(round(grid_lon[idx_lon], 4))
-            lat_results.append(round(grid_lat[idx_lat], 4))
 
-        return (
-            np.array(indices),
-            np.array(lon_results),
-            np.array(lat_results),
-        )
+            logger.debug(
+                f"Requested point was lon: {point_lon}, lat: {point_lat}; "
+                "closest grid point is "
+                f"{grid_lon[idx_lon]:.2f}, {grid_lat[idx_lat]:.2f}."
+            )
+
+        return indices
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
