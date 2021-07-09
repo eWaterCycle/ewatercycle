@@ -88,9 +88,9 @@ To download ERA5 data files you can use the
 
 Follow `instructions <https://era5cli.readthedocs.io/en/stable/instructions.html>`_ to get access to data.
 
-To run the example notebooks the hourly ERA5 data files for year 1990
-and 1991 and for variables: pr, psl, tas, taxmin, tasmax, tdps, uas,
-vas, rsds, rsdt and orog need to be downloaded with
+As an example, the hourly ERA5 data for the years 1990
+and 1991 and for variables pr, psl, tas, taxmin, tasmax, tdps, uas,
+vas, rsds, rsdt and fx orog are downloaded as:
 
 .. code:: shell
 
@@ -250,7 +250,6 @@ Docker images will be downloaded with ``docker pull``:
     docker pull ewatercycle/marrmot-grpc4bmi:2020.11
     docker pull ewatercycle/pcrg-grpc4bmi:setters
     docker pull ewatercycle/wflow-grpc4bmi:2020.1.1
-    # TODO
 
 Singularity
 ~~~~~~~~~~~
