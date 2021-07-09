@@ -156,7 +156,7 @@ class Wflow(AbstractModel[WflowForcing]):
 
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]
-    ) -> Tuple[Iterable[int], Iterable[float], Iterable[float]]:
+    ) -> Iterable[int]:
         """Converts lat/lon values to index.
 
         Args:

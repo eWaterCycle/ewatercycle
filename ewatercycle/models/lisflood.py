@@ -62,8 +62,8 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         raise KeyError(f"Name {name} not found in the config file.")
 
     # unable to subclass with more specialized arguments so ignore type
-    def setup(
-        self,  # type: ignore
+    def setup(  # type: ignore
+        self,
         IrrigationEfficiency: str = None,
         start_time: str = None,
         end_time: str = None,
@@ -251,7 +251,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
 
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]
-    ) -> Tuple[Iterable[int], Iterable[float], Iterable[float]]:
+    ) -> Iterable[int]:
         """Converts lat/lon values to index.
 
         Args:
