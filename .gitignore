@@ -10,6 +10,8 @@ htmlcov
 xunit-result.xml
 .pytest_cache/
 coverage.xml
+.mypy_cache
+/result_images
 
 docs/_build
 docs/apidocs/
@@ -20,3 +22,8 @@ docs/apidocs/
 .vscode
 
 .scannerwork/
+
+.ipynb_checkpoints
+
+docs/examples/parameter-sets
+docs/examples/ewatercycle.yaml

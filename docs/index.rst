@@ -1,9 +1,9 @@
-.. ewatercycle_parametersetdb documentation master file, created by
+.. ewatercycle documentation master file, created by
    sphinx-quickstart on Thu Jun 21 11:07:11 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to the eWaterCycle documentation!
+Welcome to ewatercycle's documentation!
 ==========================================================
 
 .. include:: ../README.rst
@@ -16,13 +16,16 @@ User's Guide
 
    observations
 
-API Reference
+Content
 =============
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 3
 
-  ewatercycle-parametersetdb <apidocs/ewatercycle.parametersetdb.rst>
+  system_setup
+  examples
+  hpc_to_cluster
+  API Reference <apidocs/ewatercycle.rst>
 
 
 Indices and tables

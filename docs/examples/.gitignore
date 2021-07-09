@@ -1,0 +1,4 @@
+ewatercycle.yaml
+# Exclude intermediate Marrmot files
+BMI_testcase_m01_BuffaloRiver_TN_USA.mat
+marrmott_*_*

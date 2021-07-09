@@ -1,29 +1,47 @@
 ################################################################################
-ewatercycle.parametersetdb
+ewatercycle
 ################################################################################
 
-Python utilities to gather input files for running a hydrology model
+A Python package for running hydrological models.
 
-.. image:: https://travis-ci.org/eWaterCycle/parametersetdb.svg?branch=master
-    :target: https://travis-ci.org/eWaterCycle/parametersetdb
+.. image:: https://github.com/eWaterCycle/ewatercycle/actions/workflows/ci.yml/badge.svg
+    :target: https://github.com/eWaterCycle/ewatercycle/actions/workflows/ci.yml
 
-.. image:: https://sonarcloud.io/api/project_badges/measure?project=ewatercycle-parametersetdb&metric=alert_status
-    :target: https://sonarcloud.io/dashboard?id=ewatercycle-parametersetdb
+.. image:: https://sonarcloud.io/api/project_badges/measure?project=eWaterCycle_ewatercycle&metric=alert_status
+    :target: https://sonarcloud.io/dashboard?id=eWaterCycle_ewatercycle
 
-.. image:: https://sonarcloud.io/api/project_badges/measure?project=ewatercycle-parametersetdb&metric=coverage
-    :target: https://sonarcloud.io/component_measures?id=ewatercycle-parametersetdb&metric=coverage
+.. image:: https://sonarcloud.io/api/project_badges/measure?project=eWaterCycle_ewatercycle&metric=coverage
+    :target: https://sonarcloud.io/component_measures?id=eWaterCycle_ewatercycle&metric=coverage
 
-.. image:: https://readthedocs.org/projects/ewatercycle-parametersetdb/badge/?version=latest
-    :target: https://ewatercycle-parametersetdb.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/ewatercycle/badge/?version=latest
+    :target: https://ewatercycle.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
+
+.. image:: https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B%20%20%E2%97%8F%20%20%E2%97%8B-orange
+    :target: https://fair-software.eu
 
 Install
 -------
 
+The ewatercycle package needs some geospatial non-python packages to generate
+forcing data. It is preferred to create a Conda environment to install those
+dependencies:
+
 .. code-block:: bash
 
-    pip install git+https://github.com/eWaterCycle/parametersetdb.git#egg=ewatercycle-parametersetdb
+    wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/master/environment.yml
+    conda env create --file environment.yml
+    conda activate ewatercycle
 
+The ewatercycle package is installed with
+
+.. code-block:: bash
+
+    pip install git+https://github.com/eWaterCycle/ewatercycle.git#egg=ewatercycle
+
+
+Besides installing software you will need to create a configuration file, download several data sets and get container images.
+See the `system setup chapter <https://ewatercycle.readthedocs.org/en/latest/system_setup.html>`_ for instructions.
 
 Usage
 -----
@@ -51,7 +69,7 @@ CITATION.cff
 Contributing
 ************
 
-If you want to contribute to the development of ewatercycle_parametersetdb,
+If you want to contribute to the development of ewatercycle package,
 have a look at the `contribution guidelines <CONTRIBUTING.rst>`_.
 
 License

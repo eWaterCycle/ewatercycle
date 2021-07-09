@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=ewatercycle_parametersetdb
+set SPHINXPROJ=ewatercycle
 
 if "%1" == "" goto help
 

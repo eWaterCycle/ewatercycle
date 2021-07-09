@@ -1,26 +1,42 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
 version = {}
-with open("ewatercycle/parametersetdb/version.py") as fp:
+with open("ewatercycle/version.py") as fp:
     exec(fp.read(), version)
 
 setup(
-    name='ewatercycle-parametersetdb',
+    name='ewatercycle',
     version=version['__version__'],
-    description="Python utilities to gather input files for running a hydrology model",
+    description="A Python package for running and validating a hydrology model",
     long_description=readme + '\n\n',
     author="Stefan Verhoeven",
     author_email='s.verhoeven@esciencecenter.nl',
-    url='https://github.com/eWaterCycle/ewatercycle_parametersetdb',
-    install_requires=['ruamel.yaml'],
-    packages=['ewatercycle.parametersetdb'],
-    include_package_data=True,
+    url='https://github.com/eWaterCycle/ewatercycle',
+    install_requires=[
+        'basic_modeling_interface',
+        'cftime',
+        'esmvaltool',
+        'grpc4bmi>=0.2.12,<0.3',
+        'hydrostats',
+        'matplotlib',
+        'numpy',
+        'pandas',
+        'pyoos',
+        'python-dateutil',
+        'ruamel.yaml',
+        'scipy',
+        'xarray',
+    ],
+    packages=find_packages(),
+    package_data={
+        "": ["*.yaml"],
+    },
     license="Apache Software License 2.0",
     zip_safe=False,
     keywords='ewatercycle',
@@ -30,24 +46,31 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-    ],
-    test_suite='tests',
-    setup_requires=[
-        # dependency for `python setup.py test`
-        'pytest-runner',
-        # dependencies for `python setup.py build_sphinx`
-        'sphinx',
-        'recommonmark',
-        'sphinx_rtd_theme',
-    ],
-    tests_require=[
-        'pytest',
-        'pytest-cov',
-        'pycodestyle',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
     extras_require={
-        'dev':  ['prospector[with_pyroma]', 'yapf', 'isort'],
+        'dev':  [
+            # Test
+            'deepdiff',
+            'pytest',
+            'pytest-cov',
+            'pytest-mypy',
+            'pytest-runner',
+            'types-python-dateutil',
+            # Linters
+            'isort',
+            'prospector[with_pyroma,with_mypy]',
+            'pycodestyle',
+            'yapf',
+            # Dependencies for documentation generation
+            'nbsphinx',
+            'recommonmark',
+            'sphinx',
+            'sphinx_rtd_theme',
+            # ipython syntax highlighting is required in doc notebooks
+            'ipython',
+         ],
     }
 )

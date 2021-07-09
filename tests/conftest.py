@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from pathlib import Path
 
 import pytest
 
@@ -37,3 +38,15 @@ def sample_parameterset(yaml_config_url):
         config_format='yaml', config_url=yaml_config_url,
         datafiles_format='svn', datafiles_url='http://example.com',
     )
+
+
+@pytest.fixture
+def sample_shape():
+    return str(Path(__file__).parent / 'models' / 'data' / 'Rhine' / 'Rhine.shp')
+
+
+@pytest.fixture
+def sample_marrmot_forcing_file():
+    # Downloaded from
+    # https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
+    return str(Path(__file__).parent / 'models' / 'data' / 'BMI_testcase_m01_BuffaloRiver_TN_USA.mat')
