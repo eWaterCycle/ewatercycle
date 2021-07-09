@@ -2,7 +2,7 @@ import datetime
 import logging
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any, Iterable, Tuple
+from typing import Any, Iterable, Tuple, cast
 
 import numpy as np
 import xarray as xr
@@ -269,7 +269,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             idx_lon, idx_lat = find_closest_point(
                 grid_lon, grid_lat, point_lon, point_lat
             )
-            idx_flat: int = np.ravel_multi_index((idx_lat, idx_lon), shape)
+            idx_flat = cast(int, np.ravel_multi_index((idx_lat, idx_lon), shape))
             indices.append(idx_flat)
 
             logger.debug(
