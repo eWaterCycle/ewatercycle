@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
@@ -124,10 +125,17 @@ def test_setup_with_custom_cfg_dir(model, tmp_path):
     assert cfg_file == str(Path(my_cfg_dir) / "wflow_ewatercycle.ini")
 
 
-def test_get_value_as_coords(initialized_model):
+def test_get_value_as_coords(initialized_model, caplog):
     model = initialized_model
 
-    expected = np.array([1.0])
-    result = model.get_value_at_coords("discharge", lon=[5.2], lat=[46.8])
-    assert result == expected
+    with caplog.at_level(logging.DEBUG):
+        result = model.get_value_at_coords("discharge", lon=[5.2], lat=[46.8])
+
+    msg = (
+        "Requested point was lon: 5.2, lat: 46.8;"
+        " closest grid point is 5.00, 47.00."
+    )
+
+    assert msg in caplog.text
+    assert result == np.array([1.0])
     assert model.bmi.indices == [4]

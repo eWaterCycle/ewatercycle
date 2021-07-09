@@ -1,3 +1,4 @@
+import logging
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -121,11 +122,19 @@ class TestLFlatlonUseCase:
 
     class TestGetValueAtCoords:
 
-        def test_get_value_at_coords_single(self, model: Lisflood):
-            expected = np.array([1.0])
+        def test_get_value_at_coords_single(self, caplog, model: Lisflood):
             model.bmi = MockedBmi()
-            actual = model.get_value_at_coords('Discharge', lon=[-124.35], lat=[52.93])
-            assert_array_equal(actual, expected)
+
+            with caplog.at_level(logging.DEBUG):
+                result = model.get_value_at_coords('Discharge', lon=[-124.35], lat=[52.93])
+
+            msg = (
+                "Requested point was lon: -124.35, lat: 52.93;"
+                " closest grid point is -124.35, 52.95."
+            )
+
+            assert msg in caplog.text
+            assert result == np.array([1.0])
             assert model.bmi.indices == [311]
 
         def test_get_value_at_coords_multiple(self, model: Lisflood):
