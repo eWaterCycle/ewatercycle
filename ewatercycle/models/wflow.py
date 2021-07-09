@@ -129,11 +129,11 @@ class Wflow(AbstractModel[WflowForcing]):
                 )
             except FutureTimeoutError:
                 raise ValueError(
-                    "Couldn't spawn the singularity container within allocated"
-                    " time limit (15 seconds). You may try building it with "
-                    f"`!singularity run docker://{self.docker_image}` and try "
-                    "again. Please also inform the system administrator that "
-                    "the singularity image was missing.")
+                    "Couldn't spawn container within allocated time limit "
+                    "(15 seconds). You may try pulling the docker image with"
+                    f" `docker pull {self.docker_image}` or call `singularity "
+                    f"exec docker://{self.docker_image} run-bmi-server -h`"
+                    "if you're using singularity, and then try again.")
         else:
             raise ValueError(
                 f"Unknown container technology: {CFG['container_engine']}")
