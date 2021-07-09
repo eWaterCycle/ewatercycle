@@ -145,7 +145,7 @@ class Wflow(AbstractModel[WflowForcing]):
                 raise ValueError(
                     "Couldn't spawn the singularity container within allocated"
                     " time limit (15 seconds). You may try building it with "
-                    f"`!singularity run docker://{self.docker_image}` and try "
+                    f"`!singularity run docker://{self.docker_image} run-bmi-server -h` and try "
                     "again. Please also inform the system administrator that "
                     "the singularity image was missing."
                 )
