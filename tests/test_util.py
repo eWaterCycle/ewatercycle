@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
+from pathlib import Path
 
 import pytest
 
-from ewatercycle.util import get_time, find_closest_point
+from ewatercycle.util import get_time, find_closest_point, to_absolute_path
 from numpy.testing import assert_array_almost_equal
 
 
@@ -32,3 +33,53 @@ def test_find_closest_point():
     actual_distances, actual_index = find_closest_point([-99.83, -99.32], [42.25, 42.21], -99.32, 43.25)
     assert_array_almost_equal(actual_distances, expected_distances)
     assert actual_index == expected_index
+
+
+def test_to_absolute_path():
+    input_path = "~/nonexistent_file.txt"
+    parsed = to_absolute_path(input_path)
+    expected = Path.home() / "nonexistent_file.txt"
+    assert parsed == expected
+
+
+def test_to_absolute_path_must_exist():
+    input_path = "~/nonexistent_file.txt"
+    with pytest.raises(FileNotFoundError):
+        to_absolute_path(input_path, must_exist=True)
+
+
+def test_to_absolute_path_with_absolute_input_and_parent(tmp_path):
+    input_path = tmp_path / "nonexistent_file.txt"
+    parsed = to_absolute_path(str(input_path), parent = tmp_path)
+    assert parsed == input_path
+
+
+def test_to_absolute_path_with_relative_input_and_parent(tmp_path):
+    input_path = "nonexistent_file.txt"
+    parsed = to_absolute_path(input_path, parent = tmp_path)
+    expected = tmp_path / "nonexistent_file.txt"
+    assert parsed == expected
+
+
+def test_to_absolute_path_with_relative_input_and_no_parent():
+    input_path = "nonexistent_file.txt"
+    parsed = to_absolute_path(input_path)
+    expected =  Path.cwd() / "nonexistent_file.txt"
+    assert parsed == expected
+
+
+def test_to_absolute_path_with_relative_input_and_relative_parent():
+    input_path = "nonexistent_file.txt"
+    parsed = to_absolute_path(input_path, parent = Path('.'))
+    expected =  Path.cwd() / "nonexistent_file.txt"
+    assert parsed == expected
+
+
+def test_to_absolute_path_with_absolute_input_and_nonrelative_parent(tmp_path):
+    parent = tmp_path / 'parent_dir'
+    input_path = tmp_path / "nonexistent_file.txt"
+
+    with pytest.raises(ValueError)as excinfo:
+        to_absolute_path(str(input_path), parent = parent)
+
+    assert "is not a subpath of parent" in str(excinfo.value)

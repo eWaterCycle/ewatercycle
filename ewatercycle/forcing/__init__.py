@@ -6,6 +6,8 @@ from ruamel.yaml import YAML
 from ._default import DefaultForcing, FORCING_YAML
 from . import _hype, _lisflood, _marrmot, _pcrglobwb, _wflow
 
+from ewatercycle.util import to_absolute_path
+
 FORCING_CLASSES: Dict[str, Type[DefaultForcing]] = {
     "hype": _hype.HypeForcing,
     "lisflood": _lisflood.LisfloodForcing,
@@ -25,17 +27,18 @@ def load(directory: str) -> DefaultForcing:
     Returns: Forcing object
     """
     yaml = YAML()
-    source = Path(directory) / FORCING_YAML
+    source = to_absolute_path(directory)
     # TODO give nicer error
     yaml.register_class(DefaultForcing)
     for forcing_cls in FORCING_CLASSES.values():
         yaml.register_class(forcing_cls)
-    content = source.read_text()
     # Set directory in yaml string to parent of yaml file
     # Because in DefaultForcing.save the directory was removed
-    abs_dir = str(source.parent.expanduser().resolve())
-    content += f'directory: {abs_dir}\n'
-    forcing_info = yaml.load(content)
+    forcing_info = yaml.load(source / FORCING_YAML)
+    forcing_info.directory = source
+    if forcing_info.shape:
+        forcing_info.shape = to_absolute_path(forcing_info.shape, parent = source)
+
     return forcing_info
 
 
