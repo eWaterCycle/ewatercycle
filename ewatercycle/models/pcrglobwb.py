@@ -1,6 +1,7 @@
 import datetime
+import logging
 from os import PathLike
-from typing import Any, Iterable, Tuple
+from typing import Any, Iterable, Tuple, cast
 
 import numpy as np
 import xarray as xr
@@ -14,7 +15,9 @@ from ewatercycle.forcing._pcrglobwb import PCRGlobWBForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser
-from ewatercycle.util import get_time, to_absolute_path
+from ewatercycle.util import find_closest_point, get_time, to_absolute_path
+
+logger = logging.getLogger(__name__)
 
 
 class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
@@ -53,8 +56,12 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
             self.work_dir = to_absolute_path(cfg_dir)
         else:
             # Must exist before setting up default config
-            timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
-            self.work_dir = to_absolute_path(f"pcrglobwb_{timestamp}", parent=CFG["output_dir"])
+            timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
+                "%Y%m%d_%H%M%S"
+            )
+            self.work_dir = to_absolute_path(
+                f"pcrglobwb_{timestamp}", parent=CFG["output_dir"]
+            )
         self.work_dir.mkdir(parents=True, exist_ok=True)
 
     def _setup_default_config(self):
@@ -78,14 +85,18 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
             "meteoOptions",
             "temperatureNC",
             str(
-                to_absolute_path(self.forcing.temperatureNC, parent=self.forcing.directory)
+                to_absolute_path(
+                    self.forcing.temperatureNC, parent=self.forcing.directory
+                )
             ),
         )
         cfg.set(
             "meteoOptions",
             "precipitationNC",
             str(
-                 to_absolute_path(self.forcing.precipitationNC, parent=self.forcing.directory)
+                to_absolute_path(
+                    self.forcing.precipitationNC, parent=self.forcing.directory
+                )
             ),
         )
 
@@ -161,7 +172,9 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
     def _export_config(self) -> PathLike:
         self.config.set("globalOptions", "outputDir", str(self.work_dir))
-        new_cfg_file = to_absolute_path("pcrglobwb_ewatercycle.ini", parent=self.work_dir)
+        new_cfg_file = to_absolute_path(
+            "pcrglobwb_ewatercycle.ini", parent=self.work_dir
+        )
         with new_cfg_file.open("w") as filename:
             self.config.write(filename)
 
@@ -193,6 +206,37 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
             raise ValueError(
                 f"Unknown container technology in CFG: {CFG['container_engine']}"
             )
+
+    def _coords_to_indices(
+        self, name: str, lat: Iterable[float], lon: Iterable[float]
+    ) -> Iterable[int]:
+        """Converts lat/lon values to index.
+
+        Args:
+            lat: Latitudinal value
+            lon: Longitudinal value
+
+        """
+        grid_id = self.bmi.get_var_grid(name)
+        shape = self.bmi.get_grid_shape(grid_id)  # (len(x), len(y))
+        grid_lat = self.bmi.get_grid_x(grid_id)  # x is latitude
+        grid_lon = self.bmi.get_grid_y(grid_id)  # y is longitude
+
+        indices = []
+        for point_lon, point_lat in zip(lon, lat):
+            idx_lon, idx_lat = find_closest_point(
+                grid_lon, grid_lat, point_lon, point_lat
+            )
+            idx_flat = cast(int, np.ravel_multi_index((idx_lat, idx_lon), shape))
+            indices.append(idx_flat)
+
+            logger.debug(
+                f"Requested point was lon: {point_lon}, lat: {point_lat}; "
+                "closest grid point is "
+                f"{grid_lon[idx_lon]:.2f}, {grid_lat[idx_lat]:.2f}."
+            )
+
+        return indices
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
