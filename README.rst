@@ -46,17 +46,54 @@ See the `system setup chapter <https://ewatercycle.readthedocs.org/en/latest/sys
 Usage
 -----
 
+To generate forcing for a hydrological model in this case PCRGlobWB, run it and produce a hydrograph:
+
 .. code-block:: python
 
-    from ewatercycle.parametersetdb import build_from_urls
-    parameter_set = build_from_urls(
-        config_format='svn', config_url='https://github.com/ClaudiaBrauer/WALRUS/trunk/demo/data',
-        datafiles_format='yaml', datafiles_url="data:text/plain,data: data/PEQ_Hupsel.dat\nparameters:\n  cW: 200\n  cV: 4\n  cG: 5.0e+6\n  cQ: 10\n  cS: 4\n  dG0: 1250\n  cD: 1500\n  aS: 0.01\n  st: loamy_sand\nstart: 367416 # 2011120000\nend: 368904 # 2012020000\nstep: 1\n",
+    import ewatercycle.models
+    import ewatercycle.forcing
+    import ewatercycle.observation.grdc
+    import ewatercycle.parameter_sets
+
+    parameter_set = ewatercycle.parameter_sets.get_parameter_set('pcrglobwb_example_case')
+
+    forcing = forcing.generate(
+        model='pcrglobwb',
+        dataset='ERA5',
+        startyear=1991,
+        endyear=1991,
+        shape='Meuse/Meuse.shp',
+        model_specific_options=dict(
+            startyear_climatology=1990,
+            endyear_climatology=1990,
+        )
     )
-    # Overwrite items in config file
-    # parameter_set.config['...']['...'] = '...'
-    parameter_set.save_datafiles('./input')
-    parameter_set.save_config('config.cfg')
+
+    model = ewatercycle.models.PCRGlobWB(version="setters", parameter_set=parameter_set, forcing=forcing)
+
+    cfg_file, cfg_dir = model.setup(max_spinups_in_years=1)
+
+    model.initialize(cfg_file)
+
+    observations_df, station_info = ewatercycle.observation.grdc.get_grdc_data(
+        station_id=4147380,
+        start_date=model.start_time_as_isostr,
+        end_date=model.end_time_as_isostr,
+    )
+    station_lon = station_info['grdc_longitude_in_arc_degree']
+    station_lat = station_info['grdc_latitude_in_arc_degree']
+
+    simulated_discharge = []
+    timestamps = []
+    while (model.time < model.end_time):
+        model.update()
+        discharge = model.get_value_at_coords('discharge', lat=[station_lat], lon=[station_lon])
+        simulated_discharge.append(discharge)
+        timestamps.append(model.time_as_datetime)
+    simulated_discharge_df = pd.DataFrame([simulated_discharge], index=pd.to_datetime(timestamps), columns=['discharge'])
+
+    ewatercycle.analysis.hydrograph(simulated_discharge_df.join(observations_df), reference='streamflow')
+
 
 CITATION.cff
 ------------
