@@ -66,6 +66,9 @@ class TestGenerateRegionFromShapeFile:
             start_time='1989-01-02T00:00:00Z',
             end_time='1999-01-02T00:00:00Z',
             shape=sample_shape,
+            model_specific_options={
+                'run_lisvap': 'True',
+            },
         )
 
     @pytest.fixture

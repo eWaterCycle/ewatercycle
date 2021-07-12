@@ -53,6 +53,7 @@ class LisfloodForcing(DefaultForcing):
         end_time: str,
         shape: str,
         extract_region: dict = None,
+        run_lisvap: bool = False,
     ) -> 'LisfloodForcing':
         """
             extract_region (dict): Region specification, dictionary must contain `start_longitude`,
@@ -103,16 +104,26 @@ class LisfloodForcing(DefaultForcing):
         # TODO forcing_files['e0'] = ...
 
         # instantiate forcing object based on generated data
-        return LisfloodForcing(
-            directory=directory,
-            start_time=start_time,
-            end_time=end_time,
-            PrefixPrecipitation=forcing_files["pr"],
-            PrefixTavg=forcing_files["tas"],
-            PrefixE0=forcing_files['e0'],
-            PrefixES0=forcing_files['es0'],
-            PrefixET0=forcing_files['et0'],
-        )
+        if run_lisvap:
+            return LisfloodForcing(
+                directory=directory,
+                start_time=start_time,
+                end_time=end_time,
+                PrefixPrecipitation=forcing_files["pr"],
+                PrefixTavg=forcing_files["tas"],
+                PrefixE0=forcing_files['e0'],
+                PrefixES0=forcing_files['es0'],
+                PrefixET0=forcing_files['et0'],
+            )
+        else:
+            return LisfloodForcing(
+                directory=directory,
+                start_time=start_time,
+                end_time=end_time,
+                PrefixPrecipitation=forcing_files["pr"],
+                PrefixTavg=forcing_files["tas"],
+            )
+
 
     def plot(self):
         raise NotImplementedError('Dont know how to plot')
