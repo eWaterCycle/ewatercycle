@@ -58,22 +58,24 @@ To generate forcing for a hydrological model in this case PCRGlobWB, run it and 
 
 .. code-block:: python
 
-    import ewatercycle.models
+    import pandas as pd
+    import ewatercycle.analysis
     import ewatercycle.forcing
+    import ewatercycle.models
     import ewatercycle.observation.grdc
     import ewatercycle.parameter_sets
 
     parameter_set = ewatercycle.parameter_sets.get_parameter_set('pcrglobwb_example_case')
 
-    forcing = forcing.generate(
-        model='pcrglobwb',
+    forcing = ewatercycle.forcing.generate(
+        target_model='pcrglobwb',
         dataset='ERA5',
-        startyear=1991,
-        endyear=1991,
+        start_time='1991-01-01T00:00:00Z',
+        end_time='1991-12-31T00:00:00Z',
         shape='Meuse/Meuse.shp',
         model_specific_options=dict(
-            startyear_climatology=1990,
-            endyear_climatology=1990,
+            start_time_climatology='1990-01-01T00:00:00Z',
+            end_time_climatology='1990-12-31T00:00:00Z',
         )
     )
 
@@ -84,7 +86,7 @@ To generate forcing for a hydrological model in this case PCRGlobWB, run it and 
     model.initialize(cfg_file)
 
     observations_df, station_info = ewatercycle.observation.grdc.get_grdc_data(
-        station_id=4147380,
+        station_id=6421500,
         start_date=model.start_time_as_isostr,
         end_date=model.end_time_as_isostr,
     )
@@ -98,9 +100,11 @@ To generate forcing for a hydrological model in this case PCRGlobWB, run it and 
         discharge = model.get_value_at_coords('discharge', lat=[station_lat], lon=[station_lon])
         simulated_discharge.append(discharge)
         timestamps.append(model.time_as_datetime)
-    simulated_discharge_df = pd.DataFrame([simulated_discharge], index=pd.to_datetime(timestamps), columns=['discharge'])
+    simulated_discharge_df = pd.DataFrame({'discharge': simulated_discharge}, index=pd.to_datetime(timestamps))
 
     ewatercycle.analysis.hydrograph(simulated_discharge_df.join(observations_df), reference='streamflow')
+
+    model.finalize()
 
 More examples can be found in the `documentation <https://ewatercycle.readthedocs.io>`_.
 
