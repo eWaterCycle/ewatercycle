@@ -5,7 +5,7 @@ from typing import Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ..util import get_time
+from ..util import get_time, to_absolute_path
 from ._default import DefaultForcing
 from .datasets import DATASETS
 
@@ -40,7 +40,7 @@ class HypeForcing(DefaultForcing):
 
         for preproc_name in preproc_names:
             recipe.data['preprocessors'][preproc_name]['extract_shape'][
-                'shapefile'] = shape
+                'shapefile'] = to_absolute_path(shape)
 
         recipe.data['datasets'] = [DATASETS[dataset]]
 

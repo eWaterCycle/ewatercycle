@@ -4,7 +4,7 @@ from typing import Dict, Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ..util import get_extents, get_time
+from ..util import get_extents, get_time, to_absolute_path
 from ._default import DefaultForcing
 from .datasets import DATASETS
 
@@ -61,7 +61,7 @@ class WflowForcing(DefaultForcing):
         recipe_name = "hydrology/recipe_wflow.yml"
         recipe = get_recipe(recipe_name)
 
-        basin = Path(shape).stem
+        basin = to_absolute_path(shape).stem
         recipe.data['diagnostics']['wflow_daily']['scripts']['script'][
             'basin'] = basin
 
@@ -70,7 +70,7 @@ class WflowForcing(DefaultForcing):
         script['dem_file'] = dem_file
 
         if extract_region is None:
-            extract_region = get_extents(shape)
+            extract_region = get_extents(to_absolute_path(shape))
         recipe.data['preprocessors']['rough_cutout'][
             'extract_region'] = extract_region
 

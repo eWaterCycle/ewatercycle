@@ -5,7 +5,7 @@ from typing import Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ..util import data_files_from_recipe_output, get_extents, get_time
+from ..util import data_files_from_recipe_output, get_extents, get_time, to_absolute_path
 from ._default import DefaultForcing
 from .datasets import DATASETS
 
@@ -69,7 +69,7 @@ class LisfloodForcing(DefaultForcing):
         preproc_names = ('general', 'daily_water', 'daily_temperature',
                          'daily_radiation', 'daily_windspeed')
 
-        basin = Path(shape).stem
+        basin = to_absolute_path(shape).stem
         for preproc_name in preproc_names:
             recipe.data['preprocessors'][preproc_name]['extract_shape'][
                 'shapefile'] = shape
@@ -77,7 +77,7 @@ class LisfloodForcing(DefaultForcing):
             'catchment'] = basin
 
         if extract_region is None:
-            extract_region = get_extents(shape)
+            extract_region = get_extents(to_absolute_path(shape))
         for preproc_name in preproc_names:
             recipe.data['preprocessors'][preproc_name][
                 'extract_region'] = extract_region
