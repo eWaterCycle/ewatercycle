@@ -91,11 +91,11 @@ class PCRGlobWBForcing(DefaultForcing):
 
         var_names_climatology = "pr_climatology", "tas_climatology"
 
-        startyear_climatology = get_time(start_time_climatology)
+        startyear_climatology = get_time(start_time_climatology).year
         for var_name in var_names_climatology:
             variables[var_name]["start_year"] = startyear_climatology
 
-        endyear_climatology = get_time(end_time_climatology)
+        endyear_climatology = get_time(end_time_climatology).year
         for var_name in var_names_climatology:
             variables[var_name]["end_year"] = endyear_climatology
 
