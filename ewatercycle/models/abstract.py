@@ -220,19 +220,25 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
     def start_time_as_datetime(self) -> datetime:
         """Start time of the model as a datetime object.
         """
-        return num2date(self.bmi.get_start_time(), self.bmi.get_time_units())
+        return num2date(self.bmi.get_start_time(),
+                        self.bmi.get_time_units(),
+                        only_use_cftime_datetimes=False)
 
     @property
     def end_time_as_datetime(self) -> datetime:
         """End time of the model as a datetime object'.
         """
-        return num2date(self.bmi.get_end_time(), self.bmi.get_time_units())
+        return num2date(self.bmi.get_end_time(),
+                        self.bmi.get_time_units(),
+                        only_use_cftime_datetimes=False)
 
     @property
     def time_as_datetime(self) -> datetime:
         """Current time of the model as a datetime object'.
         """
-        return num2date(self.bmi.get_current_time(), self.bmi.get_time_units())
+        return num2date(self.bmi.get_current_time(),
+                        self.bmi.get_time_units(),
+                        only_use_cftime_datetimes=False)
 
     def _check_parameter_set(self):
         if not self.parameter_set:
