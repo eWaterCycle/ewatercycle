@@ -1,7 +1,7 @@
 """Forcing related functionality for lisflood"""
 
-from pathlib import Path
 from typing import Optional
+import logging
 
 from esmvalcore.experimental import get_recipe
 
@@ -9,6 +9,7 @@ from ..util import data_files_from_recipe_output, get_extents, get_time, to_abso
 from ._default import DefaultForcing
 from .datasets import DATASETS
 
+logger = logging.getLogger(__name__)
 
 class LisfloodForcing(DefaultForcing):
     """Container for lisflood forcing data."""
@@ -58,7 +59,7 @@ class LisfloodForcing(DefaultForcing):
         """
             extract_region (dict): Region specification, dictionary must contain `start_longitude`,
                 `end_longitude`, `start_latitude`, `end_latitude`
-
+            run_lisvap (bool): if lisvap should be run. Default is False. Running lisvap is not supported yet.
             TODO add regrid options so forcing can be generated for parameter set
             TODO that is not on a 0.1x0.1 grid
         """
@@ -105,17 +106,12 @@ class LisfloodForcing(DefaultForcing):
 
         # instantiate forcing object based on generated data
         if run_lisvap:
-            return LisfloodForcing(
-                directory=directory,
-                start_time=start_time,
-                end_time=end_time,
-                PrefixPrecipitation=forcing_files["pr"],
-                PrefixTavg=forcing_files["tas"],
-                PrefixE0=forcing_files['e0'],
-                PrefixES0=forcing_files['es0'],
-                PrefixET0=forcing_files['et0'],
-            )
+            raise NotImplementedError('Dont know how to run LISVAP.')
         else:
+            message = (
+                f"The run_lisvap is False. Therefore, LISFLOOD forcing data 'e0', 'es0' and 'et0' are not generated. "
+                f"However, the recipe creates LISVAP input data that can be found in {directory}.")
+            logger.warning("%s", message)
             return LisfloodForcing(
                 directory=directory,
                 start_time=start_time,

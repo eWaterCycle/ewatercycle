@@ -42,9 +42,6 @@ def mock_recipe_run(monkeypatch, tmp_path):
         data_files = (
             create_netcdf('pr', tmp_path / 'lisflood_pr.nc'),
             create_netcdf('tas', tmp_path / 'lisflood_tas.nc'),
-            create_netcdf('e0', tmp_path / 'lisflood_e0.nc'),
-            create_netcdf('es0', tmp_path / 'lisflood_es0.nc'),
-            create_netcdf('et0', tmp_path / 'lisflood_et0.nc'),
         )
 
     def mock_run(self):
@@ -66,9 +63,6 @@ class TestGenerateRegionFromShapeFile:
             start_time='1989-01-02T00:00:00Z',
             end_time='1999-01-02T00:00:00Z',
             shape=sample_shape,
-            model_specific_options={
-                'run_lisvap': 'True',
-            },
         )
 
     @pytest.fixture
@@ -266,10 +260,7 @@ class TestGenerateRegionFromShapeFile:
                                    start_time='1989-01-02T00:00:00Z',
                                    end_time='1999-01-02T00:00:00Z',
                                    PrefixPrecipitation='lisflood_pr.nc',
-                                   PrefixTavg='lisflood_tas.nc',
-                                   PrefixE0='lisflood_e0.nc',
-                                   PrefixES0='lisflood_es0.nc',
-                                   PrefixET0='lisflood_et0.nc')
+                                   PrefixTavg='lisflood_tas.nc')
         assert forcing == expected
 
     def test_recipe_configured(self, forcing, mock_recipe_run,
