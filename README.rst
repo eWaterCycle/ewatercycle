@@ -70,12 +70,12 @@ Example using the `PCRGlobWB <https://github.com/UU-Hydro/PCR-GLOBWB_model>`_ hy
     forcing = ewatercycle.forcing.generate(
         target_model='pcrglobwb',
         dataset='ERA5',
-        start_time='1991-01-01T00:00:00Z',
-        end_time='1991-12-31T00:00:00Z',
+        start_time='1992-01-01T00:00:00Z',
+        end_time='1992-12-31T00:00:00Z',
         shape='Meuse/Meuse.shp',
         model_specific_options=dict(
-            start_time_climatology='1990-01-01T00:00:00Z',
-            end_time_climatology='1990-12-31T00:00:00Z',
+            start_time_climatology='1991-01-01T00:00:00Z',
+            end_time_climatology='1991-12-31T00:00:00Z',
         )
     )
 
@@ -87,8 +87,8 @@ Example using the `PCRGlobWB <https://github.com/UU-Hydro/PCR-GLOBWB_model>`_ hy
 
     observations_df, station_info = ewatercycle.observation.grdc.get_grdc_data(
         station_id=6421500,
-        start_date=model.start_time_as_isostr,
-        end_date=model.end_time_as_isostr,
+        start_time=model.start_time_as_isostr,
+        end_time=model.end_time_as_isostr,
     )
     station_lon = station_info['grdc_longitude_in_arc_degree']
     station_lat = station_info['grdc_latitude_in_arc_degree']
