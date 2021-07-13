@@ -54,7 +54,7 @@ See the `system setup chapter <https://ewatercycle.readthedocs.org/en/latest/sys
 Usage
 -----
 
-To generate forcing for a hydrological model in this case PCRGlobWB, run it and produce a hydrograph:
+Example using the `PCRGlobWB <https://github.com/UU-Hydro/PCR-GLOBWB_model>`_ hydrological model to generate forcing, run it and produce a hydrograph.
 
 .. code-block:: python
 
