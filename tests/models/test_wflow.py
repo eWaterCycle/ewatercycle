@@ -176,7 +176,7 @@ def test_get_value_as_coords(initialized_model, caplog):
         result = model.get_value_at_coords("discharge", lon=[5.2], lat=[46.8])
 
     msg = (
-        "Requested point was lon: 5.2, lat: 46.8;" " closest grid point is 5.00, 47.00."
+        "Requested point was lon: 5.2, lat: 46.8; closest grid point is 5.00, 47.00."
     )
 
     assert msg in caplog.text
