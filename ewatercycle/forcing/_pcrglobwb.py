@@ -72,7 +72,7 @@ class PCRGlobWBForcing(DefaultForcing):
         ] = basin
 
         if extract_region is None:
-            extract_region = get_extents(to_absolute_path(shape))
+            extract_region = get_extents(shape)
         for preproc_name in preproc_names:
             recipe.data["preprocessors"][preproc_name][
                 "extract_region"

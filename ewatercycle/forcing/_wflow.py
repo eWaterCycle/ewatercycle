@@ -70,7 +70,7 @@ class WflowForcing(DefaultForcing):
         script['dem_file'] = dem_file
 
         if extract_region is None:
-            extract_region = get_extents(to_absolute_path(shape))
+            extract_region = get_extents(shape)
         recipe.data['preprocessors']['rough_cutout'][
             'extract_region'] = extract_region
 
