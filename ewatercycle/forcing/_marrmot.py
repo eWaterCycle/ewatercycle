@@ -75,6 +75,7 @@ class MarrmotForcing(DefaultForcing):
         return MarrmotForcing(directory=directory,
                               start_time=start_time,
                               end_time=end_time,
+                              shape=shape,
                               forcing_file=forcing_file.name)
 
     def plot(self):

@@ -116,6 +116,7 @@ class LisfloodForcing(DefaultForcing):
                 directory=directory,
                 start_time=start_time,
                 end_time=end_time,
+                shape=shape,
                 PrefixPrecipitation=forcing_files["pr"],
                 PrefixTavg=forcing_files["tas"],
             )

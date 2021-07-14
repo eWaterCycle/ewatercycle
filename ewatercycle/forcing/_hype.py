@@ -67,7 +67,8 @@ class HypeForcing(DefaultForcing):
         # instantiate forcing object based on generated data
         return HypeForcing(directory=directory,
                            start_time=str(startyear),
-                           end_time=str(endyear))
+                           end_time=str(endyear),
+                           shape=shape)
 
     def plot(self):
         raise NotImplementedError('Dont know how to plot')

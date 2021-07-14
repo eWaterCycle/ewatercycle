@@ -255,10 +255,11 @@ class TestGenerateRegionFromShapeFile:
             }
         }
 
-    def test_result(self, forcing, tmp_path):
+    def test_result(self, forcing, tmp_path, sample_shape):
         expected = LisfloodForcing(directory=str(tmp_path),
                                    start_time='1989-01-02T00:00:00Z',
                                    end_time='1999-01-02T00:00:00Z',
+                                   shape=str(sample_shape),
                                    PrefixPrecipitation='lisflood_pr.nc',
                                    PrefixTavg='lisflood_tas.nc')
         assert forcing == expected
@@ -280,5 +281,7 @@ class TestGenerateRegionFromShapeFile:
 
     def test_saved_yaml(self, forcing, tmp_path):
         saved_forcing = load(tmp_path)
+        # shape should is not included in the yaml file
+        forcing.shape = None
 
         assert forcing == saved_forcing

@@ -100,6 +100,7 @@ class WflowForcing(DefaultForcing):
         return WflowForcing(directory=directory,
                             start_time=start_time,
                             end_time=end_time,
+                            shape=shape,
                             netcdfinput=forcing_file.name)
 
     def __str__(self):

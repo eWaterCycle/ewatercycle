@@ -109,6 +109,7 @@ class PCRGlobWBForcing(DefaultForcing):
             directory=directory,
             start_time=start_time,
             end_time=end_time,
+            shape=shape,
             precipitationNC=forcing_files["pr"],
             temperatureNC=forcing_files["tas"],
         )
