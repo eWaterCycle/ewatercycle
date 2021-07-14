@@ -37,7 +37,7 @@ def create_netcdf(var_name, filename):
 def mock_recipe_run(monkeypatch, tmp_path):
     """Overload the `run` method on esmvalcore Recipe's."""
     data = {}
-
+    # TODO add lisvap input files once implemented, see issue #96
     class MockTaskOutput:
         data_files = (
             create_netcdf('pr', tmp_path / 'lisflood_pr.nc'),
