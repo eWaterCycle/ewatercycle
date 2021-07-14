@@ -108,7 +108,7 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
             lon: Longitudinal value
 
         """
-        indices, _, _ = self._coords_to_indices(name, lat, lon)
+        indices = self._coords_to_indices(name, lat, lon)
         indices = np.array(indices)
         return self.bmi.get_value_at_indices(name, indices)
 
@@ -132,12 +132,11 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
             value: The new value for the specified variable.
 
         """
-        indices, _, _ = self._coords_to_indices(name, lat, lon)
+        indices = self._coords_to_indices(name, lat, lon)
         indices = np.array(indices)
         self.bmi.set_value_at_indices(name, indices, values)
 
-    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Tuple[
-        Iterable[int], Iterable[float], Iterable[float]]:
+    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Iterable[int]:
         """Converts lat/lon values to index.
 
         Args:
@@ -221,19 +220,25 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
     def start_time_as_datetime(self) -> datetime:
         """Start time of the model as a datetime object.
         """
-        return num2date(self.bmi.get_start_time(), self.bmi.get_time_units())
+        return num2date(self.bmi.get_start_time(),
+                        self.bmi.get_time_units(),
+                        only_use_cftime_datetimes=False)
 
     @property
     def end_time_as_datetime(self) -> datetime:
         """End time of the model as a datetime object'.
         """
-        return num2date(self.bmi.get_end_time(), self.bmi.get_time_units())
+        return num2date(self.bmi.get_end_time(),
+                        self.bmi.get_time_units(),
+                        only_use_cftime_datetimes=False)
 
     @property
     def time_as_datetime(self) -> datetime:
         """Current time of the model as a datetime object'.
         """
-        return num2date(self.bmi.get_current_time(), self.bmi.get_time_units())
+        return num2date(self.bmi.get_current_time(),
+                        self.bmi.get_time_units(),
+                        only_use_cftime_datetimes=False)
 
     def _check_parameter_set(self):
         if not self.parameter_set:

@@ -399,7 +399,7 @@ file <https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01
 .. code:: shell
 
     cd docs/examples
-    wget https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
+    wget https://github.com/wknoben/MARRMoT/raw/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
     cd -
 
 Download observation data
