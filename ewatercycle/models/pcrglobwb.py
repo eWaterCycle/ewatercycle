@@ -42,6 +42,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
     ):
         super().__init__(version, parameter_set, forcing)
         self._set_docker_image()
+        self._set_singularity_image()
 
         self._setup_default_config()
 
@@ -50,6 +51,13 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
             "setters": "ewatercycle/pcrg-grpc4bmi:setters",
         }
         self.docker_image = images[self.version]
+
+    def _set_singularity_image(self):
+        images = {
+            "setters": "ewatercycle-pcrg-grpc4bmi-setters.sif",
+        }
+        image = CFG['singularity_dir'] / images[self.version]
+        self.singularity_image = str(image)
 
     def _setup_work_dir(self, cfg_dir: str = None):
         if cfg_dir:
@@ -197,7 +205,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
             )
         elif CFG["container_engine"] == "singularity":
             self.bmi = BmiClientSingularity(
-                image=f"docker://{self.docker_image}",
+                image=self.singularity_image,
                 work_dir=str(self.work_dir),
                 input_dirs=additional_input_dirs,
                 timeout=15,
