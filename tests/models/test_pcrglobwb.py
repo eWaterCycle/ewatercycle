@@ -51,7 +51,9 @@ def mocked_config(tmp_path):
 
 @pytest.fixture
 def parameter_set(mocked_config):
-    example_parameter_set = example_parameter_sets()["pcrglobwb_example_case"]
+    example_parameter_set = example_parameter_sets()[
+        "pcrglobwb_rhinemeuse_30min"
+    ]
     example_parameter_set.download()
     example_parameter_set.to_config()
     return example_parameter_set
