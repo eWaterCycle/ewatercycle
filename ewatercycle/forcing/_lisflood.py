@@ -109,7 +109,7 @@ class LisfloodForcing(DefaultForcing):
             raise NotImplementedError('Dont know how to run LISVAP.')
         else:
             message = (
-                f"The run_lisvap is False. Therefore, LISFLOOD forcing data 'e0', 'es0' and 'et0' are not generated. "
+                f"Parameter `run_lisvap` is set to False. No forcing data will be generator for 'e0', 'es0' and 'et0'. "
                 f"However, the recipe creates LISVAP input data that can be found in {directory}.")
             logger.warning("%s", message)
             return LisfloodForcing(
