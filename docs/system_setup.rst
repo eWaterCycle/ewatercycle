@@ -32,11 +32,11 @@ installer <https://docs.conda.io/en/latest/miniconda.html>`__.
 
 After conda is installed you can install the software dependencies with
 a `conda environment
-file <https://github.com/eWaterCycle/ewatercycle/blob/master/environment.yml>`__.
+file <https://github.com/eWaterCycle/ewatercycle/blob/main/environment.yml>`__.
 
 .. code:: shell
 
-    wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/master/environment.yml
+    wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/environment.yml
 
 .. code:: shell
 

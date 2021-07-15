@@ -2,7 +2,7 @@ name: SonarCloud analysis
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
       types: [opened, synchronize, reopened]
 
@@ -31,7 +31,7 @@ jobs:
     - name: Correct coverage paths
       run: sed -i "s+$PWD/++g" coverage.xml
     - name: SonarCloud Scan
-      uses: sonarsource/sonarcloud-github-action@master
+      uses: sonarsource/sonarcloud-github-action@main
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
