@@ -106,6 +106,16 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
                     )
                 ),
             )
+            cfg.set(
+                "meteoOptions",
+                "precipitationVariableName",
+                        self.forcing.precipitationVariableName
+            )
+            cfg.set(
+                "meteoOptions",
+                "temperatureVariableName",
+                        self.forcing.temperatureVariableName
+            )
 
         self.config = cfg
 

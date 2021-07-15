@@ -21,6 +21,8 @@ class PCRGlobWBForcing(DefaultForcing):
         shape: Optional[str] = None,
         precipitationNC: Optional[str] = "precipitation.nc",
         temperatureNC: Optional[str] = "temperature.nc",
+        precipitationVariableName: Optional[str] = 'pr',
+        temperatureVariableName: Optional[str] = 'tas'
     ):
         """
         precipitationNC (str): Input file for precipitation data.
@@ -29,6 +31,8 @@ class PCRGlobWBForcing(DefaultForcing):
         super().__init__(start_time, end_time, directory, shape)
         self.precipitationNC = precipitationNC
         self.temperatureNC = temperatureNC
+        self.precipitationVariableName = precipitationVariableName
+        self.temperatureVariableName = temperatureVariableName
 
     @classmethod
     def generate(  # type: ignore
@@ -128,7 +132,9 @@ class PCRGlobWBForcing(DefaultForcing):
                 f"End time: {self.end_time}",
                 f"Shapefile: {self.shape}",
                 f"Additional information for model config:",
-                f"  - temperatureNC: {self.temperatureNC}",
                 f"  - precipitationNC: {self.precipitationNC}",
+                f"  - temperatureNC: {self.temperatureNC}",
+                f"  - precipitationVariableName: {self.precipitationVariableName}",
+                f"  - temperatureVariableName: {self.temperatureVariableName}",
             ]
         )
