@@ -98,7 +98,7 @@ https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environme
 
 Make sure that Jupyter Lab is installed in the Conda environment:
 
-- ``wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/master/environment.yml``
+- ``wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/environment.yml``
 - ``conda env create --file environment.yml``
 - ``conda activate ewatercycle``
 - ``conda install -c conda-forge jupyterlab``

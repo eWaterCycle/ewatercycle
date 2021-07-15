@@ -1,14 +1,15 @@
 """Forcing related functionality for lisflood"""
 
-from pathlib import Path
 from typing import Optional
+import logging
 
 from esmvalcore.experimental import get_recipe
 
-from ..util import data_files_from_recipe_output, get_extents, get_time
+from ..util import data_files_from_recipe_output, get_extents, get_time, to_absolute_path
 from ._default import DefaultForcing
 from .datasets import DATASETS
 
+logger = logging.getLogger(__name__)
 
 class LisfloodForcing(DefaultForcing):
     """Container for lisflood forcing data."""
@@ -53,11 +54,12 @@ class LisfloodForcing(DefaultForcing):
         end_time: str,
         shape: str,
         extract_region: dict = None,
+        run_lisvap: bool = False,
     ) -> 'LisfloodForcing':
         """
             extract_region (dict): Region specification, dictionary must contain `start_longitude`,
                 `end_longitude`, `start_latitude`, `end_latitude`
-
+            run_lisvap (bool): if lisvap should be run. Default is False. Running lisvap is not supported yet.
             TODO add regrid options so forcing can be generated for parameter set
             TODO that is not on a 0.1x0.1 grid
         """
@@ -69,7 +71,7 @@ class LisfloodForcing(DefaultForcing):
         preproc_names = ('general', 'daily_water', 'daily_temperature',
                          'daily_radiation', 'daily_windspeed')
 
-        basin = Path(shape).stem
+        basin = to_absolute_path(shape).stem
         for preproc_name in preproc_names:
             recipe.data['preprocessors'][preproc_name]['extract_shape'][
                 'shapefile'] = shape
@@ -103,16 +105,22 @@ class LisfloodForcing(DefaultForcing):
         # TODO forcing_files['e0'] = ...
 
         # instantiate forcing object based on generated data
-        return LisfloodForcing(
-            directory=directory,
-            start_time=start_time,
-            end_time=end_time,
-            PrefixPrecipitation=forcing_files["pr"],
-            PrefixTavg=forcing_files["tas"],
-            PrefixE0=forcing_files['e0'],
-            PrefixES0=forcing_files['es0'],
-            PrefixET0=forcing_files['et0'],
-        )
+        if run_lisvap:
+            raise NotImplementedError('Dont know how to run LISVAP.')
+        else:
+            message = (
+                f"Parameter `run_lisvap` is set to False. No forcing data will be generator for 'e0', 'es0' and 'et0'. "
+                f"However, the recipe creates LISVAP input data that can be found in {directory}.")
+            logger.warning("%s", message)
+            return LisfloodForcing(
+                directory=directory,
+                start_time=start_time,
+                end_time=end_time,
+                shape=shape,
+                PrefixPrecipitation=forcing_files["pr"],
+                PrefixTavg=forcing_files["tas"],
+            )
+
 
     def plot(self):
         raise NotImplementedError('Dont know how to plot')

@@ -42,8 +42,7 @@ def sample_parameterset(yaml_config_url):
 
 @pytest.fixture
 def sample_shape():
-    return str(Path(__file__).parent / 'models' / 'data' / 'Rhine' / 'Rhine.shp')
-
+    return str(Path(__file__).parents[1] / 'docs' / 'examples' / 'data' / 'Rhine' / 'Rhine.shp')
 
 @pytest.fixture
 def sample_marrmot_forcing_file():

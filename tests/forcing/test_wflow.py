@@ -103,11 +103,12 @@ class TestGenerateWithExtractRegion:
             )
         )
 
-    def test_result(self, forcing, tmp_path):
+    def test_result(self, forcing, tmp_path, sample_shape):
         expected = WflowForcing(
             directory=str(tmp_path),
             start_time='1989-01-02T00:00:00Z',
             end_time='1999-01-02T00:00:00Z',
+            shape = str(sample_shape),
             netcdfinput='wflow_forcing.nc'
         )
         assert forcing == expected
@@ -117,5 +118,7 @@ class TestGenerateWithExtractRegion:
 
     def test_saved_yaml(self, forcing, tmp_path):
         saved_forcing = load(tmp_path)
+        # shape should is not included in the yaml file
+        forcing.shape = None
 
         assert forcing == saved_forcing
