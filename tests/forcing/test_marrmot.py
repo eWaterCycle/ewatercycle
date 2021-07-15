@@ -100,11 +100,12 @@ class TestGenerate:
                                                           }}}
         }
 
-    def test_result(self, forcing, tmp_path):
+    def test_result(self, forcing, tmp_path, sample_shape):
         expected = MarrmotForcing(
             directory=str(tmp_path),
             start_time='1989-01-02T00:00:00Z',
             end_time='1999-01-02T00:00:00Z',
+            shape = str(sample_shape),
             forcing_file='marrmot.mat'
         )
         assert forcing == expected
@@ -123,6 +124,8 @@ class TestGenerate:
 
     def test_saved_yaml(self, forcing, tmp_path):
         saved_forcing = load(tmp_path)
+        # shape should is not included in the yaml file
+        forcing.shape = None
 
         assert forcing == saved_forcing
 

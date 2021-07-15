@@ -5,7 +5,7 @@ from typing import Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ..util import get_time
+from ..util import get_time, to_absolute_path
 from ._default import DefaultForcing
 from .datasets import DATASETS
 
@@ -45,7 +45,7 @@ class MarrmotForcing(DefaultForcing):
         recipe = get_recipe(recipe_name)
 
         # model-specific updates to the recipe
-        basin = Path(shape).stem
+        basin = to_absolute_path(shape).stem
         recipe.data['preprocessors']['daily']['extract_shape'][
             'shapefile'] = shape
         recipe.data['diagnostics']['diagnostic_daily']['scripts']['script'][
@@ -75,6 +75,7 @@ class MarrmotForcing(DefaultForcing):
         return MarrmotForcing(directory=directory,
                               start_time=start_time,
                               end_time=end_time,
+                              shape=shape,
                               forcing_file=forcing_file.name)
 
     def plot(self):

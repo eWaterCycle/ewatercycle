@@ -5,7 +5,7 @@ Examples
 .. toctree::
 
   Platform tutorial <examples/ewatercycle_api_notebook.ipynb>
-  Pre-processing <examples/preprocessing.ipynb>
+  Generate forcing <examples/generate_forcing.ipynb>
   LISFLOOD <examples/lisflood.ipynb>
   MARRMoT M01 <examples/MarrmotM01.ipynb>
   MARRMoT M14 <examples/MarrmotM14.ipynb>
