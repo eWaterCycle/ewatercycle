@@ -7,6 +7,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 from basic_modeling_interface import Bmi
+from grpc import FutureTimeoutError
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
@@ -154,6 +155,19 @@ def test_setup(model):
     assert (
         cfg.get("API", "RiverRunoff") == "2, m/s"
     )
+
+
+def test_setup_withtimeoutexception(model, tmp_path):
+    with patch.object(BmiClientSingularity, "__init__", side_effect=FutureTimeoutError()), patch(
+        "datetime.datetime"
+    ) as mocked_datetime, pytest.raises(ValueError) as excinfo:
+        mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
+        model.setup()
+
+    msg = str(excinfo.value)
+    assert 'docker pull ewatercycle/wflow-grpc4bmi:2020.1.1' in msg
+    sif = tmp_path / 'ewatercycle-wflow-grpc4bmi_2020.1.1.sif'
+    assert f"build {sif} docker://ewatercycle/wflow-grpc4bmi:2020.1.1" in msg
 
 
 def test_setup_with_custom_cfg_dir(model, tmp_path):

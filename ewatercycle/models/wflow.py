@@ -117,7 +117,18 @@ class Wflow(AbstractModel[WflowForcing]):
         with updated_cfg_file.open("w") as filename:
             cfg.write(filename)
 
-        self._start_container()
+        try:
+            self._start_container()
+        except FutureTimeoutError:
+            # https://github.com/eWaterCycle/grpc4bmi/issues/95
+            # https://github.com/eWaterCycle/grpc4bmi/issues/100
+            raise ValueError(
+                "Couldn't spawn container within allocated time limit "
+                "(15 seconds). You may try pulling the docker image with"
+                f" `docker pull {self.docker_image}` or call `singularity "
+                f"build {self._singularity_image(CFG['singularity_dir'])} docker://{self.docker_image}`"
+                "if you're using singularity, and then try again."
+            )
 
         return (
             str(updated_cfg_file),

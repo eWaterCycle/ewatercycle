@@ -6,6 +6,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 from basic_modeling_interface import Bmi
+from grpc import FutureTimeoutError
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
@@ -97,6 +98,19 @@ def test_setup(model):
     expected_cfg_dir = CFG["output_dir"] / "pcrglobwb_20210102_030405"
     assert cfg_dir == str(expected_cfg_dir)
     assert cfg_file == str(expected_cfg_dir / "pcrglobwb_ewatercycle.ini")
+
+
+def test_setup_withtimeoutexception(model, tmp_path):
+    with patch.object(BmiClientSingularity, "__init__", side_effect=FutureTimeoutError()), patch(
+        "datetime.datetime"
+    ) as mocked_datetime, pytest.raises(ValueError) as excinfo:
+        mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
+        model.setup()
+
+    msg = str(excinfo.value)
+    assert 'docker pull ewatercycle/pcrg-grpc4bmi:setters' in msg
+    sif = tmp_path / 'ewatercycle-pcrg-grpc4bmi-setters.sif'
+    assert f"build {sif} docker://ewatercycle/pcrg-grpc4bmi:setters" in msg
 
 
 def test_setup_with_custom_cfg_dir(model, tmp_path):
