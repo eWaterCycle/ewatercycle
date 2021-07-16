@@ -5,7 +5,12 @@ from typing import Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ..util import data_files_from_recipe_output, get_extents, get_time, to_absolute_path
+from ..util import (
+    data_files_from_recipe_output,
+    get_extents,
+    get_time,
+    to_absolute_path,
+)
 from ._default import DefaultForcing
 from .datasets import DATASETS
 
@@ -21,6 +26,8 @@ class PCRGlobWBForcing(DefaultForcing):
         shape: Optional[str] = None,
         precipitationNC: Optional[str] = "precipitation.nc",
         temperatureNC: Optional[str] = "temperature.nc",
+        precipitationVariableName: Optional[str] = "pr",
+        temperatureVariableName: Optional[str] = "tas",
     ):
         """
         precipitationNC (str): Input file for precipitation data.
@@ -29,6 +36,8 @@ class PCRGlobWBForcing(DefaultForcing):
         super().__init__(start_time, end_time, directory, shape)
         self.precipitationNC = precipitationNC
         self.temperatureNC = temperatureNC
+        self.precipitationVariableName = precipitationVariableName
+        self.temperatureVariableName = temperatureVariableName
 
     @classmethod
     def generate(  # type: ignore
@@ -40,6 +49,7 @@ class PCRGlobWBForcing(DefaultForcing):
         start_time_climatology: str,  # TODO make optional, default to start_time
         end_time_climatology: str,  # TODO make optional, defaults to start_time + 1 year
         extract_region: dict = None,
+        regrid: dict = None,
     ) -> "PCRGlobWBForcing":
         """
         start_time_climatology (str): Start time for the climatology data
@@ -47,6 +57,10 @@ class PCRGlobWBForcing(DefaultForcing):
         extract_region (dict): Region specification, dictionary must
             contain `start_longitude`, `end_longitude`, `start_latitude`,
             `end_latitude`
+        regrid (dict): Alternative region specification (overrides
+            extract_region) dictionary must contain `start_longitude`,
+            `end_longitude`, `start_latitude`, `end_latitude`,
+            `step_longitude`, `step_latitude`
         """
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_pcrglobwb.yml"
@@ -70,13 +84,17 @@ class PCRGlobWBForcing(DefaultForcing):
         recipe.data["diagnostics"]["diagnostic_daily"]["scripts"]["script"][
             "basin"
         ] = basin
-
-        if extract_region is None:
+        import IPython; IPython.embed()
+        if regrid is not None:
+            for preproc_name in preproc_names:
+                del recipe.data["preprocessors"][preproc_name]["extract_region"]
+                recipe.data["preprocessors"][preproc_name]["regrid"] = regrid
+        elif extract_region is None:
             extract_region = get_extents(shape)
-        for preproc_name in preproc_names:
-            recipe.data["preprocessors"][preproc_name][
-                "extract_region"
-            ] = extract_region
+            for preproc_name in preproc_names:
+                recipe.data["preprocessors"][preproc_name][
+                    "extract_region"
+                ] = extract_region
 
         variables = recipe.data["diagnostics"]["diagnostic_daily"]["variables"]
         var_names = "tas", "pr"
@@ -128,7 +146,9 @@ class PCRGlobWBForcing(DefaultForcing):
                 f"End time: {self.end_time}",
                 f"Shapefile: {self.shape}",
                 f"Additional information for model config:",
-                f"  - temperatureNC: {self.temperatureNC}",
                 f"  - precipitationNC: {self.precipitationNC}",
+                f"  - temperatureNC: {self.temperatureNC}",
+                f"  - precipitationVariableName: {self.precipitationVariableName}",
+                f"  - temperatureVariableName: {self.temperatureVariableName}",
             ]
         )
