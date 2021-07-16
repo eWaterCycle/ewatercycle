@@ -70,6 +70,18 @@ class Wflow(AbstractModel[WflowForcing]):
             cfg.set("inputmapstacks", "Temperature", forcing.Temperature)
             cfg.set("run", "starttime", _iso_to_wflow(forcing.start_time))
             cfg.set("run", "endtime", _iso_to_wflow(forcing.end_time))
+        if self.version == "2020.1.1":
+            if not cfg.has_section("API"):
+                logger.warning(
+                    "Config file from parameter set is missing API section, adding section"
+                )
+                cfg.add_section("API")
+            if not cfg.has_option("API", "RiverRunoff"):
+                logger.warning(
+                    "Config file from parameter set is missing RiverRunoff option in API section, "
+                    "added it with value '2, m/s option'"
+                )
+                cfg.set("API", "RiverRunoff", "2, m/s")
 
         self.config = cfg
 
@@ -150,9 +162,7 @@ class Wflow(AbstractModel[WflowForcing]):
                     "the singularity image was missing."
                 )
         else:
-            raise ValueError(
-                f"Unknown container technology: {CFG['container_engine']}"
-            )
+            raise ValueError(f"Unknown container technology: {CFG['container_engine']}")
 
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]
