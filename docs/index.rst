@@ -18,6 +18,7 @@ Content
 .. toctree::
   :maxdepth: 3
 
+  user_guide
   system_setup
   examples
   hpc_to_cluster
