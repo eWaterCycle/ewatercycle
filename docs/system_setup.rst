@@ -32,11 +32,11 @@ installer <https://docs.conda.io/en/latest/miniconda.html>`__.
 
 After conda is installed you can install the software dependencies with
 a `conda environment
-file <https://github.com/eWaterCycle/ewatercycle/blob/master/environment.yml>`__.
+file <https://github.com/eWaterCycle/ewatercycle/blob/main/environment.yml>`__.
 
 .. code:: shell
 
-    wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/master/environment.yml
+    wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/environment.yml
 
 .. code:: shell
 
@@ -120,7 +120,7 @@ reproduction studies and its smaller size. The ERA-Interim data files
 can be downloaded at
 https://www.ecmwf.int/en/forecasts/datasets/reanalysis-datasets/era-interim
 
-Or you can use the `download_era_interim.py <https://github.com/ESMValGroup/ESMValTool/blob/main/esmvaltool/cmorizers/obs/download_scripts/download_era_interim.py>`_ 
+Or you can use the `download_era_interim.py <https://github.com/ESMValGroup/ESMValTool/blob/main/esmvaltool/cmorizers/obs/download_scripts/download_era_interim.py>`_
 script to download ERA-Interim data files. See first lines of script for documentation.
 The files should be downloaded to the ESMValTool ERA-Interim raw directory for example ``/projects/0/wtrcycle/comparison/rawobs/Tier3/ERA-Interim``.
 
@@ -259,8 +259,8 @@ Singularity images should be stored in configured directory
     cd {ewatercycle.CFG['singularity_dir']}
     singularity build ewatercycle-lisflood-grpc4bmi_20.10.sif docker://ewatercycle/lisflood-grpc4bmi:20.10
     singularity build ewatercycle-marrmot-grpc4bmi_2020.11.sif docker://ewatercycle/marrmot-grpc4bmi:2020.11
-    singularity exec docker://ewatercycle/pcrg-grpc4bmi:setters run-bmi-server -h
-    singularity exec docker://ewatercycle/wflow-grpc4bmi:2020.1.1 run-bmi-server -h
+    singularity build ewatercycle-pcrg-grpc4bmi-setters.sif docker://ewatercycle/pcrg-grpc4bmi:setters
+    singularity build ewatercycle-wflow-grpc4bmi_2020.1.1.sif docker://ewatercycle/wflow-grpc4bmi:2020.1.1
     cd -
 
 Download example parameter sets
@@ -279,9 +279,9 @@ sets for each model.
     INFO:ewatercycle.parameter_sets._example:Downloading example parameter set wflow_rhine_sbm_nc to /home/verhoes/git/eWaterCycle/ewatercycle/docs/examples/parameter-sets/wflow_rhine_sbm_nc...
     INFO:ewatercycle.parameter_sets._example:Download complete.
     INFO:ewatercycle.parameter_sets._example:Adding parameterset wflow_rhine_sbm_nc to ewatercycle.CFG...
-    INFO:ewatercycle.parameter_sets._example:Downloading example parameter set pcrglobwb_example_case to /home/verhoes/git/eWaterCycle/ewatercycle/docs/examples/parameter-sets/pcrglobwb_example_case...
+    INFO:ewatercycle.parameter_sets._example:Downloading example parameter set pcrglobwb_rhinemeuse_30min to /home/verhoes/git/eWaterCycle/ewatercycle/docs/examples/parameter-sets/pcrglobwb_rhinemeuse_30min...
     INFO:ewatercycle.parameter_sets._example:Download complete.
-    INFO:ewatercycle.parameter_sets._example:Adding parameterset pcrglobwb_example_case to ewatercycle.CFG...
+    INFO:ewatercycle.parameter_sets._example:Adding parameterset pcrglobwb_rhinemeuse_30min to ewatercycle.CFG...
     INFO:ewatercycle.parameter_sets._example:Downloading example parameter set lisflood_fraser to /home/verhoes/git/eWaterCycle/ewatercycle/docs/examples/parameter-sets/lisflood_fraser...
     INFO:ewatercycle.parameter_sets._example:Download complete.
     INFO:ewatercycle.parameter_sets._example:Adding parameterset lisflood_fraser to ewatercycle.CFG...
@@ -311,9 +311,9 @@ configuration file.
         doi: N/A
         supported_model_versions: !!set {'20.10': null}
         target_model: lisflood
-      pcrglobwb_example_case:
-        config: pcrglobwb_example_case/setup_natural_test.ini
-        directory: pcrglobwb_example_case
+      pcrglobwb_rhinemeuse_30min:
+        config: pcrglobwb_rhinemeuse_30min/setup_natural_test.ini
+        directory: pcrglobwb_rhinemeuse_30min
         doi: N/A
         supported_model_versions: !!set {setters: null}
         target_model: pcrglobwb
@@ -334,13 +334,13 @@ configuration file.
 
 .. parsed-literal::
 
-    ('lisflood_fraser', 'pcrglobwb_example_case', 'wflow_rhine_sbm_nc')
+    ('lisflood_fraser', 'pcrglobwb_rhinemeuse_30min', 'wflow_rhine_sbm_nc')
 
 
 
 .. code:: ipython3
 
-    parameter_set = ewatercycle.parameter_sets.get_parameter_set('pcrglobwb_example_case')
+    parameter_set = ewatercycle.parameter_sets.get_parameter_set('pcrglobwb_rhinemeuse_30min')
     print(parameter_set)
 
 
@@ -348,9 +348,9 @@ configuration file.
 
     Parameter set
     -------------
-    name=pcrglobwb_example_case
-    directory=/home/verhoes/git/eWaterCycle/ewatercycle/docs/examples/parameter-sets/pcrglobwb_example_case
-    config=/home/verhoes/git/eWaterCycle/ewatercycle/docs/examples/parameter-sets/pcrglobwb_example_case/setup_natural_test.ini
+    name=pcrglobwb_rhinemeuse_30min
+    directory=/home/verhoes/git/eWaterCycle/ewatercycle/docs/examples/parameter-sets/pcrglobwb_rhinemeuse_30min
+    config=/home/verhoes/git/eWaterCycle/ewatercycle/docs/examples/parameter-sets/pcrglobwb_rhinemeuse_30min/setup_natural_test.ini
     doi=N/A
     target_model=pcrglobwb
     supported_model_versions={'setters'}
@@ -380,7 +380,7 @@ For example the parameter set for PCR-GLOBWB from https://doi.org/10.5281/zenodo
 
 .. code:: yaml
 
-    pcrglobwb_example_case:
+    pcrglobwb_rhinemeuse_30min:
         directory: /data/pcrglobwb2_input/global_30min/
         config: /data/pcrglobwb2_input/global_30min/iniFileExample/setup_30min_non-natural.ini
         doi: https://doi.org/10.5281/zenodo.1045339

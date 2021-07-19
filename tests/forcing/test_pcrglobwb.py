@@ -69,11 +69,12 @@ class TestGenerateWithExtractRegion:
             )
         )
 
-    def test_result(self, forcing, tmp_path):
+    def test_result(self, forcing, tmp_path, sample_shape):
         expected = PCRGlobWBForcing(
             directory=str(tmp_path),
             start_time='1989-01-02T00:00:00Z',
             end_time='1999-01-02T00:00:00Z',
+            shape=str(sample_shape),
             precipitationNC='pcrglobwb_pr.nc',
             temperatureNC='pcrglobwb_tas.nc'
         )

@@ -52,6 +52,13 @@ class Wflow(AbstractModel[WflowForcing]):
         }
         self.docker_image = images[self.version]
 
+    def _singularity_image(self, singularity_dir):
+        images = {
+            "2020.1.1": "ewatercycle-wflow-grpc4bmi_2020.1.1.sif",
+        }
+        image = singularity_dir / images[self.version]
+        return str(image)
+
     def _setup_default_config(self):
         config_file = self.parameter_set.config
         forcing = self.forcing
@@ -70,6 +77,18 @@ class Wflow(AbstractModel[WflowForcing]):
             cfg.set("inputmapstacks", "Temperature", forcing.Temperature)
             cfg.set("run", "starttime", _iso_to_wflow(forcing.start_time))
             cfg.set("run", "endtime", _iso_to_wflow(forcing.end_time))
+        if self.version == "2020.1.1":
+            if not cfg.has_section("API"):
+                logger.warning(
+                    "Config file from parameter set is missing API section, adding section"
+                )
+                cfg.add_section("API")
+            if not cfg.has_option("API", "RiverRunoff"):
+                logger.warning(
+                    "Config file from parameter set is missing RiverRunoff option in API section, "
+                    "added it with value '2, m/s option'"
+                )
+                cfg.set("API", "RiverRunoff", "2, m/s")
 
         self.config = cfg
 
@@ -98,7 +117,18 @@ class Wflow(AbstractModel[WflowForcing]):
         with updated_cfg_file.open("w") as filename:
             cfg.write(filename)
 
-        self._start_container()
+        try:
+            self._start_container()
+        except FutureTimeoutError:
+            # https://github.com/eWaterCycle/grpc4bmi/issues/95
+            # https://github.com/eWaterCycle/grpc4bmi/issues/100
+            raise ValueError(
+                "Couldn't spawn container within allocated time limit "
+                "(15 seconds). You may try pulling the docker image with"
+                f" `docker pull {self.docker_image}` or call `singularity "
+                f"build {self._singularity_image(CFG['singularity_dir'])} docker://{self.docker_image}`"
+                "if you're using singularity, and then try again."
+            )
 
         return (
             str(updated_cfg_file),
@@ -135,24 +165,13 @@ class Wflow(AbstractModel[WflowForcing]):
                 timeout=10,
             )
         elif CFG["container_engine"] == "singularity":
-            try:
-                self.bmi = BmiClientSingularity(
-                    image=f"docker://{self.docker_image}",
-                    work_dir=str(self.work_dir),
-                    timeout=15,
-                )
-            except FutureTimeoutError:
-                raise ValueError(
-                    "Couldn't spawn the singularity container within allocated"
-                    " time limit (15 seconds). You may try building it with "
-                    f"`!singularity run docker://{self.docker_image} run-bmi-server -h` and try "
-                    "again. Please also inform the system administrator that "
-                    "the singularity image was missing."
-                )
-        else:
-            raise ValueError(
-                f"Unknown container technology: {CFG['container_engine']}"
+            self.bmi = BmiClientSingularity(
+                image=self._singularity_image(CFG['singularity_dir']),
+                work_dir=str(self.work_dir),
+                timeout=15,
             )
+        else:
+            raise ValueError(f"Unknown container technology: {CFG['container_engine']}")
 
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]

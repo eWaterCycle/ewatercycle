@@ -5,7 +5,7 @@ from typing import Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ..util import get_time
+from ..util import get_time, to_absolute_path
 from ._default import DefaultForcing
 from .datasets import DATASETS
 
@@ -40,7 +40,7 @@ class HypeForcing(DefaultForcing):
 
         for preproc_name in preproc_names:
             recipe.data['preprocessors'][preproc_name]['extract_shape'][
-                'shapefile'] = shape
+                'shapefile'] = to_absolute_path(shape)
 
         recipe.data['datasets'] = [DATASETS[dataset]]
 
@@ -67,7 +67,8 @@ class HypeForcing(DefaultForcing):
         # instantiate forcing object based on generated data
         return HypeForcing(directory=directory,
                            start_time=str(startyear),
-                           end_time=str(endyear))
+                           end_time=str(endyear),
+                           shape=shape)
 
     def plot(self):
         raise NotImplementedError('Dont know how to plot')

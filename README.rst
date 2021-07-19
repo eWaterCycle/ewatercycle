@@ -37,7 +37,7 @@ dependencies:
 
 .. code-block:: bash
 
-    wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/master/environment.yml
+    wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/environment.yml
     conda env create --file environment.yml
     conda activate ewatercycle
 

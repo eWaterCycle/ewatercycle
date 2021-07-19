@@ -1,7 +1,7 @@
 import datetime
 import logging
 from os import PathLike
-from typing import Any, Iterable, Tuple, cast
+from typing import Any, Iterable, Optional, Tuple, cast
 
 import numpy as np
 import xarray as xr
@@ -38,11 +38,10 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
         self,
         version: str,
         parameter_set: ParameterSet,
-        forcing: PCRGlobWBForcing,
+        forcing: Optional[PCRGlobWBForcing] = None,
     ):
         super().__init__(version, parameter_set, forcing)
         self._set_docker_image()
-
         self._setup_default_config()
 
     def _set_docker_image(self):
@@ -50,6 +49,13 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
             "setters": "ewatercycle/pcrg-grpc4bmi:setters",
         }
         self.docker_image = images[self.version]
+
+    def _singularity_image(self, singularity_dir):
+        images = {
+            "setters": "ewatercycle-pcrg-grpc4bmi-setters.sif",
+        }
+        image = singularity_dir / images[self.version]
+        return str(image)
 
     def _setup_work_dir(self, cfg_dir: str = None):
         if cfg_dir:
@@ -71,34 +77,35 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
         cfg = CaseConfigParser()
         cfg.read(config_file)
         cfg.set("globalOptions", "inputDir", str(input_dir))
-        cfg.set(
-            "globalOptions",
-            "startTime",
-            get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
-        )
-        cfg.set(
-            "globalOptions",
-            "endTime",
-            get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
-        )
-        cfg.set(
-            "meteoOptions",
-            "temperatureNC",
-            str(
-                to_absolute_path(
-                    self.forcing.temperatureNC, parent=self.forcing.directory
-                )
-            ),
-        )
-        cfg.set(
-            "meteoOptions",
-            "precipitationNC",
-            str(
-                to_absolute_path(
-                    self.forcing.precipitationNC, parent=self.forcing.directory
-                )
-            ),
-        )
+        if self.forcing:
+            cfg.set(
+                "globalOptions",
+                "startTime",
+                get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
+            )
+            cfg.set(
+                "globalOptions",
+                "endTime",
+                get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
+            )
+            cfg.set(
+                "meteoOptions",
+                "temperatureNC",
+                str(
+                    to_absolute_path(
+                        self.forcing.temperatureNC, parent=self.forcing.directory
+                    )
+                ),
+            )
+            cfg.set(
+                "meteoOptions",
+                "precipitationNC",
+                str(
+                    to_absolute_path(
+                        self.forcing.precipitationNC, parent=self.forcing.directory
+                    )
+                ),
+            )
 
         self.config = cfg
 
@@ -128,7 +135,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
                 "Couldn't spawn container within allocated time limit "
                 "(15 seconds). You may try pulling the docker image with"
                 f" `docker pull {self.docker_image}` or call `singularity "
-                f"exec docker://{self.docker_image} run-bmi-server -h`"
+                f"build {self._singularity_image(CFG['singularity_dir'])} docker://{self.docker_image}`"
                 "if you're using singularity, and then try again."
             )
 
@@ -182,10 +189,9 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
         return self.cfg_file
 
     def _start_container(self):
-        additional_input_dirs = [
-            str(self.parameter_set.directory),
-            str(self.forcing.directory),
-        ]
+        additional_input_dirs = [str(self.parameter_set.directory)]
+        if self.forcing:
+            additional_input_dirs.append(self.forcing.directory)
 
         if CFG["container_engine"] == "docker":
             self.bmi = BmiClientDocker(
@@ -197,7 +203,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
             )
         elif CFG["container_engine"] == "singularity":
             self.bmi = BmiClientSingularity(
-                image=f"docker://{self.docker_image}",
+                image=self._singularity_image(CFG['singularity_dir']),
                 work_dir=str(self.work_dir),
                 input_dirs=additional_input_dirs,
                 timeout=15,
