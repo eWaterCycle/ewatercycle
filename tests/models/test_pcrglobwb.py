@@ -109,7 +109,7 @@ def test_setup_withtimeoutexception(model, tmp_path):
 
     msg = str(excinfo.value)
     assert 'docker pull ewatercycle/pcrg-grpc4bmi:setters' in msg
-    sif = tmp_path / 'ewatercycle-pcrg-grpc4bmi-setters.sif'
+    sif = tmp_path / 'ewatercycle-pcrg-grpc4bmi_setters.sif'
     assert f"build {sif} docker://ewatercycle/pcrg-grpc4bmi:setters" in msg
 
 

@@ -259,7 +259,7 @@ Singularity images should be stored in configured directory
     cd {ewatercycle.CFG['singularity_dir']}
     singularity build ewatercycle-lisflood-grpc4bmi_20.10.sif docker://ewatercycle/lisflood-grpc4bmi:20.10
     singularity build ewatercycle-marrmot-grpc4bmi_2020.11.sif docker://ewatercycle/marrmot-grpc4bmi:2020.11
-    singularity build ewatercycle-pcrg-grpc4bmi-setters.sif docker://ewatercycle/pcrg-grpc4bmi:setters
+    singularity build ewatercycle-pcrg-grpc4bmi_setters.sif docker://ewatercycle/pcrg-grpc4bmi:setters
     singularity build ewatercycle-wflow-grpc4bmi_2020.1.1.sif docker://ewatercycle/wflow-grpc4bmi:2020.1.1
     cd -
 
