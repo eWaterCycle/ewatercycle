@@ -54,7 +54,7 @@ See the `system setup chapter <https://ewatercycle.readthedocs.org/en/latest/sys
 Usage
 -----
 
-Example using the `PCRGlobWB <https://github.com/UU-Hydro/PCR-GLOBWB_model>`_ hydrological model to generate forcing, run it and produce a hydrograph.
+Example using the `Marrmot M14 (TOPMODEL) <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Model%20files/m_14_topmodel_7p_2s.m>`_ hydrological model on Merrimack catchment to generate forcing, run it and produce a hydrograph.
 
 .. code-block:: python
 
@@ -63,46 +63,47 @@ Example using the `PCRGlobWB <https://github.com/UU-Hydro/PCR-GLOBWB_model>`_ hy
     import ewatercycle.forcing
     import ewatercycle.models
     import ewatercycle.observation.grdc
-    import ewatercycle.parameter_sets
-
-    parameter_set = ewatercycle.parameter_sets.get_parameter_set('pcrglobwb_example_case')
 
     forcing = ewatercycle.forcing.generate(
-        target_model='pcrglobwb',
+        target_model='marrmot',
         dataset='ERA5',
-        start_time='1992-01-01T00:00:00Z',
-        end_time='1992-12-31T00:00:00Z',
-        shape='Meuse/Meuse.shp',
-        model_specific_options=dict(
-            start_time_climatology='1991-01-01T00:00:00Z',
-            end_time_climatology='1991-12-31T00:00:00Z',
-        )
+        start_time='2010-01-01T00:00:00Z',
+        end_time='2010-12-31T00:00:00Z',
+        shape='Merrimack/Merrimack.shp'
     )
 
-    model = ewatercycle.models.PCRGlobWB(version="setters", parameter_set=parameter_set, forcing=forcing)
+    model = ewatercycle.models.MarrmotM14(version="2020.11", forcing=forcing)
 
-    cfg_file, cfg_dir = model.setup(max_spinups_in_years=1)
+    cfg_file, cfg_dir = model.setup(
+        threshold_flow_generation_evap_change=0.1,
+        leakage_saturated_zone_flow_coefficient=0.99,
+        zero_deficit_base_flow_speed=150.0,
+        baseflow_coefficient=0.3,
+        gamma_distribution_phi_parameter=1.8
+    )
 
     model.initialize(cfg_file)
 
     observations_df, station_info = ewatercycle.observation.grdc.get_grdc_data(
-        station_id=6421500,
+        station_id=4147380,
         start_time=model.start_time_as_isostr,
         end_time=model.end_time_as_isostr,
     )
-    station_lon = station_info['grdc_longitude_in_arc_degree']
-    station_lat = station_info['grdc_latitude_in_arc_degree']
+    observations_df = observations_df.rename(columns={'streamflow': 'observation'})
 
     simulated_discharge = []
     timestamps = []
     while (model.time < model.end_time):
         model.update()
-        discharge = model.get_value_at_coords('discharge', lat=[station_lat], lon=[station_lon])
-        simulated_discharge.append(discharge)
-        timestamps.append(model.time_as_datetime)
-    simulated_discharge_df = pd.DataFrame({'discharge': simulated_discharge}, index=pd.to_datetime(timestamps))
+        value = model.get_value('flux_out_Q')[0]
+        # flux_out_Q unit conversion factor from mm/day to m3/s
+        area = 13016500000.0  # from shapefile in m2
+        conversion_mmday2m3s = 1 / (1000 * 24 * 60 * 60)
+        simulated_discharge.append(value * area * conversion_mmday2m3s)
+        timestamps.append(model.time_as_datetime.date())
+    simulated_discharge_df = pd.DataFrame({'simulated': simulated_discharge}, index=pd.to_datetime(timestamps))
 
-    ewatercycle.analysis.hydrograph(simulated_discharge_df.join(observations_df), reference='streamflow')
+    ewatercycle.analysis.hydrograph(simulated_discharge_df.join(observations_df), reference='observation')
 
     model.finalize()
 
