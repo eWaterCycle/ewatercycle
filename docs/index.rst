@@ -18,6 +18,7 @@ Content
 .. toctree::
   :maxdepth: 3
 
+  introduction
   user_guide
   system_setup
   examples
