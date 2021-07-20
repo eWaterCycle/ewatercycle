@@ -14,26 +14,27 @@ Unreleased
 Added
 -----
 
+* Documentation
+  * Example notebooks
+  * Setup guide (`#120 <https://github.com/eWaterCycle/ewatercycle/issues/120>`_)
+  * HPC cluster guide
 * Forcing generation using `ESMValTool <https://www.esmvaltool.org/>`_ (`#28 <https://github.com/eWaterCycle/ewatercycle/issues/28>`_, `#87 <https://github.com/eWaterCycle/ewatercycle/issues/87>`_,)
+* Available parameter sets (`#118 <https://github.com/eWaterCycle/ewatercycle/issues/110>`_)
 * `PyMT <https://pymt.readthedocs.io/>`_ inspired interface for following models
   * LISFLOOD
   * MARRMoT M01 and M14
   * PCR-GLOBWB
   * wflow
 * Containerized models using `grpc4bmi <https://github.com/eWaterCycle/grpc4bmi>`_
-* Configuration file for system setup like available parameter sets (`#118 <https://github.com/eWaterCycle/ewatercycle/issues/110>`_)
+* Configuration files for system setup
 * Hydrograph plotting (`#54 <https://github.com/eWaterCycle/ewatercycle/issues/54>`_)
 * Typings
-* Documentation
-  * Example notebooks
-  * Setup guide (`#120 <https://github.com/eWaterCycle/ewatercycle/issues/120>`_)
-  * HPC cluster guide
 * iso8601 time format (`#90 <https://github.com/eWaterCycle/ewatercycle/issues/90>`_)
 
 Changed
 -------
 
-* GRDC returns Pandas dataframe and metadata dict instead of xarray dataset (``_)
+* GRDC returns Pandas dataframe and metadata dict instead of xarray dataset (`#109 <https://github.com/eWaterCycle/ewatercycle/issues/109>`_)
 
 `0.2.0`_ (2021-03-17)
 *********************
