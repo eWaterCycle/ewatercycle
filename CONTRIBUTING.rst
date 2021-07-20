@@ -54,7 +54,7 @@ In case you feel like you've made a valuable contribution, but you don't know ho
 You want to make a release
 **************************
 
-Section is for maintainers of the package.
+This section is for maintainers of the package.
 
 1. Determine what new version to use. Package uses `semantic versioning <https://semver.org>`_.
 2. Checkout ``HEAD`` of ``main`` branch with ``git fetch`` and ``git checkout main``.
