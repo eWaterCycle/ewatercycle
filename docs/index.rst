@@ -8,14 +8,6 @@ Welcome to ewatercycle's documentation!
 
 .. include:: ../README.rst
 
-User's Guide
-============
-
-.. toctree::
-   :maxdepth: 2
-
-   observations
-
 Content
 =============
 
