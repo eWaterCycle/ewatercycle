@@ -2,6 +2,8 @@
 ewatercycle
 ################################################################################
 
+.. image:: https://github.com/eWaterCycle/ewatercycle/raw/main/docs/examples/logo.png
+
 A Python package for running hydrological models.
 
 .. image:: https://github.com/eWaterCycle/ewatercycle/actions/workflows/ci.yml/badge.svg
@@ -19,6 +21,14 @@ A Python package for running hydrological models.
 
 .. image:: https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B%20%20%E2%97%8F%20%20%E2%97%8B-orange
     :target: https://fair-software.eu
+
+
+The eWaterCycle package makes it easier to use hydrological models without having intimate knowledge about how to install and run the models.
+
+* Uses container for running models in an isolated and portable way with `grpc4bmi <https://github.com/eWaterCycle/grpc4bmi>`_
+* Generates rain and sunshine required for the model using `ESMValTool <https://www.esmvaltool.org/>`_
+* Supports observation data from `GRDC or USGS <https://ewatercycle.readthedocs.io/en/latest/observations.html>`_
+* Exposes `simple interface <https://ewatercycle.readthedocs.io/en/latest/examples/ewatercycle_api_notebook.html>`_ to quickly get up and running
 
 Install
 -------
@@ -46,25 +56,60 @@ See the `system setup chapter <https://ewatercycle.readthedocs.org/en/latest/sys
 Usage
 -----
 
+Example using the `Marrmot M14 (TOPMODEL) <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Model%20files/m_14_topmodel_7p_2s.m>`_ hydrological model on Merrimack catchment to generate forcing, run it and produce a hydrograph.
+
 .. code-block:: python
 
-    from ewatercycle.parametersetdb import build_from_urls
-    parameter_set = build_from_urls(
-        config_format='svn', config_url='https://github.com/ClaudiaBrauer/WALRUS/trunk/demo/data',
-        datafiles_format='yaml', datafiles_url="data:text/plain,data: data/PEQ_Hupsel.dat\nparameters:\n  cW: 200\n  cV: 4\n  cG: 5.0e+6\n  cQ: 10\n  cS: 4\n  dG0: 1250\n  cD: 1500\n  aS: 0.01\n  st: loamy_sand\nstart: 367416 # 2011120000\nend: 368904 # 2012020000\nstep: 1\n",
+    import pandas as pd
+    import ewatercycle.analysis
+    import ewatercycle.forcing
+    import ewatercycle.models
+    import ewatercycle.observation.grdc
+
+    forcing = ewatercycle.forcing.generate(
+        target_model='marrmot',
+        dataset='ERA5',
+        start_time='2010-01-01T00:00:00Z',
+        end_time='2010-12-31T00:00:00Z',
+        shape='Merrimack/Merrimack.shp'
     )
-    # Overwrite items in config file
-    # parameter_set.config['...']['...'] = '...'
-    parameter_set.save_datafiles('./input')
-    parameter_set.save_config('config.cfg')
 
-CITATION.cff
-------------
+    model = ewatercycle.models.MarrmotM14(version="2020.11", forcing=forcing)
 
-* To allow others to cite your software, add a ``CITATION.cff`` file
-* It only makes sense to do this once there is something to cite (e.g., a software release with a DOI).
-* To generate a CITATION.cff file given a DOI, use `doi2cff <https://github.com/citation-file-format/doi2cff>`_.
-* `Relevant section in the guide <https://guide.esciencecenter.nl/software/documentation.html#citation-file>`_
+    cfg_file, cfg_dir = model.setup(
+        threshold_flow_generation_evap_change=0.1,
+        leakage_saturated_zone_flow_coefficient=0.99,
+        zero_deficit_base_flow_speed=150.0,
+        baseflow_coefficient=0.3,
+        gamma_distribution_phi_parameter=1.8
+    )
+
+    model.initialize(cfg_file)
+
+    observations_df, station_info = ewatercycle.observation.grdc.get_grdc_data(
+        station_id=4147380,
+        start_time=model.start_time_as_isostr,
+        end_time=model.end_time_as_isostr,
+    )
+    observations_df = observations_df.rename(columns={'streamflow': 'observation'})
+
+    simulated_discharge = []
+    timestamps = []
+    while (model.time < model.end_time):
+        model.update()
+        value = model.get_value('flux_out_Q')[0]
+        # flux_out_Q unit conversion factor from mm/day to m3/s
+        area = 13016500000.0  # from shapefile in m2
+        conversion_mmday2m3s = 1 / (1000 * 24 * 60 * 60)
+        simulated_discharge.append(value * area * conversion_mmday2m3s)
+        timestamps.append(model.time_as_datetime.date())
+    simulated_discharge_df = pd.DataFrame({'simulated': simulated_discharge}, index=pd.to_datetime(timestamps))
+
+    ewatercycle.analysis.hydrograph(simulated_discharge_df.join(observations_df), reference='observation')
+
+    model.finalize()
+
+More examples can be found in the `documentation <https://ewatercycle.readthedocs.io>`_.
 
 Contributing
 ************
