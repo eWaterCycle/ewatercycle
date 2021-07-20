@@ -29,6 +29,8 @@ Added
   * PCR-GLOBWB
   * wflow
 
+* Model methods to get and set values based on spatial coordinates (`#53 <https://github.com/eWaterCycle/ewatercycle/issues/53>`_, `#140 <https://github.com/eWaterCycle/ewatercycle/issues/140>`_)
+* Model method to get value as a xarray dataset (`#36 <https://github.com/eWaterCycle/ewatercycle/issues/36>`_)
 * Containerized models using `grpc4bmi <https://github.com/eWaterCycle/grpc4bmi>`_
 * Configuration files for system setup
 * Hydrograph plotting (`#54 <https://github.com/eWaterCycle/ewatercycle/issues/54>`_)
