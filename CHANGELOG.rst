@@ -21,7 +21,7 @@ Added
   * HPC cluster guide
 
 * Forcing generation using `ESMValTool <https://www.esmvaltool.org/>`_ (`#28 <https://github.com/eWaterCycle/ewatercycle/issues/28>`_, `#87 <https://github.com/eWaterCycle/ewatercycle/issues/87>`_,)
-* Available parameter sets (`#118 <https://github.com/eWaterCycle/ewatercycle/issues/110>`_)
+* Available parameter sets (`#118 <https://github.com/eWaterCycle/ewatercycle/issues/118>`_)
 * `PyMT <https://pymt.readthedocs.io/>`_ inspired interface for following models
 
   * LISFLOOD
