@@ -11,6 +11,7 @@ A contribution can be one of the following cases:
 1. you have a question;
 2. you think you may have found a bug (including unexpected behavior);
 3. you want to make some kind of change to the code base (e.g. to fix a bug, to add a new feature, to update documentation).
+4. you want to make a release
 
 The sections below outline the steps in each case.
 
@@ -49,3 +50,28 @@ You want to make some kind of change to the code base
 10. create the pull request, e.g. following the instructions `here <https://help.github.com/articles/creating-a-pull-request/>`_.
 
 In case you feel like you've made a valuable contribution, but you don't know how to write or run tests for it, or how to generate the documentation: don't let this discourage you from making the pull request; we can help you! Just go ahead and submit the pull request, but keep in mind that you might be asked to append additional commits to your pull request.
+
+You want to make a release
+**************************
+
+Section is for maintainers of the package.
+
+1. Determine what new version to use. Package uses `semantic versioning <https://semver.org>`_.
+2. Checkout ``HEAD`` of ``main`` branch.
+3. Update version in
+  1. ewatercycle/version.py
+  2. docs/conf.py
+4. Update CHANGELOG.rst with changes between current and new version.
+5. Commit & push changes to GitHub.
+6. Wait for `GitHub actions <https://github.com/eWaterCycle/ewatercycle/actions?query=branch%3Amain+>`_ to be completed and green.
+7. Create a `GitHub release <https://github.com/eWaterCycle/ewatercycle/releases/new>`_
+  * Use version as title and tag version.
+  * As description use intro text from README.rst (to give context to Zenodo record) and changes from CHANGELOG.rst
+8. Create a PyPI release.
+  1. Create distribution archives with ``python3 -m build``.
+  2. Upload archives to PyPI with ``twine upload dist/*`` (use your personal PyPI account).
+9. Verify
+  1. Has `new Zenodo record <https://zenodo.org/search?page=1&size=20&q=ewatercycle>`_ been created?
+  1. Has `stable ReadTheDocs <https://ewatercycle.readthedocs.io/en/stable/>`_ been updated?
+  1. Can new version be installed with pip using ``pip3 install ewatercycle==<new version>``?
+10. Celebrate
