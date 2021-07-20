@@ -2,6 +2,8 @@
 ewatercycle
 ################################################################################
 
+.. image:: https://github.com/eWaterCycle/ewatercycle/raw/main/docs/examples/logo.png
+
 A Python package for running hydrological models.
 
 .. image:: https://github.com/eWaterCycle/ewatercycle/actions/workflows/ci.yml/badge.svg
