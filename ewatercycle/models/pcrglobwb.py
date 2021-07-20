@@ -52,7 +52,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
     def _singularity_image(self, singularity_dir):
         images = {
-            "setters": "ewatercycle-pcrg-grpc4bmi-setters.sif",
+            "setters": "ewatercycle-pcrg-grpc4bmi_setters.sif",
         }
         image = singularity_dir / images[self.version]
         return str(image)
