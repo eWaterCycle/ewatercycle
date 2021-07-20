@@ -129,7 +129,7 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
             name: Name of variable
             lat: Latitudinal value
             lon: Longitudinal value
-            value: The new value for the specified variable.
+            values: The new value for the specified variable.
 
         """
         indices = self._coords_to_indices(name, lat, lon)
