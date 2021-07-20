@@ -57,7 +57,7 @@ You want to make a release
 Section is for maintainers of the package.
 
 1. Determine what new version to use. Package uses `semantic versioning <https://semver.org>`_.
-2. Checkout ``HEAD`` of ``main`` branch.
+2. Checkout ``HEAD`` of ``main`` branch with ``git fetch`` and ``git checkout main``.
 3. Update version in
   1. ewatercycle/version.py
   2. docs/conf.py
@@ -72,6 +72,6 @@ Section is for maintainers of the package.
   2. Upload archives to PyPI with ``twine upload dist/*`` (use your personal PyPI account).
 9. Verify
   1. Has `new Zenodo record <https://zenodo.org/search?page=1&size=20&q=ewatercycle>`_ been created?
-  1. Has `stable ReadTheDocs <https://ewatercycle.readthedocs.io/en/stable/>`_ been updated?
-  1. Can new version be installed with pip using ``pip3 install ewatercycle==<new version>``?
+  2. Has `stable ReadTheDocs <https://ewatercycle.readthedocs.io/en/stable/>`_ been updated?
+  3. Can new version be installed with pip using ``pip3 install ewatercycle==<new version>``?
 10. Celebrate
