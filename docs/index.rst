@@ -4,12 +4,12 @@
    contain the root `toctree` directive.
 
 Welcome to ewatercycle's documentation!
-==========================================================
+=======================================
 
 .. include:: ../README.rst
 
 Content
-=============
+=======
 
 .. toctree::
   :maxdepth: 3
@@ -19,7 +19,6 @@ Content
   hpc_to_cluster
   observations
   API Reference <apidocs/ewatercycle.rst>
-
 
 Indices and tables
 ==================
