@@ -22,6 +22,7 @@ Content
   user_guide
   system_setup
   examples
+  adding_models
   hpc_to_cluster
   API Reference <apidocs/ewatercycle.rst>
 
