@@ -33,7 +33,7 @@ setup(
         'scipy',
         'xarray',
     ],
-    packages=find_packages(),
+    packages=find_packages(include=('ewatercycle', 'ewatercycle.*')),
     package_data={
         "": ["*.yaml"],
     },
@@ -49,6 +49,10 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Topic:: Scientific / Engineering',
+        'Topic:: Scientific / Engineering:: GIS',
+        'Topic:: Scientific / Engineering:: Hydrology',
+        'Typing :: Typed',
     ],
     extras_require={
         'dev':  [
@@ -71,6 +75,9 @@ setup(
             'sphinx_rtd_theme',
             # ipython syntax highlighting is required in doc notebooks
             'ipython',
+            # release
+            'build',
+            'twine',
          ],
     }
 )
