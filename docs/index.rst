@@ -58,11 +58,9 @@ that are commonly used throughout this documentation.
 - **Model instance**: single running instance of a model, including all data required, and with a current state.
 
 
-Contents
---------
-
 .. toctree::
   :maxdepth: 2
+  :hidden:
 
   user_guide
   system_setup
@@ -71,10 +69,3 @@ Contents
   hpc_to_cluster
   observations
   API Reference <apidocs/ewatercycle.rst>
-
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
