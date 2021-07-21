@@ -46,6 +46,13 @@ authors:
     family-names: Aerts
     given-names: Jerom
     orcid: "https://orcid.org/0000-0003-0157-4818"
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: Werkhoven
+    given-names: Ben
+    name-particle: van
+    orcid: "https://orcid.org/0000-0002-7508-3272"
+    email: "b.vanwerkhoven@esciencecenter.nl"
 
 cff-version: "1.1.0"
 keywords:
