@@ -4,7 +4,6 @@ Examples
 
 .. toctree::
 
-  Platform tutorial <examples/ewatercycle_api_notebook.ipynb>
   Generate forcing <examples/generate_forcing.ipynb>
   LISFLOOD <examples/lisflood.ipynb>
   MARRMoT M01 <examples/MarrmotM01.ipynb>
