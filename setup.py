@@ -54,9 +54,9 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
-        'Topic:: Scientific / Engineering',
-        'Topic:: Scientific / Engineering:: GIS',
-        'Topic:: Scientific / Engineering:: Hydrology',
+        'Topic :: Scientific/Engineering',
+        'Topic :: Scientific/Engineering :: GIS',
+        'Topic :: Scientific/Engineering :: Hydrology',
         'Typing :: Typed',
     ],
     extras_require={
