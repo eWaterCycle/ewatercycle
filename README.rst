@@ -23,8 +23,8 @@ A Python package for running hydrological models.
     :target: https://pypi.org/project/ewatercycle/
     :alt: PyPI
 
-.. image:: https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B%20%20%E2%97%8F%20%20%E2%97%8B-orange
-    :target: https://fair-software.eu
+.. image:: https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B-yellow
+   :target: https://fair-software.eu
 
 
 The eWaterCycle package makes it easier to use hydrological models without having intimate knowledge about how to install and run the models.
