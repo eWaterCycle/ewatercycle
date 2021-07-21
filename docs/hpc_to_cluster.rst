@@ -105,7 +105,7 @@ Make sure that Jupyter Lab is installed in the Conda environment:
 
 Install eWatercycle package:
 
-- ``pip install git+https://github.com/eWaterCycle/ewatercycle.git#egg=ewatercycle``
+- ``pip install ewatercycle``
 
 **4. Create Singularity Container**
 

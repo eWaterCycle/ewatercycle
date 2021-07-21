@@ -55,7 +55,7 @@ The Python package can be installed using pip
 
 .. code:: shell
 
-    pip install git+https://github.com/eWaterCycle/ewatercycle.git#egg=ewatercycle
+    pip install ewatercycle
 
 
 Configure ESMValTool

@@ -47,7 +47,7 @@ The ewatercycle package is installed with
 
 .. code-block:: bash
 
-    pip install git+https://github.com/eWaterCycle/ewatercycle.git#egg=ewatercycle
+    pip install ewatercycle
 
 
 Besides installing software you will need to create a configuration file, download several data sets and get container images.
