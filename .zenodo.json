@@ -43,6 +43,11 @@
             "affiliation": "Delft University of Technology",
             "name": "Aerts, Jerom",
             "orcid": "0000-0003-0157-4818"
+        },
+        {
+            "affiliation": "Netherlands eScience Center",
+            "name": "van Werkhoven, Ben",
+            "orcid": "0000-0002-7508-3272"
         }
     ],
     "description": "Python package to generate forcing, run hydrological models, compare with observations and visualize results",
