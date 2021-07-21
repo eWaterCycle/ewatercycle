@@ -57,7 +57,7 @@ You want to make a release
 This section is for maintainers of the package.
 
 1. Determine what new version to use. Package uses `semantic versioning <https://semver.org>`_.
-2. Checkout ``HEAD`` of ``main`` branch with ``git fetch`` and ``git checkout main``.
+2. Checkout ``HEAD`` of ``main`` branch with ``git checkout main`` and ``git pull``.
 3. Update version in
   1. ewatercycle/version.py
   2. docs/conf.py
