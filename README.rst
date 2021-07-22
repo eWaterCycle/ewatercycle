@@ -29,6 +29,9 @@ A Python package for running hydrological models.
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.5119389.svg
    :target: https://doi.org/10.5281/zenodo.5119389
 
+.. image:: https://img.shields.io/badge/rsd-ewatercycle-00a3e3.svg
+   :target: https://www.research-software.nl/software/ewatercycle
+   :alt: Research Software Directory Badge
 
 The eWaterCycle package makes it easier to use hydrological models without having intimate knowledge about how to install and run the models.
 
