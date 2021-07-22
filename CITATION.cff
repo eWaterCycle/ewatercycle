@@ -1,6 +1,5 @@
 # YAML 1.2
 ---
-abstract: "Python package to generate forcing, run hydrological models, compare with observations and visualize results"
 authors:
   -
     affiliation: "Netherlands eScience Center"
@@ -61,6 +60,6 @@ keywords:
 license: "Apache-2.0"
 message: "If you use this software, please cite it using these metadata."
 repository-code: "https://github.com/eWaterCycle/ewatercycle"
-title: ewaterycle
+title: eWaterCycle Python package
 doi: 10.5281/zenodo.5119390
 ...

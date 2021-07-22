@@ -50,7 +50,6 @@
             "orcid": "0000-0002-7508-3272"
         }
     ],
-    "description": "Python package to generate forcing, run hydrological models, compare with observations and visualize results",
     "keywords": [
         "hydrology",
         "bmi"
@@ -58,5 +57,5 @@
     "license": {
         "id": "Apache-2.0"
     },
-    "title": "ewaterycle"
+    "title": "eWaterCycle Python package"
 }
