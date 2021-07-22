@@ -57,5 +57,10 @@
     "license": {
         "id": "Apache-2.0"
     },
-    "title": "eWaterCycle Python package"
+    "title": "eWaterCycle Python package", 
+    "communities": [
+      {
+        "id": "nlesc"
+      }
+    ]
 }
