@@ -85,6 +85,7 @@ def get_usgs_data(station_id,
     else:
         station = data.elements[0]
 
+        # Unit conversion from cubic feet to cubic meter per second
         values = np.array([
             float(point.members[0]['value']) / 35.315
             for point in station.elements

@@ -7,6 +7,7 @@ USGS
 ----
 
 The `U.S. Geological Survey Water Services <https://waterservices.usgs.gov/>`_ provides public discharge data for a large number of US based stations. In eWaterCycle we make use of the `USGS web service <https://waterservices.usgs.gov/rest/IV-Service.html>`_ to automatically retrieve this data.
+The Discharge timestamp is correct to the UTC timezone. Units are converted from cubic feet per second to cubic meter per second. 
 
 GRDC
 ----
