@@ -115,9 +115,9 @@ def data_files_from_recipe_output(
         dataset = data_file.load_xarray()
         var_name = list(dataset.data_vars.keys())[0]
         dataset.close()
-        forcing_files[var_name] = data_file.filename.name
+        forcing_files[var_name] = data_file.path.name
     # TODO simplify (recipe_output.location) when next esmvalcore release is made
-    directory = str(data_files[0].filename.parent)
+    directory = str(data_files[0].path.parent)
     return directory, forcing_files
 
 
