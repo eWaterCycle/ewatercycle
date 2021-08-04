@@ -121,13 +121,14 @@ def data_files_from_recipe_output(
     return directory, forcing_files
 
 
-def to_absolute_path(input_path: str, parent: Path = None, must_exist: bool = False) -> Path:
+def to_absolute_path(input_path: str, parent: Path = None, must_exist: bool = False, must_be_in_parent=True) -> Path:
     """Parse input string as :py:class:`pathlib.Path` object.
 
     Args:
         input_path: Input string path that can be a relative or absolute path.
         parent: Optional parent path of the input path
         must_exist: Optional argument to check if the input path exists.
+        must_be_in_parent: Optional argument to check if the input path is subpath of parent path
 
     Returns:
         The input path that is an absolute path and a :py:class:`pathlib.Path` object.
@@ -135,9 +136,10 @@ def to_absolute_path(input_path: str, parent: Path = None, must_exist: bool = Fa
     pathlike = Path(input_path)
     if parent:
         pathlike = parent.joinpath(pathlike)
-        try:
-            pathlike.relative_to(parent)
-        except ValueError:
-            raise ValueError(f"Input path {input_path} is not a subpath of parent {parent}")
+        if must_be_in_parent:
+            try:
+                pathlike.relative_to(parent)
+            except ValueError:
+                raise ValueError(f"Input path {input_path} is not a subpath of parent {parent}")
 
     return pathlike.expanduser().resolve(strict=must_exist)
