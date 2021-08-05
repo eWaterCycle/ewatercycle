@@ -30,8 +30,8 @@ class ParameterSet:
         supported_model_versions: Optional[Set[str]] = None,
     ):
         self.name = name
-        self.directory = to_absolute_path(directory, parent = CFG.get("parameterset_dir"))
-        self.config = to_absolute_path(config, parent = CFG.get("parameterset_dir"))
+        self.directory = to_absolute_path(directory, parent = CFG.get("parameterset_dir"), must_be_in_parent=False)
+        self.config = to_absolute_path(config, parent = CFG.get("parameterset_dir"), must_be_in_parent=False)
         self.doi = doi
         self.target_model = target_model
         self.supported_model_versions = set() if supported_model_versions is None else supported_model_versions

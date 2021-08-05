@@ -67,7 +67,7 @@ class MarrmotForcing(DefaultForcing):
 
         # generate forcing data and retrieve useful information
         recipe_output = recipe.run()
-        forcing_file: Path = list(recipe_output.values())[0].files[0].filename
+        forcing_file: Path = list(recipe_output.values())[0].files[0].path
 
         directory = str(Path(forcing_file).parent)
 

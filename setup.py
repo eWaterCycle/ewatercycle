@@ -22,7 +22,7 @@ setup(
     install_requires=[
         'basic_modeling_interface',
         'cftime',
-        'esmvaltool',
+        'esmvaltool>=2.3.0',
         'grpc4bmi>=0.2.12,<0.3',
         'hydrostats',
         'matplotlib',
