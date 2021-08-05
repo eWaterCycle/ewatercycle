@@ -56,11 +56,9 @@ You want to make a release
 
 This section is for maintainers of the package.
 
-1. Determine what new version to use. Package uses `semantic versioning <https://semver.org>`_.
-2. Checkout ``HEAD`` of ``main`` branch with ``git checkout main`` and ``git pull``.
-3. Update version in
-  1. ewatercycle/version.py
-  2. docs/conf.py
+1. Checkout ``HEAD`` of ``main`` branch with ``git checkout main`` and ``git pull``.
+2. Determine what new version (major, minor or patch) to use. Package uses `semantic versioning <https://semver.org>`_.
+3. Run ``bump2version <major|minor|patch>`` to update version in package files.
 4. Update CHANGELOG.rst with changes between current and new version.
 5. Commit & push changes to GitHub.
 6. Wait for `GitHub actions <https://github.com/eWaterCycle/ewatercycle/actions?query=branch%3Amain+>`_ to be completed and green.
