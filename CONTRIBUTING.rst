@@ -43,7 +43,7 @@ You want to make some kind of change to the code base
 3. if needed, fork the repository to your own Github profile and create your own feature branch off of the latest main commit. While working on your feature branch, make sure to stay up to date with the main branch by pulling in changes, possibly from the 'upstream' repository (follow the instructions `here <https://help.github.com/articles/configuring-a-remote-for-a-fork/>`_ and `here <https://help.github.com/articles/syncing-a-fork/>`_);
 4. install the package in editable mode and its dependencies with ``pip3 install -e .[dev]``;
 5. make sure the existing tests still work by running ``pytest``;
-6. make sure the existing documentation can still by generated without warnings by running ``cd docs && make html``;
+6. make sure the existing documentation can still by generated without warnings by running ``cd docs && make html``. `Pandoc <https://pandoc.org/>`_ is required to generate docs, it can be installed with ``conda install -c conda-forge pandoc`` ;
 7. add your own tests (if necessary);
 8. update or expand the documentation; Please add `Google Style Python docstrings <https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings>`__.
 9. `push <http://rogerdudler.github.io/git-guide/>`_ your feature branch to (your fork of) the ewatercycle repository on GitHub;
