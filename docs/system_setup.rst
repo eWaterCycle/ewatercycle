@@ -301,7 +301,6 @@ configuration file.
 .. parsed-literal::
 
     container_engine: null
-    esmvaltool_config: None
     grdc_location: None
     output_dir: None
     parameter_sets:

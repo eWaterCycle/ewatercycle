@@ -9,7 +9,6 @@ The global configuration can be imported from the :py:mod:`eWaterCycle` module a
     >>> from ewatercycle import CFG
     >>> CFG
     Config({'container_engine': None,
-            'esmvaltool_config': None,
             'grdc_location': None,
             'output_dir': None,
             'singularity_dir': None,
@@ -71,7 +70,6 @@ The ``ewatercycle.yaml`` is formatted in YAML and could for example look like:
 
 .. code-block:: yaml
 
-    esmvaltool_config: ~/.esmvaltool/config-user.yml
     grdc_location: /data/grdc
     container_engine: singularity
     singularity_dir: /data/singularity-images

@@ -82,7 +82,6 @@ class Config(ValidatedConfig):
         # Exclude own path from dump
         cp.pop("ewatercycle_config", None)
 
-        cp["esmvaltool_config"] = str(cp["esmvaltool_config"])
         cp["grdc_location"] = str(cp["grdc_location"])
         cp["singularity_dir"] = str(cp["singularity_dir"])
         cp["output_dir"] = str(cp["output_dir"])
