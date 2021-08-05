@@ -132,3 +132,13 @@ def test_get_grdc_data_without_file(tmp_path):
     msg = str(excinfo.value)
     print(msg)
     assert 'file' in msg
+
+
+def test_get_grdc_dat_custom_column_name(expected_results, tmp_path):
+    CFG['grdc_location'] = str(tmp_path)
+    expected_data, expected_metadata = expected_results
+
+    result_data, result_metadata = get_grdc_data('42424242', '2000-01-01T00:00Z', '2000-02-01T00:00Z', column='observation')
+
+    assert_frame_equal(result_data, expected_data.rename(columns={'streamflow': 'observation'}))
+    assert result_metadata == expected_metadata
