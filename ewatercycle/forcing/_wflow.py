@@ -93,7 +93,7 @@ class WflowForcing(DefaultForcing):
         recipe_output = recipe.run()
         forcing_data = recipe_output['wflow_daily/script'].data_files[0]
 
-        forcing_file = forcing_data.filename
+        forcing_file = forcing_data.path
         directory = str(forcing_file.parent)
 
         # instantiate forcing object based on generated data
