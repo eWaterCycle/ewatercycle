@@ -78,6 +78,7 @@ setup(
             'recommonmark',
             'sphinx',
             'sphinx_rtd_theme',
+            'sphinx-copybutton',
             # ipython syntax highlighting is required in doc notebooks
             'ipython',
             # release
