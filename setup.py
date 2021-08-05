@@ -32,6 +32,9 @@ setup(
         'ruamel.yaml',
         'scipy',
         'xarray',
+        'Fiona',
+        'Shapely',
+        'grpcio',
     ],
     packages=find_packages(include=('ewatercycle', 'ewatercycle.*')),
     package_data={
