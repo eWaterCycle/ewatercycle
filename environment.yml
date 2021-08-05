@@ -6,5 +6,5 @@ channels:
   - defaults
 dependencies:
   - python>=3.7
-  - esmvaltool-python
+  - esmvaltool-python>=2.3.0
   - subversion
