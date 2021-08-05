@@ -8,11 +8,13 @@ from ewatercycle.util import get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 
+
 def get_grdc_data(station_id: str,
                   start_time: str,
                   end_time: str,
                   parameter: str = 'Q',
-                  data_home: str = None) -> Tuple[pd.core.frame.DataFrame, Dict[str, Union[str, int, float]]]:
+                  data_home: str = None,
+                  column: str ='streamflow') -> Tuple[pd.core.frame.DataFrame, Dict[str, Union[str, int, float]]]:
     """Get river discharge data from Global Runoff Data Centre (GRDC).
 
     Requires the GRDC daily data files in a local directory. The GRDC daily data
@@ -32,6 +34,7 @@ def get_grdc_data(station_id: str,
         data_home : optional. The directory where the daily grdc data is
             located. If left out will use the grdc_location in the eWaterCycle
             configuration file.
+        column: optional. Name of column in dataframe of streamflow.
 
     Returns:
         grdc data in a dataframe and metadata.
@@ -76,14 +79,13 @@ def get_grdc_data(station_id: str,
     """
     if data_home:
         data_path = to_absolute_path(data_home)
+    elif CFG["grdc_location"]:
+        data_path = to_absolute_path(CFG["grdc_location"])
     else:
-        if CFG["grdc_location"]:
-            data_path = to_absolute_path(CFG["grdc_location"])
-        else:
-            raise ValueError(
-                f'Provide the grdc path using `data_home` argument '
-                f'or using `grdc_location` in ewatercycle configuration file.'
-                )
+        raise ValueError(
+            f'Provide the grdc path using `data_home` argument '
+            f'or using `grdc_location` in ewatercycle configuration file.'
+            )
 
     if not data_path.exists():
         raise ValueError(f'The grdc directory {data_path} does not exist!')
@@ -97,14 +99,15 @@ def get_grdc_data(station_id: str,
     metadata, df = _grdc_read(
         raw_file,
         start=get_time(start_time).date(),
-        end=get_time(end_time).date())
+        end=get_time(end_time).date(),
+        column=column)
 
     # Add start/end_time to metadata
     metadata["UserStartTime"] = start_time
     metadata["UserEndTime"] = end_time
 
     # Add number of missing data to metadata
-    metadata["nrMissingData"] = _count_missing_data(df)
+    metadata["nrMissingData"] = _count_missing_data(df, column)
 
     # Shpw info about data
     _log_metadata(metadata)
@@ -112,7 +115,7 @@ def get_grdc_data(station_id: str,
     return df, metadata
 
 
-def _grdc_read(grdc_station_path, start, end):
+def _grdc_read(grdc_station_path, start, end, column):
     with open(
             grdc_station_path, 'r', encoding='cp1252',
             errors='ignore') as file:
@@ -121,6 +124,7 @@ def _grdc_read(grdc_station_path, start, end):
     metadata = _grdc_metadata_reader(grdc_station_path, data)
 
     allLines = data.split('\n')
+    header = 0
     for i, line in enumerate(allLines):
         if line.startswith('# DATA'):
             header = i + 1
@@ -135,7 +139,7 @@ def _grdc_read(grdc_station_path, start, end):
         parse_dates=['YYYY-MM-DD'],
         na_values='-999')
     grdc_station_df = pd.DataFrame(
-        {'streamflow': grdc_data[' Value'].values},
+        {column: grdc_data[' Value'].values},
         index = grdc_data['YYYY-MM-DD'].values,
         )
     grdc_station_df.index.rename('time', inplace=True)
@@ -269,9 +273,9 @@ def _grdc_metadata_reader(grdc_station_path, allLines):
     return attributeGRDC
 
 
-def _count_missing_data(df):
+def _count_missing_data(df, column):
     """Return number of missing data."""
-    return df['streamflow'].isna().sum()
+    return df[column].isna().sum()
 
 
 def _log_metadata(metadata):
