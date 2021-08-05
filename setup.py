@@ -3,7 +3,7 @@
 
 from setuptools import find_packages, setup
 
-with open('README.rst') as readme_file:
+with open('README.md') as readme_file:
     readme = readme_file.read()
 
 version = {}
@@ -15,6 +15,7 @@ setup(
     version=version['__version__'],
     description="A Python package for running and validating a hydrology model",
     long_description=readme + '\n\n',
+    long_description_content_type='text/markdown',
     author="Stefan Verhoeven",
     author_email='s.verhoeven@esciencecenter.nl',
     url='https://github.com/eWaterCycle/ewatercycle',
