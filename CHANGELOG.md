@@ -54,6 +54,6 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased](https://github.com/eWaterCycle/ewatercycle/compare/1.0.0...HEAD)
-[1.0.0](https://github.com/eWaterCycle/ewatercycle/compare/0.2.x-observation_data...1.0.0)
-[0.2.0](https://github.com/eWaterCycle/ewatercycle/releases/tag/0.2.x-observation_data)
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/1.0.0...HEAD
+[1.0.0]: https://github.com/eWaterCycle/ewatercycle/compare/0.2.x-observation_data...1.0.0
+[0.2.0]: https://github.com/eWaterCycle/ewatercycle/releases/tag/0.2.x-observation_data
