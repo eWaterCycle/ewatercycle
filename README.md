@@ -5,19 +5,12 @@
 A Python package for running hydrological models.
 
 [![image](https://github.com/eWaterCycle/ewatercycle/actions/workflows/ci.yml/badge.svg)](https://github.com/eWaterCycle/ewatercycle/actions/workflows/ci.yml)
-
 [![image](https://sonarcloud.io/api/project_badges/measure?project=eWaterCycle_ewatercycle&metric=alert_status)](https://sonarcloud.io/dashboard?id=eWaterCycle_ewatercycle)
-
 [![image](https://sonarcloud.io/api/project_badges/measure?project=eWaterCycle_ewatercycle&metric=coverage)](https://sonarcloud.io/component_measures?id=eWaterCycle_ewatercycle&metric=coverage)
-
 [![Documentation Status](https://readthedocs.org/projects/ewatercycle/badge/?version=latest)](https://ewatercycle.readthedocs.io/en/latest/?badge=latest)
-
 [![PyPI](https://img.shields.io/pypi/v/ewatercycle)](https://pypi.org/project/ewatercycle/)
-
 [![image](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B-yellow)](https://fair-software.eu)
-
 [![image](https://zenodo.org/badge/DOI/10.5281/zenodo.5119389.svg)](https://doi.org/10.5281/zenodo.5119389)
-
 [![Research Software Directory Badge](https://img.shields.io/badge/rsd-ewatercycle-00a3e3.svg)](https://www.research-software.nl/software/ewatercycle)
 
 The eWaterCycle package makes it easier to use hydrological models
