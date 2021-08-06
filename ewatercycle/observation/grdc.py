@@ -14,7 +14,7 @@ def get_grdc_data(station_id: str,
                   end_time: str,
                   parameter: str = 'Q',
                   data_home: str = None,
-                  column: str ='streamflow') -> Tuple[pd.core.frame.DataFrame, Dict[str, Union[str, int, float]]]:
+                  column: str = 'streamflow') -> Tuple[pd.core.frame.DataFrame, Dict[str, Union[str, int, float]]]:
     """Get river discharge data from Global Runoff Data Centre (GRDC).
 
     Requires the GRDC daily data files in a local directory. The GRDC daily data
@@ -34,7 +34,7 @@ def get_grdc_data(station_id: str,
         data_home : optional. The directory where the daily grdc data is
             located. If left out will use the grdc_location in the eWaterCycle
             configuration file.
-        column: optional. Name of column in dataframe of streamflow.
+        column: optional. Name of column in dataframe. Default: "streamflow".
 
     Returns:
         grdc data in a dataframe and metadata.
