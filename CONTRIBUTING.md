@@ -57,7 +57,7 @@ The sections below outline the steps in each case.
     `pip3 install -e .[dev]`;
 5. make sure the existing tests still work by running `pytest`;
 6. make sure the existing documentation can still by generated without
-    warnings by running `cd docs && make html`;
+    warnings by running `cd docs && make html`. [Pandoc](https://pandoc.org/) is required to generate docs, it can be installed with ``conda install -c conda-forge pandoc`` ;
 7. add your own tests (if necessary);
 8. update or expand the documentation; Please add [Google Style Python
     docstrings](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings).
