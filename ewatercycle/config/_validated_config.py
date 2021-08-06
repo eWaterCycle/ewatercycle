@@ -1,10 +1,8 @@
 """Config validation objects."""
 
 import pprint
-import warnings
 from collections.abc import MutableMapping
-from typing import Callable, Dict, Tuple
-import re
+from typing import Callable, Dict
 
 from ._validators import ValidationError
 

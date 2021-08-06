@@ -143,7 +143,6 @@ validate_pathlist = _listify_validator(
 validate_dict_parameterset = _make_type_validator(dict, allow_none=True)
 
 _validators = {
-    "esmvaltool_config": validate_path_or_none,
     "grdc_location": validate_path_or_none,
     "container_engine": validate_string_or_none,
     "singularity_dir": validate_path_or_none,
