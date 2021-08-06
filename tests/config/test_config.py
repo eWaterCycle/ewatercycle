@@ -157,15 +157,19 @@ def test_config_update():
 def test_config_class():
     """Test that the validators turn strings into paths."""
     config = {
-        'esmvaltool_config': 'path/to/esmvaltool_config',
+        'container_engine': 'docker',
         'grdc_location': 'path/to/grdc_location',
         'output_dir': 'path/to/output_dir',
         'singularity_dir': 'path/to/singularity_dir',
+        'parameterset_dir': 'path/to/parameter_sets',
+        'parameter_sets': {}
     }
 
     cfg = Config(config)
 
-    assert isinstance(cfg['esmvaltool_config'], Path)
+    assert isinstance(cfg['container_engine'], str)
     assert isinstance(cfg['grdc_location'], Path)
     assert isinstance(cfg['output_dir'], Path)
     assert isinstance(cfg['singularity_dir'], Path)
+    assert isinstance(cfg['parameterset_dir'], Path)
+    assert isinstance(cfg['parameter_sets'], dict)
