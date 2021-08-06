@@ -1,3 +1,4 @@
-ruamel.yaml
-nbsphinx
 ipython
+nbsphinx
+ruamel.yaml
+sphinx-copybutton
