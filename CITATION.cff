@@ -52,7 +52,12 @@ authors:
     name-particle: van
     orcid: "https://orcid.org/0000-0002-7508-3272"
     email: "b.vanwerkhoven@esciencecenter.nl"
-
+  -
+    affiliation: "Delft University of Technology"
+    family-names: Giesen
+    given-names: Nick
+    name-particle: van de
+    orcid: "https://orcid.org/0000-0002-7200-3353"
 cff-version: "1.1.0"
 keywords:
   - hydrology
