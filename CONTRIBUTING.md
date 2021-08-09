@@ -57,7 +57,7 @@ The sections below outline the steps in each case.
     `pip3 install -e .[dev]`;
 5. make sure the existing tests still work by running `pytest`;
 6. make sure the existing documentation can still by generated without
-    warnings by running `cd docs && make html`;
+    warnings by running `cd docs && make html`. [Pandoc](https://pandoc.org/) is required to generate docs, it can be installed with ``conda install -c conda-forge pandoc`` ;
 7. add your own tests (if necessary);
 8. update or expand the documentation; Please add [Google Style Python
     docstrings](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings).
@@ -77,16 +77,9 @@ your pull request.
 
 This section is for maintainers of the package.
 
-1. Determine what new version to use. Package uses [semantic
-    versioning](https://semver.org).
-2. Checkout `HEAD` of `main` branch with `git checkout main` and
-    `git pull`.
-
-3. Update version in
-
-    1. ewatercycle/version.py
-    2. docs/conf.py
-
+1. Checkout ``HEAD`` of ``main`` branch with ``git checkout main`` and ``git pull``.
+2. Determine what new version (major, minor or patch) to use. Package uses `semantic versioning <https://semver.org>`_.
+3. Run ``bump2version <major|minor|patch>`` to update version in package files.
 4. Update CHANGELOG.md with changes between current and new version.
 5. Commit & push changes to GitHub.
 6. Wait for [GitHub
