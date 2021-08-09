@@ -48,6 +48,11 @@
             "affiliation": "Netherlands eScience Center",
             "name": "van Werkhoven, Ben",
             "orcid": "0000-0002-7508-3272"
+        },
+        {
+            "affiliation": "Delft University of Technology",
+            "name": "van de Giesen, Nick",
+            "orcid": "0000-0002-7200-3353"
         }
     ],
     "keywords": [
@@ -57,7 +62,7 @@
     "license": {
         "id": "Apache-2.0"
     },
-    "title": "eWaterCycle Python package", 
+    "title": "eWaterCycle Python package",
     "communities": [
       {
         "id": "nlesc"
