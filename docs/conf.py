@@ -20,7 +20,7 @@ import os
 import sys
 
 here = os.path.dirname(__file__)
-sys.path.insert(0, os.path.abspath(os.path.join(here, '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(here, '..', 'src')))
 
 
 # -- General configuration ------------------------------------------------
@@ -90,7 +90,7 @@ todo_include_todos = False
 def run_apidoc(_):
     here = os.path.dirname(__file__)
     out = os.path.abspath(os.path.join(here, 'apidocs'))
-    src = os.path.abspath(os.path.join(here, '..', 'ewatercycle'))
+    src = os.path.abspath(os.path.join(here, '..', 'src', 'ewatercycle'))
 
     ignore_paths = []
 
