@@ -65,7 +65,7 @@
     "title": "eWaterCycle Python package",
     "communities": [
       {
-        "id": "nlesc"
+        "identifier": "nlesc"
       }
     ]
 }
