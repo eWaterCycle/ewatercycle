@@ -89,8 +89,8 @@ observations_df, station_info = ewatercycle.observation.grdc.get_grdc_data(
     station_id=4147380,
     start_time=model.start_time_as_isostr,
     end_time=model.end_time_as_isostr,
+    column='observation',
 )
-observations_df = observations_df.rename(columns={'streamflow': 'observation'})
 
 simulated_discharge = []
 timestamps = []
