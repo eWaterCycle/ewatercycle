@@ -6,6 +6,8 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+## [1.1.0] (2021-08-10)
+
 ### Added
 
 - Column name argument to `get_grdc_data()` ([#190](https://github.com/eWaterCycle/ewatercycle/issues/190))
@@ -20,6 +22,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 - ParameterSet can be outside CFG['parametersets_dir'] ([#217](https://github.com/eWaterCycle/ewatercycle/issues/217))
 - Link to nbviewer ([#202](https://github.com/eWaterCycle/ewatercycle/issues/202))
+- Pinned esmpy as temporary workaround for single CPU affinity ([#234](https://github.com/eWaterCycle/ewatercycle/issues/234))
 
 ### Removed
 
@@ -73,6 +76,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/1.0.0...HEAD
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.0...HEAD
+[1.1.0]: https://github.com/eWaterCycle/ewatercycle/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/eWaterCycle/ewatercycle/compare/0.2.x-observation_data...1.0.0
 [0.2.0]: https://github.com/eWaterCycle/ewatercycle/releases/tag/0.2.x-observation_data
