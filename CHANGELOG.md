@@ -20,6 +20,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 - ParameterSet can be outside CFG['parametersets_dir'] ([#217](https://github.com/eWaterCycle/ewatercycle/issues/217))
 - Link to nbviewer ([#202](https://github.com/eWaterCycle/ewatercycle/issues/202))
+- Pinned esmpy as temporary workaround for single CPU affinity ([#234](https://github.com/eWaterCycle/ewatercycle/issues/234))
 
 ### Removed
 
