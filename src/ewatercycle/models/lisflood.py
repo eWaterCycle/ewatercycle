@@ -194,9 +194,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
 
             # input for lisflood
             if "PrefixPrecipitation" in textvar_name:
-                textvar.set(
-                    "value", Path(self.forcing.PrefixPrecipitation).stem
-                )
+                textvar.set("value", Path(self.forcing.PrefixPrecipitation).stem)
             if "PrefixTavg" in textvar_name:
                 textvar.set("value", Path(self.forcing.PrefixTavg).stem)
 
@@ -339,9 +337,7 @@ def _generate_workdir(cfg_dir: Path = None) -> Path:
         timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
             "%Y%m%d_%H%M%S"
         )
-        cfg_dir = to_absolute_path(
-            f"lisflood_{timestamp}", parent=Path(scratch_dir)
-        )
+        cfg_dir = to_absolute_path(f"lisflood_{timestamp}", parent=Path(scratch_dir))
     cfg_dir.mkdir(parents=True, exist_ok=True)
     return cfg_dir
 

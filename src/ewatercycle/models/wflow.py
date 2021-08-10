@@ -166,7 +166,7 @@ class Wflow(AbstractModel[WflowForcing]):
             )
         elif CFG["container_engine"] == "singularity":
             self.bmi = BmiClientSingularity(
-                image=self._singularity_image(CFG['singularity_dir']),
+                image=self._singularity_image(CFG["singularity_dir"]),
                 work_dir=str(self.work_dir),
                 timeout=15,
             )

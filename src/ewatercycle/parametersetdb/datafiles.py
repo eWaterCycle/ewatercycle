@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 import subprocess
-from abc import abstractmethod, ABC
-from typing import Type, Dict
+from abc import ABC, abstractmethod
+from typing import Dict, Type
 
 
 class AbstractCopier(ABC):
@@ -28,22 +28,22 @@ class AbstractCopier(ABC):
 
 
 class SubversionCopier(AbstractCopier):
-    """Uses subversion export to copy files from source to target
-    """
+    """Uses subversion export to copy files from source to target"""
+
     def save(self, target):
         if os.path.exists(target):
-            raise Exception('Target directory already exists, will not overwrite')
-        subprocess.check_call(['svn', 'export', self.source, target])
+            raise Exception("Target directory already exists, will not overwrite")
+        subprocess.check_call(["svn", "export", self.source, target])
 
 
 class SymlinkCopier(AbstractCopier):
-    """Creates symlink from source to target
-    """
+    """Creates symlink from source to target"""
+
     def save(self, target):
         os.symlink(self.source, target)
 
 
 DATAFILES_FORMATS: Dict[str, Type[AbstractCopier]] = {
-    'svn': SubversionCopier,
-    'symlink': SymlinkCopier,
+    "svn": SubversionCopier,
+    "symlink": SymlinkCopier,
 }

@@ -159,9 +159,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
             )
 
         if "routing_method" in kwargs:
-            cfg.set(
-                "routingOptions", "routingMethod", kwargs["routing_method"]
-            )
+            cfg.set("routingOptions", "routingMethod", kwargs["routing_method"])
 
         if "dynamic_flood_plain" in kwargs:
             cfg.set(
@@ -203,7 +201,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
             )
         elif CFG["container_engine"] == "singularity":
             self.bmi = BmiClientSingularity(
-                image=self._singularity_image(CFG['singularity_dir']),
+                image=self._singularity_image(CFG["singularity_dir"]),
                 work_dir=str(self.work_dir),
                 input_dirs=additional_input_dirs,
                 timeout=15,

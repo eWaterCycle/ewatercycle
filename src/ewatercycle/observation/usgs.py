@@ -1,17 +1,13 @@
 import os
 from datetime import datetime
 
-import xarray as xr
 import numpy as np
+import xarray as xr
 from pyoos.collectors.usgs.usgs_rest import UsgsRest
 from pyoos.parsers.waterml import WaterML11ToPaegan
 
 
-def get_usgs_data(station_id,
-                  start_date,
-                  end_date,
-                  parameter='00060',
-                  cache_dir=None):
+def get_usgs_data(station_id, start_date, end_date, parameter="00060", cache_dir=None):
     """
     Get river discharge data from the
     `U.S. Geological Survey Water Services <https://waterservices.usgs.gov/>`_ (USGS) rest web service.
@@ -48,32 +44,51 @@ def get_usgs_data(station_id,
             location:   (40.6758974, -80.5406244)
     """
     if cache_dir is None:
-        cache_dir = os.environ['USGS_DATA_HOME']
+        cache_dir = os.environ["USGS_DATA_HOME"]
 
     # Check if we have the netcdf data
     netcdf = os.path.join(
-        cache_dir, "USGS_" + station_id + "_" + parameter + "_" + start_date +
-        "_" + end_date + ".nc")
+        cache_dir,
+        "USGS_"
+        + station_id
+        + "_"
+        + parameter
+        + "_"
+        + start_date
+        + "_"
+        + end_date
+        + ".nc",
+    )
     if os.path.exists(netcdf):
         return xr.open_dataset(netcdf)
 
     # Download the data if needed
     out = os.path.join(
-        cache_dir, "USGS_" + station_id + "_" + parameter + "_" + start_date +
-        "_" + end_date + ".wml")
+        cache_dir,
+        "USGS_"
+        + station_id
+        + "_"
+        + parameter
+        + "_"
+        + start_date
+        + "_"
+        + end_date
+        + ".wml",
+    )
     if not os.path.exists(out):
         collector = UsgsRest()
         collector.filter(
             start=datetime.strptime(start_date, "%Y-%m-%d"),
             end=datetime.strptime(end_date, "%Y-%m-%d"),
             variables=[parameter],
-            features=[station_id])
+            features=[station_id],
+        )
         data = collector.raw()
-        with open(out, 'w') as file:
+        with open(out, "w") as file:
             file.write(data)
         collector.clear()
     else:
-        with open(out, 'r') as file:
+        with open(out, "r") as file:
             data = file.read()
 
     # Convert the raw data to an xarray
@@ -86,26 +101,26 @@ def get_usgs_data(station_id,
         station = data.elements[0]
 
         # Unit conversion from cubic feet to cubic meter per second
-        values = np.array([
-            float(point.members[0]['value']) / 35.315
-            for point in station.elements
-        ],
-                          dtype=np.float32)
+        values = np.array(
+            [float(point.members[0]["value"]) / 35.315 for point in station.elements],
+            dtype=np.float32,
+        )
         times = [point.time for point in station.elements]
 
         attrs = {
-            'units': 'cubic meters per second',
+            "units": "cubic meters per second",
         }
 
         # Create the xarray dataset
-        ds = xr.Dataset({'streamflow': (['time'], values, attrs)},
-                        coords={'time': times})
+        ds = xr.Dataset(
+            {"streamflow": (["time"], values, attrs)}, coords={"time": times}
+        )
 
         # Set some nice attributes
-        ds.attrs['title'] = 'USGS Data from streamflow data'
-        ds.attrs['station'] = station.name
-        ds.attrs['stationid'] = station.get_uid()
-        ds.attrs['location'] = (station.location.y, station.location.x)
+        ds.attrs["title"] = "USGS Data from streamflow data"
+        ds.attrs["station"] = station.name
+        ds.attrs["stationid"] = station.get_uid()
+        ds.attrs["location"] = (station.location.y, station.location.x)
 
         ds.to_netcdf(netcdf)
 

@@ -55,6 +55,7 @@ The sections below outline the steps in each case.
     and [here](https://help.github.com/articles/syncing-a-fork/));
 4. install the package in editable mode and its dependencies with
     `pip3 install -e .[dev]`;
+4. make sure pre commit hook is installed by running `pre-commit install`, causes linting and formatting to be applied during commit;
 5. make sure the existing tests still work by running `pytest`;
 6. make sure the existing documentation can still by generated without
     warnings by running `cd docs && make html`. [Pandoc](https://pandoc.org/) is required to generate docs, it can be installed with ``conda install -c conda-forge pandoc`` ;

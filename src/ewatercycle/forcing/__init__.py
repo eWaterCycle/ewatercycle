@@ -1,12 +1,12 @@
 from pathlib import Path
-from typing import Optional, Dict, Type
+from typing import Dict, Optional, Type
 
 from ruamel.yaml import YAML
 
-from ._default import DefaultForcing, FORCING_YAML
-from . import _hype, _lisflood, _marrmot, _pcrglobwb, _wflow
-
 from ewatercycle.util import to_absolute_path
+
+from . import _hype, _lisflood, _marrmot, _pcrglobwb, _wflow
+from ._default import FORCING_YAML, DefaultForcing
 
 FORCING_CLASSES: Dict[str, Type[DefaultForcing]] = {
     "hype": _hype.HypeForcing,
@@ -37,18 +37,20 @@ def load(directory: str) -> DefaultForcing:
     forcing_info = yaml.load(source / FORCING_YAML)
     forcing_info.directory = source
     if forcing_info.shape:
-        forcing_info.shape = to_absolute_path(forcing_info.shape, parent = source)
+        forcing_info.shape = to_absolute_path(forcing_info.shape, parent=source)
 
     return forcing_info
 
 
 # Or load_custom , load_external, load_???., from_external, import_forcing,
-def load_foreign(target_model,
-                 start_time: str,
-                 end_time: str,
-                 directory: str = '.',
-                 shape: str = None,
-                 forcing_info: Optional[Dict] = None) -> DefaultForcing:
+def load_foreign(
+    target_model,
+    start_time: str,
+    end_time: str,
+    directory: str = ".",
+    shape: str = None,
+    forcing_info: Optional[Dict] = None,
+) -> DefaultForcing:
     """Load existing forcing data generated from an external source.
 
     Args:
@@ -105,8 +107,9 @@ def load_foreign(target_model,
     constructor = FORCING_CLASSES.get(target_model, None)
     if constructor is None:
         raise NotImplementedError(
-            f'Target model `{target_model}` is not supported by the '
-            'eWatercycle forcing generator.')
+            f"Target model `{target_model}` is not supported by the "
+            "eWatercycle forcing generator."
+        )
     if forcing_info is None:
         forcing_info = {}
     return constructor(  # type: ignore # each subclass can have different forcing_info
@@ -118,12 +121,14 @@ def load_foreign(target_model,
     )
 
 
-def generate(target_model: str,
-             dataset: str,
-             start_time: str,
-             end_time: str,
-             shape: str,
-             model_specific_options: Optional[Dict] = None) -> DefaultForcing:
+def generate(
+    target_model: str,
+    dataset: str,
+    start_time: str,
+    end_time: str,
+    shape: str,
+    model_specific_options: Optional[Dict] = None,
+) -> DefaultForcing:
     """Generate forcing data with ESMValTool.
 
     Args:
@@ -146,19 +151,23 @@ def generate(target_model: str,
     constructor = FORCING_CLASSES.get(target_model, None)
     if constructor is None:
         raise NotImplementedError(
-            f'Target model `{target_model}` is not supported by the '
-            'eWatercycle forcing generator')
+            f"Target model `{target_model}` is not supported by the "
+            "eWatercycle forcing generator"
+        )
     if model_specific_options is None:
         model_specific_options = {}
-    forcing_info = constructor.generate(dataset, start_time, end_time, shape,
-                                        **model_specific_options)
+    forcing_info = constructor.generate(
+        dataset, start_time, end_time, shape, **model_specific_options
+    )
     forcing_info.save()
     return forcing_info
 
 
 # Append docstrings of with model-specific options to existing docstring
 load_foreign.__doc__ += "".join(  # type:ignore
-    [f"\n    {k}: {v.__init__.__doc__}" for k, v in FORCING_CLASSES.items()])
+    [f"\n    {k}: {v.__init__.__doc__}" for k, v in FORCING_CLASSES.items()]
+)
 
 generate.__doc__ += "".join(  # type:ignore
-    [f"\n    {k}: {v.generate.__doc__}" for k, v in FORCING_CLASSES.items()])
+    [f"\n    {k}: {v.generate.__doc__}" for k, v in FORCING_CLASSES.items()]
+)

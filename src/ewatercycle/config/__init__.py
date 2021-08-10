@@ -79,12 +79,6 @@ The ``ewatercycle.yaml`` is formatted in YAML and could for example look like:
     wflow.docker_images: ewatercycle/wflow-grpc4bmi:2020.1.1
 """
 
-from ._config_object import CFG, Config, SYSTEM_CONFIG, USER_HOME_CONFIG, DEFAULT_CONFIG
+from ._config_object import CFG, DEFAULT_CONFIG, SYSTEM_CONFIG, USER_HOME_CONFIG, Config
 
-__all__ = [
-    'CFG',
-    'Config',
-    'DEFAULT_CONFIG',
-    'SYSTEM_CONFIG',
-    'USER_HOME_CONFIG'
-]
+__all__ = ["CFG", "Config", "DEFAULT_CONFIG", "SYSTEM_CONFIG", "USER_HOME_CONFIG"]

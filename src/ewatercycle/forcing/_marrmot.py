@@ -12,18 +12,19 @@ from .datasets import DATASETS
 
 class MarrmotForcing(DefaultForcing):
     """Container for marrmot forcing data."""
+
     def __init__(
         self,
         start_time: str,
         end_time: str,
         directory: str,
         shape: Optional[str] = None,
-        forcing_file: Optional[str] = 'marrmot.mat',
+        forcing_file: Optional[str] = "marrmot.mat",
     ):
         """
-            forcing_file: Matlab file that contains forcings for Marrmot
-                models. See format forcing file in `model implementation
-                <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`_.
+        forcing_file: Matlab file that contains forcings for Marrmot
+            models. See format forcing file in `model implementation
+            <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`_.
         """
         super().__init__(start_time, end_time, directory, shape)
         self.forcing_file = forcing_file
@@ -35,9 +36,9 @@ class MarrmotForcing(DefaultForcing):
         start_time: str,
         end_time: str,
         shape: str,
-    ) -> 'MarrmotForcing':
+    ) -> "MarrmotForcing":
         """
-            None: Marrmot does not have model-specific generate options.
+        None: Marrmot does not have model-specific generate options.
         """
 
         # load the ESMValTool recipe
@@ -46,24 +47,25 @@ class MarrmotForcing(DefaultForcing):
 
         # model-specific updates to the recipe
         basin = to_absolute_path(shape).stem
-        recipe.data['preprocessors']['daily']['extract_shape'][
-            'shapefile'] = shape
-        recipe.data['diagnostics']['diagnostic_daily']['scripts']['script'][
-            'basin'] = basin
+        recipe.data["preprocessors"]["daily"]["extract_shape"]["shapefile"] = shape
+        recipe.data["diagnostics"]["diagnostic_daily"]["scripts"]["script"][
+            "basin"
+        ] = basin
 
-        recipe.data['diagnostics']['diagnostic_daily'][
-            'additional_datasets'] = [DATASETS[dataset]]
+        recipe.data["diagnostics"]["diagnostic_daily"]["additional_datasets"] = [
+            DATASETS[dataset]
+        ]
 
-        variables = recipe.data['diagnostics']['diagnostic_daily']['variables']
-        var_names = 'tas', 'pr', 'psl', 'rsds', 'rsdt'
+        variables = recipe.data["diagnostics"]["diagnostic_daily"]["variables"]
+        var_names = "tas", "pr", "psl", "rsds", "rsdt"
 
         startyear = get_time(start_time).year
         for var_name in var_names:
-            variables[var_name]['start_year'] = startyear
+            variables[var_name]["start_year"] = startyear
 
         endyear = get_time(end_time).year
         for var_name in var_names:
-            variables[var_name]['end_year'] = endyear
+            variables[var_name]["end_year"] = endyear
 
         # generate forcing data and retrieve useful information
         recipe_output = recipe.run()
@@ -72,11 +74,13 @@ class MarrmotForcing(DefaultForcing):
         directory = str(Path(forcing_file).parent)
 
         # instantiate forcing object based on generated data
-        return MarrmotForcing(directory=directory,
-                              start_time=start_time,
-                              end_time=end_time,
-                              shape=shape,
-                              forcing_file=forcing_file.name)
+        return MarrmotForcing(
+            directory=directory,
+            start_time=start_time,
+            end_time=end_time,
+            shape=shape,
+            forcing_file=forcing_file.name,
+        )
 
     def plot(self):
-        raise NotImplementedError('Dont know how to plot')
+        raise NotImplementedError("Dont know how to plot")

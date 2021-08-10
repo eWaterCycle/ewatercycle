@@ -5,7 +5,12 @@ from typing import Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ..util import data_files_from_recipe_output, get_extents, get_time, to_absolute_path
+from ..util import (
+    data_files_from_recipe_output,
+    get_extents,
+    get_time,
+    to_absolute_path,
+)
 from ._default import DefaultForcing
 from .datasets import DATASETS
 
@@ -62,9 +67,9 @@ class PCRGlobWBForcing(DefaultForcing):
         )
 
         if dataset is not None:
-            recipe.data["diagnostics"]["diagnostic_daily"][
-                "additional_datasets"
-            ] = [DATASETS[dataset]]
+            recipe.data["diagnostics"]["diagnostic_daily"]["additional_datasets"] = [
+                DATASETS[dataset]
+            ]
 
         basin = to_absolute_path(shape).stem
         recipe.data["diagnostics"]["diagnostic_daily"]["scripts"]["script"][

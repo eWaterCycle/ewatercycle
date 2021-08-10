@@ -9,15 +9,15 @@ from ewatercycle.parameter_sets import ParameterSet
 class TestDefaults:
     @pytest.fixture
     def mocked_config(self, tmp_path):
-        CFG['parameterset_dir'] = tmp_path
-        config = tmp_path / 'mymockedconfig.ini'
-        config.write_text('Something')
+        CFG["parameterset_dir"] = tmp_path
+        config = tmp_path / "mymockedconfig.ini"
+        config.write_text("Something")
         return config
 
     @pytest.fixture
     def parameter_set(self, tmp_path, mocked_config: Path):
         return ParameterSet(
-            name='justatest',
+            name="justatest",
             directory=str(tmp_path),
             config=mocked_config.name,
         )
@@ -45,8 +45,8 @@ class TestDefaults:
 
     def test_str(self, parameter_set: ParameterSet, tmp_path):
         expected = (
-            'Parameter set\n'
-            '-------------\n'
+            "Parameter set\n"
+            "-------------\n"
             "name=justatest\n"
             f"directory={str(tmp_path)}\n"
             f"config={str(tmp_path)}/mymockedconfig.ini\n"
@@ -60,18 +60,18 @@ class TestDefaults:
 class TestOutsideCFG:
     @pytest.fixture
     def mocked_config(self, tmp_path):
-        CFG['parameterset_dir'] = tmp_path / 'parameter-sets'
-        config = tmp_path / 'mymockedconfig.ini'
-        config.write_text('Something')
+        CFG["parameterset_dir"] = tmp_path / "parameter-sets"
+        config = tmp_path / "mymockedconfig.ini"
+        config.write_text("Something")
         return config
 
     @pytest.fixture
     def parameter_set(self, tmp_path, mocked_config: Path):
         return ParameterSet(
-            name='justatest',
-            directory=str(tmp_path / 'my-parameter-set'),
+            name="justatest",
+            directory=str(tmp_path / "my-parameter-set"),
             config=mocked_config.name,
         )
 
     def test_directory(self, parameter_set: ParameterSet, tmp_path):
-        assert parameter_set.directory == tmp_path / 'my-parameter-set'
+        assert parameter_set.directory == tmp_path / "my-parameter-set"

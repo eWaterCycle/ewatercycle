@@ -1,11 +1,10 @@
+from datetime import datetime
 from os import PathLike
-from typing import Any, Iterable, Tuple, Dict
 from pathlib import Path
+from typing import Any, Dict, Iterable, Tuple
 
 import fiona
 import numpy as np
-from datetime import datetime
-
 from dateutil.parser import parse
 from esmvalcore.experimental.recipe_output import RecipeOutput
 from shapely import geometry
@@ -49,9 +48,7 @@ def find_closest_point(
     dx = np.diff(grid_longitudes).max() * 111  # (1 degree ~ 111km)
     dy = np.diff(grid_latitudes).max() * 111  # (1 degree ~ 111km)
     if distance > max(dx, dy) * 2:
-        raise ValueError(
-            f"Point {point_longitude, point_latitude} outside model grid."
-        )
+        raise ValueError(f"Point {point_longitude, point_latitude} outside model grid.")
 
     return idx_lon, idx_lat
 
@@ -121,7 +118,12 @@ def data_files_from_recipe_output(
     return directory, forcing_files
 
 
-def to_absolute_path(input_path: str, parent: Path = None, must_exist: bool = False, must_be_in_parent=True) -> Path:
+def to_absolute_path(
+    input_path: str,
+    parent: Path = None,
+    must_exist: bool = False,
+    must_be_in_parent=True,
+) -> Path:
     """Parse input string as :py:class:`pathlib.Path` object.
 
     Args:
@@ -140,6 +142,8 @@ def to_absolute_path(input_path: str, parent: Path = None, must_exist: bool = Fa
             try:
                 pathlike.relative_to(parent)
             except ValueError:
-                raise ValueError(f"Input path {input_path} is not a subpath of parent {parent}")
+                raise ValueError(
+                    f"Input path {input_path} is not a subpath of parent {parent}"
+                )
 
     return pathlike.expanduser().resolve(strict=must_exist)
