@@ -25,7 +25,7 @@ jobs:
         shell: bash -l {0}
         run: |
           pip3 install -e .[dev]
-      - name: Run pre commit hooks like black formatter
+      - name: Run pre commit hooks like linters and black formatter
         uses: pre-commit/action@v2.0.3
       - name: Tests with coverage
         run: |
