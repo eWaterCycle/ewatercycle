@@ -5,9 +5,6 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.black]
-include = '(\.pyi?|\.ipynb)$'
-
 [tool.isort]
 profile = "black"
 multi_line_output = 3
