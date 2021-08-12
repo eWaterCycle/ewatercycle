@@ -430,8 +430,12 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
 
         Args:
             cfg_dir: a run directory given by user or created for user.
-            start_time_iso: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
-            end_time_iso: End time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
+            start_time_iso: Start time of model in UTC and ISO format string
+               e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+               If not given then forcing start time is used.
+            end_time_iso: End time of model in UTC and ISO format string
+               e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+               If not given then forcing end time is used.
 
         Returns:
             Path for Marrmot config file
@@ -510,12 +514,12 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the parameters for this model."""
-        p: List[Tuple[str, Any]] = list(zip(M14_PARAMS, self._parameters))
-        p += [
+        pars: List[Tuple[str, Any]] = list(zip(M14_PARAMS, self._parameters))
+        pars += [
             ("initial_upper_zone_storage", self.store_ini[0]),
             ("initial_saturated_zone_storage", self.store_ini[1]),
             ("solver", self.solver),
             ("start time", self.forcing_start_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ("end time", self.forcing_end_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
         ]
-        return p
+        return pars

@@ -20,7 +20,7 @@
 import sys
 from pathlib import Path
 
-src = Path(__file__) / ".." / "src"
+src = Path(__file__).parent / ".." / "src"
 sys.path.insert(0, str(src.absolute()))
 
 
@@ -84,9 +84,9 @@ todo_include_todos = False
 # -- Run apidoc plug-in manually, as readthedocs doesn't support it -------
 # See https://github.com/rtfd/readthedocs.org/issues/1139
 def run_apidoc(_):  # noqa: D103
-    here = Path(__file__)
+    here = Path(__file__).parent
     out = (here / "apidocs").absolute()
-    sourcedir = src / "ewatercycle"
+    source_dir = (here / ".." / "src" / "ewatercycle").absolute()
 
     ignore_paths = []
 
@@ -97,8 +97,8 @@ def run_apidoc(_):  # noqa: D103
         "-M",
         "--implicit-namespaces",
         "-o",
-        out,
-        sourcedir,
+        str(out),
+        str(source_dir),
     ] + ignore_paths
 
     try:
