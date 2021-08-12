@@ -67,7 +67,6 @@ repos:
             # wemake-python-styleguide,  # conflicts with black
             yesqa,
           ]
-        args: &fa [--docstring-convention=google]
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.910
     hooks:
@@ -86,7 +85,6 @@ repos:
       # TODO renable when erros are fixed/ignored
       - id: nbqa-flake8
         additional_dependencies: *fd
-        args: *fa
       # TODO renable when erros are fixed/ignored
       - id: nbqa-pylint
         additional_dependencies: [pylint==2.9.6]
