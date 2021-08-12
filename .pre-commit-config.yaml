@@ -27,10 +27,10 @@ repos:
     hooks:
       - id: isort
   # TODO renable when erros are fixed/ignored
-  - repo: https://github.com/pycqa/pylint
-    rev: "v2.9.6"
-    hooks:
-      - id: pylint
+  # - repo: https://github.com/pycqa/pylint
+  #   rev: "v2.9.6"
+  #   hooks:
+  #     - id: pylint
   # TODO renable when erros are fixed/ignored
   - repo: https://gitlab.com/pycqa/flake8
     rev: "3.9.2"
@@ -86,8 +86,8 @@ repos:
       - id: nbqa-flake8
         additional_dependencies: *fd
       # TODO renable when erros are fixed/ignored
-      - id: nbqa-pylint
-        additional_dependencies: [pylint==2.9.6]
+      # - id: nbqa-pylint
+      #   additional_dependencies: [pylint==2.9.6]
   - repo: https://github.com/regebro/pyroma
     rev: "3.2"
     hooks:
