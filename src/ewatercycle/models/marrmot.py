@@ -389,7 +389,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
         return str(config_file), str(cfg_dir_as_path)
 
     def _check_forcing(self, forcing):
-        """ "Check forcing argument and get path, start and end time of forcing data."""
+        """Check forcing argument and get path, start and end time of forcing data."""
         if isinstance(forcing, MarrmotForcing):
             forcing_dir = to_absolute_path(forcing.directory)
             self.forcing_file = str(forcing_dir / forcing.forcing_file)
@@ -398,7 +398,8 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             self.forcing_end_time = get_time(forcing.end_time)
         else:
             raise TypeError(
-                f"Unknown forcing type: {forcing}. Please supply a MarrmotForcing object."
+                f"Unknown forcing type: {forcing}. "
+                "Please supply a MarrmotForcing object."
             )
         # parse start/end time
         forcing_data = sio.loadmat(self.forcing_file, mat_dtype=True)
@@ -406,13 +407,21 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             if len(forcing_data["parameters"]) == len(self._parameters):
                 self._parameters = forcing_data["parameters"]
             else:
-                message = f"The length of parameters in forcing {self.forcing_file} does not match the length of M14 parameters that is seven."
+                message = (
+                    "The length of parameters in forcing "
+                    f"{self.forcing_file} does not match "
+                    "the length of M14 parameters that is seven."
+                )
                 logger.warning("%s", message)
         if "store_ini" in forcing_data:
             if len(forcing_data["store_ini"]) == len(self.store_ini):
                 self.store_ini = forcing_data["store_ini"]
             else:
-                message = f"The length of initial stores in forcing {self.forcing_file} does not match the length of M14 iniatial stores that is two."
+                message = (
+                    "The length of initial stores in forcing "
+                    f"{self.forcing_file} does not match "
+                    "the length of M14 iniatial stores that is two."
+                )
                 logger.warning("%s", message)
         if "solver" in forcing_data:
             forcing_solver = forcing_data["solver"]
