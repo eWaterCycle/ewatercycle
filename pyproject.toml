@@ -8,3 +8,9 @@ build-backend = "setuptools.build_meta"
 [tool.isort]
 profile = "black"
 multi_line_output = 3
+
+[tool.pylint.messages_control]
+disable = "C0330, C0326"
+
+[tool.pylint.format]
+max-line-length = "88"
