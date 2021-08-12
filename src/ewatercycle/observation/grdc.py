@@ -1,3 +1,4 @@
+"""Global Runoff Data Centre module."""
 import logging
 import os
 from typing import Dict, Tuple, Union
@@ -9,6 +10,8 @@ from ewatercycle.util import get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 
+MetaDataType = Dict[str, Union[str, int, float]]
+
 
 def get_grdc_data(
     station_id: str,
@@ -17,7 +20,7 @@ def get_grdc_data(
     parameter: str = "Q",
     data_home: str = None,
     column: str = "streamflow",
-) -> Tuple[pd.core.frame.DataFrame, Dict[str, Union[str, int, float]]]:
+) -> Tuple[pd.core.frame.DataFrame, MetaDataType]:
     """Get river discharge data from Global Runoff Data Centre (GRDC).
 
     Requires the GRDC daily data files in a local directory. The GRDC daily data
@@ -47,7 +50,9 @@ def get_grdc_data(
 
             from ewatercycle.observation.grdc import get_grdc_data
 
-            df, meta = get_grdc_data('6335020', '2000-01-01T00:00Z', '2001-01-01T00:00Z', data_home='.')
+            df, meta = get_grdc_data('6335020',
+                                    '2000-01-01T00:00Z',
+                                    '2001-01-01T00:00Z')
             df.describe()
                      streamflow
             count   4382.000000
@@ -86,8 +91,8 @@ def get_grdc_data(
         data_path = to_absolute_path(CFG["grdc_location"])
     else:
         raise ValueError(
-            f"Provide the grdc path using `data_home` argument "
-            f"or using `grdc_location` in ewatercycle configuration file."
+            "Provide the grdc path using `data_home` argument"
+            "or using `grdc_location` in ewatercycle configuration file."
         )
 
     if not data_path.exists():
@@ -120,14 +125,14 @@ def get_grdc_data(
 
 
 def _grdc_read(grdc_station_path, start, end, column):
-    with open(grdc_station_path, "r", encoding="cp1252", errors="ignore") as file:
+    with grdc_station_path.open("r", encoding="cp1252", errors="ignore") as file:
         data = file.read()
 
     metadata = _grdc_metadata_reader(grdc_station_path, data)
 
-    allLines = data.split("\n")
+    all_lines = data.split("\n")
     header = 0
-    for i, line in enumerate(allLines):
+    for i, line in enumerate(all_lines):
         if line.startswith("# DATA"):
             header = i + 1
             break
@@ -142,8 +147,8 @@ def _grdc_read(grdc_station_path, start, end, column):
         na_values="-999",
     )
     grdc_station_df = pd.DataFrame(
-        {column: grdc_data[" Value"].values},
-        index=grdc_data["YYYY-MM-DD"].values,
+        {column: grdc_data[" Value"].array},
+        index=grdc_data["YYYY-MM-DD"].array,
     )
     grdc_station_df.index.rename("time", inplace=True)
 
@@ -153,8 +158,7 @@ def _grdc_read(grdc_station_path, start, end, column):
     return metadata, grdc_station_select
 
 
-def _grdc_metadata_reader(grdc_station_path, allLines):
-    """
+def _grdc_metadata_reader(grdc_station_path, all_lines):
     # Initiating a dictionary that will contain all GRDC attributes.
     # This function is based on earlier work by Rolf Hut.
     # https://github.com/RolfHut/GRDC2NetCDF/blob/master/GRDC2NetCDF.py
@@ -163,14 +167,13 @@ def _grdc_metadata_reader(grdc_station_path, allLines):
     # from Utrecht University.
     # https://github.com/edwinkost/discharge_analysis_IWMI
     # Modified by Susan Branchett
-    """
 
     # initiating a dictionary that will contain all GRDC attributes:
-    attributeGRDC = {}
+    attribute_grdc = {}
 
     # split the content of the file into several lines
-    allLines = allLines.replace("\r", "")
-    allLines = allLines.split("\n")
+    all_lines = all_lines.replace("\r", "")
+    all_lines = all_lines.split("\n")
 
     # get grdc ids (from files) and check their consistency with their
     # file names
@@ -178,8 +181,8 @@ def _grdc_metadata_reader(grdc_station_path, allLines):
         os.path.basename(grdc_station_path).split(".")[0].split("_")[0]
     )
     id_from_grdc = None
-    if id_from_file_name == int(allLines[8].split(":")[1].strip()):
-        id_from_grdc = int(allLines[8].split(":")[1].strip())
+    if id_from_file_name == int(all_lines[8].split(":")[1].strip()):
+        id_from_grdc = int(all_lines[8].split(":")[1].strip())
     else:
         print(
             "GRDC station "
@@ -191,92 +194,92 @@ def _grdc_metadata_reader(grdc_station_path, allLines):
 
     if id_from_grdc is not None:
 
-        attributeGRDC["grdc_file_name"] = str(grdc_station_path)
-        attributeGRDC["id_from_grdc"] = id_from_grdc
+        attribute_grdc["grdc_file_name"] = str(grdc_station_path)
+        attribute_grdc["id_from_grdc"] = id_from_grdc
 
         try:
-            attributeGRDC["file_generation_date"] = str(
-                allLines[6].split(":")[1].strip()
+            attribute_grdc["file_generation_date"] = str(
+                all_lines[6].split(":")[1].strip()
             )
-        except:
-            attributeGRDC["file_generation_date"] = "NA"
+        except IndexError:
+            attribute_grdc["file_generation_date"] = "NA"
 
         try:
-            attributeGRDC["river_name"] = str(allLines[9].split(":")[1].strip())
-        except:
-            attributeGRDC["river_name"] = "NA"
+            attribute_grdc["river_name"] = str(all_lines[9].split(":")[1].strip())
+        except IndexError:
+            attribute_grdc["river_name"] = "NA"
 
         try:
-            attributeGRDC["station_name"] = str(allLines[10].split(":")[1].strip())
-        except:
-            attributeGRDC["station_name"] = "NA"
+            attribute_grdc["station_name"] = str(all_lines[10].split(":")[1].strip())
+        except IndexError:
+            attribute_grdc["station_name"] = "NA"
 
         try:
-            attributeGRDC["country_code"] = str(allLines[11].split(":")[1].strip())
-        except:
-            attributeGRDC["country_code"] = "NA"
+            attribute_grdc["country_code"] = str(all_lines[11].split(":")[1].strip())
+        except IndexError:
+            attribute_grdc["country_code"] = "NA"
 
         try:
-            attributeGRDC["grdc_latitude_in_arc_degree"] = float(
-                allLines[12].split(":")[1].strip()
+            attribute_grdc["grdc_latitude_in_arc_degree"] = float(
+                all_lines[12].split(":")[1].strip()
             )
-        except:
-            attributeGRDC["grdc_latitude_in_arc_degree"] = "NA"
+        except IndexError:
+            attribute_grdc["grdc_latitude_in_arc_degree"] = "NA"
 
         try:
-            attributeGRDC["grdc_longitude_in_arc_degree"] = float(
-                allLines[13].split(":")[1].strip()
+            attribute_grdc["grdc_longitude_in_arc_degree"] = float(
+                all_lines[13].split(":")[1].strip()
             )
-        except:
-            attributeGRDC["grdc_longitude_in_arc_degree"] = "NA"
+        except IndexError:
+            attribute_grdc["grdc_longitude_in_arc_degree"] = "NA"
 
         try:
-            attributeGRDC["grdc_catchment_area_in_km2"] = float(
-                allLines[14].split(":")[1].strip()
+            attribute_grdc["grdc_catchment_area_in_km2"] = float(
+                all_lines[14].split(":")[1].strip()
             )
-            if attributeGRDC["grdc_catchment_area_in_km2"] <= 0.0:
-                attributeGRDC["grdc_catchment_area_in_km2"] = "NA"
-        except:
-            attributeGRDC["grdc_catchment_area_in_km2"] = "NA"
+            if attribute_grdc["grdc_catchment_area_in_km2"] <= 0.0:
+                attribute_grdc["grdc_catchment_area_in_km2"] = "NA"
+        except IndexError:
+            attribute_grdc["grdc_catchment_area_in_km2"] = "NA"
 
         try:
-            attributeGRDC["altitude_masl"] = float(allLines[15].split(":")[1].strip())
-        except:
-            attributeGRDC["altitude_masl"] = "NA"
+            attribute_grdc["altitude_masl"] = float(all_lines[15].split(":")[1].strip())
+        except IndexError:
+            attribute_grdc["altitude_masl"] = "NA"
 
         try:
-            attributeGRDC["dataSetContent"] = str(allLines[20].split(":")[1].strip())
-        except:
-            attributeGRDC["dataSetContent"] = "NA"
+            attribute_grdc["dataSetContent"] = str(all_lines[20].split(":")[1].strip())
+        except IndexError:
+            attribute_grdc["dataSetContent"] = "NA"
 
         try:
-            attributeGRDC["units"] = str(allLines[22].split(":")[1].strip())
-        except:
-            attributeGRDC["units"] = "NA"
+            attribute_grdc["units"] = str(all_lines[22].split(":")[1].strip())
+        except IndexError:
+            attribute_grdc["units"] = "NA"
 
         try:
-            attributeGRDC["time_series"] = str(allLines[23].split(":")[1].strip())
-        except:
-            attributeGRDC["time_series"] = "NA"
+            attribute_grdc["time_series"] = str(all_lines[23].split(":")[1].strip())
+        except IndexError:
+            attribute_grdc["time_series"] = "NA"
 
         try:
-            attributeGRDC["no_of_years"] = int(allLines[24].split(":")[1].strip())
-        except:
-            attributeGRDC["no_of_years"] = "NA"
+            attribute_grdc["no_of_years"] = int(all_lines[24].split(":")[1].strip())
+        except IndexError:
+            attribute_grdc["no_of_years"] = "NA"
 
         try:
-            attributeGRDC["last_update"] = str(allLines[25].split(":")[1].strip())
-        except:
-            attributeGRDC["last_update"] = "NA"
+            attribute_grdc["last_update"] = str(all_lines[25].split(":")[1].strip())
+        except IndexError:
+            attribute_grdc["last_update"] = "NA"
 
         try:
-            attributeGRDC["nrMeasurements"] = int(
-                str(allLines[38].split(":")[1].strip())
+            attribute_grdc["nrMeasurements"] = int(
+                str(all_lines[38].split(":")[1].strip())
             )
-        except:
-            attributeGRDC["nrMeasurements"] = "NA"
+        except IndexError:
+            attribute_grdc["nrMeasurements"] = "NA"
 
-    return attributeGRDC
+    return attribute_grdc
 
 
 def _count_missing_data(df, column):
@@ -295,8 +298,8 @@ def _log_metadata(metadata):
         f"The river name is: {metadata['river_name']}."
         f"The coordinates are: {coords}."
         f"The catchment area in km2 is: {metadata['grdc_catchment_area_in_km2']}. "
-        f"There are {metadata['nrMissingData']} missing values "
-        f"during {metadata['UserStartTime']}_{metadata['UserEndTime']} at this station. "
+        f"There are {metadata['nrMissingData']} missing values during "
+        f"{metadata['UserStartTime']}_{metadata['UserEndTime']} at this station. "
         f"See the metadata for more information."
     )
     logger.info("%s", message)
