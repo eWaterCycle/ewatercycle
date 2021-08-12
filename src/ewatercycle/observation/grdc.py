@@ -84,7 +84,7 @@ def get_grdc_data(
             'UserStartTime': '2000-01-01T00:00Z',
             'UserEndTime': '2001-01-01T00:00Z',
             'nrMissingData': 0}
-    """
+    """  # noqa: E501
     if data_home:
         data_path = to_absolute_path(data_home)
     elif CFG["grdc_location"]:
@@ -201,36 +201,36 @@ def _grdc_metadata_reader(grdc_station_path, all_lines):
             attribute_grdc["file_generation_date"] = str(
                 all_lines[6].split(":")[1].strip()
             )
-        except IndexError:
+        except (IndexError, ValueError):
             attribute_grdc["file_generation_date"] = "NA"
 
         try:
             attribute_grdc["river_name"] = str(all_lines[9].split(":")[1].strip())
-        except IndexError:
+        except (IndexError, ValueError):
             attribute_grdc["river_name"] = "NA"
 
         try:
             attribute_grdc["station_name"] = str(all_lines[10].split(":")[1].strip())
-        except IndexError:
+        except (IndexError, ValueError):
             attribute_grdc["station_name"] = "NA"
 
         try:
             attribute_grdc["country_code"] = str(all_lines[11].split(":")[1].strip())
-        except IndexError:
+        except (IndexError, ValueError):
             attribute_grdc["country_code"] = "NA"
 
         try:
             attribute_grdc["grdc_latitude_in_arc_degree"] = float(
                 all_lines[12].split(":")[1].strip()
             )
-        except IndexError:
+        except (IndexError, ValueError):
             attribute_grdc["grdc_latitude_in_arc_degree"] = "NA"
 
         try:
             attribute_grdc["grdc_longitude_in_arc_degree"] = float(
                 all_lines[13].split(":")[1].strip()
             )
-        except IndexError:
+        except (IndexError, ValueError):
             attribute_grdc["grdc_longitude_in_arc_degree"] = "NA"
 
         try:
@@ -239,44 +239,44 @@ def _grdc_metadata_reader(grdc_station_path, all_lines):
             )
             if attribute_grdc["grdc_catchment_area_in_km2"] <= 0.0:
                 attribute_grdc["grdc_catchment_area_in_km2"] = "NA"
-        except IndexError:
+        except (IndexError, ValueError):
             attribute_grdc["grdc_catchment_area_in_km2"] = "NA"
 
         try:
             attribute_grdc["altitude_masl"] = float(all_lines[15].split(":")[1].strip())
-        except IndexError:
+        except (IndexError, ValueError):
             attribute_grdc["altitude_masl"] = "NA"
 
         try:
             attribute_grdc["dataSetContent"] = str(all_lines[20].split(":")[1].strip())
-        except IndexError:
+        except (IndexError, ValueError):
             attribute_grdc["dataSetContent"] = "NA"
 
         try:
             attribute_grdc["units"] = str(all_lines[22].split(":")[1].strip())
-        except IndexError:
+        except (IndexError, ValueError):
             attribute_grdc["units"] = "NA"
 
         try:
             attribute_grdc["time_series"] = str(all_lines[23].split(":")[1].strip())
-        except IndexError:
+        except (IndexError, ValueError):
             attribute_grdc["time_series"] = "NA"
 
         try:
             attribute_grdc["no_of_years"] = int(all_lines[24].split(":")[1].strip())
-        except IndexError:
+        except (IndexError, ValueError):
             attribute_grdc["no_of_years"] = "NA"
 
         try:
             attribute_grdc["last_update"] = str(all_lines[25].split(":")[1].strip())
-        except IndexError:
+        except (IndexError, ValueError):
             attribute_grdc["last_update"] = "NA"
 
         try:
             attribute_grdc["nrMeasurements"] = int(
-                str(all_lines[38].split(":")[1].strip())
+                str(all_lines[33].split(":")[1].strip())
             )
-        except IndexError:
+        except (IndexError, ValueError):
             attribute_grdc["nrMeasurements"] = "NA"
 
     return attribute_grdc
