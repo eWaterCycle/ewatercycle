@@ -94,8 +94,9 @@ class Config(ValidatedConfig):
 
         Args:
             config_file: File to write configuration object to.
-                If not given then will try to use `CFG['ewatercycle_config']` location
-                and if `CFG['ewatercycle_config']` is not set then will use the location in users home directory.
+                If not given then will try to use `CFG['ewatercycle_config']`
+                location and if `CFG['ewatercycle_config']` is not set then will use
+                the location in users home directory.
         """
         # Exclude own path from dump
         old_config_file = self.get("ewatercycle_config", None)

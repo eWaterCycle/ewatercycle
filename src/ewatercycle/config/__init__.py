@@ -1,8 +1,9 @@
 """Config
 ******
 
-Configuration of eWaterCycle is done via the :py:class:`~eWaterCycle.config.Config` object.
-The global configuration can be imported from the :py:mod:`eWaterCycle` module as :py:data:`~ewatercycle.CFG`:
+Configuration of eWaterCycle is done via the
+:py:class:`~eWaterCycle.config.Config` object. The global configuration can be
+imported from the :py:mod:`eWaterCycle` module as :py:data:`~ewatercycle.CFG`:
 
 .. code-block:: python
 
@@ -17,8 +18,9 @@ The global configuration can be imported from the :py:mod:`eWaterCycle` module a
 
 By default all values are initialized as ``None``.
 
-:py:data:`~ewatercycle.CFG` is essentially a python dictionary with a few extra functions, similar to :py:mod:`matplotlib.rcParams`.
-This means that values can be updated like this:
+:py:data:`~ewatercycle.CFG` is essentially a python dictionary with a few extra
+functions, similar to :py:mod:`matplotlib.rcParams`. This means that values can
+be updated like this:
 
 .. code-block:: python
 
@@ -26,8 +28,10 @@ This means that values can be updated like this:
     >>> CFG['output_dir']
     PosixPath('/home/user/output')
 
-Notice that :py:data:`~ewatercycle.CFG` automatically converts the path to an instance of ``pathlib.Path`` and expands the home directory.
-All values entered into the config are validated to prevent mistakes, for example, it will warn you if you make a typo in the key:
+Notice that :py:data:`~ewatercycle.CFG` automatically converts the path to an
+instance of ``pathlib.Path`` and expands the home directory. All values entered
+into the config are validated to prevent mistakes, for example, it will warn you
+if you make a typo in the key:
 
 .. code-block:: python
 
@@ -41,9 +45,9 @@ Or, if the value entered cannot be converted to the expected type:
     >>> CFG['output_dir'] = 123
     InvalidConfigParameter: Key `output_dir`: Expected a path, but got 123
 
-By default, the config is loaded from the default location (i.e. ``~/.config/ewatercycle/ewatercycle.yaml``).
-If it does not exist, it falls back to the default values.
-to load a different file:
+By default, the config is loaded from the default location (i.e.
+``~/.config/ewatercycle/ewatercycle.yaml``). If it does not exist, it falls back
+to the default values. to load a different file:
 
 .. code-block:: python
 
@@ -74,7 +78,8 @@ The ``ewatercycle.yaml`` is formatted in YAML and could for example look like:
     container_engine: singularity
     singularity_dir: /data/singularity-images
     output_dir: /scratch
-    # Created with cd  /data/singularity-images && singularity pull docker://ewatercycle/wflow-grpc4bmi:2020.1.1
+    # Created with cd  /data/singularity-images &&
+    # singularity pull docker://ewatercycle/wflow-grpc4bmi:2020.1.1
     wflow.singularity_images: wflow-grpc4bmi_2020.1.1.sif
     wflow.docker_images: ewatercycle/wflow-grpc4bmi:2020.1.1
 """
