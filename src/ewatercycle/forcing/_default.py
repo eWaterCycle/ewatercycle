@@ -1,7 +1,6 @@
 """Forcing related functionality for default models"""
 import logging
 from copy import copy
-from pathlib import Path
 from typing import Optional
 
 from ruamel.yaml import YAML
@@ -75,7 +74,8 @@ class DefaultForcing:
             except ValueError:
                 clone.shape = None
                 logger.info(
-                    f"Shapefile {self.shape} is not in forcing directory {self.directory}. So, it won't be saved in {target}."
+                    f"Shapefile {self.shape} is not in forcing directory "
+                    f"{self.directory}. So, it won't be saved in {target}."
                 )
 
         with open(target, "w") as f:

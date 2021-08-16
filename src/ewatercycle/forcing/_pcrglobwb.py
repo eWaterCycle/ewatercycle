@@ -43,7 +43,7 @@ class PCRGlobWBForcing(DefaultForcing):
         end_time: str,
         shape: str,
         start_time_climatology: str,  # TODO make optional, default to start_time
-        end_time_climatology: str,  # TODO make optional, defaults to start_time + 1 year
+        end_time_climatology: str,  # TODO make optional, defaults to start_time + 1 y
         extract_region: dict = None,
     ) -> "PCRGlobWBForcing":
         """
@@ -106,7 +106,7 @@ class PCRGlobWBForcing(DefaultForcing):
 
         # generate forcing data and retrieve useful information
         recipe_output = recipe.run()
-        # TODO dont open recipe output files, but use standard name from ESMValTool diagnostic
+        # TODO dont open recipe output, but use standard name from ESMValTool
         directory, forcing_files = data_files_from_recipe_output(recipe_output)
 
         # instantiate forcing object based on generated data
