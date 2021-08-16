@@ -93,8 +93,8 @@ def test_construct_with_unsupported_version():
         MockedModel(version="1.2.3")
 
     assert (
-        "Supplied version 1.2.3 is not supported by this model. Available versions are ('0.4.2',)."
-        in str(excinfo.value)
+        "Supplied version 1.2.3 is not supported by this model. "
+        "Available versions are ('0.4.2',)." in str(excinfo.value)
     )
 
 

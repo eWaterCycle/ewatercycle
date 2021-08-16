@@ -46,7 +46,7 @@ class TestGenerateWithExtractRegion:
                     "scripts": {
                         "script": {
                             "basin": "Rhine",
-                            "dem_file": "wflow_parameterset/meuse/staticmaps/wflow_dem.map",
+                            "dem_file": "wflow_parameterset/meuse/staticmaps/wflow_dem.map",  # noqa: E501
                             "regrid": "area_weighted",
                             "script": "hydrology/wflow.py",
                         }
@@ -94,7 +94,7 @@ class TestGenerateWithExtractRegion:
                     "aerts_jerom",
                     "andela_bouwe",
                 ],
-                "description": "Pre-processes climate data for the WFlow hydrological model.\n",
+                "description": "Pre-processes climate data for the WFlow hydrological model.\n",  # noqa: E501
                 "projects": ["ewatercycle"],
                 "references": ["acknow_project"],
             },

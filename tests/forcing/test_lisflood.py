@@ -256,7 +256,8 @@ class TestGenerateRegionFromShapeFile:
         actual_shapefile = actual["preprocessors"]["general"]["extract_shape"][
             "shapefile"
         ]
-        # Will also del other occurrences of shapefile due to extract shape object being shared between preprocessors
+        # Will also del other occurrences of shapefile due to extract shape object
+        # being shared between preprocessors
         del actual["preprocessors"]["general"]["extract_shape"]["shapefile"]
 
         assert actual == reference_recipe

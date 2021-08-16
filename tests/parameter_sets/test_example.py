@@ -19,7 +19,7 @@ def setup_config(tmp_path):
 def example(setup_config):
     return ExampleParameterSet(
         name="firstexample",
-        config_url="https://github.com/mymodelorg/mymodelrepo/raw/master/mymodelexample/config.ini",
+        config_url="https://github.com/mymodelorg/mymodelrepo/raw/master/mymodelexample/config.ini",  # noqa: E501
         datafiles_url="https://github.com/mymodelorg/mymodelrepo/trunk/mymodelexample",
         directory="mymodelexample",
         config="mymodelexample/config.ini",
