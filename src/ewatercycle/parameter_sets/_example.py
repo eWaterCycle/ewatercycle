@@ -36,8 +36,8 @@ class ExampleParameterSet(ParameterSet):
             if not skip_existing:
                 raise ValueError(
                     f"Directory {self.directory} for parameter set {self.name}"
-                    f" already exists, will not overwrite. "
-                    f"Try again with skip_existing=True or remove {self.directory} directory."
+                    f" already exists, will not overwrite. Try again with "
+                    f"skip_existing=True or remove {self.directory} directory."
                 )
 
             logger.info(
@@ -50,7 +50,8 @@ class ExampleParameterSet(ParameterSet):
         )
 
         subprocess.check_call(["svn", "export", self.datafiles_url, self.directory])
-        # TODO replace subversion with alternative see https://stackoverflow.com/questions/33066582/how-to-download-a-folder-from-github/48948711
+        # TODO replace subversion with alternative, see
+        # https://stackoverflow.com/questions/33066582/how-to-download-a-folder-from-github/48948711
         response = request.urlopen(self.config_url)
         self.config.write_text(response.read().decode())
 

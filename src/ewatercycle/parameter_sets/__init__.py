@@ -38,9 +38,10 @@ def available_parameter_sets(target_model: str = None) -> Tuple[str, ...]:
         if CFG["ewatercycle_config"] == DEFAULT_CONFIG:
             raise ValueError(f"No configuration file found.")
         raise ValueError(
-            f'No parameter sets defined in {CFG["ewatercycle_config"]}. '
-            f"Use `ewatercycle.parareter_sets.download_example_parameter_sets` to download examples "
-            f"or define your own or ask whoever setup the ewatercycle system to do it."
+            f'No parameter sets defined in {CFG["ewatercycle_config"]}. Use '
+            "`ewatercycle.parareter_sets.download_example_parameter_sets` to download"
+            " examples or define your own or ask whoever setup the ewatercycle "
+            "system to do it."
         )
         # TODO explain somewhere how to add new parameter sets
     filtered = tuple(
@@ -50,9 +51,10 @@ def available_parameter_sets(target_model: str = None) -> Tuple[str, ...]:
     )
     if not filtered:
         raise ValueError(
-            f'No parameter sets defined for {target_model} model in {CFG["ewatercycle_config"]}. '
-            f"Use `ewatercycle.parareter_sets.download_example_parameter_sets` to download examples "
-            f"or define your own or ask whoever setup the ewatercycle system to do it."
+            f'No parameter sets defined in {CFG["ewatercycle_config"]}. Use '
+            "`ewatercycle.parareter_sets.download_example_parameter_sets` to download"
+            " examples or define your own or ask whoever setup the ewatercycle "
+            "system to do it."
         )
     return filtered
 
@@ -87,7 +89,9 @@ def download_parameter_sets(zenodo_doi: str, target_model: str, config: str):
 
 
 def example_parameter_sets() -> Dict[str, ExampleParameterSet]:
-    """Lists example parameter sets that can be downloaded with :py:func:`~download_example_parameter_sets`."""
+    """Lists the available example parameter sets.
+
+    They can be downloaded with :py:func:`~download_example_parameter_sets`."""
     # TODO how to add a new model docs should be updated with this part
     examples = chain(
         _wflow.example_parameter_sets(),
@@ -100,11 +104,13 @@ def example_parameter_sets() -> Dict[str, ExampleParameterSet]:
 def download_example_parameter_sets(skip_existing=True):
     """Downloads all of the example parameter sets and adds them to the config_file.
 
-    Downloads to `parameterset_dir` directory defined in :py:data:`ewatercycle.config.CFG`.
+    Downloads to `parameterset_dir` directory defined in
+    :py:data:`ewatercycle.config.CFG`.
 
     Args:
-        skip_existing: When true will not download any parameter set which already has a local directory.
-            When false will raise ValueError exception when parameter set already exists.
+        skip_existing: When true will not download any parameter set which
+            already has a local directory. When false will raise ValueError
+            exception when parameter set already exists.
 
     """
     examples = example_parameter_sets()
