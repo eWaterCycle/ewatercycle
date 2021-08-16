@@ -51,9 +51,10 @@ def available_parameter_sets(target_model: str = None) -> Tuple[str, ...]:
     )
     if not filtered:
         raise ValueError(
-            f'No parameter sets defined in {CFG["ewatercycle_config"]}. Use '
-            "`ewatercycle.parareter_sets.download_example_parameter_sets` to download"
-            " examples or define your own or ask whoever setup the ewatercycle "
+            f"No parameter sets defined for {target_model} model in "
+            f"{CFG['ewatercycle_config']}. Use  "
+            "`ewatercycle.parareter_sets.download_example_parameter_sets` to download "
+            "examples or define your own or ask whoever setup the ewatercycle "
             "system to do it."
         )
     return filtered
