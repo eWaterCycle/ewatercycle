@@ -11,9 +11,9 @@ def example_parameter_sets() -> Iterable[ExampleParameterSet]:
             name="wflow_rhine_sbm_nc",
             # Relative to CFG['parameterset_dir']
             config="wflow_rhine_sbm_nc/wflow_sbm_NC.ini",
-            datafiles_url="https://github.com/openstreams/wflow/trunk/examples/wflow_rhine_sbm_nc",  # pylint: disable=C0301
+            datafiles_url="https://github.com/openstreams/wflow/trunk/examples/wflow_rhine_sbm_nc",  # noqa: E501
             # Raw url to config file
-            config_url="https://github.com/openstreams/wflow/raw/master/examples/wflow_rhine_sbm_nc/wflow_sbm_NC.ini",  # pylint: disable=C0301
+            config_url="https://github.com/openstreams/wflow/raw/master/examples/wflow_rhine_sbm_nc/wflow_sbm_NC.ini",  # noqa: E501
             doi="N/A",
             target_model="wflow",
             supported_model_versions={"2020.1.1"},
