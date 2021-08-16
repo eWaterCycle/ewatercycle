@@ -26,7 +26,8 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
     Args:
 
         version: pick a version from :py:attr:`~available_versions`
-        parameter_set: instance of :py:class:`~ewatercycle.parameter_sets.default.ParameterSet`.
+        parameter_set: instance of
+            :py:class:`~ewatercycle.parameter_sets.default.ParameterSet`.
         forcing: ewatercycle forcing container;
             see :py:mod:`ewatercycle.forcing`.
 
@@ -135,8 +136,9 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
                 "Couldn't spawn container within allocated time limit "
                 "(15 seconds). You may try pulling the docker image with"
                 f" `docker pull {self.docker_image}` or call `singularity "
-                f"build {self._singularity_image(CFG['singularity_dir'])} docker://{self.docker_image}`"
-                "if you're using singularity, and then try again."
+                f"build {self._singularity_image(CFG['singularity_dir'])} "
+                f"docker://{self.docker_image}` if you're using singularity,"
+                " and then try again."
             )
 
         return str(cfg_file), str(work_dir)

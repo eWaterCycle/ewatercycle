@@ -26,7 +26,8 @@ class Wflow(AbstractModel[WflowForcing]):
 
     Args:
         version: pick a version from :py:attr:`~available_versions`
-        parameter_set: instance of :py:class:`~ewatercycle.parameter_sets.default.ParameterSet`.
+        parameter_set: instance of
+            :py:class:`~ewatercycle.parameter_sets.default.ParameterSet`.
         forcing: instance of :py:class:`~WflowForcing` or None.
             If None, it is assumed that forcing is included with the parameter_set.
     """
@@ -80,13 +81,14 @@ class Wflow(AbstractModel[WflowForcing]):
         if self.version == "2020.1.1":
             if not cfg.has_section("API"):
                 logger.warning(
-                    "Config file from parameter set is missing API section, adding section"
+                    "Config file from parameter set is missing API section, "
+                    "adding section"
                 )
                 cfg.add_section("API")
             if not cfg.has_option("API", "RiverRunoff"):
                 logger.warning(
-                    "Config file from parameter set is missing RiverRunoff option in API section, "
-                    "added it with value '2, m/s option'"
+                    "Config file from parameter set is missing RiverRunoff "
+                    "option in API section, added it with value '2, m/s option'"
                 )
                 cfg.set("API", "RiverRunoff", "2, m/s")
 
@@ -126,8 +128,9 @@ class Wflow(AbstractModel[WflowForcing]):
                 "Couldn't spawn container within allocated time limit "
                 "(15 seconds). You may try pulling the docker image with"
                 f" `docker pull {self.docker_image}` or call `singularity "
-                f"build {self._singularity_image(CFG['singularity_dir'])} docker://{self.docker_image}`"
-                "if you're using singularity, and then try again."
+                f"build {self._singularity_image(CFG['singularity_dir'])} "
+                f"docker://{self.docker_image}` if you're using singularity,"
+                " and then try again."
             )
 
         return (

@@ -303,13 +303,17 @@ class Lisflood(AbstractModel[LisfloodForcing]):
 
 
 # TODO it needs fix regarding forcing
-# def reindex_forcings(mask_map: Path, forcing: LisfloodForcing, output_dir: Path = None) -> Path:
+# def reindex_forcings(
+#     mask_map: Path, forcing: LisfloodForcing, output_dir: Path = None
+# ) -> Path:
 #     """Reindex forcing files to match mask map grid
 
 #     Args:
-#         mask_map: Path to NetCDF file used a boolean map that defines model boundaries.
+#         mask_map: Path to NetCDF file used a boolean map that defines model
+#             boundaries.
 #         forcing: Forcing data from ESMValTool
-#         output_dir: Directory where to write the re-indexed files, given by user or created for user
+#         output_dir: Directory where to write the re-indexed files, given by user
+#             or created for user
 
 #     Returns:
 #         Output dir with re-indexed files.
@@ -321,12 +325,18 @@ class Lisflood(AbstractModel[LisfloodForcing]):
 #         dataset = data_file.load_xarray()
 #         out_fn = output_dir / data_file.filename.name
 #         var_name = list(dataset.data_vars.keys())[0]
-#         encoding = {var_name: {"zlib": True, "complevel": 4, "chunksizes": (1,) + dataset[var_name].shape[1:]}}
+#         encoding = {
+#             var_name: {
+#                 "zlib": True,
+#                 "complevel": 4,
+#                 "chunksizes": (1,) + dataset[var_name].shape[1:],
+#             }
+#         }
 #         dataset.reindex(
-#                     {"lat": mask["lat"], "lon": mask["lon"]},
-#                     method="nearest",
-#                     tolerance=1e-2,
-#                 ).to_netcdf(out_fn, encoding=encoding)
+#             {"lat": mask["lat"], "lon": mask["lon"]},
+#             method="nearest",
+#             tolerance=1e-2,
+#         ).to_netcdf(out_fn, encoding=encoding)
 #     return output_dir
 
 

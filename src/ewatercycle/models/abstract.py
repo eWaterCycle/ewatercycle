@@ -151,7 +151,8 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
 
         """
         raise NotImplementedError(
-            "Method to convert from coordinates to model indices not implemented for this model."
+            "Method to convert from coordinates to model indices "
+            "not implemented for this model."
         )
 
     @abstractmethod
@@ -263,13 +264,15 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
             )
         if self.parameter_set.supported_model_versions == set():
             logger.info(
-                f"Model version {self.version} is not explicitly listed in the supported model versions "
-                f"of this parameter set. This can lead to compatibility issues."
+                f"Model version {self.version} is not explicitly listed in the "
+                "supported model versions of this parameter set. "
+                "This can lead to compatibility issues."
             )
         elif self.version not in self.parameter_set.supported_model_versions:
             raise ValueError(
-                f"Parameter set is not compatible with version {self.version} of model, "
-                f"parameter set only supports {self.parameter_set.supported_model_versions}"
+                "Parameter set is not compatible with version {self.version} of "
+                "model, parameter set only supports "
+                f"{self.parameter_set.supported_model_versions}."
             )
 
     def _check_version(self):

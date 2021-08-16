@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Solver:
-    """Solver, for current implementations see
-    `here <https://github.com/wknoben/MARRMoT/tree/master/MARRMoT/Functions/Time%20stepping>`_.
+    """Solver, for current implementations see `here
+    <https://github.com/wknoben/MARRMoT/tree/master/MARRMoT/Functions/Time%20stepping>`_.
     """
 
     name: str = "createOdeApprox_IE"
@@ -33,7 +33,8 @@ class Solver:
 def _generate_cfg_dir(cfg_dir: Path = None) -> Path:
     """
     Args:
-        cfg_dir: If cfg dir is None or does not exist then create sub-directory in CFG['output_dir']
+        cfg_dir: If cfg dir is None or does not exist then create sub-directory
+            in CFG['output_dir']
     """
     if cfg_dir is None:
         scratch_dir = CFG["output_dir"]
@@ -47,17 +48,21 @@ def _generate_cfg_dir(cfg_dir: Path = None) -> Path:
 
 
 class MarrmotM01(AbstractModel[MarrmotForcing]):
-    """eWaterCycle implementation of Marrmot Collie River 1 (traditional bucket) hydrological model.
+    """eWaterCycle implementation of Marrmot Collie River 1 (traditional bucket) model.
 
-    It sets MarrmotM01 parameter with an initial value that is the mean value of the range specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
+    It sets MarrmotM01 parameter with an initial value that is the mean value of
+    the range specfied in `model parameter range file
+    <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
 
     Args:
-        version: pick a version for which an ewatercycle grpc4bmi docker image is available.
-        forcing: a MarrmotForcing object.
-            If forcing file contains parameter and other settings, those are used and can be changed in :py:meth:`setup`.
+        version: pick a version for which an ewatercycle grpc4bmi docker image
+            is available. forcing: a MarrmotForcing object. If forcing file contains
+            parameter and other settings, those are used and can be changed in
+            :py:meth:`setup`.
 
     Example:
-        See examples/marrmotM01.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
+        See examples/marrmotM01.ipynb in `ewatercycle repository
+        <https://github.com/eWaterCycle/ewatercycle>`_
     """
 
     model_name = "m_01_collie1_1p_1s"
@@ -97,16 +102,23 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
     ) -> Tuple[str, str]:
         """Configure model run.
 
-        1. Creates config file and config directory based on the forcing variables and time range
+        1. Creates config file and config directory based on the forcing
+           variables and time range
         2. Start bmi container and store as :py:attr:`bmi`
 
         Args:
-            maximum_soil_moisture_storage: in mm. Range is specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
+            maximum_soil_moisture_storage: in mm. Range is specfied in `model
+                parameter range file
+                <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
             initial_soil_moisture_storage: in mm.
-            start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
-            end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
+            start_time: Start time of model in UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is
+                used.
+            end_time: End time of model in  UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
             solver: Solver settings
             cfg_dir: a run directory given by user or created for user.
+
         Returns:
             Path to config file and path to config directory
         """
@@ -150,7 +162,8 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             self.forcing_end_time = get_time(forcing.end_time)
         else:
             raise TypeError(
-                f"Unknown forcing type: {forcing}. Please supply a MarrmotForcing object."
+                f"Unknown forcing type: {forcing}. Please supply a "
+                " MarrmotForcing object."
             )
         # parse start/end time
         forcing_data = sio.loadmat(self.forcing_file, mat_dtype=True)
@@ -169,13 +182,16 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
     ) -> Path:
         """Write model configuration file.
 
-        Adds the model parameters to forcing file for the given period
-        and writes this information to a model configuration file.
+        Adds the model parameters to forcing file for the given period and
+        writes this information to a model configuration file.
 
         Args:
             cfg_dir: a run directory given by user or created for user.
-            start_time_iso: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
-            end_time_iso: End time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
+            start_time_iso: Start time of model in UTC and ISO format string
+                e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is
+                used.
+            end_time_iso: End time of model in UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
 
         Returns:
             Path for Marrmot config file
@@ -278,15 +294,20 @@ M14_PARAMS = (
 class MarrmotM14(AbstractModel[MarrmotForcing]):
     """eWaterCycle implementation of Marrmot Top Model hydrological model.
 
-    It sets MarrmotM14 parameter with an initial value that is the mean value of the range specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_14_topmodel_7p_2s_parameter_ranges.m>`_.
+    It sets MarrmotM14 parameter with an initial value that is the mean value of
+    the range specfied in `model parameter range file
+    <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_14_topmodel_7p_2s_parameter_ranges.m>`_.
 
     Args:
-        version: pick a version for which an ewatercycle grpc4bmi docker image is available.
+        version: pick a version for which an ewatercycle grpc4bmi docker image
+            is available.
         forcing: a MarrmotForcing object.
-            If forcing file contains parameter and other settings, those are used and can be changed in :py:meth:`setup`.
+            If forcing file contains parameter and other settings, those are used
+            and can be changed in :py:meth:`setup`.
 
     Example:
-        See examples/marrmotM14.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
+        See examples/marrmotM14.ipynb in `ewatercycle repository
+        <https://github.com/eWaterCycle/ewatercycle>`_
     """
 
     model_name = "m_14_topmodel_7p_2s"
@@ -333,12 +354,15 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
     ) -> Tuple[str, str]:
         """Configure model run.
 
-        1. Creates config file and config directory based on the forcing variables and time range
+        1. Creates config file and config directory based on the forcing
+           variables and time range
         2. Start bmi container and store as :py:attr:`bmi`
 
         Args:
-            maximum_soil_moisture_storage: in mm. Range is specfied in `model parameter range file <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
-            threshold_flow_generation_evap_change.
+            maximum_soil_moisture_storage: in mm. Range is specfied in `model
+                parameter range file
+                <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
+                threshold_flow_generation_evap_change.
             leakage_saturated_zone_flow_coefficient: in mm/d.
             zero_deficit_base_flow_speed: in mm/d.
             baseflow_coefficient: in mm-1.
@@ -346,10 +370,14 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             gamma_distribution_phi_parameter.
             initial_upper_zone_storage: in mm.
             initial_saturated_zone_storage: in mm.
-            start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
-            end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
-            solver: Solver settings
+            start_time: Start time of model in UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is
+                used.
+            end_time: End time of model in  UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
+                solver: Solver settings
             cfg_dir: a run directory given by user or created for user.
+
         Returns:
             Path to config file and path to config directory
         """
