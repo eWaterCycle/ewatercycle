@@ -38,7 +38,8 @@ class ParameterSet:
     def config(self) -> Any:
         """Configuration as dictionary.
 
-        To make changes to configuration before saving set the config keys and/or values.
+        To make changes to configuration before saving set the config keys
+        and/or values.
 
         Can be a nested dict.
         """

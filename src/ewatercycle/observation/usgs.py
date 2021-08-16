@@ -8,9 +8,10 @@ from pyoos.parsers.waterml import WaterML11ToPaegan
 
 
 def get_usgs_data(station_id, start_date, end_date, parameter="00060", cache_dir=None):
-    """
-    Get river discharge data from the
-    `U.S. Geological Survey Water Services <https://waterservices.usgs.gov/>`_ (USGS) rest web service.
+    """Get river discharge data from the USGS REST web service.
+
+    See `U.S. Geological Survey Water Services
+    <https://waterservices.usgs.gov/>`_ (USGS)
 
     Parameters
     ----------
@@ -42,7 +43,7 @@ def get_usgs_data(station_id, start_date, end_date, parameter="00060", cache_dir
             station:    Little Beaver Creek near East Liverpool OH
             stationid:  03109500
             location:   (40.6758974, -80.5406244)
-    """
+    """  # noqa: E501
     if cache_dir is None:
         cache_dir = os.environ["USGS_DATA_HOME"]
 
