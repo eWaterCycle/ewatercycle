@@ -1,8 +1,9 @@
-import pandas as pd
 import os
-from typing import Union, Tuple
-from hydrostats import metrics
+from typing import Tuple, Union
+
 import matplotlib.pyplot as plt
+import pandas as pd
+from hydrostats import metrics
 from matplotlib.dates import DateFormatter
 
 
@@ -12,9 +13,9 @@ def hydrograph(
     reference: str,
     precipitation: pd.DataFrame = None,
     dpi: int = None,
-    title: str = 'Hydrograph',
-    discharge_units: str = 'm$^3$ s$^{-1}$',
-    precipitation_units: str = 'mm day$^{-1}$',
+    title: str = "Hydrograph",
+    discharge_units: str = "m$^3$ s$^{-1}$",
+    precipitation_units: str = "mm day$^{-1}$",
     figsize: Tuple[float, float] = (10, 10),
     filename: Union[os.PathLike, str] = None,
     **kwargs,
@@ -68,11 +69,11 @@ def hydrograph(
         ncols=1,
         dpi=dpi,
         figsize=figsize,
-        gridspec_kw={'height_ratios': [3, 1]},
+        gridspec_kw={"height_ratios": [3, 1]},
     )
 
     ax.set_title(title)
-    ax.set_ylabel(f'Discharge ({discharge_units})')
+    ax.set_ylabel(f"Discharge ({discharge_units})")
 
     y_obs.plot(ax=ax, **kwargs)
     y_sim.plot(ax=ax, **kwargs)
@@ -83,11 +84,11 @@ def hydrograph(
     if precipitation is not None:
         ax_pr = ax.twinx()
         ax_pr.invert_yaxis()
-        ax_pr.set_ylabel(f'Precipitation ({precipitation_units})')
+        ax_pr.set_ylabel(f"Precipitation ({precipitation_units})")
         prop_cycler = ax._get_lines.prop_cycler
 
         for pr_label, pr_timeseries in precipitation.iteritems():
-            color = next(prop_cycler)['color']
+            color = next(prop_cycler)["color"]
             ax_pr.bar(
                 pr_timeseries.index.values,
                 pr_timeseries.values,
@@ -106,33 +107,34 @@ def hydrograph(
         labels = labels_pr + labels
 
     # Put the legend outside the plot
-    ax.legend(handles, labels, bbox_to_anchor=(1.10, 1), loc='upper left')
+    ax.legend(handles, labels, bbox_to_anchor=(1.10, 1), loc="upper left")
 
     # set formatting for xticks
     date_fmt = DateFormatter("%Y-%m")
     ax.xaxis.set_major_formatter(date_fmt)
-    ax.tick_params(axis='x', rotation=30)
+    ax.tick_params(axis="x", rotation=30)
 
     # calculate metrics for data table underneath plot
     def calc_metric(metric) -> float:
         return y_sim.apply(metric, observed_array=y_obs)
 
-    metrs = pd.DataFrame({
-        'nse': calc_metric(metrics.nse),
-        'kge_2009': calc_metric(metrics.kge_2009),
-        'sa': calc_metric(metrics.sa),
-        'me': calc_metric(metrics.me),
-    })
+    metrs = pd.DataFrame(
+        {
+            "nse": calc_metric(metrics.nse),
+            "kge_2009": calc_metric(metrics.kge_2009),
+            "sa": calc_metric(metrics.sa),
+            "me": calc_metric(metrics.me),
+        }
+    )
 
     # convert data in dataframe to strings
-    cell_text = [[f'{item:.2f}' for item in row[1]]
-                 for row in metrs.iterrows()]
+    cell_text = [[f"{item:.2f}" for item in row[1]] for row in metrs.iterrows()]
 
     table = ax_tbl.table(
         cellText=cell_text,
         rowLabels=metrs.index,
         colLabels=metrs.columns,
-        loc='center',
+        loc="center",
     )
     ax_tbl.set_axis_off()
 
@@ -140,6 +142,6 @@ def hydrograph(
     table.scale(1, 1.5)
 
     if filename is not None:
-        fig.savefig(filename, bbox_inches='tight', dpi=dpi)
+        fig.savefig(filename, bbox_inches="tight", dpi=dpi)
 
     return fig, (ax, ax_tbl)

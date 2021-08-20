@@ -2,33 +2,33 @@ import logging
 import textwrap
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
-from typing import Tuple, Iterable, Any, TypeVar, Generic, Optional, ClassVar, Set
+from typing import Any, ClassVar, Generic, Iterable, Optional, Set, Tuple, TypeVar
 
 import numpy as np
 import xarray as xr
-from cftime import num2date
 from basic_modeling_interface import Bmi
+from cftime import num2date
 
 from ewatercycle.forcing import DefaultForcing
 from ewatercycle.parameter_sets import ParameterSet
 
 logger = logging.getLogger(__name__)
 
-ForcingT = TypeVar('ForcingT', bound=DefaultForcing)
+ForcingT = TypeVar("ForcingT", bound=DefaultForcing)
 
 
 class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
-    """Abstract class of a eWaterCycle model.
+    """Abstract class of a eWaterCycle model."""
 
-    """
     available_versions: ClassVar[Tuple[str, ...]] = tuple()
     """Versions of model that are available in this class"""
 
-    def __init__(self,
-                 version: str,
-                 parameter_set: ParameterSet = None,
-                 forcing: Optional[ForcingT] = None,
-                 ):
+    def __init__(
+        self,
+        version: str,
+        parameter_set: ParameterSet = None,
+        forcing: Optional[ForcingT] = None,
+    ):
         self.version = version
         self.parameter_set = parameter_set
         self.forcing: Optional[ForcingT] = forcing
@@ -51,9 +51,9 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
                 "-------------------",
                 f"Version = {self.version}",
                 "Parameter set = ",
-                textwrap.indent(str(self.parameter_set), '  '),
+                textwrap.indent(str(self.parameter_set), "  "),
                 "Forcing = ",
-                textwrap.indent(str(self.forcing), '  '),
+                textwrap.indent(str(self.forcing), "  "),
             ]
         )
 
@@ -99,7 +99,9 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
         """
         return self.bmi.get_value(name)
 
-    def get_value_at_coords(self, name, lat: Iterable[float], lon: Iterable[float]) -> np.ndarray:
+    def get_value_at_coords(
+        self, name, lat: Iterable[float], lon: Iterable[float]
+    ) -> np.ndarray:
         """Get a copy of values of the given variable at lat/lon coordinates.
 
         Args:
@@ -122,7 +124,9 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
         """
         self.bmi.set_value(name, value)
 
-    def set_value_at_coords(self, name: str, lat: Iterable[float], lon: Iterable[float], values: np.ndarray) -> None:
+    def set_value_at_coords(
+        self, name: str, lat: Iterable[float], lon: Iterable[float], values: np.ndarray
+    ) -> None:
         """Specify a new value for a model variable at at lat/lon coordinates.
 
         Args:
@@ -136,7 +140,9 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
         indices = np.array(indices)
         self.bmi.set_value_at_indices(name, indices, values)
 
-    def _coords_to_indices(self, name: str, lat: Iterable[float], lon: Iterable[float]) -> Iterable[int]:
+    def _coords_to_indices(
+        self, name: str, lat: Iterable[float], lon: Iterable[float]
+    ) -> Iterable[int]:
         """Converts lat/lon values to index.
 
         Args:
@@ -144,7 +150,10 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
             lon: Longitudinal value
 
         """
-        raise NotImplementedError("Method to convert from coordinates to model indices not implemented for this model.")
+        raise NotImplementedError(
+            "Method to convert from coordinates to model indices "
+            "not implemented for this model."
+        )
 
     @abstractmethod
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
@@ -218,27 +227,30 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
 
     @property
     def start_time_as_datetime(self) -> datetime:
-        """Start time of the model as a datetime object.
-        """
-        return num2date(self.bmi.get_start_time(),
-                        self.bmi.get_time_units(),
-                        only_use_cftime_datetimes=False)
+        """Start time of the model as a datetime object."""
+        return num2date(
+            self.bmi.get_start_time(),
+            self.bmi.get_time_units(),
+            only_use_cftime_datetimes=False,
+        )
 
     @property
     def end_time_as_datetime(self) -> datetime:
-        """End time of the model as a datetime object'.
-        """
-        return num2date(self.bmi.get_end_time(),
-                        self.bmi.get_time_units(),
-                        only_use_cftime_datetimes=False)
+        """End time of the model as a datetime object'."""
+        return num2date(
+            self.bmi.get_end_time(),
+            self.bmi.get_time_units(),
+            only_use_cftime_datetimes=False,
+        )
 
     @property
     def time_as_datetime(self) -> datetime:
-        """Current time of the model as a datetime object'.
-        """
-        return num2date(self.bmi.get_current_time(),
-                        self.bmi.get_time_units(),
-                        only_use_cftime_datetimes=False)
+        """Current time of the model as a datetime object'."""
+        return num2date(
+            self.bmi.get_current_time(),
+            self.bmi.get_time_units(),
+            only_use_cftime_datetimes=False,
+        )
 
     def _check_parameter_set(self):
         if not self.parameter_set:
@@ -246,17 +258,26 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
             return
         model_name = self.__class__.__name__.lower()
         if model_name != self.parameter_set.target_model:
-            raise ValueError(f'Parameter set has wrong target model, '
-                             f'expected {model_name} got {self.parameter_set.target_model}')
+            raise ValueError(
+                f"Parameter set has wrong target model, "
+                f"expected {model_name} got {self.parameter_set.target_model}"
+            )
         if self.parameter_set.supported_model_versions == set():
-            logger.info(f'Model version {self.version} is not explicitly listed in the supported model versions '
-                        f'of this parameter set. This can lead to compatibility issues.')
+            logger.info(
+                f"Model version {self.version} is not explicitly listed in the "
+                "supported model versions of this parameter set. "
+                "This can lead to compatibility issues."
+            )
         elif self.version not in self.parameter_set.supported_model_versions:
             raise ValueError(
-                f'Parameter set is not compatible with version {self.version} of model, '
-                f'parameter set only supports {self.parameter_set.supported_model_versions}')
+                "Parameter set is not compatible with version {self.version} of "
+                "model, parameter set only supports "
+                f"{self.parameter_set.supported_model_versions}."
+            )
 
     def _check_version(self):
         if self.version not in self.available_versions:
-            raise ValueError(f'Supplied version {self.version} is not supported by this model. '
-                             f'Available versions are {self.available_versions}.')
+            raise ValueError(
+                f"Supplied version {self.version} is not supported by this model. "
+                f"Available versions are {self.available_versions}."
+            )

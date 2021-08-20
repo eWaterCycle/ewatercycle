@@ -7,7 +7,9 @@ def test_download_example_parameter_sets(tmp_path):
     download_example_parameter_sets()
 
     assert (tmp_path / "parameters" / "pcrglobwb_rhinemeuse_30min").exists()
-    assert (tmp_path / "parameters/pcrglobwb_rhinemeuse_30min/setup_natural_test.ini").exists()
+    assert (
+        tmp_path / "parameters/pcrglobwb_rhinemeuse_30min/setup_natural_test.ini"
+    ).exists()
 
 
 # TODO test for the case where ewatercycle.yaml cfg is not writable

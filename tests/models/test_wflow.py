@@ -109,10 +109,7 @@ def test_constructor_adds_api_riverrunoff(parameter_set, caplog):
         "Config file from parameter set is missing RiverRunoff option in API section"
         in caplog.text
     )
-    assert (
-        "added it with value '2, m/s option'"
-        in caplog.text
-    )
+    assert "added it with value '2, m/s option'" in caplog.text
 
 
 def test_str(model, tmp_path):
@@ -152,21 +149,21 @@ def test_setup(model):
     # Check content of config file
     cfg = CaseConfigParser()
     cfg.read(expected_cfg_file)
-    assert (
-        cfg.get("API", "RiverRunoff") == "2, m/s"
-    )
+    assert cfg.get("API", "RiverRunoff") == "2, m/s"
 
 
 def test_setup_withtimeoutexception(model, tmp_path):
-    with patch.object(BmiClientSingularity, "__init__", side_effect=FutureTimeoutError()), patch(
-        "datetime.datetime"
-    ) as mocked_datetime, pytest.raises(ValueError) as excinfo:
+    with patch.object(
+        BmiClientSingularity, "__init__", side_effect=FutureTimeoutError()
+    ), patch("datetime.datetime") as mocked_datetime, pytest.raises(
+        ValueError
+    ) as excinfo:
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
         model.setup()
 
     msg = str(excinfo.value)
-    assert 'docker pull ewatercycle/wflow-grpc4bmi:2020.1.1' in msg
-    sif = tmp_path / 'ewatercycle-wflow-grpc4bmi_2020.1.1.sif'
+    assert "docker pull ewatercycle/wflow-grpc4bmi:2020.1.1" in msg
+    sif = tmp_path / "ewatercycle-wflow-grpc4bmi_2020.1.1.sif"
     assert f"build {sif} docker://ewatercycle/wflow-grpc4bmi:2020.1.1" in msg
 
 
@@ -189,9 +186,7 @@ def test_get_value_as_coords(initialized_model, caplog):
     with caplog.at_level(logging.DEBUG):
         result = model.get_value_at_coords("discharge", lon=[5.2], lat=[46.8])
 
-    msg = (
-        "Requested point was lon: 5.2, lat: 46.8; closest grid point is 5.00, 47.00."
-    )
+    msg = "Requested point was lon: 5.2, lat: 46.8; closest grid point is 5.00, 47.00."
 
     assert msg in caplog.text
     assert result == np.array([1.0])

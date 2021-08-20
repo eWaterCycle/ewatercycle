@@ -3,13 +3,13 @@
 
 """Tests for the ewatercycle_parametersetdb module.
 """
-from ewatercycle.parametersetdb.config import fetch, YamlConfig
+from ewatercycle.parametersetdb.config import YamlConfig, fetch
 
 
 def test_fetch(yaml_config_url):
     result = fetch(yaml_config_url)
 
-    assert 'PEQ_Hupsel.dat' in result
+    assert "PEQ_Hupsel.dat" in result
 
 
 class TestYamlConfig:
@@ -20,8 +20,8 @@ class TestYamlConfig:
 
     def test_save(self, tmpdir, yaml_config_url):
         conf = YamlConfig(yaml_config_url)
-        fn = tmpdir.join('myconfig.yml')
+        fn = tmpdir.join("myconfig.yml")
 
         conf.save(str(fn))
 
-        assert 'PEQ_Hupsel.dat' in fn.read()
+        assert "PEQ_Hupsel.dat" in fn.read()

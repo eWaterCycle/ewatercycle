@@ -5,6 +5,7 @@ from typing import Set
 from urllib import request
 
 from ewatercycle import CFG
+
 from .default import ParameterSet
 
 logger = getLogger(__name__)
@@ -22,7 +23,9 @@ class ExampleParameterSet(ParameterSet):
         doi="N/A",
         target_model="generic",
     ):
-        super().__init__(name, directory, config, doi, target_model, supported_model_versions)
+        super().__init__(
+            name, directory, config, doi, target_model, supported_model_versions
+        )
         self.config_url = config_url
         """URL where model configuration file can be downloaded"""
         self.datafiles_url = datafiles_url
@@ -31,19 +34,24 @@ class ExampleParameterSet(ParameterSet):
     def download(self, skip_existing=False):
         if self.directory.exists():
             if not skip_existing:
-                raise ValueError(f"Directory {self.directory} for parameter set {self.name}"
-                                 f" already exists, will not overwrite. "
-                                 f"Try again with skip_existing=True or remove {self.directory} directory.")
+                raise ValueError(
+                    f"Directory {self.directory} for parameter set {self.name}"
+                    f" already exists, will not overwrite. Try again with "
+                    f"skip_existing=True or remove {self.directory} directory."
+                )
 
-            logger.info(f'Directory {self.directory} for parameter set {self.name}'
-                        f' already exists, skipping download.')
+            logger.info(
+                f"Directory {self.directory} for parameter set {self.name}"
+                f" already exists, skipping download."
+            )
             return
         logger.info(
             f"Downloading example parameter set {self.name} to {self.directory}..."
         )
 
         subprocess.check_call(["svn", "export", self.datafiles_url, self.directory])
-        # TODO replace subversion with alternative see https://stackoverflow.com/questions/33066582/how-to-download-a-folder-from-github/48948711
+        # TODO replace subversion with alternative, see
+        # https://stackoverflow.com/questions/33066582/how-to-download-a-folder-from-github/48948711
         response = request.urlopen(self.config_url)
         self.config.write_text(response.read().decode())
 

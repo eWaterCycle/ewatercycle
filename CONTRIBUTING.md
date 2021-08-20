@@ -55,6 +55,7 @@ The sections below outline the steps in each case.
     and [here](https://help.github.com/articles/syncing-a-fork/));
 4. install the package in editable mode and its dependencies with
     `pip3 install -e .[dev]`;
+4. make sure pre commit hook is installed by running `pre-commit install`, causes linting and formatting to be applied during commit;
 5. make sure the existing tests still work by running `pytest`;
 6. make sure the existing documentation can still by generated without
     warnings by running `cd docs && make html`. [Pandoc](https://pandoc.org/) is required to generate docs, it can be installed with ``conda install -c conda-forge pandoc`` ;
@@ -81,24 +82,25 @@ This section is for maintainers of the package.
 2. Determine what new version (major, minor or patch) to use. Package uses `semantic versioning <https://semver.org>`_.
 3. Run ``bump2version <major|minor|patch>`` to update version in package files.
 4. Update CHANGELOG.md with changes between current and new version.
-5. Commit & push changes to GitHub.
-6. Wait for [GitHub
+5. Make sure pre-commit hooks are green for all files by running ``pre-commit run --all-files``.
+6. Commit & push changes to GitHub.
+7. Wait for [GitHub
     actions](https://github.com/eWaterCycle/ewatercycle/actions?query=branch%3Amain+)
     to be completed and green.
 
-7. Create a [GitHub release](https://github.com/eWaterCycle/ewatercycle/releases/new)
+8. Create a [GitHub release](https://github.com/eWaterCycle/ewatercycle/releases/new)
 
     - Use version as title and tag version.
     - As description use intro text from README.md (to give context to
         Zenodo record) and changes from CHANGELOG.md
 
-8. Create a PyPI release.
+9. Create a PyPI release.
 
     1. Create distribution archives with `python3 -m build`.
     2. Upload archives to PyPI with `twine upload dist/*` (use your
         personal PyPI account).
 
-9. Verify
+10. Verify
 
     1. Has [new Zenodo
         record](https://zenodo.org/search?page=1&size=20&q=ewatercycle)
@@ -109,4 +111,4 @@ This section is for maintainers of the package.
     3. Can new version be installed with pip using
         `pip3 install ewatercycle==<new version>`?
 
-10. Celebrate
+11. Celebrate

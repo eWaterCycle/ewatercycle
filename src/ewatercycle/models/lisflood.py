@@ -1,3 +1,4 @@
+"""Module with Lisflood model."""
 import datetime
 import logging
 import xml.etree.ElementTree as ET
@@ -24,12 +25,13 @@ class Lisflood(AbstractModel[LisfloodForcing]):
     """eWaterCycle implementation of Lisflood hydrological model.
 
     Args:
-      version: pick a version for which an ewatercycle grpc4bmi docker image is available.
+      version: pick a version for which an grpc4bmi docker image is available.
       parameter_set: LISFLOOD input files. Any included forcing data will be ignored.
       forcing: a LisfloodForcing object.
 
     Example:
-        See examples/lisflood.ipynb in `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
+        See examples/lisflood.ipynb in
+        `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
 
     available_versions = ("20.10",)
@@ -64,29 +66,35 @@ class Lisflood(AbstractModel[LisfloodForcing]):
     # unable to subclass with more specialized arguments so ignore type
     def setup(  # type: ignore
         self,
-        IrrigationEfficiency: str = None,
+        IrrigationEfficiency: str = None,  # noqa: N803
         start_time: str = None,
         end_time: str = None,
         MaskMap: str = None,
         cfg_dir: str = None,
     ) -> Tuple[str, str]:
-        """Configure model run
+        """Configure model run.
 
-        1. Creates config file and config directory based on the forcing variables and time range
+        1. Creates config file and config directory
+           based on the forcing variables and time range.
         2. Start bmi container and store as :py:attr:`bmi`
 
         Args:
-            IrrigationEfficiency: Field application irrigation efficiency max 1, ~0.90 drip irrigation, ~0.75 sprinkling
-            start_time: Start time of model in UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is used.
-            end_time: End time of model in  UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
+            IrrigationEfficiency: Field application irrigation efficiency.
+                max 1, ~0.90 drip irrigation, ~0.75 sprinkling
+            start_time: Start time of model in UTC and ISO format string
+                e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+                If not given then forcing start time is used.
+            end_time: End time of model in  UTC and ISO format string
+                e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+                If not given then forcing end time is used.
             MaskMap: Mask map to use instead of one supplied in parameter set.
-                Path to a NetCDF or pcraster file with same dimensions as parameter set map files and a boolean variable.
+                Path to a NetCDF or pcraster file with
+                same dimensions as parameter set map files and a boolean variable.
             cfg_dir: a run directory given by user or created for user.
 
         Returns:
             Path to config file and path to config directory
         """
-
         # TODO forcing can be a part of parameter_set
         cfg_dir_as_path = to_absolute_path(cfg_dir) if cfg_dir else None
         cfg_dir_as_path = _generate_workdir(cfg_dir_as_path)
@@ -130,7 +138,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         return str(config_file), str(cfg_dir_as_path)
 
     def _check_forcing(self, forcing):
-        """ "Check forcing argument and get path, start and end time of forcing data."""
+        """Checks forcing argument and get path, start/end time of forcing data."""
         # TODO check if mask has same grid as forcing files,
         # if not warn users to run reindex_forcings
         if isinstance(forcing, LisfloodForcing):
@@ -141,7 +149,8 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             self._end = get_time(forcing.end_time)
         else:
             raise TypeError(
-                f"Unknown forcing type: {forcing}. Please supply a LisfloodForcing object."
+                f"Unknown forcing type: {forcing}. "
+                "Please supply a LisfloodForcing object."
             )
 
     def _create_lisflood_config(
@@ -149,10 +158,10 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         cfg_dir: Path,
         start_time_iso: str = None,
         end_time_iso: str = None,
-        IrrigationEfficiency: str = None,
+        IrrigationEfficiency: str = None,  # noqa: N803
         MaskMap: str = None,
     ) -> Path:
-        """Create lisflood config file"""
+        """Create lisflood config file."""
         assert self.parameter_set is not None
         assert self.forcing is not None
         # overwrite dates if given
@@ -194,9 +203,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
 
             # input for lisflood
             if "PrefixPrecipitation" in textvar_name:
-                textvar.set(
-                    "value", Path(self.forcing.PrefixPrecipitation).stem
-                )
+                textvar.set("value", Path(self.forcing.PrefixPrecipitation).stem)
             if "PrefixTavg" in textvar_name:
                 textvar.set("value", Path(self.forcing.PrefixTavg).stem)
 
@@ -235,7 +242,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         shape = self.bmi.get_grid_shape(grid)
 
         # Extract the data and store it in an xarray DataArray
-        da = xr.DataArray(
+        return xr.DataArray(
             data=np.reshape(self.bmi.get_value(name), shape),
             coords={
                 "longitude": self.bmi.get_grid_x(grid),
@@ -247,12 +254,10 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             attrs={"units": self.bmi.get_var_units(name)},
         )
 
-        return da
-
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]
     ) -> Iterable[int]:
-        """Converts lat/lon values to index.
+        """Convert lat/lon values to index.
 
         Args:
             lat: Latitudinal value
@@ -286,7 +291,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         assert self.parameter_set is not None
         assert self.forcing is not None
         # TODO fix issue #60
-        parameters = [
+        return [
             (
                 "IrrigationEfficiency",
                 self._get_textvar_value("IrrigationEfficiency"),
@@ -295,17 +300,20 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             ("start_time", self._start.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ("end_time", self._end.strftime("%Y-%m-%dT%H:%M:%SZ")),
         ]
-        return parameters
 
 
 # TODO it needs fix regarding forcing
-# def reindex_forcings(mask_map: Path, forcing: LisfloodForcing, output_dir: Path = None) -> Path:
+# def reindex_forcings(
+#     mask_map: Path, forcing: LisfloodForcing, output_dir: Path = None
+# ) -> Path:
 #     """Reindex forcing files to match mask map grid
 
 #     Args:
-#         mask_map: Path to NetCDF file used a boolean map that defines model boundaries.
+#         mask_map: Path to NetCDF file used a boolean map that defines model
+#             boundaries.
 #         forcing: Forcing data from ESMValTool
-#         output_dir: Directory where to write the re-indexed files, given by user or created for user
+#         output_dir: Directory where to write the re-indexed files, given by user
+#             or created for user
 
 #     Returns:
 #         Output dir with re-indexed files.
@@ -317,20 +325,29 @@ class Lisflood(AbstractModel[LisfloodForcing]):
 #         dataset = data_file.load_xarray()
 #         out_fn = output_dir / data_file.filename.name
 #         var_name = list(dataset.data_vars.keys())[0]
-#         encoding = {var_name: {"zlib": True, "complevel": 4, "chunksizes": (1,) + dataset[var_name].shape[1:]}}
+#         encoding = {
+#             var_name: {
+#                 "zlib": True,
+#                 "complevel": 4,
+#                 "chunksizes": (1,) + dataset[var_name].shape[1:],
+#             }
+#         }
 #         dataset.reindex(
-#                     {"lat": mask["lat"], "lon": mask["lon"]},
-#                     method="nearest",
-#                     tolerance=1e-2,
-#                 ).to_netcdf(out_fn, encoding=encoding)
+#             {"lat": mask["lat"], "lon": mask["lon"]},
+#             method="nearest",
+#             tolerance=1e-2,
+#         ).to_netcdf(out_fn, encoding=encoding)
 #     return output_dir
 
 
 def _generate_workdir(cfg_dir: Path = None) -> Path:
-    """
+    """Creates or makes sure workdir exists.
 
     Args:
         cfg_dir: If cfg dir is None then create sub-directory in CFG['output_dir']
+
+    Returns:
+        absolute path of workdir
 
     """
     if cfg_dir is None:
@@ -339,21 +356,30 @@ def _generate_workdir(cfg_dir: Path = None) -> Path:
         timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
             "%Y%m%d_%H%M%S"
         )
-        cfg_dir = to_absolute_path(
-            f"lisflood_{timestamp}", parent=Path(scratch_dir)
-        )
+        cfg_dir = to_absolute_path(f"lisflood_{timestamp}", parent=Path(scratch_dir))
     cfg_dir.mkdir(parents=True, exist_ok=True)
     return cfg_dir
 
 
 class XmlConfig(AbstractConfig):
-    """Config container where config is read/saved in xml format"""
+    """Config container where config is read/saved in xml format."""
 
     def __init__(self, source):
+        """Config container where config is read/saved in xml format.
+
+        Args:
+            source: file to read from
+        """
         super().__init__(source)
         self.tree = ET.parse(source)
         self.config: ET.Element = self.tree.getroot()
         """XML element used to make changes to the config"""
 
     def save(self, target):
+        """Save xml to file.
+
+        Args:
+            target: file to save to
+
+        """
         self.tree.write(target)

@@ -11,11 +11,11 @@ def example_parameter_sets() -> Iterable[ExampleParameterSet]:
             name="lisflood_fraser",
             # Relative to CFG['parameterset_dir']
             config="lisflood_fraser/settings_lat_lon-Run.xml",
-            datafiles_url="https://github.com/ec-jrc/lisflood-usecases/trunk/LF_lat_lon_UseCase",
+            datafiles_url="https://github.com/ec-jrc/lisflood-usecases/trunk/LF_lat_lon_UseCase",  # noqa: E501
             # Raw url to config file
-            config_url="https://github.com/ec-jrc/lisflood-usecases/raw/master/LF_lat_lon_UseCase/settings_lat_lon-Run.xml",
+            config_url="https://github.com/ec-jrc/lisflood-usecases/raw/master/LF_lat_lon_UseCase/settings_lat_lon-Run.xml",  # noqa: E501
             doi="N/A",
             target_model="lisflood",
-            supported_model_versions={"20.10"}
+            supported_model_versions={"20.10"},
         )
     ]

@@ -4,14 +4,14 @@ import os
 from io import StringIO
 from logging import getLogger
 from pathlib import Path
-from typing import Union, Optional, TextIO
+from typing import Optional, TextIO, Union
 
 from ruamel.yaml import YAML
 
-from ._validators import _validators
-from ._validated_config import ValidatedConfig
-
 from ewatercycle.util import to_absolute_path
+
+from ._validated_config import ValidatedConfig
+from ._validators import _validators
 
 logger = getLogger(__name__)
 
@@ -26,7 +26,7 @@ class Config(ValidatedConfig):
     _validate = _validators
 
     @classmethod
-    def _load_user_config(cls, filename: Union[os.PathLike, str]) -> 'Config':
+    def _load_user_config(cls, filename: Union[os.PathLike, str]) -> "Config":
         """Load user configuration from the given file.
 
         The config is cleared and updated in-place.
@@ -38,7 +38,7 @@ class Config(ValidatedConfig):
         """
         new = cls()
         mapping = read_config_file(filename)
-        mapping['ewatercycle_config'] = filename
+        mapping["ewatercycle_config"] = filename
 
         new.update(CFG_DEFAULT)
         new.update(mapping)
@@ -46,7 +46,7 @@ class Config(ValidatedConfig):
         return new
 
     @classmethod
-    def _load_default_config(cls, filename: Union[os.PathLike, str]) -> 'Config':
+    def _load_default_config(cls, filename: Union[os.PathLike, str]) -> "Config":
         """Load the default configuration."""
         new = cls()
         mapping = read_config_file(filename)
@@ -58,7 +58,7 @@ class Config(ValidatedConfig):
         """Load user configuration from the given file."""
         path = to_absolute_path(str(filename))
         if not path.exists():
-            raise FileNotFoundError(f'Cannot find: `{filename}')
+            raise FileNotFoundError(f"Cannot find: `{filename}")
 
         self.clear()
         self.update(CFG_DEFAULT)
@@ -66,12 +66,11 @@ class Config(ValidatedConfig):
 
     def reload(self) -> None:
         """Reload the config file."""
-        filename = self.get('ewatercycle_config', DEFAULT_CONFIG)
+        filename = self.get("ewatercycle_config", DEFAULT_CONFIG)
         self.load_from_file(filename)
 
     def dump_to_yaml(self) -> str:
-        """Dumps YAML formatted string of Config object
-        """
+        """Dumps YAML formatted string of Config object"""
         stream = StringIO()
         self._save_to_stream(stream)
         return stream.getvalue()
@@ -87,7 +86,7 @@ class Config(ValidatedConfig):
         cp["output_dir"] = str(cp["output_dir"])
         cp["parameterset_dir"] = str(cp["parameterset_dir"])
 
-        yaml = YAML(typ='safe')
+        yaml = YAML(typ="safe")
         yaml.dump(cp, stream)
 
     def save_to_file(self, config_file: Optional[Union[os.PathLike, str]] = None):
@@ -95,17 +94,20 @@ class Config(ValidatedConfig):
 
         Args:
             config_file: File to write configuration object to.
-                If not given then will try to use `CFG['ewatercycle_config']` location
-                and if `CFG['ewatercycle_config']` is not set then will use the location in users home directory.
+                If not given then will try to use `CFG['ewatercycle_config']`
+                location and if `CFG['ewatercycle_config']` is not set then will use
+                the location in users home directory.
         """
         # Exclude own path from dump
         old_config_file = self.get("ewatercycle_config", None)
 
         if config_file is None:
-            config_file = USER_HOME_CONFIG if old_config_file is None else old_config_file
+            config_file = (
+                USER_HOME_CONFIG if old_config_file is None else old_config_file
+            )
 
         if config_file == DEFAULT_CONFIG:
-            raise PermissionError(f'Not allowed to write to {config_file}', config_file)
+            raise PermissionError(f"Not allowed to write to {config_file}", config_file)
 
         with open(config_file, "w") as f:
             self._save_to_stream(f)
@@ -119,10 +121,10 @@ def read_config_file(config_file: Union[os.PathLike, str]) -> dict:
     """Read config user file and store settings in a dictionary."""
     config_file = to_absolute_path(str(config_file))
     if not config_file.exists():
-        raise IOError(f'Config file `{config_file}` does not exist.')
+        raise IOError(f"Config file `{config_file}` does not exist.")
 
-    with open(config_file, 'r') as file:
-        yaml = YAML(typ='safe')
+    with open(config_file, "r") as file:
+        yaml = YAML(typ="safe")
         cfg = yaml.load(file)
 
     return cfg
@@ -137,15 +139,17 @@ def find_user_config(sources: tuple) -> Optional[os.PathLike]:
     return None
 
 
-FILENAME = 'ewatercycle.yaml'
+FILENAME = "ewatercycle.yaml"
 
-USER_HOME_CONFIG = Path.home() / os.environ.get('XDG_CONFIG_HOME', '.config') / 'ewatercycle' / FILENAME
-SYSTEM_CONFIG = Path('/etc') / FILENAME
-
-SOURCES = (
-    USER_HOME_CONFIG,
-    SYSTEM_CONFIG
+USER_HOME_CONFIG = (
+    Path.home()
+    / os.environ.get("XDG_CONFIG_HOME", ".config")
+    / "ewatercycle"
+    / FILENAME
 )
+SYSTEM_CONFIG = Path("/etc") / FILENAME
+
+SOURCES = (USER_HOME_CONFIG, SYSTEM_CONFIG)
 
 USER_CONFIG = find_user_config(SOURCES)
 DEFAULT_CONFIG = Path(__file__).parent / FILENAME

@@ -2,8 +2,8 @@
 """Documentation about ewatercycle_parametersetdb"""
 from typing import Any
 
-from ewatercycle.parametersetdb.config import AbstractConfig, CONFIG_FORMATS
-from ewatercycle.parametersetdb.datafiles import AbstractCopier, DATAFILES_FORMATS
+from ewatercycle.parametersetdb.config import CONFIG_FORMATS, AbstractConfig
+from ewatercycle.parametersetdb.datafiles import DATAFILES_FORMATS, AbstractCopier
 
 
 class ParameterSet:
@@ -38,14 +38,17 @@ class ParameterSet:
     def config(self) -> Any:
         """Configuration as dictionary.
 
-        To make changes to configuration before saving set the config keys and/or values.
+        To make changes to configuration before saving set the config keys
+        and/or values.
 
         Can be a nested dict.
         """
         return self._cfg.config
 
 
-def build_from_urls(config_format, config_url, datafiles_format, datafiles_url) -> ParameterSet:
+def build_from_urls(
+    config_format, config_url, datafiles_format, datafiles_url
+) -> ParameterSet:
     """Construct ParameterSet based on urls
 
     Args:

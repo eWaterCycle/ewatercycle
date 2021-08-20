@@ -11,11 +11,11 @@ def example_parameter_sets() -> Iterable[ExampleParameterSet]:
             name="pcrglobwb_rhinemeuse_30min",
             # Relative to CFG['parameterset_dir']
             config="pcrglobwb_rhinemeuse_30min/setup_natural_test.ini",
-            datafiles_url="https://github.com/UU-Hydro/PCR-GLOBWB_input_example/trunk/RhineMeuse30min",
+            datafiles_url="https://github.com/UU-Hydro/PCR-GLOBWB_input_example/trunk/RhineMeuse30min",  # noqa: E501
             # Raw url to config file
-            config_url="https://raw.githubusercontent.com/UU-Hydro/PCR-GLOBWB_input_example/master/ini_and_batch_files_for_pcrglobwb_course/rhine_meuse_30min_using_input_example/setup_natural_test.ini",
+            config_url="https://raw.githubusercontent.com/UU-Hydro/PCR-GLOBWB_input_example/master/ini_and_batch_files_for_pcrglobwb_course/rhine_meuse_30min_using_input_example/setup_natural_test.ini",  # noqa: E501
             doi="https://doi.org/10.5281/zenodo.1045339",
             target_model="pcrglobwb",
-            supported_model_versions={"setters"}
+            supported_model_versions={"setters"},
         )
     ]

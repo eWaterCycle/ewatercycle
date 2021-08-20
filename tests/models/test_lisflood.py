@@ -66,9 +66,7 @@ class TestLFlatlonUseCase:
     @pytest.fixture
     def model(self, parameterset, generate_forcing):
         forcing = generate_forcing
-        m = Lisflood(
-            version="20.10", parameter_set=parameterset, forcing=forcing
-        )
+        m = Lisflood(version="20.10", parameter_set=parameterset, forcing=forcing)
         yield m
         if m.bmi:
             # Clean up container
@@ -119,20 +117,14 @@ class TestLFlatlonUseCase:
         }
         assert find_values_in_xml(_cfg.config, "StepStart") == {"1"}
         assert find_values_in_xml(_cfg.config, "StepEnd") == {"11688"}
-        assert find_values_in_xml(_cfg.config, "PathMeteo") == {
-            f"{tmp_path}/forcing"
-        }
+        assert find_values_in_xml(_cfg.config, "PathMeteo") == {f"{tmp_path}/forcing"}
         assert find_values_in_xml(_cfg.config, "PathOut") == {str(config_dir)}
-        assert find_values_in_xml(_cfg.config, "IrrigationEfficiency") == {
-            "0.8"
-        }
+        assert find_values_in_xml(_cfg.config, "IrrigationEfficiency") == {"0.8"}
         assert find_values_in_xml(_cfg.config, "MaskMap") == {
             "$(PathMaps)/masksmall.map",
             "$(MaskMap)",
         }
-        assert find_values_in_xml(_cfg.config, "PrefixPrecipitation") == {
-            "mytp"
-        }
+        assert find_values_in_xml(_cfg.config, "PrefixPrecipitation") == {"mytp"}
         assert find_values_in_xml(_cfg.config, "PrefixTavg") == {"myta"}
         assert find_values_in_xml(_cfg.config, "PrefixE0") == {"mye0"}
         assert find_values_in_xml(_cfg.config, "PrefixES0") == {"es0"}
@@ -181,9 +173,7 @@ class TestLFlatlonUseCase:
             mask_file_in_ps = parameterset.directory / "maps/mask.map"
             shutil.copy(mask_file_in_ps, mask_dir / "mask.map")
             forcing = generate_forcing
-            m = Lisflood(
-                version="20.10", parameter_set=parameterset, forcing=forcing
-            )
+            m = Lisflood(version="20.10", parameter_set=parameterset, forcing=forcing)
             yield m
             if m.bmi:
                 # Clean up container
@@ -193,12 +183,8 @@ class TestLFlatlonUseCase:
         def model_with_setup(self, tmp_path, mocked_config, model: Lisflood):
             with patch.object(
                 BmiClientSingularity, "__init__", return_value=None
-            ) as mocked_constructor, patch(
-                "datetime.datetime"
-            ) as mocked_datetime:
-                mocked_datetime.now.return_value = datetime(
-                    2021, 1, 2, 3, 4, 5
-                )
+            ) as mocked_constructor, patch("datetime.datetime") as mocked_datetime:
+                mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
                 config_file, config_dir = model.setup(
                     MaskMap=str(tmp_path / "custommask/mask.map")
                 )
@@ -210,9 +196,7 @@ class TestLFlatlonUseCase:
             # Check setup returns
             expected_cfg_dir = CFG["output_dir"] / "lisflood_20210102_030405"
             assert config_dir == str(expected_cfg_dir)
-            assert config_file == str(
-                expected_cfg_dir / "lisflood_setting.xml"
-            )
+            assert config_file == str(expected_cfg_dir / "lisflood_setting.xml")
 
             # Check container started
             mocked_constructor.assert_called_once_with(
@@ -235,9 +219,7 @@ class TestLFlatlonUseCase:
             assert find_values_in_xml(_cfg.config, "PathMeteo") == {
                 f"{tmp_path}/forcing"
             }
-            assert find_values_in_xml(_cfg.config, "PathOut") == {
-                str(config_dir)
-            }
+            assert find_values_in_xml(_cfg.config, "PathOut") == {str(config_dir)}
             assert find_values_in_xml(_cfg.config, "IrrigationEfficiency") == {
                 "0.75",
                 "$(IrrigationEfficiency)",
@@ -245,9 +227,7 @@ class TestLFlatlonUseCase:
             assert find_values_in_xml(_cfg.config, "MaskMap") == {
                 f"{tmp_path}/custommask/mask"
             }
-            assert find_values_in_xml(_cfg.config, "PrefixPrecipitation") == {
-                "mytp"
-            }
+            assert find_values_in_xml(_cfg.config, "PrefixPrecipitation") == {"mytp"}
             assert find_values_in_xml(_cfg.config, "PrefixTavg") == {"myta"}
             assert find_values_in_xml(_cfg.config, "PrefixE0") == {"mye0"}
             assert find_values_in_xml(_cfg.config, "PrefixES0") == {"es0"}

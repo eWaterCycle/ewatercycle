@@ -52,9 +52,7 @@ def mocked_config(tmp_path):
 
 @pytest.fixture
 def parameter_set(mocked_config):
-    example_parameter_set = example_parameter_sets()[
-        "pcrglobwb_rhinemeuse_30min"
-    ]
+    example_parameter_set = example_parameter_sets()["pcrglobwb_rhinemeuse_30min"]
     example_parameter_set.download()
     example_parameter_set.to_config()
     return example_parameter_set
@@ -88,9 +86,9 @@ def initialized_model(model):
 
 
 def test_setup(model):
-    with patch.object(
-        BmiClientSingularity, "__init__", return_value=None
-    ), patch("datetime.datetime") as mocked_datetime:
+    with patch.object(BmiClientSingularity, "__init__", return_value=None), patch(
+        "datetime.datetime"
+    ) as mocked_datetime:
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
 
         cfg_file, cfg_dir = model.setup()
@@ -101,23 +99,25 @@ def test_setup(model):
 
 
 def test_setup_withtimeoutexception(model, tmp_path):
-    with patch.object(BmiClientSingularity, "__init__", side_effect=FutureTimeoutError()), patch(
-        "datetime.datetime"
-    ) as mocked_datetime, pytest.raises(ValueError) as excinfo:
+    with patch.object(
+        BmiClientSingularity, "__init__", side_effect=FutureTimeoutError()
+    ), patch("datetime.datetime") as mocked_datetime, pytest.raises(
+        ValueError
+    ) as excinfo:
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
         model.setup()
 
     msg = str(excinfo.value)
-    assert 'docker pull ewatercycle/pcrg-grpc4bmi:setters' in msg
-    sif = tmp_path / 'ewatercycle-pcrg-grpc4bmi_setters.sif'
+    assert "docker pull ewatercycle/pcrg-grpc4bmi:setters" in msg
+    sif = tmp_path / "ewatercycle-pcrg-grpc4bmi_setters.sif"
     assert f"build {sif} docker://ewatercycle/pcrg-grpc4bmi:setters" in msg
 
 
 def test_setup_with_custom_cfg_dir(model, tmp_path):
     my_cfg_dir = str(tmp_path / "mycfgdir")
-    with patch.object(
-        BmiClientSingularity, "__init__", return_value=None
-    ), patch("datetime.datetime") as mocked_datetime:
+    with patch.object(BmiClientSingularity, "__init__", return_value=None), patch(
+        "datetime.datetime"
+    ) as mocked_datetime:
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
 
         cfg_file, cfg_dir = model.setup(cfg_dir=my_cfg_dir)
@@ -133,8 +133,7 @@ def test_get_value_as_coords(initialized_model, caplog):
         result = model.get_value_at_coords("discharge", lon=[5.2], lat=[46.8])
 
     msg = (
-        "Requested point was lon: 5.2, lat: 46.8;"
-        " closest grid point is 5.00, 47.00."
+        "Requested point was lon: 5.2, lat: 46.8;" " closest grid point is 5.00, 47.00."
     )
 
     assert msg in caplog.text

@@ -38,7 +38,8 @@ class ValidatedConfig(MutableMapping):
             raise InvalidConfigParameter(f"Key `{key}`: {verr}") from None
         except KeyError:
             raise InvalidConfigParameter(
-                f"`{key}` is not a valid config parameter.") from None
+                f"`{key}` is not a valid config parameter."
+            ) from None
 
         self._mapping[key] = cval
 
@@ -50,15 +51,15 @@ class ValidatedConfig(MutableMapping):
         """Return canonical string representation."""
         class_name = self.__class__.__name__
         indent = len(class_name) + 1
-        repr_split = pprint.pformat(self._mapping, indent=1,
-                                    width=80 - indent).split('\n')
-        repr_indented = ('\n' + ' ' * indent).join(repr_split)
-        return '{}({})'.format(class_name, repr_indented)
+        repr_split = pprint.pformat(self._mapping, indent=1, width=80 - indent).split(
+            "\n"
+        )
+        repr_indented = ("\n" + " " * indent).join(repr_split)
+        return "{}({})".format(class_name, repr_indented)
 
     def __str__(self):
         """Return string representation."""
-        return '\n'.join(
-            map('{0[0]}: {0[1]}'.format, sorted(self._mapping.items())))
+        return "\n".join(map("{0[0]}: {0[1]}".format, sorted(self._mapping.items())))
 
     def __iter__(self):
         """Yield sorted list of keys."""

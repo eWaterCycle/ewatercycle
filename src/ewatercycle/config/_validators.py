@@ -65,26 +65,18 @@ def _listify_validator(
                 if allow_stringlist:
                     # Sometimes, a list of colors might be a single string
                     # of single-letter colornames. So give that a shot.
-                    inp = [
-                        scalar_validator(val.strip())
-                        for val in inp
-                        if val.strip()
-                    ]
+                    inp = [scalar_validator(val.strip()) for val in inp if val.strip()]
                 else:
                     raise
         # Allow any ordered sequence type -- generators, np.ndarray, pd.Series
         # -- but not sets, whose iteration order is non-deterministic.
-        elif isinstance(inp, Iterable) and not isinstance(
-            inp, (set, frozenset)
-        ):
+        elif isinstance(inp, Iterable) and not isinstance(inp, (set, frozenset)):
             # The condition on this list comprehension will preserve the
             # behavior of filtering out any empty strings (behavior was
             # from the original validate_stringlist()), while allowing
             # any non-string/text scalar values such as numbers and arrays.
             inp = [
-                scalar_validator(val)
-                for val in inp
-                if not isinstance(val, str) or val
+                scalar_validator(val) for val in inp if not isinstance(val, str) or val
             ]
         else:
             raise ValidationError(
@@ -101,9 +93,7 @@ def _listify_validator(
         func.__name__ = "{}list".format(scalar_validator.__name__)
     except AttributeError:  # class instance.
         func.__name__ = "{}List".format(type(scalar_validator).__name__)
-    func.__qualname__ = (
-        func.__qualname__.rsplit(".", 1)[0] + "." + func.__name__
-    )
+    func.__qualname__ = func.__qualname__.rsplit(".", 1)[0] + "." + func.__name__
     if docstring is not None:
         docstring = scalar_validator.__doc__
     func.__doc__ = docstring

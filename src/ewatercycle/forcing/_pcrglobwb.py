@@ -5,7 +5,12 @@ from typing import Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ..util import data_files_from_recipe_output, get_extents, get_time, to_absolute_path
+from ..util import (
+    data_files_from_recipe_output,
+    get_extents,
+    get_time,
+    to_absolute_path,
+)
 from ._default import DefaultForcing
 from .datasets import DATASETS
 
@@ -38,7 +43,7 @@ class PCRGlobWBForcing(DefaultForcing):
         end_time: str,
         shape: str,
         start_time_climatology: str,  # TODO make optional, default to start_time
-        end_time_climatology: str,  # TODO make optional, defaults to start_time + 1 year
+        end_time_climatology: str,  # TODO make optional, defaults to start_time + 1 y
         extract_region: dict = None,
     ) -> "PCRGlobWBForcing":
         """
@@ -62,9 +67,9 @@ class PCRGlobWBForcing(DefaultForcing):
         )
 
         if dataset is not None:
-            recipe.data["diagnostics"]["diagnostic_daily"][
-                "additional_datasets"
-            ] = [DATASETS[dataset]]
+            recipe.data["diagnostics"]["diagnostic_daily"]["additional_datasets"] = [
+                DATASETS[dataset]
+            ]
 
         basin = to_absolute_path(shape).stem
         recipe.data["diagnostics"]["diagnostic_daily"]["scripts"]["script"][
@@ -101,7 +106,7 @@ class PCRGlobWBForcing(DefaultForcing):
 
         # generate forcing data and retrieve useful information
         recipe_output = recipe.run()
-        # TODO dont open recipe output files, but use standard name from ESMValTool diagnostic
+        # TODO dont open recipe output, but use standard name from ESMValTool
         directory, forcing_files = data_files_from_recipe_output(recipe_output)
 
         # instantiate forcing object based on generated data

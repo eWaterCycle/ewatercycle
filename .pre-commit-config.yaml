@@ -1,0 +1,98 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.4.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-ast
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+  - repo: https://github.com/adrienverge/yamllint
+    rev: "v1.26.0"
+    hooks:
+      - id: yamllint
+  - repo: https://github.com/asottile/setup-cfg-fmt
+    rev: v1.17.0
+    hooks:
+      - id: setup-cfg-fmt
+  - repo: https://github.com/psf/black
+    rev: 21.7b0
+    hooks:
+      - id: black
+  - repo: https://github.com/PyCQA/isort
+    rev: "5.9.3"
+    hooks:
+      - id: isort
+  # TODO renable when errors are fixed/ignored
+  # - repo: https://github.com/pycqa/pylint
+  #   rev: "v2.9.6"
+  #   hooks:
+  #     - id: pylint
+  # TODO renable when errors are fixed/ignored
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: "3.9.2"
+    hooks:
+      - id: flake8
+        additional_dependencies:
+          &fd [
+            flake8-annotations-complexity,
+            flake8-bandit,
+            flake8-blind-except,
+            flake8-bugbear,
+            flake8-builtins,
+            flake8-cognitive-complexity,
+            flake8-comprehensions,
+            flake8-docstrings,
+            flake8-eradicate,
+            flake8-executable,
+            flake8-expression-complexity,
+            flake8-if-expr,
+            flake8-implicit-str-concat,
+            flake8-logging-format,
+            flake8-pathlib,
+            flake8-print,
+            flake8-pytest,
+            flake8-pytest-style,
+            # flake8-quotes,  # conflicts with blacks double quote preference
+            flake8-raise,
+            flake8-return,
+            flake8-typing-imports,
+            flake8-variables-names,
+            flake8==3.9.2,
+            pandas-vet,
+            pep8-naming,
+            # wemake-python-styleguide,  # conflicts with black
+            yesqa,
+          ]
+        verbose: true
+        args: &fa [--statistics, --exit-zero]
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.910
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-python-dateutil]
+  - repo: https://github.com/nbQA-dev/nbQA
+    rev: 1.1.0
+    hooks:
+      - id: nbqa-black
+        # Match version of black used for .py and .ipynb
+        additional_dependencies: [black==21.7b0]
+      - id: nbqa-isort
+        additional_dependencies: [isort==5.9.3]
+      - id: nbqa-mypy
+        additional_dependencies: [mypy==0.910]
+      # TODO renable when errors are fixed/ignored
+      - id: nbqa-flake8
+        additional_dependencies: *fd
+        args: *fa
+        verbose: true
+      # TODO renable when errors are fixed/ignored
+      # - id: nbqa-pylint
+      #   additional_dependencies: [pylint==2.9.6]
+  - repo: https://github.com/regebro/pyroma
+    rev: "3.2"
+    hooks:
+      - id: pyroma

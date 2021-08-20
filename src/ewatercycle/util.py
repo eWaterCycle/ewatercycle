@@ -1,11 +1,10 @@
+from datetime import datetime
 from os import PathLike
-from typing import Any, Iterable, Tuple, Dict
 from pathlib import Path
+from typing import Any, Dict, Iterable, Tuple
 
 import fiona
 import numpy as np
-from datetime import datetime
-
 from dateutil.parser import parse
 from esmvalcore.experimental.recipe_output import RecipeOutput
 from shapely import geometry
@@ -49,9 +48,7 @@ def find_closest_point(
     dx = np.diff(grid_longitudes).max() * 111  # (1 degree ~ 111km)
     dy = np.diff(grid_latitudes).max() * 111  # (1 degree ~ 111km)
     if distance > max(dx, dy) * 2:
-        raise ValueError(
-            f"Point {point_longitude, point_latitude} outside model grid."
-        )
+        raise ValueError(f"Point {point_longitude, point_latitude} outside model grid.")
 
     return idx_lon, idx_lat
 
@@ -66,7 +63,8 @@ def get_time(time_iso: str) -> datetime:
     time = parse(time_iso)
     if not time.tzname() == "UTC":
         raise ValueError(
-            f"The time is not in UTC. The ISO format for a UTC time is 'YYYY-MM-DDTHH:MM:SSZ'"
+            "The time is not in UTC. The ISO format for a UTC time "
+            "is 'YYYY-MM-DDTHH:MM:SSZ'"
         )
     return time
 
@@ -121,14 +119,20 @@ def data_files_from_recipe_output(
     return directory, forcing_files
 
 
-def to_absolute_path(input_path: str, parent: Path = None, must_exist: bool = False, must_be_in_parent=True) -> Path:
+def to_absolute_path(
+    input_path: str,
+    parent: Path = None,
+    must_exist: bool = False,
+    must_be_in_parent=True,
+) -> Path:
     """Parse input string as :py:class:`pathlib.Path` object.
 
     Args:
         input_path: Input string path that can be a relative or absolute path.
         parent: Optional parent path of the input path
         must_exist: Optional argument to check if the input path exists.
-        must_be_in_parent: Optional argument to check if the input path is subpath of parent path
+        must_be_in_parent: Optional argument to check if the input path is
+            subpath of parent path
 
     Returns:
         The input path that is an absolute path and a :py:class:`pathlib.Path` object.
@@ -140,6 +144,8 @@ def to_absolute_path(input_path: str, parent: Path = None, must_exist: bool = Fa
             try:
                 pathlike.relative_to(parent)
             except ValueError:
-                raise ValueError(f"Input path {input_path} is not a subpath of parent {parent}")
+                raise ValueError(
+                    f"Input path {input_path} is not a subpath of parent {parent}"
+                )
 
     return pathlike.expanduser().resolve(strict=must_exist)
