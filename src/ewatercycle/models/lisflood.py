@@ -141,7 +141,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         return str(config_file), str(cfg_dir_as_path)
 
     def _check_forcing(self, forcing):
-        """Checks forcing argument and get path, start/end time of forcing data."""
+        """Check forcing argument and get path, start/end time of forcing data."""
         # TODO check if mask has same grid as forcing files,
         # if not warn users to run reindex_forcings
         if isinstance(forcing, LisfloodForcing):
