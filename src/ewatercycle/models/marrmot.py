@@ -1,3 +1,5 @@
+"""eWaterCycle wrapper around Marrmot BMI."""
+
 import datetime
 import logging
 from dataclasses import asdict, dataclass

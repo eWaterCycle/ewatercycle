@@ -1,4 +1,5 @@
-"""Module with Lisflood model."""
+"""eWaterCycle wrapper around Lisflood BMI."""
+
 import datetime
 import logging
 import xml.etree.ElementTree as ET

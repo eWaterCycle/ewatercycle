@@ -1,3 +1,5 @@
+"""eWaterCycle wrapper around WFlow BMI."""
+
 import datetime
 import logging
 import shutil
@@ -41,7 +43,7 @@ class Wflow(AbstractModel[WflowForcing]):
         parameter_set: ParameterSet,
         forcing: Optional[WflowForcing] = None,
     ):
-
+        """Instantiate Wflow model object."""
         super().__init__(version, parameter_set, forcing)
         self._set_docker_image()
         self._setup_default_config()
@@ -121,7 +123,7 @@ class Wflow(AbstractModel[WflowForcing]):
 
         try:
             self._start_container()
-        except FutureTimeoutError:
+        except FutureTimeoutError as exc:
             # https://github.com/eWaterCycle/grpc4bmi/issues/95
             # https://github.com/eWaterCycle/grpc4bmi/issues/100
             raise ValueError(
@@ -131,7 +133,7 @@ class Wflow(AbstractModel[WflowForcing]):
                 f"build {self._singularity_image(CFG['singularity_dir'])} "
                 f"docker://{self.docker_image}` if you're using singularity,"
                 " and then try again."
-            )
+            ) from exc
 
         return (
             str(updated_cfg_file),
@@ -179,7 +181,7 @@ class Wflow(AbstractModel[WflowForcing]):
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]
     ) -> Iterable[int]:
-        """Converts lat/lon values to index.
+        """Convert lat/lon values to index.
 
         Args:
             lat: Latitudinal value
@@ -240,11 +242,11 @@ class Wflow(AbstractModel[WflowForcing]):
         ]
 
 
-def _wflow_to_iso(t):
-    dt = datetime.datetime.fromisoformat(t)
+def _wflow_to_iso(time):
+    dt = datetime.datetime.fromisoformat(time)
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def _iso_to_wflow(t):
-    dt = get_time(t)
+def _iso_to_wflow(time):
+    dt = get_time(time)
     return dt.strftime("%Y-%m-%d %H:%M:%S")
