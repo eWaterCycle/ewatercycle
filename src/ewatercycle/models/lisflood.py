@@ -97,7 +97,10 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             Path to config file and path to config directory
         """
         # TODO forcing can be a part of parameter_set
-        cfg_dir_as_path = to_absolute_path(cfg_dir) if cfg_dir else None
+        cfg_dir_as_path = None
+        if cfg_dir:
+            cfg_dir_as_path = to_absolute_path(cfg_dir)
+
         cfg_dir_as_path = _generate_workdir(cfg_dir_as_path)
         config_file = self._create_lisflood_config(
             cfg_dir_as_path,
@@ -344,7 +347,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
 
 
 def _generate_workdir(cfg_dir: Path = None) -> Path:
-    """Creates or makes sure workdir exists.
+    """Create or make sure workdir exists.
 
     Args:
         cfg_dir: If cfg dir is None then create sub-directory in CFG['output_dir']
