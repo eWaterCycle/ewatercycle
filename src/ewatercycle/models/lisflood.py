@@ -122,6 +122,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                 image=str(self.singularity_image),
                 input_dirs=input_dirs,
                 work_dir=str(cfg_dir_as_path),
+                timeout=300,
             )
         elif CFG["container_engine"].lower() == "docker":
             self._set_docker_image()
@@ -130,6 +131,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                 image_port=55555,
                 input_dirs=input_dirs,
                 work_dir=str(cfg_dir_as_path),
+                timeout=300,
             )
         else:
             raise ValueError(

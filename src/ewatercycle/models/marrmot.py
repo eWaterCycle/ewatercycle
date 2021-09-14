@@ -139,12 +139,14 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             self.bmi = BmiClientSingularity(
                 image=str(self.singularity_image),
                 work_dir=str(cfg_dir_as_path),
+                timeout=300,
             )
         elif CFG["container_engine"].lower() == "docker":
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
                 work_dir=str(cfg_dir_as_path),
+                timeout=300,
             )
         else:
             raise ValueError(
@@ -403,12 +405,14 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             self.bmi = BmiClientSingularity(
                 image=str(self.singularity_image),
                 work_dir=str(cfg_dir_as_path),
+                timeout=300,
             )
         elif CFG["container_engine"].lower() == "docker":
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
                 work_dir=str(cfg_dir_as_path),
+                timeout=300,
             )
         else:
             raise ValueError(

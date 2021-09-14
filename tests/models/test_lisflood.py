@@ -108,6 +108,7 @@ class TestLFlatlonUseCase:
                 f"{tmp_path}/forcing",
             ],
             work_dir=f"{tmp_path}/lisflood_20210102_030405",
+            timeout=300,
         )
 
         # Check content config file
@@ -207,6 +208,7 @@ class TestLFlatlonUseCase:
                     f"{tmp_path}/custommask",
                 ],
                 work_dir=f"{tmp_path}/lisflood_20210102_030405",
+                timeout=300,
             )
 
             # Check content config file

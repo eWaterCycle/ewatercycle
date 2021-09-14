@@ -126,7 +126,7 @@ class Wflow(AbstractModel[WflowForcing]):
             # https://github.com/eWaterCycle/grpc4bmi/issues/100
             raise ValueError(
                 "Couldn't spawn container within allocated time limit "
-                "(15 seconds). You may try pulling the docker image with"
+                "(300 seconds). You may try pulling the docker image with"
                 f" `docker pull {self.docker_image}` or call `singularity "
                 f"build {self._singularity_image(CFG['singularity_dir'])} "
                 f"docker://{self.docker_image}` if you're using singularity,"
@@ -165,13 +165,13 @@ class Wflow(AbstractModel[WflowForcing]):
                 image=self.docker_image,
                 image_port=55555,
                 work_dir=str(self.work_dir),
-                timeout=10,
+                timeout=300,
             )
         elif CFG["container_engine"] == "singularity":
             self.bmi = BmiClientSingularity(
                 image=self._singularity_image(CFG["singularity_dir"]),
                 work_dir=str(self.work_dir),
-                timeout=15,
+                timeout=300,
             )
         else:
             raise ValueError(f"Unknown container technology: {CFG['container_engine']}")
