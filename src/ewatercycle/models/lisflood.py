@@ -38,13 +38,12 @@ class Lisflood(AbstractModel[LisfloodForcing]):
     available_versions = ("20.10",)
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
-    def __init__(
+    def __init__(  # noqa: D107
         self,
         version: str,
         parameter_set: ParameterSet,
         forcing: LisfloodForcing,
     ):
-        """Construct Lisflood model with initial values."""
         super().__init__(version, parameter_set, forcing)
         self._check_forcing(forcing)
         self.cfg = XmlConfig(parameter_set.config)

@@ -37,13 +37,12 @@ class Wflow(AbstractModel[WflowForcing]):
     available_versions = ("2020.1.1",)
     """Show supported WFlow versions in eWaterCycle"""
 
-    def __init__(
+    def __init__(  # noqa: D107
         self,
         version: str,
         parameter_set: ParameterSet,
         forcing: Optional[WflowForcing] = None,
     ):
-        """Instantiate Wflow model object."""
         super().__init__(version, parameter_set, forcing)
         self._set_docker_image()
         self._setup_default_config()

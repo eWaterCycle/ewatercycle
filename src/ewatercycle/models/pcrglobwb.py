@@ -36,13 +36,12 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
     available_versions = ("setters",)
 
-    def __init__(
+    def __init__(  # noqa: D107
         self,
         version: str,
         parameter_set: ParameterSet,
         forcing: Optional[PCRGlobWBForcing] = None,
     ):
-        """Instantiate PCRGlob model object."""
         super().__init__(version, parameter_set, forcing)
         self._set_docker_image()
         self._setup_default_config()
