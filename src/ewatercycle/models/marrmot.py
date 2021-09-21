@@ -1,3 +1,5 @@
+"""eWaterCycle wrapper around Marrmot BMI."""
+
 import datetime
 import logging
 from dataclasses import asdict, dataclass
@@ -21,7 +23,9 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Solver:
-    """Solver, for current implementations see `here
+    """Container for properties of the solver.
+
+    For current implementations see `here
     <https://github.com/wknoben/MARRMoT/tree/master/MARRMoT/Functions/Time%20stepping>`_.
     """
 
@@ -31,7 +35,8 @@ class Solver:
 
 
 def _generate_cfg_dir(cfg_dir: Path = None) -> Path:
-    """
+    """Make sure there is a working directory.
+
     Args:
         cfg_dir: If cfg dir is None or does not exist then create sub-directory
             in CFG['output_dir']
@@ -70,8 +75,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
     available_versions = ("2020.11",)
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
-    def __init__(self, version: str, forcing: MarrmotForcing):
-        """Construct MarrmotM01 with initial values."""
+    def __init__(self, version: str, forcing: MarrmotForcing):  # noqa: D107
         super().__init__(version, forcing=forcing)
         self._parameters = [1000.0]
         self.store_ini = [900.0]
@@ -128,7 +132,10 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             self.store_ini = [initial_soil_moisture_storage]
         if solver:
             self.solver = solver
-        cfg_dir_as_path = to_absolute_path(cfg_dir) if cfg_dir else None
+
+        cfg_dir_as_path = None
+        if cfg_dir:
+            cfg_dir_as_path = to_absolute_path(cfg_dir)
 
         cfg_dir_as_path = _generate_cfg_dir(cfg_dir_as_path)
         config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)
@@ -139,12 +146,14 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             self.bmi = BmiClientSingularity(
                 image=str(self.singularity_image),
                 work_dir=str(cfg_dir_as_path),
+                timeout=300,
             )
         elif CFG["container_engine"].lower() == "docker":
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
                 work_dir=str(cfg_dir_as_path),
+                timeout=300,
             )
         else:
             raise ValueError(
@@ -153,7 +162,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
         return str(config_file), str(cfg_dir_as_path)
 
     def _check_forcing(self, forcing):
-        """ "Check forcing argument and get path, start and end time of forcing data."""
+        """Check forcing argument and get path, start and end time of forcing data."""
         if isinstance(forcing, MarrmotForcing):
             forcing_dir = to_absolute_path(forcing.directory)
             self.forcing_file = str(forcing_dir / forcing.forcing_file)
@@ -270,14 +279,13 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the parameters for this model."""
-        p = [
+        return [
             ("maximum_soil_moisture_storage", self._parameters[0]),
             ("initial_soil_moisture_storage", self.store_ini[0]),
             ("solver", self.solver),
             ("start time", self.forcing_start_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
             ("end time", self.forcing_end_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
         ]
-        return p
 
 
 M14_PARAMS = (
@@ -315,8 +323,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
     available_versions = ("2020.11",)
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
-    def __init__(self, version: str, forcing: MarrmotForcing):
-        """Construct MarrmotM14 with initial values."""
+    def __init__(self, version: str, forcing: MarrmotForcing):  # noqa: D107
         super().__init__(version, forcing=forcing)
         self._parameters = [1000.0, 0.5, 0.5, 100.0, 0.5, 4.25, 2.5]
         self.store_ini = [900.0, 900.0]
@@ -392,7 +399,10 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             self.store_ini[1] = initial_saturated_zone_storage
         if solver:
             self.solver = solver
-        cfg_dir_as_path = to_absolute_path(cfg_dir) if cfg_dir else None
+
+        cfg_dir_as_path = None
+        if cfg_dir:
+            cfg_dir_as_path = to_absolute_path(cfg_dir)
 
         cfg_dir_as_path = _generate_cfg_dir(cfg_dir_as_path)
         config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)
@@ -403,12 +413,14 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             self.bmi = BmiClientSingularity(
                 image=str(self.singularity_image),
                 work_dir=str(cfg_dir_as_path),
+                timeout=300,
             )
         elif CFG["container_engine"].lower() == "docker":
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
                 work_dir=str(cfg_dir_as_path),
+                timeout=300,
             )
         else:
             raise ValueError(

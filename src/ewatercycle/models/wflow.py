@@ -1,3 +1,5 @@
+"""eWaterCycle wrapper around WFlow BMI."""
+
 import datetime
 import logging
 import shutil
@@ -35,13 +37,12 @@ class Wflow(AbstractModel[WflowForcing]):
     available_versions = ("2020.1.1",)
     """Show supported WFlow versions in eWaterCycle"""
 
-    def __init__(
+    def __init__(  # noqa: D107
         self,
         version: str,
         parameter_set: ParameterSet,
         forcing: Optional[WflowForcing] = None,
     ):
-
         super().__init__(version, parameter_set, forcing)
         self._set_docker_image()
         self._setup_default_config()
@@ -121,17 +122,17 @@ class Wflow(AbstractModel[WflowForcing]):
 
         try:
             self._start_container()
-        except FutureTimeoutError:
+        except FutureTimeoutError as exc:
             # https://github.com/eWaterCycle/grpc4bmi/issues/95
             # https://github.com/eWaterCycle/grpc4bmi/issues/100
             raise ValueError(
                 "Couldn't spawn container within allocated time limit "
-                "(15 seconds). You may try pulling the docker image with"
+                "(300 seconds). You may try pulling the docker image with"
                 f" `docker pull {self.docker_image}` or call `singularity "
                 f"build {self._singularity_image(CFG['singularity_dir'])} "
                 f"docker://{self.docker_image}` if you're using singularity,"
                 " and then try again."
-            )
+            ) from exc
 
         return (
             str(updated_cfg_file),
@@ -165,13 +166,13 @@ class Wflow(AbstractModel[WflowForcing]):
                 image=self.docker_image,
                 image_port=55555,
                 work_dir=str(self.work_dir),
-                timeout=10,
+                timeout=300,
             )
         elif CFG["container_engine"] == "singularity":
             self.bmi = BmiClientSingularity(
                 image=self._singularity_image(CFG["singularity_dir"]),
                 work_dir=str(self.work_dir),
-                timeout=15,
+                timeout=300,
             )
         else:
             raise ValueError(f"Unknown container technology: {CFG['container_engine']}")
@@ -179,7 +180,7 @@ class Wflow(AbstractModel[WflowForcing]):
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]
     ) -> Iterable[int]:
-        """Converts lat/lon values to index.
+        """Convert lat/lon values to index.
 
         Args:
             lat: Latitudinal value
@@ -240,11 +241,11 @@ class Wflow(AbstractModel[WflowForcing]):
         ]
 
 
-def _wflow_to_iso(t):
-    dt = datetime.datetime.fromisoformat(t)
+def _wflow_to_iso(time):
+    dt = datetime.datetime.fromisoformat(time)
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def _iso_to_wflow(t):
-    dt = get_time(t)
+def _iso_to_wflow(time):
+    dt = get_time(time)
     return dt.strftime("%Y-%m-%d %H:%M:%S")

@@ -1,4 +1,5 @@
-"""Module with Lisflood model."""
+"""eWaterCycle wrapper around Lisflood BMI."""
+
 import datetime
 import logging
 import xml.etree.ElementTree as ET
@@ -37,13 +38,12 @@ class Lisflood(AbstractModel[LisfloodForcing]):
     available_versions = ("20.10",)
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
-    def __init__(
+    def __init__(  # noqa: D107
         self,
         version: str,
         parameter_set: ParameterSet,
         forcing: LisfloodForcing,
     ):
-        """Construct Lisflood model with initial values."""
         super().__init__(version, parameter_set, forcing)
         self._check_forcing(forcing)
         self.cfg = XmlConfig(parameter_set.config)
@@ -96,7 +96,10 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             Path to config file and path to config directory
         """
         # TODO forcing can be a part of parameter_set
-        cfg_dir_as_path = to_absolute_path(cfg_dir) if cfg_dir else None
+        cfg_dir_as_path = None
+        if cfg_dir:
+            cfg_dir_as_path = to_absolute_path(cfg_dir)
+
         cfg_dir_as_path = _generate_workdir(cfg_dir_as_path)
         config_file = self._create_lisflood_config(
             cfg_dir_as_path,
@@ -122,6 +125,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                 image=str(self.singularity_image),
                 input_dirs=input_dirs,
                 work_dir=str(cfg_dir_as_path),
+                timeout=300,
             )
         elif CFG["container_engine"].lower() == "docker":
             self._set_docker_image()
@@ -130,6 +134,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                 image_port=55555,
                 input_dirs=input_dirs,
                 work_dir=str(cfg_dir_as_path),
+                timeout=300,
             )
         else:
             raise ValueError(
@@ -138,7 +143,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         return str(config_file), str(cfg_dir_as_path)
 
     def _check_forcing(self, forcing):
-        """Checks forcing argument and get path, start/end time of forcing data."""
+        """Check forcing argument and get path, start/end time of forcing data."""
         # TODO check if mask has same grid as forcing files,
         # if not warn users to run reindex_forcings
         if isinstance(forcing, LisfloodForcing):
@@ -341,7 +346,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
 
 
 def _generate_workdir(cfg_dir: Path = None) -> Path:
-    """Creates or makes sure workdir exists.
+    """Create or make sure workdir exists.
 
     Args:
         cfg_dir: If cfg dir is None then create sub-directory in CFG['output_dir']

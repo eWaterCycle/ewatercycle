@@ -1,3 +1,5 @@
+"""eWaterCycle wrapper around PCRGlobWB BMI."""
+
 import datetime
 import logging
 from os import PathLike
@@ -24,7 +26,6 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
     """eWaterCycle implementation of PCRGlobWB hydrological model.
 
     Args:
-
         version: pick a version from :py:attr:`~available_versions`
         parameter_set: instance of
             :py:class:`~ewatercycle.parameter_sets.default.ParameterSet`.
@@ -35,7 +36,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
     available_versions = ("setters",)
 
-    def __init__(
+    def __init__(  # noqa: D107
         self,
         version: str,
         parameter_set: ParameterSet,
@@ -94,7 +95,8 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
                 "temperatureNC",
                 str(
                     to_absolute_path(
-                        self.forcing.temperatureNC, parent=self.forcing.directory
+                        self.forcing.temperatureNC,
+                        parent=self.forcing.directory,
                     )
                 ),
             )
@@ -103,7 +105,8 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
                 "precipitationNC",
                 str(
                     to_absolute_path(
-                        self.forcing.precipitationNC, parent=self.forcing.directory
+                        self.forcing.precipitationNC,
+                        parent=self.forcing.directory,
                     )
                 ),
             )
@@ -129,17 +132,17 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
         try:
             self._start_container()
-        except FutureTimeoutError:
+        except FutureTimeoutError as exc:
             # https://github.com/eWaterCycle/grpc4bmi/issues/95
             # https://github.com/eWaterCycle/grpc4bmi/issues/100
             raise ValueError(
                 "Couldn't spawn container within allocated time limit "
-                "(15 seconds). You may try pulling the docker image with"
+                "(300 seconds). You may try pulling the docker image with"
                 f" `docker pull {self.docker_image}` or call `singularity "
                 f"build {self._singularity_image(CFG['singularity_dir'])} "
                 f"docker://{self.docker_image}` if you're using singularity,"
                 " and then try again."
-            )
+            ) from exc
 
         return str(cfg_file), str(work_dir)
 
@@ -199,14 +202,14 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
                 image_port=55555,
                 work_dir=str(self.work_dir),
                 input_dirs=additional_input_dirs,
-                timeout=15,
+                timeout=300,
             )
         elif CFG["container_engine"] == "singularity":
             self.bmi = BmiClientSingularity(
                 image=self._singularity_image(CFG["singularity_dir"]),
                 work_dir=str(self.work_dir),
                 input_dirs=additional_input_dirs,
-                timeout=15,
+                timeout=300,
             )
         else:
             raise ValueError(
@@ -216,7 +219,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]
     ) -> Iterable[int]:
-        """Converts lat/lon values to index.
+        """Convert lat/lon values to index.
 
         Args:
             lat: Latitudinal value
