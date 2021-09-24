@@ -37,13 +37,8 @@ file <https://github.com/eWaterCycle/ewatercycle/blob/main/environment.yml>`__.
 .. code:: shell
 
     wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/environment.yml
-
-.. code:: shell
-
-    conda env create --file environment.yml
-
-.. code:: shell
-
+    conda install mamba -n base -c conda-forge -y
+    mamba env create --file environment.yml
     conda activate ewatercycle
 
 Do not forget that any terminal or Jupyter kernel should activate the conda environment before the eWaterCycle Python package can be used.
