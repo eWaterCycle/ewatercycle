@@ -4,11 +4,12 @@ import datetime
 import logging
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any, Iterable, Tuple, cast
+from typing import Any, Iterable, Optional, Tuple, cast
 
 import numpy as np
 import xarray as xr
 from cftime import num2date
+from dateutil.parser import parse
 from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
@@ -42,11 +43,11 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         self,
         version: str,
         parameter_set: ParameterSet,
-        forcing: LisfloodForcing,
+        forcing: Optional[LisfloodForcing] = None,
     ):
         super().__init__(version, parameter_set, forcing)
-        self._check_forcing(forcing)
         self.cfg = XmlConfig(parameter_set.config)
+        self._check_forcing(forcing)
 
     def _set_docker_image(self):
         images = {"20.10": "ewatercycle/lisflood-grpc4bmi:20.10"}
@@ -83,10 +84,12 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                 max 1, ~0.90 drip irrigation, ~0.75 sprinkling
             start_time: Start time of model in UTC and ISO format string
                 e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-                If not given then forcing start time is used.
+                If not given then forcing start time is used
+                or if forcing not given then uses start time from parameter set config file.
             end_time: End time of model in  UTC and ISO format string
                 e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-                If not given then forcing end time is used.
+                If not given then forcing end time is used
+                or if forcing not given then uses computed end time from parameter set config file.
             MaskMap: Mask map to use instead of one supplied in parameter set.
                 Path to a NetCDF or pcraster file with
                 same dimensions as parameter set map files and a boolean variable.
@@ -95,7 +98,6 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         Returns:
             Path to config file and path to config directory
         """
-        # TODO forcing can be a part of parameter_set
         cfg_dir_as_path = None
         if cfg_dir:
             cfg_dir_as_path = to_absolute_path(cfg_dir)
@@ -110,7 +112,9 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         )
 
         assert self.parameter_set is not None
-        input_dirs = [str(self.parameter_set.directory), str(self.forcing_dir)]
+        input_dirs = [str(self.parameter_set.directory)]
+        if self.forcing is not None:
+            input_dirs.append(str(self.forcing_dir))
         if MaskMap is not None:
             mask_map = to_absolute_path(MaskMap)
             try:
@@ -142,10 +146,35 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             )
         return str(config_file), str(cfg_dir_as_path)
 
+    def _start_from_config(self):
+        # mimic date parsing of lisflood model,
+        # see https://github.com/ec-jrc/lisflood-code/blob/331304ad6b23377149caf99bcc7081180348fe57/src/lisflood/global_modules/settings.py#L558-L583
+        return get_time(
+            parse(
+                self._get_textvar_value("CalendarDayStart"), dayfirst=True
+            ).isoformat()
+            + "Z"
+        )
+
+    def _end_from_config(self):
+        _start = self._start_from_config()
+        step_size = int(self._get_textvar_value("DtSec"))
+        step_start = int(self._get_textvar_value("StepStart"))
+        step_end = int(self._get_textvar_value("StepEnd"))
+        end_offset = datetime.timedelta(seconds=(step_end - step_start) * step_size)
+        end_date = _start + end_offset
+        return get_time(end_date.isoformat() + "Z")
+
     def _check_forcing(self, forcing):
         """Check forcing argument and get path, start/end time of forcing data."""
         # TODO check if mask has same grid as forcing files,
         # if not warn users to run reindex_forcings
+        if forcing is None:
+            # Expect that forcings are inside parameter set
+            self.forcing = None
+            # TODO StepStart, StepEnd can also be date string instead of integer
+            self._start = self._start_from_config()
+            self._end = self._end_from_config()
         if isinstance(forcing, LisfloodForcing):
             self.forcing = forcing
             self.forcing_dir = to_absolute_path(forcing.directory)
@@ -168,29 +197,31 @@ class Lisflood(AbstractModel[LisfloodForcing]):
     ) -> Path:
         """Create lisflood config file."""
         assert self.parameter_set is not None
-        assert self.forcing is not None
         # overwrite dates if given
         if start_time_iso is not None:
             start_time = get_time(start_time_iso)
             if self._start <= start_time <= self._end:
                 self._start = start_time
             else:
-                raise ValueError("start_time outside forcing time range")
+                raise ValueError(
+                    "start_time outside forcing or parameter set time range"
+                )
         if end_time_iso is not None:
             end_time = get_time(end_time_iso)
             if self._start <= end_time <= self._end:
                 self._end = end_time
             else:
-                raise ValueError("end_time outside forcing time range")
+                raise ValueError("end_time outside forcing or parameter set time range")
 
         settings = {
             "CalendarDayStart": self._start.strftime("%d/%m/%Y 00:00"),
             "StepStart": "1",
             "StepEnd": str((self._end - self._start).days),
             "PathRoot": str(self.parameter_set.directory),
-            "PathMeteo": str(self.forcing_dir),
             "PathOut": str(cfg_dir),
         }
+        if self.forcing is not None:
+            settings["PathMeteo"] = str(self.forcing_dir)
 
         if IrrigationEfficiency is not None:
             settings["IrrigationEfficiency"] = IrrigationEfficiency
@@ -206,33 +237,34 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                 if key in textvar_name:
                     textvar.set("value", value)
 
-            # input for lisflood
-            if "PrefixPrecipitation" in textvar_name:
-                textvar.set("value", Path(self.forcing.PrefixPrecipitation).stem)
-            if "PrefixTavg" in textvar_name:
-                textvar.set("value", Path(self.forcing.PrefixTavg).stem)
+            if self.forcing is not None:
+                # input for lisflood
+                if "PrefixPrecipitation" in textvar_name:
+                    textvar.set("value", Path(self.forcing.PrefixPrecipitation).stem)
+                if "PrefixTavg" in textvar_name:
+                    textvar.set("value", Path(self.forcing.PrefixTavg).stem)
 
-            # maps_prefixes dictionary contains lisvap filenames in lisflood config
-            maps_prefixes = {
-                "E0Maps": {
-                    "name": "PrefixE0",
-                    "value": Path(self.forcing.PrefixE0).stem,
-                },
-                "ES0Maps": {
-                    "name": "PrefixES0",
-                    "value": Path(self.forcing.PrefixES0).stem,
-                },
-                "ET0Maps": {
-                    "name": "PrefixET0",
-                    "value": Path(self.forcing.PrefixET0).stem,
-                },
-            }
-            # output of lisvap
-            for map_var, prefix in maps_prefixes.items():
-                if prefix["name"] in textvar_name:
-                    textvar.set("value", prefix["value"])
-                if map_var in textvar_name:
-                    textvar.set("value", f"$(PathMeteo)/$({prefix['name']})")
+                # maps_prefixes dictionary contains lisvap filenames in lisflood config
+                maps_prefixes = {
+                    "E0Maps": {
+                        "name": "PrefixE0",
+                        "value": Path(self.forcing.PrefixE0).stem,
+                    },
+                    "ES0Maps": {
+                        "name": "PrefixES0",
+                        "value": Path(self.forcing.PrefixES0).stem,
+                    },
+                    "ET0Maps": {
+                        "name": "PrefixET0",
+                        "value": Path(self.forcing.PrefixET0).stem,
+                    },
+                }
+                # output of lisvap
+                for map_var, prefix in maps_prefixes.items():
+                    if prefix["name"] in textvar_name:
+                        textvar.set("value", prefix["value"])
+                    if map_var in textvar_name:
+                        textvar.set("value", f"$(PathMeteo)/$({prefix['name']})")
 
         # Write to new setting file
         lisflood_file = cfg_dir / "lisflood_setting.xml"
@@ -294,7 +326,6 @@ class Lisflood(AbstractModel[LisfloodForcing]):
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the parameters for this model."""
         assert self.parameter_set is not None
-        assert self.forcing is not None
         # TODO fix issue #60
         return [
             (

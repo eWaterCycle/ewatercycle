@@ -247,6 +247,32 @@ class TestLFlatlonUseCase:
             assert model.parameters == expected_parameters
 
 
+class TestOnlyParameterSet:
+    @pytest.fixture
+    def parameterset(self, mocked_config):
+        example_parameter_set = example_parameter_sets()["lisflood_fraser"]
+        example_parameter_set.download()
+        example_parameter_set.to_config()
+        return example_parameter_set
+
+    @pytest.fixture
+    def model(self, parameterset):
+        m = Lisflood(version="20.10", parameter_set=parameterset)
+        yield m
+        if m.bmi:
+            # Clean up container
+            del m.bmi
+
+    def test_default_parameters(self, model: Lisflood):
+        expected_parameters = [
+            ("IrrigationEfficiency", "0.75"),
+            ("MaskMap", "$(PathMaps)/masksmall.map"),
+            ("start_time", "1986-01-02T00:00:00Z"),
+            ("end_time", "2018-01-02T00:00:00Z"),
+        ]
+        assert model.parameters == expected_parameters
+
+
 class MockedBmi(Bmi):
     """Mimic a real use case with realistic shape and abitrary high precision."""
 
