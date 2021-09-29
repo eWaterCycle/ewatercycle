@@ -35,7 +35,8 @@ install those dependencies:
 
 ```shell
 wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/environment.yml
-conda env create --file environment.yml
+conda install mamba -n base -c conda-forge -y
+mamba env create --file environment.yml
 conda activate ewatercycle
 ```
 
