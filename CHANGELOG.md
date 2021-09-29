@@ -22,7 +22,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 - Name particle in CITATION.cff ([#204](https://github.com/eWaterCycle/ewatercycle/issues/204))
 - Build Sphinx locally with config file ([#169](https://github.com/eWaterCycle/ewatercycle/issues/169))
-
+- Type errors in notebooks ([#262](https://github.com/eWaterCycle/ewatercycle/issues/262))
 
 ## [1.1.1] (2021-08-10)
 
