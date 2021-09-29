@@ -50,7 +50,7 @@ def load_foreign(
     directory: str = ".",
     shape: str = None,
     forcing_info: Optional[Dict] = None,
-) -> DefaultForcing:
+):
     """Load existing forcing data generated from an external source.
 
     Args:
@@ -128,7 +128,7 @@ def generate(
     end_time: str,
     shape: str,
     model_specific_options: Optional[Dict] = None,
-) -> DefaultForcing:
+):
     """Generate forcing data with ESMValTool.
 
     Args:
