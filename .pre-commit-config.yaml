@@ -19,9 +19,9 @@ repos:
     hooks:
       - id: setup-cfg-fmt
   - repo: https://github.com/psf/black
-    rev: 21.7b0
+    rev: 21.9b0
     hooks:
-      - id: black
+      - id: black-jupyter
   - repo: https://github.com/PyCQA/isort
     rev: "5.9.3"
     hooks:
@@ -77,9 +77,6 @@ repos:
   - repo: https://github.com/nbQA-dev/nbQA
     rev: 1.1.0
     hooks:
-      - id: nbqa-black
-        # Match version of black used for .py and .ipynb
-        additional_dependencies: [black==21.7b0]
       - id: nbqa-isort
         additional_dependencies: [isort==5.9.3]
       - id: nbqa-mypy
