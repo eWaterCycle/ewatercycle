@@ -21,6 +21,7 @@ jobs:
         with:
           activate-environment: ewatercycle
           environment-file: environment.yml
+          mamba-version: "*"
           python-version: ${{ matrix.python-version }}
           miniconda-version: "latest"
           channels: conda-forge

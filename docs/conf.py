@@ -205,7 +205,6 @@ autodoc_mock_imports = [
     "pyoos",
     "grpc4bmi",
     "grpc",
-    "ruamel.yaml",
     "scipy",
     "xarray",
 ]

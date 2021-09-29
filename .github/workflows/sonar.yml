@@ -18,6 +18,7 @@ jobs:
         with:
           activate-environment: ewatercycle
           environment-file: environment.yml
+          mamba-version: "*"
           python-version: 3.8
           miniconda-version: "latest"
           channels: conda-forge
