@@ -83,7 +83,7 @@ repos:
       - id: nbqa-isort
         additional_dependencies: [isort==5.9.3]
       - id: nbqa-mypy
-        additional_dependencies: [mypy==0.910]
+        additional_dependencies: [mypy==0.910, types-python-dateutil]
       # TODO renable when errors are fixed/ignored
       - id: nbqa-flake8
         additional_dependencies: *fd
