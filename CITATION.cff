@@ -47,18 +47,16 @@ authors:
     orcid: "https://orcid.org/0000-0003-0157-4818"
   -
     affiliation: "Netherlands eScience Center"
-    family-names: Werkhoven
+    family-names: van Werkhoven
     given-names: Ben
-    name-particle: van
     orcid: "https://orcid.org/0000-0002-7508-3272"
     email: "b.vanwerkhoven@esciencecenter.nl"
   -
     affiliation: "Delft University of Technology"
-    family-names: Giesen
+    family-names: van de Giesen
     given-names: Nick
-    name-particle: van de
     orcid: "https://orcid.org/0000-0002-7200-3353"
-cff-version: "1.1.0"
+cff-version: "1.2.0"
 keywords:
   - hydrology
   - bmi
@@ -66,5 +64,11 @@ license: "Apache-2.0"
 message: "If you use this software, please cite it using these metadata."
 repository-code: "https://github.com/eWaterCycle/ewatercycle"
 title: eWaterCycle Python package
-doi: 10.5281/zenodo.5119390
+identifiers:
+  - description: Latest version of software
+    type: doi
+    value: "10.5281/zenodo.5119389"
+  - description: Version 1.1.0
+    type: doi
+    value: "10.5281/zenodo.5175508"
 ...
