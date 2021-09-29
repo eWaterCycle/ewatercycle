@@ -306,6 +306,11 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             ("end_time", self._end.strftime("%Y-%m-%dT%H:%M:%SZ")),
         ]
 
+    def finalize(self) -> None:
+        """Perform tear-down tasks for the model."""
+        # Finalize function of bmi class of lisflood is kaput, so not calling it
+        del self.bmi
+
 
 # TODO it needs fix regarding forcing
 # def reindex_forcings(
