@@ -11,18 +11,21 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 ### Added
 
 - Type information according to [PEP-0561](https://www.python.org/dev/peps/pep-0561/)
+- Pre-commit hooks and black formatting ([#111](https://github.com/eWaterCycle/ewatercycle/issues/111))
 
 ### Changed
 
 - Timeout for model setup set to 5 minutes ([#244](https://github.com/eWaterCycle/ewatercycle/issues/244))
 - Use mamba for installation instructions ([#136](https://github.com/eWaterCycle/ewatercycle/issues/136))
 - Use [version 1.2.0](https://github.com/citation-file-format/citation-file-format/releases/tag/1.2.0) of CITATION.cff format
+- Moved package to src/ ([#228](https://github.com/eWaterCycle/ewatercycle/issues/228))
 
 ### Fixed
 
 - Name particle in CITATION.cff ([#204](https://github.com/eWaterCycle/ewatercycle/issues/204))
 - Build Sphinx locally with config file ([#169](https://github.com/eWaterCycle/ewatercycle/issues/169))
 - Type errors in notebooks ([#262](https://github.com/eWaterCycle/ewatercycle/issues/262))
+- Lisflood.finalize() ([#257](https://github.com/eWaterCycle/ewatercycle/issues/257))
 
 ## [1.1.1] (2021-08-10)
 
