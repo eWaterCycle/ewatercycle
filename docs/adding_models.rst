@@ -28,7 +28,7 @@ To add a new version of a model involves the following steps:
 
 * Create Docker container image named ``ewatercycle/<model>-grpc4bmi:<version>`` with `grp4bmi server running as entrypoint <https://grpc4bmi.readthedocs.io/en/latest/container/building.html>`_
 * Host Docker container image on `Docker Hub <https://hub.docker.com/u/ewatercycle>`_
-* Create Singuliary image from Docker with ``singularity build ./<model>-grpc4bmi_<version>.sif docker://ewatercycle/<model>-grpc4bmi:<version>``
+* Create Singuliary image from Docker with ``singularity build ./ewatercycle-<model>-grpc4bmi_<version>.sif docker://ewatercycle/<model>-grpc4bmi:<version>``
 * Add Singularity image to dCache shared folder ``ewcdcache:/singulairy-images/<model>-grpc4bmi_<version>.sif``
 
 To setup local test infra
