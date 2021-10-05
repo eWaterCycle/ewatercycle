@@ -43,6 +43,7 @@ To setup for everybody
 * In ``src/ewatercycle/models/<model>.py``
   * add new version to ``available_versions`` class property.
   * to ``__init__()`` method add support for new version
+* Create release with changes incorpeated or a local install with the branch of the Pull Request
 * In any eWaterCycle config file (``/etc/ewatercycle.yaml`` and ``~/.config/ewatercycle/ewatercycle.yaml``) add new version to supported parameter sets.
 * Optionally: Add new version to existing example parameter set or add new parameter set in ``src/ewatercycle/parameter_sets/_<model>.py:example_parameter_sets()``
 
