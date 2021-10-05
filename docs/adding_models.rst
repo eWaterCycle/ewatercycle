@@ -37,5 +37,6 @@ To add a new version of a model involves the following steps:
   * to ``__init__()`` method add support for new version
 * In any eWaterCycle config file (``/etc/ewatercycle.yaml`` and ``~/.config/ewatercycle/ewatercycle.yaml``) add new version to supported parameter sets.
 * Optionally: Add new version to existing example parameter set or add new parameter set in ``src/ewatercycle/parameter_sets/_<model>.py:example_parameter_sets()``
+* Optionally: Add example to `explorer catalog <https://github.com/eWaterCycle/TerriaMap/blob/ewatercycle-v8/wwwroot/init/ewatercycle.json>`_. The forcing, parameter set and model image should be available on Jupyter server connected to explorer.
 
 .. _scripts: https://github.com/eWaterCycle/infra/tree/main/roles/prep_shared_data
