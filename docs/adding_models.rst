@@ -28,7 +28,7 @@ To add a new version of a model involves the following steps:
 
 * Create Docker container image named ``ewatercycle/<model>-grpc4bmi:<version>`` with `grp4bmi server running as entrypoint <https://grpc4bmi.readthedocs.io/en/latest/container/building.html>`_
 * Host Docker container image on `Docker Hub <https://hub.docker.com/u/ewatercycle>`_
-* Create Singuliary image from Docker with ``singularity build ./<model>-grpc4bmi_<version>.sif docker://ewatercycle/<model>-grpc4bmi:<version>``
+* Create Singularity image from Docker with ``singularity build ./<model>-grpc4bmi_<version>.sif docker://ewatercycle/<model>-grpc4bmi:<version>``
 * Add Singularity image to dCache shared folder ``ewcdcache:/singulairy-images/<model>-grpc4bmi_<version>.sif``
 * Add container image to :doc:`system_setup`
 * Add container image to infrastructure data preparation scripts_
@@ -36,6 +36,7 @@ To add a new version of a model involves the following steps:
   * add new version to ``available_versions`` class property.
   * to ``__init__()`` method add support for new version
 * In any eWaterCycle config file (``/etc/ewatercycle.yaml`` and ``~/.config/ewatercycle/ewatercycle.yaml``) add new version to supported parameter sets.
+* Create and install version/branch of eWaterCycle Python package with new model version
 * Optionally: Add new version to existing example parameter set or add new parameter set in ``src/ewatercycle/parameter_sets/_<model>.py:example_parameter_sets()``
 * Optionally: Add example to `explorer catalog <https://github.com/eWaterCycle/TerriaMap/blob/ewatercycle-v8/wwwroot/init/ewatercycle.json>`_. The forcing, parameter set and model image should be available on Jupyter server connected to explorer.
 
