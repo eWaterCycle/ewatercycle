@@ -13,6 +13,7 @@ Integrating a new model into the eWaterCycle system involves the following steps
 * If model needs custom parameter set class add it in ``src/ewatercycle/parameter_sets/_<model name>.py``
 * Add example parameter set in ``src/ewatercycle/parameter_sets/__init__.py``
 * Add container image to setup guide
+* Add container image to infrastructure data preparation `scripts <https://github.com/eWaterCycle/infra/tree/main/roles/prep_shared_data>`_
 
 We will expand this documentation in due time.
 
@@ -32,5 +33,7 @@ To add a new version of a model involves the following steps:
 * Host Docker container image on `Docker Hub <https://hub.docker.com/u/ewatercycle>`_
 * Create Singuliary image from Docker with ``singularity build ./<model>-grpc4bmi_<version>.sif docker://ewatercycle/<model>-grpc4bmi:<version>``
 * Add Singularity image to dCache shared folder ``ewcdcache:/singulairy-images/<model>-grpc4bmi_<version>.sif``
+* Add container image to `setup guide <system_setup>`_
+* Add container image to infrastructure data preparation `scripts <https://github.com/eWaterCycle/infra/tree/main/roles/prep_shared_data>`_
 * In any eWaterCycle config file (``/etc/ewatercycle.yaml`` and ``~/.config/ewatercycle/ewatercycle.yaml``) add new version to supported parameter sets.
 * Optionally: Add new version to existing example parameter set or add new parameter set in ``src/ewatercycle/parameter_sets/_<model>.py:example_parameter_sets()``
