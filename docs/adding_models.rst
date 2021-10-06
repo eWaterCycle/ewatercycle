@@ -38,20 +38,27 @@ Add to Python package
 
 * Add container image to :doc:`system_setup`
 * In ``src/ewatercycle/models/<model>.py``
+
   * add new version to ``available_versions`` class property.
   * to ``__init__()`` method add support for new version
+
 * Optionally: Add new version to existing example parameter set or add new parameter set in ``src/ewatercycle/parameter_sets/_<model>.py:example_parameter_sets()``
 * Add new version to supported parameter sets in local eWaterCycle config file (``/etc/ewatercycle.yaml`` and ``~/.config/ewatercycle/ewatercycle.yaml``)
 * Test it out locally
-* Create pull request and get it merged so a new version can be released
+* Create pull request and get it merged
+* Create new release of Python package. Done by package maintainers
 
 Add to platform
 ~~~~~~~~~~~~~~~
 
+For platform developers and deployers.
+
 * Add Singularity image to dCache shared folder ``ewcdcache:/singularity-images/<model>-grpc4bmi_<version>.sif``
 * Add container image to infrastructure repository
+
   * data preparation scripts_
   * `config generation <https://github.com/eWaterCycle/infra/blob/main/roles/ewatercycle/templates/ewatercycle.yaml.j2>`_
+
 * Install version/branch of eWaterCycle Python package with new model version on any running virtual machines
 * Optionally: Add example parameter set to `explorer catalog <https://github.com/eWaterCycle/TerriaMap/blob/ewatercycle-v8/wwwroot/init/ewatercycle.json>`_. The forcing, parameter set and model image should be available on Jupyter server connected to explorer.
 
