@@ -29,7 +29,7 @@ To add a new version of a model involves the following steps:
 Create container image
 ~~~~~~~~~~~~~~~~~~~~~~
 
-* Create Docker container image named ``ewatercycle/<model>-grpc4bmi:<version>`` with `grp4bmi server running as entrypoint <https://grpc4bmi.readthedocs.io/en/latest/container/building.html>`_
+* Create Docker container image named ``ewatercycle/<model>-grpc4bmi:<version>`` with `grpc4bmi server running as entrypoint <https://grpc4bmi.readthedocs.io/en/latest/container/building.html>`_
 * Host Docker container image on `Docker Hub <https://hub.docker.com/u/ewatercycle>`_
 * Create Singuliary image from Docker with ``singularity build ./ewatercycle-<model>-grpc4bmi_<version>.sif docker://ewatercycle/<model>-grpc4bmi:<version>``
 
