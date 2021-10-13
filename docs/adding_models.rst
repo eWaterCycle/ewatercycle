@@ -21,7 +21,9 @@ Adding a new version of a model
 -------------------------------
 
 A model can have different versions.
-A version corresponds to a Docker and Singularity container image file.
+A model version in the eWaterCycle Python package corresponds to the label of Docker image and the version in a Singularity container image filename.
+The version of the container image should preferably be one of release versions of the model code. Alternativly the version could be the name of a feature branch or a date.
+
 Also parameter sets can be specify which versions of a model they support.
 
 To add a new version of a model involves the following steps:
@@ -36,7 +38,7 @@ Create container image
 Add to Python package
 ~~~~~~~~~~~~~~~~~~~~~
 
-* Add container image to :doc:`system_setup`
+* Add container image to :doc:`system_setup` page by editing ``docs/system_setup.rst``
 * In ``src/ewatercycle/models/<model>.py``
 
   * add new version to ``available_versions`` class property.
