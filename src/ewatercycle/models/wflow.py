@@ -34,7 +34,7 @@ class Wflow(AbstractModel[WflowForcing]):
             If None, it is assumed that forcing is included with the parameter_set.
     """
 
-    available_versions = ("2020.1.1",)
+    available_versions = ("2020.1.1", "2020.1.2")
     """Show supported WFlow versions in eWaterCycle"""
 
     def __init__(  # noqa: D107
@@ -51,12 +51,14 @@ class Wflow(AbstractModel[WflowForcing]):
         images = {
             # "2019.1": "ewatercycle/wflow-grpc4bmi:2019.1", # no good ini file
             "2020.1.1": "ewatercycle/wflow-grpc4bmi:2020.1.1",
+            "2020.1.2": "ewatercycle/wflow-grpc4bmi:2020.1.2",
         }
         self.docker_image = images[self.version]
 
     def _singularity_image(self, singularity_dir):
         images = {
             "2020.1.1": "ewatercycle-wflow-grpc4bmi_2020.1.1.sif",
+            "2020.1.2": "ewatercycle-wflow-grpc4bmi_2020.1.2.sif",
         }
         image = singularity_dir / images[self.version]
         return str(image)
@@ -79,7 +81,7 @@ class Wflow(AbstractModel[WflowForcing]):
             cfg.set("inputmapstacks", "Temperature", forcing.Temperature)
             cfg.set("run", "starttime", _iso_to_wflow(forcing.start_time))
             cfg.set("run", "endtime", _iso_to_wflow(forcing.end_time))
-        if self.version == "2020.1.1":
+        if self.version in self.available_versions:
             if not cfg.has_section("API"):
                 logger.warning(
                     "Config file from parameter set is missing API section, "

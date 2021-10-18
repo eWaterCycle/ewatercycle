@@ -6,6 +6,11 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+### Added
+
+- 2020.1.2 version of wflow model ([#268](https://github.com/eWaterCycle/ewatercycle/pull/268))
+- Document how to add a new version of a model ([#266](https://github.com/eWaterCycle/ewatercycle/pull/266))
+
 ## [1.1.2] (2021-09-29)
 
 ### Added
