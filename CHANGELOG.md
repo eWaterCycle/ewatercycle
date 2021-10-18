@@ -6,6 +6,8 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+## [1.1.3] (2021-10-18)
+
 ### Added
 
 - 2020.1.2 version of wflow model ([#268](https://github.com/eWaterCycle/ewatercycle/pull/268))
@@ -108,7 +110,8 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.2...HEAD
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.3...HEAD
+[1.1.3]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.2...1.1.3
 [1.1.2]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.1...1.1.2
 [1.1.1]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/eWaterCycle/ewatercycle/compare/1.0.0...1.1.0
