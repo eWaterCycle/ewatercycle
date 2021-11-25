@@ -1,6 +1,6 @@
-Migrate from HPC to Cluster (Cartesius) guide
+Migrate from HPC to Cluster (Snellius) guide
 =============================================
-The HPC node jupyter.ewatercycle.org can be used for small test experiments, to do actual work you will need to run your notebook/script on the cluster (Cartesius). On Cartesius the forcing data is already present and many users can run jobs at the same time without interfering each other.
+The HPC node jupyter.ewatercycle.org can be used for small test experiments, to do actual work you will need to run your notebook/script on the cluster (Snellius). On Snellius the forcing data is already present and many users can run jobs at the same time without interfering each other.
 
 Familiarize yourself with Linux by reading this simple guide:
 
@@ -23,27 +23,27 @@ For ease of transfer it can be helpful to create a environment.yml file. This fi
 
 - https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#create-env-file-manually
 
-**3. Copy files from HPC to Cartesius**
+**3. Copy files from HPC to Snellius**
 
-To copy files from the eWaterCycle HPC to Cartesius the following command example can be used:
+To copy files from the eWaterCycle HPC to Snellius the following command example can be used:
 
-- ``scp -r {YourUserNameOnTheHPC}@jupyter.ewatercycle.org:/mnt/{YourUserNameOnTheHPC}/{PathToFolder}/ /home/{YourUserNameOnTheCartesius}/{PathToFolder}/``
+- ``scp -r {YourUserNameOnTheHPC}@jupyter.ewatercycle.org:/mnt/{YourUserNameOnTheHPC}/{PathToFolder}/ /home/{YourUserNameOnTheSnellius}/{PathToFolder}/``
 
 When prompted, enter your eWaterCycle HPC password.
 
 ********************
-Login to Cartesius
+Login to Snellius
 ********************
 
 **1. VPN Connection**
 
-Cluster computer hosting institutes have a strict policy on which IP-addresses are allowed to connect with the Cluster (Cartesius). For this reason you need to first establish a VPN connection to your University or Research Institute that has a whitelisted IP-address.
+Cluster computer hosting institutes have a strict policy on which IP-addresses are allowed to connect with the Cluster (Snellius). For this reason you need to first establish a VPN connection to your University or Research Institute that has a whitelisted IP-address.
 
 **2. MobaXterm**
 
-To connects with Cartesius a SSH client is required. One such free client is MobaXterm and can be downloaded here: https://mobaxterm.mobatek.net/.
+To connects with Snellius a SSH client is required. One such free client is MobaXterm and can be downloaded here: https://mobaxterm.mobatek.net/.
 
-- After installation open the client and click on the session tab (top left), click on SSH, at remote host fill in "cartesius.surfsara.nl", tick the specify username box, fill in your Cartesius username and click OK (bottom). Fill in the cartesius password when prompted.
+- After installation open the client and click on the session tab (top left), click on SSH, at remote host fill in "snellius.surf.nl", tick the specify username box, fill in your Snellius username and click OK (bottom). Fill in the snellius password when prompted.
 
 **3. Login Node & Compute Node**
 
@@ -53,14 +53,14 @@ Once you are logged in you are on the login node. This node should not be used t
 
 When you login you are directed to your Home Directory:
 
-- ``/home/{YourUserNameOnTheCartesius}/``
+- ``/home/{YourUserNameOnTheSnellius}/``
 
 The Home Directory has slower diskspeeds than the Scratch Directory. The Scratch Directory needs to be created using the following commands:
 
 - ``cd /scratch-shared/``
-- ``mkdir {YourUserNameOnTheCartesius}``
+- ``mkdir {YourUserNameOnTheSnellius}``
 
-You can now access the Scratch Directory at ``/scratch/shared/{YourUserNameOnTheCartesius}/``. Best practice is to modify your code such that it first copies all the required files (excluding code) to the Scratch Directory, followed by running the code, after completion copying the files back to the Home Directory, and cleaning up the Scratch Directory.
+You can now access the Scratch Directory at ``/scratch/shared/{YourUserNameOnTheSnellius}/``. Best practice is to modify your code such that it first copies all the required files (excluding code) to the Scratch Directory, followed by running the code, after completion copying the files back to the Home Directory, and cleaning up the Scratch Directory.
 
 *************************
 First Run preparations
@@ -86,7 +86,7 @@ Install MiniConda:
 
 - ``bash Miniconda3-latest-Linux-x86_64.sh``
 
-**Restart the connection with Cartesius**
+**Restart the connection with Snellius**
 
 - ``conda update conda``
 
@@ -110,7 +110,7 @@ Install eWatercycle package:
 
 **4. Create Singularity Container**
 
-On Cartesius, Docker requires root access and can therefore not be used. Singularity is similar to, and integrates well with Docker.         It also requires root access, but it is pre-installed on the compute nodes on Cartesius.
+On Snellius, Docker requires root access and can therefore not be used. Singularity is similar to, and integrates well with Docker.         It also requires root access, but it is pre-installed on the compute nodes on Snellius.
 
 The first step to run the model on a compute node is thus to use singularity to create a Singularity image (``.sif`` file) based on the Docker image. This is done with (note the ``srun`` command to access the compute node):
 
@@ -134,11 +134,11 @@ Code should be adjusted to run Singularity instead of Docker following:
 
 Before running the model copy the model instance to the scratch directory:
 
-``/scratch-shared/{YourUsernameOnTheCartesius}/``
+``/scratch-shared/{YourUsernameOnTheSnellius}/``
 
 Run the model from this directory and copy the output back to the home directory:
 
-``/home/{YourUsernameOnTheCartesius}/``
+``/home/{YourUsernameOnTheSnellius}/``
 
 Cleanup files in the scratch directory.
 
@@ -146,12 +146,12 @@ Cleanup files in the scratch directory.
 **************************************
 Submitting Jupyter Job on Cluster node
 **************************************
-Here we briefly explain general SBATCH parameters and how to launch a Jupyter Lab environment on Cartesius. Start by opening a text editor on Cartesius (e.g. ``nano``) or (easier) your local machine (e.g. notepad). Copy the following text inside your text editor, edit the Conda environment name, and save as **run_jupyter_on_cartesius.sh** (make sure the extension is ``.sh``):
+Here we briefly explain general SBATCH parameters and how to launch a Jupyter Lab environment on Snellius. Start by opening a text editor on Snellius (e.g. ``nano``) or (easier) your local machine (e.g. notepad). Copy the following text inside your text editor, edit the Conda environment name, and save as **run_jupyter_on_snellius.sh** (make sure the extension is ``.sh``):
 ::
 
     #!/bin/bash
 
-    # Serve a jupyter lab environment from a compute node on Cartesius
+    # Serve a jupyter lab environment from a compute node on Snellius
     # usage: sbatch run_jupyter_on_compute_node.sh
 
     # SLURM settings
@@ -177,7 +177,7 @@ Here we briefly explain general SBATCH parameters and how to launch a Jupyter La
     echo -e "
 
     Command to create ssh tunnel (run from another terminal session on your local machine):
-    ssh -L ${port}:${host}:${port} $(whoami)@cartesius.surfsara.nl
+    ssh -L ${port}:${host}:${port} $(whoami)@snellius.surf.nl
     Below, jupyter will print a number of addresses at which the notebook is served.
     Due to the way the tunnel is set up, only the latter option will work.
     It's the one that looks like
@@ -200,7 +200,7 @@ Here you can set the job name.
 
 - ``#SBATCH -t 09:00:00``
 
-Here you specify job runtime. On the Cartesius we have a budget, each half hour cpu runtime costs 1 point on the budget. A Node consists of 24 cores meaning that the specified runtime (9 hours) costs 24*2*9 points on the budget.
+Here you specify job runtime. On the Snellius we have a budget, each half hour cpu runtime costs 1 point on the budget. A Node consists of 24 cores meaning that the specified runtime (9 hours) costs 24*2*9 points on the budget.
 
 - ``#SBATCH -N 1``
 
@@ -214,7 +214,7 @@ Specifies the type of Node, keep at default value of "normal".
 
 Specifies the location and name of the job log file.
 
-- More information on SBATCH parameters can be found here: https://userinfo.surfsara.nl/systems/cartesius/usage/batch-usage
+- More information on SBATCH parameters can be found here: https://servicedesk.surfsara.nl/wiki/display/WIKI/Creating+and+running+jobs
 
 **Specifying job runtime**
 
@@ -226,11 +226,11 @@ Good practice for calculating job runtime is by for example running a model firs
 
 Enter this command to run the bash script:
 
-- ``sbatch run_jupyter_on_cartesius.sh``
+- ``sbatch run_jupyter_on_snellius.sh``
 
 (If you get DOS and UNIX linebreak errors, run the following command:)
 
-- ``dos2unix run_jupyter_on_cartesius.sh``
+- ``dos2unix run_jupyter_on_snellius.sh``
 
 
 
@@ -238,7 +238,7 @@ Enter this command to run the bash script:
 
 To view which jobs are running you can enter:
 
-- ``squeue -u {YourUserNameOnTheCartesius}``
+- ``squeue -u {YourUserNameOnTheSnellius}``
 
 To cancel a running job you can enter:
 
@@ -258,7 +258,7 @@ Launching Jupyter Lab on Cluster Node
 
 To create a ssh connection between your local machine and the cluster you need to open a command prompt interface on your local machine. For example ``PowerShell`` or ``cmd`` on Windows.
 
-- copy the line ``ssh -L ${port}:${host}:${port} $(whoami)@cartesius.surfsara.nl`` from the slurm log file (not the bash script) into the command prompt and run.
+- copy the line ``ssh -L ${port}:${host}:${port} $(whoami)@snellius.surf.nl`` from the slurm log file (not the bash script) into the command prompt and run.
 
 **3. Connect through browser**
 

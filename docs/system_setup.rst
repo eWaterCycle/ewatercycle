@@ -194,19 +194,28 @@ it should be copied to ``~/.config/ewatercycle/ewatercycle.yaml`` .
 To make the ewatercycle configuration available to all users on the
 system it should be copied to ``/etc/ewatercycle.yaml`` .
 
-Configuration file for Cartesius system
+Configuration file for Snellius system
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Users part of the eWaterCycle project can use the following configurations on the Cartesius system of
-SURFSara:
+Users part of the eWaterCycle project can use the following configurations on the `Snellius system of
+SURF <https://servicedesk.surfsara.nl/wiki/display/WIKI/Snellius>`_:
 
 .. code:: yaml
 
    container_engine: singularity
    singularity_dir: /projects/0/wtrcycle/singularity-images
-   output_dir: /scratch/shared/ewatercycle
-   grdc_location: /projects/0/wtrcycle/GRDC
+   output_dir: /scratch-shared/ewatercycle
+   grdc_location:  /projects/0/wtrcycle/GRDC/GRDC_GCOSGTN-H_27_03_2019
    parameterset_dir: /projects/0/wtrcycle/parameter-sets
+
+The `/scratch-shared/ewatercycle` output directory will be automatically removed if its content is older than 14 days.
+If the output directory is missing it can be recreated with
+
+.. code:: shell
+
+    mkdir /scratch-shared/ewatercycle
+    chgrp wtrcycle /scratch-shared/ewatercycle
+    chmod 2770 /scratch-shared/ewatercycle
 
 Configuration file for ewatecycle Jupyter machine
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
