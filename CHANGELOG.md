@@ -6,6 +6,10 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+### Added
+
+- 2020.1.3 version of wflow model
+
 ## [1.1.3] (2021-10-18)
 
 ### Added
