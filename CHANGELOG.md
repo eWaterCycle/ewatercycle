@@ -8,7 +8,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ### Added
 
-- 2020.1.3 version of wflow model
+- 2020.1.3 version of wflow model ([#270](https://github.com/eWaterCycle/ewatercycle/issues/270))
 
 ## [1.1.3] (2021-10-18)
 
