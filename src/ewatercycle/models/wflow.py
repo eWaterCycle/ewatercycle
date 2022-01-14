@@ -34,7 +34,7 @@ class Wflow(AbstractModel[WflowForcing]):
             If None, it is assumed that forcing is included with the parameter_set.
     """
 
-    available_versions = ("2020.1.1", "2020.1.2")
+    available_versions = ("2020.1.1", "2020.1.2", "2020.1.3")
     """Show supported WFlow versions in eWaterCycle"""
 
     def __init__(  # noqa: D107
@@ -52,6 +52,7 @@ class Wflow(AbstractModel[WflowForcing]):
             # "2019.1": "ewatercycle/wflow-grpc4bmi:2019.1", # no good ini file
             "2020.1.1": "ewatercycle/wflow-grpc4bmi:2020.1.1",
             "2020.1.2": "ewatercycle/wflow-grpc4bmi:2020.1.2",
+            "2020.1.3": "ewatercycle/wflow-grpc4bmi:2020.1.3",
         }
         self.docker_image = images[self.version]
 
@@ -59,6 +60,7 @@ class Wflow(AbstractModel[WflowForcing]):
         images = {
             "2020.1.1": "ewatercycle-wflow-grpc4bmi_2020.1.1.sif",
             "2020.1.2": "ewatercycle-wflow-grpc4bmi_2020.1.2.sif",
+            "2020.1.3": "ewatercycle-wflow-grpc4bmi_2020.1.3.sif",
         }
         image = singularity_dir / images[self.version]
         return str(image)

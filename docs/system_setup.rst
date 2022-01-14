@@ -252,6 +252,7 @@ Docker images will be downloaded with ``docker pull``:
     docker pull ewatercycle/pcrg-grpc4bmi:setters
     docker pull ewatercycle/wflow-grpc4bmi:2020.1.1
     docker pull ewatercycle/wflow-grpc4bmi:2020.1.2
+    docker pull ewatercycle/wflow-grpc4bmi:2020.1.3
 
 Singularity
 ~~~~~~~~~~~
@@ -267,6 +268,7 @@ Singularity images should be stored in configured directory
     singularity build ewatercycle-pcrg-grpc4bmi_setters.sif docker://ewatercycle/pcrg-grpc4bmi:setters
     singularity build ewatercycle-wflow-grpc4bmi_2020.1.1.sif docker://ewatercycle/wflow-grpc4bmi:2020.1.1
     singularity build ewatercycle-wflow-grpc4bmi_2020.1.2.sif docker://ewatercycle/wflow-grpc4bmi:2020.1.2
+    singularity build ewatercycle-wflow-grpc4bmi_2020.1.3.sif docker://ewatercycle/wflow-grpc4bmi:2020.1.3
     cd -
 
 Download example parameter sets
