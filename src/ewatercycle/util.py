@@ -31,8 +31,11 @@ def find_closest_point(
         idx_lon: index of closest grid point in the original longitude array
         idx_lat: index of closest grid point in the original latitude array
     """
+    grid_longitudes_array = np.array(grid_longitudes)
+    grid_latitudes_array = np.array(grid_latitudes)
+
     # Create a grid from coordinates (shape will be (nlat, nlon))
-    lon_vectors, lat_vectors = np.meshgrid(grid_longitudes, grid_latitudes)
+    lon_vectors, lat_vectors = np.meshgrid(grid_longitudes_array, grid_latitudes_array)
 
     dlon = np.radians(lon_vectors - point_longitude)
     dlat = np.radians(lat_vectors - point_latitude)
@@ -45,8 +48,8 @@ def find_closest_point(
     distance = distances.min()
 
     # Rough check to see if point is in or near the grid
-    dx = np.diff(grid_longitudes).max() * 111  # (1 degree ~ 111km)
-    dy = np.diff(grid_latitudes).max() * 111  # (1 degree ~ 111km)
+    dx = np.diff(grid_longitudes_array).max() * 111  # (1 degree ~ 111km)
+    dy = np.diff(grid_latitudes_array).max() * 111  # (1 degree ~ 111km)
     if distance > max(dx, dy) * 2:
         raise ValueError(f"Point {point_longitude, point_latitude} outside model grid.")
 
