@@ -19,6 +19,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 ### Fixed
 
 - Test suite fails with fresh conda env ([#275](https://github.com/eWaterCycle/ewatercycle/issues/275))
+- incompatible numpy typings ([#285](https://github.com/eWaterCycle/ewatercycle/issues/285))
 
 ## [1.1.3] (2021-10-18)
 
