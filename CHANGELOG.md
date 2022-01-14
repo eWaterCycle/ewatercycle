@@ -6,9 +6,15 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+## [1.1.4] (2022-01-14)
+
 ### Added
 
 - 2020.1.3 version of wflow model ([#270](https://github.com/eWaterCycle/ewatercycle/issues/270))
+
+### Changed
+
+- Replace Cartesius section in system setup docs with Snellius ([#273](https://github.com/eWaterCycle/ewatercycle/issues/273))
 
 ### Fixed
 
@@ -118,7 +124,8 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.3...HEAD
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.4...HEAD
+[1.1.4]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.3...1.1.4
 [1.1.3]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.2...1.1.3
 [1.1.2]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.1...1.1.2
 [1.1.1]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.0...1.1.1
