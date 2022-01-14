@@ -147,6 +147,7 @@ class TestGenerateRegionFromShapeFile:
                 "authors": ["verhoeven_stefan", "kalverla_peter", "andela_bouwe"],
                 "projects": ["ewatercycle"],
                 "references": ["acknow_project"],
+                "title": "Generate forcing for the Lisflood hydrological model",
             },
             "preprocessors": {
                 "daily_radiation": {
