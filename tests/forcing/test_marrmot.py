@@ -105,6 +105,7 @@ class TestGenerate:
                 "authors": ["kalverla_peter", "camphuijsen_jaro", "alidoost_sarah"],
                 "projects": ["ewatercycle"],
                 "references": ["acknow_project"],
+                "title": "Generate forcing for the Marrmot hydrological model",
             },
             "preprocessors": {
                 "daily": {

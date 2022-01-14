@@ -97,6 +97,7 @@ class TestGenerateWithExtractRegion:
                 "description": "Pre-processes climate data for the WFlow hydrological model.\n",  # noqa: E501
                 "projects": ["ewatercycle"],
                 "references": ["acknow_project"],
+                "title": "Generate forcing for the WFlow hydrological model",
             },
             "preprocessors": {
                 "rough_cutout": {
