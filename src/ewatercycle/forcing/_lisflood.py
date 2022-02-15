@@ -61,6 +61,9 @@ class LisfloodForcing(DefaultForcing):
         shape: str,
         extract_region: dict = None,
         run_lisvap: bool = False,
+        mask_map: str = None,
+        parameterset_dir: str = None,
+
     ) -> "LisfloodForcing":
         """
         extract_region (dict): Region specification, dictionary must contain
