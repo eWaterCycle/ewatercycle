@@ -13,6 +13,7 @@ from ..util import (
 )
 from ._default import DefaultForcing
 from .datasets import DATASETS
+from ._lisvap import create_lisvap_config, run_lisvap
 
 logger = logging.getLogger(__name__)
 
@@ -62,8 +63,8 @@ class LisfloodForcing(DefaultForcing):
         extract_region: dict = None,
         run_lisvap: bool = False,
         mask_map: str = None,
+        version: str = None,
         parameterset_dir: str = None,
-
     ) -> "LisfloodForcing":
         """
         extract_region (dict): Region specification, dictionary must contain
@@ -121,10 +122,37 @@ class LisfloodForcing(DefaultForcing):
 
         # TODO run lisvap
         # TODO forcing_files['e0'] = ...
-
-        # instantiate forcing object based on generated data
         if run_lisvap:
-            raise NotImplementedError("Dont know how to run LISVAP.")
+            config_file = create_lisvap_config(
+                parameterset_dir,
+                directory,
+                dataset,
+                mask_map,
+                start_time,
+                end_time
+                )
+            run_lisvap(
+                version,
+                parameterset_dir,
+                directory,
+                mask_map,
+                config_file,
+                )
+            for cmor_name in {'e0', 'es0', 'et0'}:
+                forcing_files[cmor_name] = f"lisflood_{cmor_name}_{startyear}_{endyear}.nc"
+
+            # instantiate forcing object based on generated data
+            return LisfloodForcing(
+                directory=directory,
+                start_time=start_time,
+                end_time=end_time,
+                shape=shape,
+                PrefixPrecipitation=forcing_files["pr"],
+                PrefixTavg=forcing_files["tas"],
+                PrefixE0=forcing_files["e0"],
+                PrefixES0=forcing_files["es0"],
+                PrefixET0=forcing_files["et0"],
+            )
         else:
             message = (
                 "Parameter `run_lisvap` is set to False. No forcing data will be "
@@ -132,6 +160,7 @@ class LisfloodForcing(DefaultForcing):
                 f"LISVAP input data that can be found in {directory}."
             )
             logger.warning("%s", message)
+            # instantiate forcing object based on generated data
             return LisfloodForcing(
                 directory=directory,
                 start_time=start_time,
