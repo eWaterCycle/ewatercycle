@@ -66,3 +66,9 @@ def sample_marrmot_forcing_file():
         / "data"
         / "BMI_testcase_m01_BuffaloRiver_TN_USA.mat"
     )
+
+@pytest.fixture
+def sample_lisvap_config():
+    return str(
+        Path(__file__).parent / "forcing" / "data" / "settings_lisvap.xml"
+    )
