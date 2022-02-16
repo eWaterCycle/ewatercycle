@@ -1,18 +1,32 @@
 """Generate lisvap files to be used for lisflood.
 
 example:
-from .lisvap import create_lisvap_config, run_lisvap
-config_file = create_lisvap_config(parameterset, start_time, end_time, directory, forcing_files)
-run_lisvap(version, config_file, parameterset, directory)
+from .lisvap import create_lisvap_config, lisvap
+config_file = create_lisvap_config(
+    parameterset_dir,
+    forcing_dir,
+    forcing_name,
+    mask_map,
+    start_time,
+    end_time,
+    )
+lisvap(
+    version,
+    parameterset_dir,
+    forcing_dir,
+    mask_map,
+    config_file,
+    )
 """
 
 import os
 import subprocess
 from pathlib import Path
 from typing import Tuple
+import xml.etree.ElementTree as ET
 
 from ewatercycle import CFG
-from ..models.lisflood import XmlConfig
+from ewatercycle.parametersetdb.config import AbstractConfig
 from ..util import get_time
 
 
@@ -56,7 +70,10 @@ def lisvap(
             "singularity",
             "exec",
         ]
-        args += ["--bind", ','.join([hp + ':' + ip for hp, ip in mount_points.items()])]
+        args += [
+            "--bind",
+            ','.join([f'{hp}:{ip}' for hp, ip in mount_points.items()]),
+            ]
         args.append(singularity_image)
 
     elif CFG['container_engine'].lower() == 'docker':
@@ -65,7 +82,10 @@ def lisvap(
             "docker",
             "run -ti",
         ]
-        args += ["--volume", ','.join([hp + ':' + ip for hp, ip in mount_points.items()])]
+        args += [
+            "--volume",
+            ','.join([f'{hp}:{ip}' for hp, ip in mount_points.items()]),
+            ]
         args.append(docker_image)
 
     else:
@@ -84,6 +104,7 @@ def create_lisvap_config(
     parameterset_dir: str,
     forcing_dir: str,
     forcing_name: str,
+    config_template: str,
     mask_map: str,
     start_time: str,
     end_time: str
@@ -92,7 +113,6 @@ def create_lisvap_config(
     Create lisvap setting file.
 
     """
-    config_template = f'{parameterset_dir}/settings_lisvap.xml'
     cfg = XmlConfig(config_template)
     # Make a dictionary for settings
     settings = {
@@ -152,3 +172,27 @@ def create_lisvap_config(
     lisvap_file = f"{forcing_dir}/lisvap_{forcing_name}_setting.xml"
     cfg.save(lisvap_file)
     return lisvap_file
+
+
+class XmlConfig(AbstractConfig):
+    """Config container where config is read/saved in xml format."""
+
+    def __init__(self, source):
+        """Config container where config is read/saved in xml format.
+
+        Args:
+            source: file to read from
+        """
+        super().__init__(source)
+        self.tree = ET.parse(source)
+        self.config: ET.Element = self.tree.getroot()
+        """XML element used to make changes to the config"""
+
+    def save(self, target):
+        """Save xml to file.
+
+        Args:
+            target: file to save to
+
+        """
+        self.tree.write(target)
