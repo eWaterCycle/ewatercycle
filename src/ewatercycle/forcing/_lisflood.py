@@ -13,7 +13,7 @@ from ..util import (
 )
 from ._default import DefaultForcing
 from .datasets import DATASETS
-from ._lisvap import create_lisvap_config, run_lisvap
+from ._lisvap import create_lisvap_config, lisvap
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +131,7 @@ class LisfloodForcing(DefaultForcing):
                 start_time,
                 end_time
                 )
-            run_lisvap(
+            lisvap(
                 version,
                 parameterset_dir,
                 directory,

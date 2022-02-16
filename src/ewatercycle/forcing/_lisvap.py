@@ -28,7 +28,7 @@ def _set_singularity_image(version, singularity_dir: Path):
     }
     return singularity_dir / images[version]
 
-def run_lisvap(
+def lisvap(
     version: str,
     parameterset_dir: str,
     forcing_dir: str,
