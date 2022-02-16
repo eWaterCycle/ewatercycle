@@ -62,6 +62,7 @@ class LisfloodForcing(DefaultForcing):
         shape: str,
         extract_region: dict = None,
         run_lisvap: bool = False,
+        lisvap_config: str = None,
         mask_map: str = None,
         version: str = None,
         parameterset_dir: str = None,
@@ -127,6 +128,7 @@ class LisfloodForcing(DefaultForcing):
                 parameterset_dir,
                 directory,
                 dataset,
+                lisvap_config,
                 mask_map,
                 start_time,
                 end_time
