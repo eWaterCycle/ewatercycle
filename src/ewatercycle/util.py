@@ -5,6 +5,7 @@ from typing import Any, Dict, Iterable, Tuple
 
 import fiona
 import numpy as np
+import xarray as xr
 from dateutil.parser import parse
 from esmvalcore.experimental.recipe_output import RecipeOutput
 from shapely import geometry
@@ -152,3 +153,17 @@ def to_absolute_path(
                 )
 
     return pathlike.expanduser().resolve(strict=must_exist)
+
+
+def reindex(source_file:str, var_name: str, mask_file:str, target_file: str):
+    data = xr.open_dataset(source_file, chunks={"time": 1})
+    mask = xr.open_dataset(mask_file)
+    reindexed_data = data.reindex(
+                {"lat": mask["lat"], "lon": mask["lon"]},
+                method="nearest",
+                tolerance=1e-2,
+            )
+    reindexed_data.to_netcdf(
+    target_file,
+    encoding={var_name: {"zlib": True, "complevel": 4, "chunksizes": (1,) + reindexed_data[var_name].shape[1:]}},
+    )
