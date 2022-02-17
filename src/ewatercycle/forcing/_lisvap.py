@@ -22,7 +22,7 @@ lisvap(
 import os
 import subprocess
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Dict
 import xml.etree.ElementTree as ET
 
 from ewatercycle import CFG
@@ -61,7 +61,6 @@ def lisvap(
         f'{parameterset_dir}': f'{parameterset_dir}',
         f'{mask_map}': '/data/model_mask.nc',
         f'{forcing_dir}': f'{forcing_dir}',
-        f'{forcing_dir}': f'{forcing_dir}',
     }
 
     if CFG['container_engine'].lower() == 'singularity':
@@ -74,6 +73,7 @@ def lisvap(
             "--bind",
             ','.join([f'{hp}:{ip}' for hp, ip in mount_points.items()]),
             ]
+        args += ["--pwd", f'{forcing_dir}']
         args.append(singularity_image)
 
     elif CFG['container_engine'].lower() == 'docker':
@@ -86,6 +86,7 @@ def lisvap(
             "--volume",
             ','.join([f'{hp}:{ip}' for hp, ip in mount_points.items()]),
             ]
+        args += ["--pwd", f'{forcing_dir}']
         args.append(docker_image)
 
     else:
@@ -107,7 +108,8 @@ def create_lisvap_config(
     config_template: str,
     mask_map: str,
     start_time: str,
-    end_time: str
+    end_time: str,
+    forcing_files: Dict,
     ) -> str:
     """
     Create lisvap setting file.
@@ -124,10 +126,6 @@ def create_lisvap_config(
         "MaskMap": mask_map.replace('.nc', ''),
         "PathMeteoIn": forcing_dir,
     }
-
-    start_year = get_time(start_time).year
-    end_year = get_time(end_time).year
-    timestamp = f"{start_year}_{end_year}"
 
     for textvar in cfg.config.iter("textvar"):
         textvar_name = textvar.attrib["name"]
@@ -149,7 +147,7 @@ def create_lisvap_config(
         }
         for lisvap_var, cmor_var in INPUT_NAMES.items():
             if lisvap_var in textvar_name:
-                filename = f"lisflood_{forcing_name}_{cmor_var}_{timestamp}"
+                filename = forcing_files[cmor_var].replace('.nc', '')
                 textvar.set(
                     "value", f"$(PathMeteoIn)/{filename}",
                 )
@@ -163,9 +161,10 @@ def create_lisvap_config(
         }
         for prefix in MAPS_PREFIXES.values():
             if prefix['name'] in textvar_name:
+                filename = forcing_files[prefix['value']].replace('.nc', '')
                 textvar.set(
                     "value",
-                    f"lisflood_{forcing_name}_{prefix['value']}_{timestamp}",
+                    f"{filename}",
                 )
 
     # Write to new setting file
