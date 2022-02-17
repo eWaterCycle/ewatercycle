@@ -10,6 +10,7 @@ from ..util import (
     get_extents,
     get_time,
     to_absolute_path,
+    reindex,
 )
 from ._default import DefaultForcing
 from .datasets import DATASETS
@@ -117,6 +118,12 @@ class LisfloodForcing(DefaultForcing):
         for var_name in var_names:
             variables[var_name]["end_year"] = endyear
 
+        # set crop to false to keep the entire globe (time consuming)
+        # because lisflood parameter set is global
+        # recipe.data["preprocessors"]["general"]["extract_shape"]["crop"] = False
+        # However, lisflood diagnostics line 144 gives error
+        # ValueError: The 'longitude' DimCoord points array must be strictly monotonic.
+
         # generate forcing data and retrieve useful information
         recipe_output = recipe.run()
         directory, forcing_files = data_files_from_recipe_output(recipe_output)
@@ -124,25 +131,36 @@ class LisfloodForcing(DefaultForcing):
         # TODO run lisvap
         # TODO forcing_files['e0'] = ...
         if run_lisvap:
+            mask = str(to_absolute_path(mask_map))
+            # Reindex data because recipe cropped the data
+            for var_name in var_names:
+                reindex(
+                    f"{directory}/{forcing_files[var_name]}",
+                    var_name,
+                    mask,
+                    f"{directory}/{forcing_files[var_name]}", # overwrite, later we can load them again
+                )
+            # Add lisvap file names
+            for var_name in {'e0', 'es0', 'et0'}:
+                forcing_files[var_name] = f"lisflood_{dataset}_{basin}_{var_name}_{startyear}_{endyear}.nc"
+
             config_file = create_lisvap_config(
                 parameterset_dir,
                 directory,
                 dataset,
                 lisvap_config,
-                mask_map,
+                mask,
                 start_time,
-                end_time
+                end_time,
+                forcing_files,
                 )
-            lisvap(
+            exit_code, stdout, stderr= lisvap(
                 version,
                 parameterset_dir,
                 directory,
-                mask_map,
+                mask,
                 config_file,
                 )
-            for cmor_name in {'e0', 'es0', 'et0'}:
-                forcing_files[cmor_name] = f"lisflood_{cmor_name}_{startyear}_{endyear}.nc"
-
             # instantiate forcing object based on generated data
             return LisfloodForcing(
                 directory=directory,
