@@ -1,6 +1,7 @@
 """Forcing related functionality for lisflood"""
 
 import logging
+from pathlib import Path
 from typing import Optional
 
 from esmvalcore.experimental import get_recipe
@@ -133,12 +134,15 @@ class LisfloodForcing(DefaultForcing):
         if run_lisvap:
             mask = str(to_absolute_path(mask_map))
             # Reindex data because recipe cropped the data
+            # Create a sub dir for global dataset because xarray does not let to overwrite!
+            global_forcing_directory = Path(f"{directory}/global")
+            global_forcing_directory.mkdir(parents=True, exist_ok=True)
             for var_name in var_names:
                 reindex(
                     f"{directory}/{forcing_files[var_name]}",
                     var_name,
                     mask,
-                    f"{directory}/{forcing_files[var_name]}", # overwrite, later we can load them again
+                    f"{global_forcing_directory}/{forcing_files[var_name]}",
                 )
             # Add lisvap file names
             for var_name in {'e0', 'es0', 'et0'}:
@@ -146,7 +150,7 @@ class LisfloodForcing(DefaultForcing):
 
             config_file = create_lisvap_config(
                 parameterset_dir,
-                directory,
+                global_forcing_directory,
                 dataset,
                 lisvap_config,
                 mask,
@@ -157,13 +161,13 @@ class LisfloodForcing(DefaultForcing):
             exit_code, stdout, stderr= lisvap(
                 version,
                 parameterset_dir,
-                directory,
+                global_forcing_directory,
                 mask,
                 config_file,
                 )
             # instantiate forcing object based on generated data
             return LisfloodForcing(
-                directory=directory,
+                directory=global_forcing_directory,
                 start_time=start_time,
                 end_time=end_time,
                 shape=shape,
