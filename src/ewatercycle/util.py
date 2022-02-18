@@ -1,5 +1,4 @@
 from datetime import datetime
-from os import PathLike
 from pathlib import Path
 from typing import Any, Dict, Iterable, Tuple
 
@@ -172,13 +171,13 @@ def reindex(source_file: str, var_name: str, mask_file: str, target_file: str):
 
     try:
         indexers = {"lat": mask["lat"].values, "lon": mask["lon"].values}
-    except:
+    except KeyError:
         try:
             indexers = {
                 "latitude": mask["latitude"].values,
                 "longitude": mask["longitude"].values,
             }
-        except:
+        except KeyError:
             try:
                 indexers = {"y": mask["y"].values, "x": mask["x"].values}
             except KeyError as err:
