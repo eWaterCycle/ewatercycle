@@ -137,7 +137,7 @@ class LisfloodForcing(DefaultForcing):
             # global dataset because xarray does not let to overwrite!
             global_forcing_directory = Path(f"{directory}/global")
             global_forcing_directory.mkdir(parents=True, exist_ok=True)
-            for var_name in var_names:
+            for var_name in {"pr", "tas", "tasmax", "tasmin", "sfcWind", "rsds", "e"}:
                 reindex(
                     f"{directory}/{forcing_files[var_name]}",
                     var_name,
