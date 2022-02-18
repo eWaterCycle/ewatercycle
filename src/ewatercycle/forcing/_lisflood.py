@@ -117,7 +117,7 @@ class LisfloodForcing(DefaultForcing):
             variables[var_name]["end_year"] = endyear
 
         # set crop to false to keep the entire globe (time consuming)
-        # because lisflood parameter set is global
+        # because lisflood parameter set is global i.e.
         # recipe.data["preprocessors"]["general"]["extract_shape"]["crop"] = False
         # However, lisflood diagnostics line 144 gives error
         # ValueError: The 'longitude' DimCoord points array must be strictly monotonic.
@@ -133,8 +133,9 @@ class LisfloodForcing(DefaultForcing):
             version = run_lisvap["version"]
             parameterset_dir = str(to_absolute_path(run_lisvap["parameterset_dir"]))
 
-            # Reindex data because recipe cropped the data Create a sub dir for
-            # global dataset because xarray does not let to overwrite!
+            # Reindex data because recipe cropped the data
+            # Also, create a sub dir for global dataset because xarray does not
+            # let to overwrite!
             global_forcing_directory = Path(f"{directory}/global")
             global_forcing_directory.mkdir(parents=True, exist_ok=True)
             for var_name in {"pr", "tas", "tasmax", "tasmin", "sfcWind", "rsds", "e"}:
@@ -168,8 +169,8 @@ class LisfloodForcing(DefaultForcing):
                 config_file,
             )
             # TODO add a logger message about the results of lisvap using
-            # exit_code, stdout, stderr instantiate forcing object based on
-            # generated data
+            # exit_code, stdout, stderr
+            # Instantiate forcing object based on generated data
             return LisfloodForcing(
                 directory=str(global_forcing_directory),
                 start_time=start_time,
