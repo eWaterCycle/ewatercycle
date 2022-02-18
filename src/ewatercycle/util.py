@@ -185,7 +185,7 @@ def reindex(source_file: str, var_name: str, mask_file: str, target_file: str):
                     "Bad naming of dimensions in source_file and mask_file."
                     "The dimensions should be either (x, y), or (lon, lat), "
                     "or (longitude, latitude)."
-                    ) from err
+                ) from err
 
     reindexed_data = data.reindex(
         indexers,
