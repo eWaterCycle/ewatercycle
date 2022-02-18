@@ -156,14 +156,49 @@ def to_absolute_path(
 
 
 def reindex(source_file:str, var_name: str, mask_file:str, target_file: str):
+    """ Conform the input file onto the indexes of a mask file, writing the
+    results to the target file.
+
+    Args:
+        source_file: Input string path of the file that needs to be reindexed.
+        var_name: Variable name in the source_file dataset.
+        mask_file: Input string path of the mask file.
+        target_file: Output string path of the
+        file that is reindexed.
+    """
+    # TODO this returns PerformanceWarning, see if it can be fixed.
     data = xr.open_dataset(source_file, chunks={"time": 1})
     mask = xr.open_dataset(mask_file)
+
+    try:
+        indexers = {"lat": mask["lat"].values, "lon": mask["lon"].values}
+    except:
+        try:
+            indexers = {
+                "latitude": mask["latitude"].values,
+                "longitude": mask["longitude"].values
+                }
+        except:
+            try:
+                indexers =  {"y": mask["y"].values, "x": mask["x"].values}
+            except KeyError as err:
+                raise ValueError(
+                    'Check dimension names of source_file and mask_file'
+                    ) from err
+
     reindexed_data = data.reindex(
-                {"lat": mask["lat"], "lon": mask["lon"]},
-                method="nearest",
-                tolerance=1e-2,
-            )
+        indexers,
+        method="nearest",
+        tolerance=1e-2,
+        )
+
     reindexed_data.to_netcdf(
     target_file,
-    encoding={var_name: {"zlib": True, "complevel": 4, "chunksizes": (1,) + reindexed_data[var_name].shape[1:]}},
+    encoding={
+        var_name: {
+            "zlib": True,
+            "complevel": 4,
+            "chunksizes": (1,) + reindexed_data[var_name].shape[1:],
+            }
+            },
     )
