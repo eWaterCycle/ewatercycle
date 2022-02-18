@@ -36,11 +36,13 @@ def _set_docker_image(version):
     }
     return images[version]
 
+
 def _set_singularity_image(version, singularity_dir: Path):
     images = {
         '20.10': 'ewatercycle-lisflood-grpc4bmi_20.10.sif'
     }
     return singularity_dir / images[version]
+
 
 def lisvap(
     version: str,
@@ -48,7 +50,7 @@ def lisvap(
     forcing_dir: str,
     mask_map: str,
     config_file: str,
-    ) -> Tuple[int, bytes, bytes]:
+) -> Tuple[int, bytes, bytes]:
     """Run lisvap to generate evaporation forcing files
 
     Args:
@@ -95,7 +97,12 @@ def lisvap(
         )
 
     args += ['python3', '/opt/Lisvap/src/lisvap1.py', f"{config_file}"]
-    container = subprocess.Popen(args, preexec_fn=os.setsid, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    container = subprocess.Popen(
+        args,
+        preexec_fn=os.setsid,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+        )
     exit_code = container.wait()
     stdout, stderr = container.communicate()
     return exit_code, stdout, stderr
@@ -110,7 +117,7 @@ def create_lisvap_config(
     start_time: str,
     end_time: str,
     forcing_files: Dict,
-    ) -> str:
+) -> str:
     """
     Create lisvap setting file.
 

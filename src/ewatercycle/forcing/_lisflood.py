@@ -63,17 +63,14 @@ class LisfloodForcing(DefaultForcing):
         end_time: str,
         shape: str,
         extract_region: dict = None,
-        run_lisvap: bool = False,
-        lisvap_config: str = None,
-        mask_map: str = None,
-        version: str = None,
-        parameterset_dir: str = None,
+        run_lisvap: dict = None,
     ) -> "LisfloodForcing":
         """
         extract_region (dict): Region specification, dictionary must contain
             `start_longitude`, `end_longitude`, `start_latitude`, `end_latitude`
-        run_lisvap (bool): if lisvap should be run. Default is False.
-            Running lisvap is not supported yet.
+        run_lisvap (dict): Lisvap specification. If lisvap should be run, then,
+            specification is a dictionary {lisvap_config: str, mask_map: str,
+            version: str, parameterset_dir: str}. Default is None.
         TODO add regrid options so forcing can be generated for parameter set
         TODO that is not on a 0.1x0.1 grid
         """
@@ -129,45 +126,52 @@ class LisfloodForcing(DefaultForcing):
         recipe_output = recipe.run()
         directory, forcing_files = data_files_from_recipe_output(recipe_output)
 
-        # TODO run lisvap
-        # TODO forcing_files['e0'] = ...
         if run_lisvap:
-            mask = str(to_absolute_path(mask_map))
-            # Reindex data because recipe cropped the data
-            # Create a sub dir for global dataset because xarray does not let to overwrite!
+            # Get lisvap specific options and make paths absolute
+            lisvap_config = str(to_absolute_path(run_lisvap["lisvap_config"]))
+            mask_map = str(to_absolute_path(run_lisvap["mask_map"]))
+            version = run_lisvap["version"]
+            parameterset_dir = str(to_absolute_path(run_lisvap["parameterset_dir"]))
+
+            # Reindex data because recipe cropped the data Create a sub dir for
+            # global dataset because xarray does not let to overwrite!
             global_forcing_directory = Path(f"{directory}/global")
             global_forcing_directory.mkdir(parents=True, exist_ok=True)
             for var_name in var_names:
                 reindex(
                     f"{directory}/{forcing_files[var_name]}",
                     var_name,
-                    mask,
+                    mask_map,
                     f"{global_forcing_directory}/{forcing_files[var_name]}",
                 )
             # Add lisvap file names
             for var_name in {'e0', 'es0', 'et0'}:
-                forcing_files[var_name] = f"lisflood_{dataset}_{basin}_{var_name}_{startyear}_{endyear}.nc"
+                forcing_files[var_name] = (
+                    f"lisflood_{dataset}_{basin}_{var_name}_{startyear}_{endyear}.nc"
+                    )
 
             config_file = create_lisvap_config(
                 parameterset_dir,
-                global_forcing_directory,
+                str(global_forcing_directory),
                 dataset,
                 lisvap_config,
-                mask,
+                mask_map,
                 start_time,
                 end_time,
                 forcing_files,
                 )
-            exit_code, stdout, stderr= lisvap(
+            exit_code, stdout, stderr = lisvap(
                 version,
                 parameterset_dir,
-                global_forcing_directory,
-                mask,
+                str(global_forcing_directory),
+                mask_map,
                 config_file,
                 )
-            # instantiate forcing object based on generated data
+            # TODO add a logger message about the results of lisvap using
+            # exit_code, stdout, stderr instantiate forcing object based on
+            # generated data
             return LisfloodForcing(
-                directory=global_forcing_directory,
+                directory=str(global_forcing_directory),
                 start_time=start_time,
                 end_time=end_time,
                 shape=shape,
