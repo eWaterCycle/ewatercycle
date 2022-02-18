@@ -1,6 +1,4 @@
-import pytest
-
-from ewatercycle.forcing._lisvap import create_lisvap_config, lisvap, XmlConfig
+from ewatercycle.forcing._lisvap import create_lisvap_config, XmlConfig
 
 
 def find_values_in_xml(tree, name):
@@ -46,12 +44,14 @@ def test_create_lisvap_config(tmp_path, sample_lisvap_config):
     assert find_values_in_xml(_cfg.config, "StepStart") == {"02/01/1989 00:00"}
     assert find_values_in_xml(_cfg.config, "StepEnd") == {"02/01/1999 00:00"}
     assert find_values_in_xml(_cfg.config, "PathOut") == {str(tmp_path)}
-    assert find_values_in_xml(_cfg.config, "PathBaseMapsIn") == {f"{tmp_path}/maps_netcdf"}
+    assert find_values_in_xml(_cfg.config, "PathBaseMapsIn") == {
+        f"{tmp_path}/maps_netcdf"
+    }
     assert find_values_in_xml(_cfg.config, "MaskMap") == {f"{tmp_path}/MaskMap_Rhine"}
     assert find_values_in_xml(_cfg.config, "PathMeteoIn") == {str(tmp_path)}
-    assert find_values_in_xml(_cfg.config, "PrefixE0") == {"lisflood_ERA5_Rhine_e0_1989_1999"}
-    assert find_values_in_xml(_cfg.config, "TAvgMaps") == {"$(PathMeteoIn)/lisflood_ERA5_Rhine_tas_1989_1999"}
-
-
-
-
+    assert find_values_in_xml(_cfg.config, "PrefixE0") == {
+        "lisflood_ERA5_Rhine_e0_1989_1999"
+    }
+    assert find_values_in_xml(_cfg.config, "TAvgMaps") == {
+        "$(PathMeteoIn)/lisflood_ERA5_Rhine_tas_1989_1999"
+    }

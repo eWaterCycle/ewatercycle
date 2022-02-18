@@ -90,39 +90,45 @@ def test_to_absolute_path_with_absolute_input_and_nonrelative_parent(tmp_path):
 
 def test_reindex(tmp_path):
     expected_source = xr.DataArray(
-            data=[[1.0, 2.0], [3.0, 4.0]],
-            coords={
-                "longitude": [19.35, 19.45],
-                "latitude": [-33.05, -33.15],
-                "time": "2014-09-06",
-            },
-            dims=["longitude", "latitude"],
-            name="tas",
-            attrs=dict(units="degC"),
-        )
+        data=[[1.0, 2.0], [3.0, 4.0]],
+        coords={
+            "longitude": [19.35, 19.45],
+            "latitude": [-33.05, -33.15],
+            "time": "2014-09-06",
+        },
+        dims=["longitude", "latitude"],
+        name="tas",
+        attrs=dict(units="degC"),
+    )
     expected_source.to_netcdf(f"{tmp_path}/tas.nc")
     expected_mask = xr.DataArray(
-        data=[[False,  True,  True,  True,  True],
-        [False, False,  True,  True,  True],
-        [False, False,  True, False,  True],
-        [False, False, False, False, False],
-        [False, False, False, False, False]],
+        data=[
+            [False, True, True, True, True],
+            [False, False, True, True, True],
+            [False, False, True, False, True],
+            [False, False, False, False, False],
+            [False, False, False, False, False],
+        ],
         coords={
             "longitude": [19.05, 19.15, 19.25, 19.35, 19.45],
             "latitude": [-33.05, -33.15, -33.25, -33.35, -33.45],
-            },
-        )
+        },
+    )
     expected_mask.to_netcdf(f"{tmp_path}/mask.nc")
     reindex(
         f"{tmp_path}/tas.nc",
         "tas",
         f"{tmp_path}/mask.nc",
         f"{tmp_path}/tas_global.nc",
-        )
+    )
     reindexed_data = xr.open_dataset(f"{tmp_path}/tas_global.nc")
     # Check coords
-    assert_array_equal(reindexed_data["latitude"].values, expected_mask["latitude"].values)
-    assert_array_equal(reindexed_data["longitude"].values, expected_mask["longitude"].values)
+    assert_array_equal(
+        reindexed_data["latitude"].values, expected_mask["latitude"].values
+    )
+    assert_array_equal(
+        reindexed_data["longitude"].values, expected_mask["longitude"].values
+    )
 
     # Check values based on coords values
     reindexed_val = reindexed_data["tas"].sel(latitude=-33.05, longitude=19.35).values

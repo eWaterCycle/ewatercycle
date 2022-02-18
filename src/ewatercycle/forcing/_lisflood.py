@@ -145,10 +145,10 @@ class LisfloodForcing(DefaultForcing):
                     f"{global_forcing_directory}/{forcing_files[var_name]}",
                 )
             # Add lisvap file names
-            for var_name in {'e0', 'es0', 'et0'}:
-                forcing_files[var_name] = (
-                    f"lisflood_{dataset}_{basin}_{var_name}_{startyear}_{endyear}.nc"
-                    )
+            for var_name in {"e0", "es0", "et0"}:
+                forcing_files[
+                    var_name
+                ] = f"lisflood_{dataset}_{basin}_{var_name}_{startyear}_{endyear}.nc"
 
             config_file = create_lisvap_config(
                 parameterset_dir,
@@ -159,14 +159,14 @@ class LisfloodForcing(DefaultForcing):
                 start_time,
                 end_time,
                 forcing_files,
-                )
+            )
             exit_code, stdout, stderr = lisvap(
                 version,
                 parameterset_dir,
                 str(global_forcing_directory),
                 mask_map,
                 config_file,
-                )
+            )
             # TODO add a logger message about the results of lisvap using
             # exit_code, stdout, stderr instantiate forcing object based on
             # generated data

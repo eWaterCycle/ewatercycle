@@ -31,16 +31,12 @@ from ..util import get_time
 
 
 def _set_docker_image(version):
-    images = {
-        '20.10': 'ewatercycle/lisflood-grpc4bmi:20.10'
-    }
+    images = {"20.10": "ewatercycle/lisflood-grpc4bmi:20.10"}
     return images[version]
 
 
 def _set_singularity_image(version, singularity_dir: Path):
-    images = {
-        '20.10': 'ewatercycle-lisflood-grpc4bmi_20.10.sif'
-    }
+    images = {"20.10": "ewatercycle-lisflood-grpc4bmi_20.10.sif"}
     return singularity_dir / images[version]
 
 
@@ -60,25 +56,25 @@ def lisvap(
         Tuple with exit code, stdout and stderr
     """
     mount_points = {
-        f'{parameterset_dir}': f'{parameterset_dir}',
-        f'{mask_map}': '/data/model_mask.nc',
-        f'{forcing_dir}': f'{forcing_dir}',
+        f"{parameterset_dir}": f"{parameterset_dir}",
+        f"{mask_map}": "/data/model_mask.nc",
+        f"{forcing_dir}": f"{forcing_dir}",
     }
 
-    if CFG['container_engine'].lower() == 'singularity':
-        singularity_image = _set_singularity_image(version, CFG['singularity_dir'])
+    if CFG["container_engine"].lower() == "singularity":
+        singularity_image = _set_singularity_image(version, CFG["singularity_dir"])
         args = [
             "singularity",
             "exec",
         ]
         args += [
             "--bind",
-            ','.join([f'{hp}:{ip}' for hp, ip in mount_points.items()]),
-            ]
-        args += ["--pwd", f'{forcing_dir}']
+            ",".join([f"{hp}:{ip}" for hp, ip in mount_points.items()]),
+        ]
+        args += ["--pwd", f"{forcing_dir}"]
         args.append(singularity_image)
 
-    elif CFG['container_engine'].lower() == 'docker':
+    elif CFG["container_engine"].lower() == "docker":
         docker_image = _set_docker_image(version)
         args = [
             "docker",
@@ -86,9 +82,9 @@ def lisvap(
         ]
         args += [
             "--volume",
-            ','.join([f'{hp}:{ip}' for hp, ip in mount_points.items()]),
-            ]
-        args += ["--pwd", f'{forcing_dir}']
+            ",".join([f"{hp}:{ip}" for hp, ip in mount_points.items()]),
+        ]
+        args += ["--pwd", f"{forcing_dir}"]
         args.append(docker_image)
 
     else:
@@ -96,13 +92,10 @@ def lisvap(
             f"Unknown container technology in CFG: {CFG['container_engine']}"
         )
 
-    args += ['python3', '/opt/Lisvap/src/lisvap1.py', f"{config_file}"]
+    args += ["python3", "/opt/Lisvap/src/lisvap1.py", f"{config_file}"]
     container = subprocess.Popen(
-        args,
-        preexec_fn=os.setsid,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-        )
+        args, preexec_fn=os.setsid, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     exit_code = container.wait()
     stdout, stderr = container.communicate()
     return exit_code, stdout, stderr
@@ -129,8 +122,8 @@ def create_lisvap_config(
         "StepStart": get_time(start_time).strftime("%d/%m/%Y %H:%M"),
         "StepEnd": get_time(end_time).strftime("%d/%m/%Y %H:%M"),
         "PathOut": forcing_dir,
-        "PathBaseMapsIn": f'{parameterset_dir}/maps_netcdf',
-        "MaskMap": mask_map.replace('.nc', ''),
+        "PathBaseMapsIn": f"{parameterset_dir}/maps_netcdf",
+        "MaskMap": mask_map.replace(".nc", ""),
         "PathMeteoIn": forcing_dir,
     }
 
@@ -145,30 +138,31 @@ def create_lisvap_config(
         # lisvap input files
         # mapping lisvap input varnames to cmor varnames
         INPUT_NAMES = {
-            'TAvgMaps': 'tas',
-            'TMaxMaps': 'tasmax',
-            'TMinMaps': 'tasmin',
-            'EActMaps': 'e',
-            'WindMaps': 'sfcWind',
-            'RgdMaps': 'rsds',
+            "TAvgMaps": "tas",
+            "TMaxMaps": "tasmax",
+            "TMinMaps": "tasmin",
+            "EActMaps": "e",
+            "WindMaps": "sfcWind",
+            "RgdMaps": "rsds",
         }
         for lisvap_var, cmor_var in INPUT_NAMES.items():
             if lisvap_var in textvar_name:
-                filename = forcing_files[cmor_var].replace('.nc', '')
+                filename = forcing_files[cmor_var].replace(".nc", "")
                 textvar.set(
-                    "value", f"$(PathMeteoIn)/{filename}",
+                    "value",
+                    f"$(PathMeteoIn)/{filename}",
                 )
 
         # lisvap output files
         # MapsName: {prefix_name, prefix}
         MAPS_PREFIXES = {
-            'E0Maps': {'name': 'PrefixE0', 'value': 'e0'},
-            'ES0Maps': {'name': 'PrefixES0', 'value': 'es0'},
-            'ET0Maps': {'name': 'PrefixET0', 'value': 'et0'},
+            "E0Maps": {"name": "PrefixE0", "value": "e0"},
+            "ES0Maps": {"name": "PrefixES0", "value": "es0"},
+            "ET0Maps": {"name": "PrefixET0", "value": "et0"},
         }
         for prefix in MAPS_PREFIXES.values():
-            if prefix['name'] in textvar_name:
-                filename = forcing_files[prefix['value']].replace('.nc', '')
+            if prefix["name"] in textvar_name:
+                filename = forcing_files[prefix["value"]].replace(".nc", "")
                 textvar.set(
                     "value",
                     f"{filename}",
