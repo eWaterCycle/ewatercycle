@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
-import xarray as xr
 from pathlib import Path
 
 import pytest
+import xarray as xr
 from numpy.testing import assert_array_equal
 
-from ewatercycle.util import find_closest_point, get_time, to_absolute_path, reindex
+from ewatercycle.util import find_closest_point, get_time, reindex, to_absolute_path
 
 
 def test_get_time_with_utc():

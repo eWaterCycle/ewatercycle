@@ -6,9 +6,11 @@ config_file = create_lisvap_config(
     parameterset_dir,
     forcing_dir,
     forcing_name,
+    lisvap_config,
     mask_map,
     start_time,
     end_time,
+    forcing_files,
     )
 lisvap(
     version,
@@ -21,9 +23,9 @@ lisvap(
 
 import os
 import subprocess
-from pathlib import Path
-from typing import Tuple, Dict
 import xml.etree.ElementTree as ET
+from pathlib import Path
+from typing import Dict, Tuple
 
 from ewatercycle import CFG
 from ewatercycle.parametersetdb.config import AbstractConfig

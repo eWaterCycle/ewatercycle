@@ -1,4 +1,4 @@
-from ewatercycle.forcing._lisvap import create_lisvap_config, XmlConfig
+from ewatercycle.forcing._lisvap import XmlConfig, create_lisvap_config
 
 
 def find_values_in_xml(tree, name):

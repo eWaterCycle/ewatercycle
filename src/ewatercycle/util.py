@@ -155,8 +155,8 @@ def to_absolute_path(
     return pathlike.expanduser().resolve(strict=must_exist)
 
 
-def reindex(source_file:str, var_name: str, mask_file:str, target_file: str):
-    """ Conform the input file onto the indexes of a mask file, writing the
+def reindex(source_file: str, var_name: str, mask_file: str, target_file: str):
+    """Conform the input file onto the indexes of a mask file, writing the
     results to the target file.
 
     Args:
@@ -176,29 +176,31 @@ def reindex(source_file:str, var_name: str, mask_file:str, target_file: str):
         try:
             indexers = {
                 "latitude": mask["latitude"].values,
-                "longitude": mask["longitude"].values
-                }
+                "longitude": mask["longitude"].values,
+            }
         except:
             try:
-                indexers =  {"y": mask["y"].values, "x": mask["x"].values}
+                indexers = {"y": mask["y"].values, "x": mask["x"].values}
             except KeyError as err:
                 raise ValueError(
-                    'Check dimension names of source_file and mask_file'
+                    "Bad naming of dimensions in source_file and mask_file."
+                    "The dimensions should be either (x, y), or (lon, lat), "
+                    "or (longitude, latitude)."
                     ) from err
 
     reindexed_data = data.reindex(
         indexers,
         method="nearest",
         tolerance=1e-2,
-        )
+    )
 
     reindexed_data.to_netcdf(
-    target_file,
-    encoding={
-        var_name: {
-            "zlib": True,
-            "complevel": 4,
-            "chunksizes": (1,) + reindexed_data[var_name].shape[1:],
+        target_file,
+        encoding={
+            var_name: {
+                "zlib": True,
+                "complevel": 4,
+                "chunksizes": (1,) + reindexed_data[var_name].shape[1:],
             }
-            },
+        },
     )
