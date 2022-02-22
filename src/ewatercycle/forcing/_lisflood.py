@@ -78,9 +78,6 @@ class LisfloodForcing(DefaultForcing):
                     :py:obj:`~ewatercycle.models.lisflood.Lisflood.available_versions` choices.
                 * parameterset_dir: Directory of the parameter set.
                     Directory should contains the lisvap config file and files the config points to.
-
-        TODO add regrid options so forcing can be generated for parameter set
-        TODO that is not on a 0.1x0.1 grid
         """
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_lisflood.yml"
