@@ -2,9 +2,24 @@ import os
 from typing import Tuple, Union
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from hydrostats import metrics
 from matplotlib.dates import DateFormatter
+
+
+def downsample(df, nrows=100, agg="mean"):
+    """Resample dataframe with datetimeindex to a fixed number of rows."""
+    if len(df) <= nrows:
+        return df, df.index[1] - df.index[0]
+
+    grouper = np.arange(len(df)) // (len(df) / nrows)
+    new_df = df.groupby(grouper).agg(agg)
+    new_df.index = pd.date_range(df.index[0], df.index[-1], periods=nrows)
+
+    new_period = (df.index[-1] - df.index[0]) / nrows
+
+    return new_df, new_period
 
 
 def hydrograph(
@@ -18,6 +33,7 @@ def hydrograph(
     precipitation_units: str = "mm day$^{-1}$",
     figsize: Tuple[float, float] = (10, 10),
     filename: Union[os.PathLike, str] = None,
+    nbars: int = 100,
     **kwargs,
 ) -> Tuple[plt.Figure, Tuple[plt.Axes, plt.Axes]]:
     """Plot a hydrograph.
@@ -52,6 +68,8 @@ def hydrograph(
         With, height of the plot in inches.
     filename : str or Path, optional
         If specified, a copy of the plot will be saved to this path.
+    nbars : Int, optional
+        Number of bars to use for downsampling precipitation.
     **kwargs:
         Options to pass to the matplotlib plotting function
 
@@ -82,6 +100,8 @@ def hydrograph(
 
     # Add precipitation as bar plot to the top if specified
     if precipitation is not None:
+        precipitation, barwidth = downsample(precipitation, nrows=nbars, agg="mean")
+
         ax_pr = ax.twinx()
         ax_pr.invert_yaxis()
         ax_pr.set_ylabel(f"Precipitation ({precipitation_units})")
@@ -90,6 +110,7 @@ def hydrograph(
             ax_pr.bar(
                 pr_timeseries.index.values,
                 pr_timeseries.values,
+                width=barwidth,
                 alpha=0.4,
                 label=pr_label,
             )
