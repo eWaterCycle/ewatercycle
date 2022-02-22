@@ -23,24 +23,13 @@ lisvap(
 
 import os
 import subprocess
-import xml.etree.ElementTree as ET
-from pathlib import Path
 from typing import Dict, Tuple
 
 from ewatercycle import CFG
-from ewatercycle.parametersetdb.config import AbstractConfig
+from ewatercycle.parametersetdb.config import XmlConfig
 
+from ..config._lisflood_versions import get_docker_image, get_singularity_image
 from ..util import get_time
-
-
-def _set_docker_image(version):
-    images = {"20.10": "ewatercycle/lisflood-grpc4bmi:20.10"}
-    return images[version]
-
-
-def _set_singularity_image(version, singularity_dir: Path):
-    images = {"20.10": "ewatercycle-lisflood-grpc4bmi_20.10.sif"}
-    return singularity_dir / images[version]
 
 
 def lisvap(
@@ -65,7 +54,7 @@ def lisvap(
     }
 
     if CFG["container_engine"].lower() == "singularity":
-        singularity_image = _set_singularity_image(version, CFG["singularity_dir"])
+        image = get_singularity_image(version, CFG["singularity_dir"])
         args = [
             "singularity",
             "exec",
@@ -75,10 +64,10 @@ def lisvap(
             ",".join([f"{hp}:{ip}" for hp, ip in mount_points.items()]),
         ]
         args += ["--pwd", f"{forcing_dir}"]
-        args.append(singularity_image)
+        args.append(image)
 
     elif CFG["container_engine"].lower() == "docker":
-        docker_image = _set_docker_image(version)
+        image = get_docker_image(version)
         args = [
             "docker",
             "run -ti",
@@ -88,7 +77,7 @@ def lisvap(
             ",".join([f"{hp}:{ip}" for hp, ip in mount_points.items()]),
         ]
         args += ["--pwd", f"{forcing_dir}"]
-        args.append(docker_image)
+        args.append(image)
 
     else:
         raise ValueError(
@@ -175,27 +164,3 @@ def create_lisvap_config(
     lisvap_file = f"{forcing_dir}/lisvap_{forcing_name}_setting.xml"
     cfg.save(lisvap_file)
     return lisvap_file
-
-
-class XmlConfig(AbstractConfig):
-    """Config container where config is read/saved in xml format."""
-
-    def __init__(self, source):
-        """Config container where config is read/saved in xml format.
-
-        Args:
-            source: file to read from
-        """
-        super().__init__(source)
-        self.tree = ET.parse(source)
-        self.config: ET.Element = self.tree.getroot()
-        """XML element used to make changes to the config"""
-
-    def save(self, target):
-        """Save xml to file.
-
-        Args:
-            target: file to save to
-
-        """
-        self.tree.write(target)

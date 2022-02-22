@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from configparser import ConfigParser
 from typing import Any, Dict, Type
 from urllib.request import urlopen
+from xml.etree import ElementTree as ET
 
 from ruamel.yaml import YAML
 
@@ -80,3 +81,27 @@ CONFIG_FORMATS: Dict[str, Type[AbstractConfig]] = {
     "ini": IniConfig,
     "yaml": YamlConfig,
 }
+
+
+class XmlConfig(AbstractConfig):
+    """Config container where config is read/saved in xml format."""
+
+    def __init__(self, source):
+        """Config container where config is read/saved in xml format.
+
+        Args:
+            source: file to read from
+        """
+        super().__init__(source)
+        self.tree = ET.parse(source)
+        self.config: ET.Element = self.tree.getroot()
+        """XML element used to make changes to the config"""
+
+    def save(self, target):
+        """Save xml to file.
+
+        Args:
+            target: file to save to
+
+        """
+        self.tree.write(target)
