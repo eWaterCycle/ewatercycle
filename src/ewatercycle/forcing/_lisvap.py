@@ -41,9 +41,6 @@ def lisvap(
 ) -> Tuple[int, bytes, bytes]:
     """Run lisvap to generate evaporation forcing files
 
-    Args:
-        forcing: Path to forcing data
-
     Returns:
         Tuple with exit code, stdout and stderr
     """

@@ -68,9 +68,17 @@ class LisfloodForcing(DefaultForcing):
         """
         extract_region (dict): Region specification, dictionary must contain
             `start_longitude`, `end_longitude`, `start_latitude`, `end_latitude`
-        run_lisvap (dict): Lisvap specification. If lisvap should be run, then,
-            specification is a dictionary {lisvap_config: str, mask_map: str,
-            version: str, parameterset_dir: str}. Default is None.
+        run_lisvap (dict): Lisvap specification. Default is None. If lisvap should be run, then,
+            specification is a dictionary with following key/value pairs:
+                * lisvap_config: Name of Lisvap configuration file. Can be found in parameter set.
+                * mask_map: A mask for the spatial selection.
+                    This file should have same extent and resolution as parameter-set.
+                * version: LISVAP/LISFLOOD model version supported by ewatercycle.
+                    For version pick from
+                    :py:obj:`~ewatercycle.models.lisflood.Lisflood.available_versions` choices.
+                * parameterset_dir: Directory of the parameter set.
+                    Directory should contains the lisvap config file and files the config points to.
+
         TODO add regrid options so forcing can be generated for parameter set
         TODO that is not on a 0.1x0.1 grid
         """
