@@ -75,8 +75,8 @@ def hydrograph(
     ax.set_title(title)
     ax.set_ylabel(f"Discharge ({discharge_units})")
 
-    y_obs.plot(ax=ax, **kwargs)
     y_sim.plot(ax=ax, **kwargs)
+    y_obs.plot(ax=ax, **kwargs)
 
     handles, labels = ax.get_legend_handles_labels()
 
@@ -85,16 +85,13 @@ def hydrograph(
         ax_pr = ax.twinx()
         ax_pr.invert_yaxis()
         ax_pr.set_ylabel(f"Precipitation ({precipitation_units})")
-        prop_cycler = ax._get_lines.prop_cycler
 
         for pr_label, pr_timeseries in precipitation.iteritems():
-            color = next(prop_cycler)["color"]
             ax_pr.bar(
                 pr_timeseries.index.values,
                 pr_timeseries.values,
                 alpha=0.4,
                 label=pr_label,
-                color=color,
             )
 
         # tweak ylim to make space at bottom and top
