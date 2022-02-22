@@ -1,4 +1,12 @@
-from ewatercycle.forcing._lisvap import XmlConfig, create_lisvap_config
+import os
+import subprocess
+from pathlib import PosixPath
+from unittest.mock import patch
+
+import pytest
+
+from ewatercycle import CFG
+from ewatercycle.forcing._lisvap import XmlConfig, create_lisvap_config, lisvap
 
 
 def find_values_in_xml(tree, name):
@@ -55,3 +63,93 @@ def test_create_lisvap_config(tmp_path, sample_lisvap_config):
     assert find_values_in_xml(_cfg.config, "TAvgMaps") == {
         "$(PathMeteoIn)/lisflood_ERA5_Rhine_tas_1989_1999"
     }
+
+
+@pytest.fixture
+def mocked_config(tmp_path):
+    CFG["output_dir"] = tmp_path
+    CFG["container_engine"] = "singularity"
+    CFG["singularity_dir"] = tmp_path
+    CFG["parameterset_dir"] = tmp_path / "psr"
+    CFG["parameter_sets"] = {}
+
+
+def prep_lisvap_input(tmp_path):
+    CFG["parameterset_dir"].mkdir()
+    forcing_dir = tmp_path / "forc"
+    forcing_dir.mkdir()
+    mask_map = CFG["parameterset_dir"] / "mask.nc"
+    mask_map.write_text("Some file content")
+    config_file = tmp_path / "lisvap.xml"
+    config_file.write_text("Some file content")
+    return config_file, forcing_dir, mask_map
+
+
+@patch("subprocess.Popen")
+def test_lisvap_singularity(mocked_popen, tmp_path, mocked_config):
+    config_file, forcing_dir, mask_map = prep_lisvap_input(tmp_path)
+    mocked_popen.return_value.communicate.return_value = ("output", "error")
+    mocked_popen.return_value.wait.return_value = 0
+
+    exit_code, stdout, stderr = lisvap(
+        "20.10",
+        str(CFG["parameterset_dir"]),
+        str(forcing_dir),
+        str(mask_map),
+        str(config_file),
+    )
+
+    expected = [
+        "singularity",
+        "exec",
+        "--bind",
+        f"{tmp_path}/psr:{tmp_path}/psr,{tmp_path}/psr/mask.nc:{tmp_path}/psr/mask.nc,{tmp_path}/forc:{tmp_path}/forc",
+        "--pwd",
+        f"{tmp_path}/forc",
+        PosixPath(f"{tmp_path}/ewatercycle-lisflood-grpc4bmi_20.10.sif"),
+        "python3",
+        "/opt/Lisvap/src/lisvap1.py",
+        f"{tmp_path}/lisvap.xml",
+    ]
+    mocked_popen.assert_called_with(
+        expected, preexec_fn=os.setsid, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    assert exit_code == 0
+    assert stderr == "error"
+    assert stdout == "output"
+
+
+@patch("subprocess.Popen")
+def test_lisvap_docker(mocked_popen, tmp_path, mocked_config):
+    CFG["container_engine"] = "docker"
+    config_file, forcing_dir, mask_map = prep_lisvap_input(tmp_path)
+    mocked_popen.return_value.communicate.return_value = ("output", "error")
+    mocked_popen.return_value.wait.return_value = 0
+
+    exit_code, stdout, stderr = lisvap(
+        "20.10",
+        str(CFG["parameterset_dir"]),
+        str(forcing_dir),
+        str(mask_map),
+        str(config_file),
+    )
+
+    expected = [
+        "docker",
+        "run",
+        "-ti",
+        "--volume",
+        f"{tmp_path}/psr:{tmp_path}/psr,{tmp_path}/psr/mask.nc:{tmp_path}/psr/mask.nc,{tmp_path}/forc:{tmp_path}/forc",
+        "--pwd",
+        f"{tmp_path}/forc",
+        "ewatercycle/lisflood-grpc4bmi:20.10",
+        "python3",
+        "/opt/Lisvap/src/lisvap1.py",
+        f"{tmp_path}/lisvap.xml",
+    ]
+    mocked_popen.assert_called_with(
+        expected, preexec_fn=os.setsid, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    assert exit_code == 0
+    assert stderr == "error"
+    assert stdout == "output"

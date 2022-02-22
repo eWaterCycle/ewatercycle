@@ -44,49 +44,51 @@ def lisvap(
     Returns:
         Tuple with exit code, stdout and stderr
     """
-    mount_points = {
-        f"{parameterset_dir}": f"{parameterset_dir}",
-        f"{mask_map}": "/data/model_mask.nc",
-        f"{forcing_dir}": f"{forcing_dir}",
-    }
+    mount_points = (
+        parameterset_dir,
+        mask_map,
+        forcing_dir,
+    )
 
     if CFG["container_engine"].lower() == "singularity":
         image = get_singularity_image(version, CFG["singularity_dir"])
         args = [
             "singularity",
             "exec",
-        ]
-        args += [
             "--bind",
-            ",".join([f"{hp}:{ip}" for hp, ip in mount_points.items()]),
+            ",".join([f"{mp}:{mp}" for mp in mount_points]),
+            "--pwd",
+            f"{forcing_dir}",
+            image,
         ]
-        args += ["--pwd", f"{forcing_dir}"]
-        args.append(image)
-
     elif CFG["container_engine"].lower() == "docker":
         image = get_docker_image(version)
         args = [
             "docker",
-            "run -ti",
-        ]
-        args += [
+            "run",
+            "-ti",
             "--volume",
-            ",".join([f"{hp}:{ip}" for hp, ip in mount_points.items()]),
+            ",".join(f"{mp}:{mp}" for mp in mount_points),
+            "--pwd",
+            f"{forcing_dir}",
+            image,
         ]
-        args += ["--pwd", f"{forcing_dir}"]
-        args.append(image)
-
     else:
         raise ValueError(
             f"Unknown container technology in CFG: {CFG['container_engine']}"
         )
 
-    args += ["python3", "/opt/Lisvap/src/lisvap1.py", f"{config_file}"]
+    args += ["python3", "/opt/Lisvap/src/lisvap1.py", config_file]
     container = subprocess.Popen(
         args, preexec_fn=os.setsid, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     exit_code = container.wait()
     stdout, stderr = container.communicate()
+    if exit_code != 0:
+        raise subprocess.CalledProcessError(
+            returncode=exit_code, cmd=args, stderr=stderr, output=stdout
+        )
+
     return exit_code, stdout, stderr
 
 

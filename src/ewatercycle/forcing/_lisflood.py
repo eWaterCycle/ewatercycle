@@ -167,7 +167,7 @@ class LisfloodForcing(DefaultForcing):
                 end_time,
                 forcing_files,
             )
-            exit_code, stdout, stderr = lisvap(
+            lisvap(
                 version,
                 parameterset_dir,
                 str(global_forcing_directory),
