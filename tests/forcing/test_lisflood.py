@@ -298,7 +298,12 @@ def create_mask_netcdf(filename):
 
 class TestGenerateForcingFromLisvap:
     def test_result(
-        self, tmp_path, sample_shape, sample_lisvap_config, mock_recipe_run
+        self,
+        tmp_path,
+        sample_shape,
+        sample_lisvap_config,
+        mock_recipe_run,
+        mocked_config,
     ):
         parameterset_dir = tmp_path / "myparameters"
         mask_map = tmp_path / "mymask.nc"

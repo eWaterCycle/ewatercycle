@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from ewatercycle import CFG
 from ewatercycle.parametersetdb import build_from_urls
 
 
@@ -71,3 +72,12 @@ def sample_marrmot_forcing_file():
 @pytest.fixture
 def sample_lisvap_config():
     return str(Path(__file__).parent / "forcing" / "data" / "settings_lisvap.xml")
+
+
+@pytest.fixture
+def mocked_config(tmp_path):
+    CFG["output_dir"] = tmp_path
+    CFG["container_engine"] = "singularity"
+    CFG["singularity_dir"] = tmp_path
+    CFG["parameterset_dir"] = tmp_path / "psr"
+    CFG["parameter_sets"] = {}

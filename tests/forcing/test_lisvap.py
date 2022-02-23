@@ -3,8 +3,6 @@ import subprocess
 from pathlib import PosixPath
 from unittest.mock import patch
 
-import pytest
-
 from ewatercycle import CFG
 from ewatercycle.forcing._lisvap import XmlConfig, create_lisvap_config, lisvap
 
@@ -63,15 +61,6 @@ def test_create_lisvap_config(tmp_path, sample_lisvap_config):
     assert find_values_in_xml(_cfg.config, "TAvgMaps") == {
         "$(PathMeteoIn)/lisflood_ERA5_Rhine_tas_1989_1999"
     }
-
-
-@pytest.fixture
-def mocked_config(tmp_path):
-    CFG["output_dir"] = tmp_path
-    CFG["container_engine"] = "singularity"
-    CFG["singularity_dir"] = tmp_path
-    CFG["parameterset_dir"] = tmp_path / "psr"
-    CFG["parameter_sets"] = {}
 
 
 def prep_lisvap_input(tmp_path):
