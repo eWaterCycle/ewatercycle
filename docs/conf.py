@@ -231,7 +231,7 @@ napoleon_custom_sections = [
 ]
 
 intersphinx_mapping = {
-    "cf_units": ("https://scitools.org.uk/cf-units/docs/latest/", None),
+    "cf_units": ("https://cf-units.readthedocs.io/en/latest/", None),
     "esmvalcore": ("https://docs.esmvaltool.org/projects/esmvalcore/en/latest/", None),
     "esmvaltool": ("https://docs.esmvaltool.org/en/latest/", None),
     "grpc4bmi": ("https://grpc4bmi.readthedocs.io/en/latest/", None),

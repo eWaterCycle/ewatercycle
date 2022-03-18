@@ -2,7 +2,6 @@
 
 import datetime
 import logging
-import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Iterable, Tuple, cast
 
@@ -13,10 +12,15 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
+from ewatercycle.config._lisflood_versions import (
+    get_docker_image,
+    get_singularity_image,
+    version_images,
+)
 from ewatercycle.forcing._lisflood import LisfloodForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
-from ewatercycle.parametersetdb.config import AbstractConfig
+from ewatercycle.parametersetdb.config import XmlConfig
 from ewatercycle.util import find_closest_point, get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
@@ -35,7 +39,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
     """
 
-    available_versions = ("20.10",)
+    available_versions = tuple(version_images.keys())
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     def __init__(  # noqa: D107
@@ -47,14 +51,6 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         super().__init__(version, parameter_set, forcing)
         self._check_forcing(forcing)
         self.cfg = XmlConfig(parameter_set.config)
-
-    def _set_docker_image(self):
-        images = {"20.10": "ewatercycle/lisflood-grpc4bmi:20.10"}
-        self.docker_image = images[self.version]
-
-    def _set_singularity_image(self, singularity_dir: Path):
-        images = {"20.10": "ewatercycle-lisflood-grpc4bmi_20.10.sif"}
-        self.singularity_image = singularity_dir / images[self.version]
 
     def _get_textvar_value(self, name: str):
         for textvar in self.cfg.config.iter("textvar"):
@@ -120,17 +116,17 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                 input_dirs.append(str(mask_map.parent))
 
         if CFG["container_engine"].lower() == "singularity":
-            self._set_singularity_image(CFG["singularity_dir"])
+            image = get_singularity_image(self.version, CFG["singularity_dir"])
             self.bmi = BmiClientSingularity(
-                image=str(self.singularity_image),
+                image=str(image),
                 input_dirs=input_dirs,
                 work_dir=str(cfg_dir_as_path),
                 timeout=300,
             )
         elif CFG["container_engine"].lower() == "docker":
-            self._set_docker_image()
+            image = get_docker_image(self.version)
             self.bmi = BmiClientDocker(
-                image=self.docker_image,
+                image=image,
                 image_port=55555,
                 input_dirs=input_dirs,
                 work_dir=str(cfg_dir_as_path),
@@ -369,27 +365,3 @@ def _generate_workdir(cfg_dir: Path = None) -> Path:
         cfg_dir = to_absolute_path(f"lisflood_{timestamp}", parent=Path(scratch_dir))
     cfg_dir.mkdir(parents=True, exist_ok=True)
     return cfg_dir
-
-
-class XmlConfig(AbstractConfig):
-    """Config container where config is read/saved in xml format."""
-
-    def __init__(self, source):
-        """Config container where config is read/saved in xml format.
-
-        Args:
-            source: file to read from
-        """
-        super().__init__(source)
-        self.tree = ET.parse(source)
-        self.config: ET.Element = self.tree.getroot()
-        """XML element used to make changes to the config"""
-
-    def save(self, target):
-        """Save xml to file.
-
-        Args:
-            target: file to save to
-
-        """
-        self.tree.write(target)

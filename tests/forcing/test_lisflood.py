@@ -1,5 +1,5 @@
-import numpy as np
-import pandas as pd
+from unittest.mock import patch
+
 import pytest
 import xarray as xr
 from esmvalcore.experimental import Recipe
@@ -20,16 +20,15 @@ def test_plot():
 
 
 def create_netcdf(var_name, filename):
-    var = 15 + 8 * np.random.randn(2, 2, 3)
-    lon = [[-99.83, -99.32], [-99.79, -99.23]]
-    lat = [[42.25, 42.21], [42.63, 42.59]]
-    ds = xr.Dataset(
-        {var_name: (["longitude", "latitude", "time"], var)},
+    ds = xr.DataArray(
+        data=[[1.0, 2.0], [3.0, 4.0]],
         coords={
-            "lon": (["longitude", "latitude"], lon),
-            "lat": (["longitude", "latitude"], lat),
-            "time": pd.date_range("2014-09-06", periods=3),
+            "longitude": [19.35, 19.45],
+            "latitude": [-33.05, -33.15],
+            "time": "2014-09-06",
         },
+        dims=["longitude", "latitude"],
+        name=var_name,
     )
     ds.to_netcdf(filename)
     return DataFile(filename)
@@ -44,6 +43,11 @@ def mock_recipe_run(monkeypatch, tmp_path):
         data_files = (
             create_netcdf("pr", tmp_path / "lisflood_pr.nc"),
             create_netcdf("tas", tmp_path / "lisflood_tas.nc"),
+            create_netcdf("tasmax", tmp_path / "lisflood_tasmax.nc"),
+            create_netcdf("tasmin", tmp_path / "lisflood_tasmin.nc"),
+            create_netcdf("sfcWind", tmp_path / "lisflood_sfcWind.nc"),
+            create_netcdf("rsds", tmp_path / "lisflood_rsds.nc"),
+            create_netcdf("e", tmp_path / "lisflood_e.nc"),
         )
 
     def mock_run(self):
@@ -271,3 +275,84 @@ class TestGenerateRegionFromShapeFile:
         forcing.shape = None
 
         assert forcing == saved_forcing
+
+
+def create_mask_netcdf(filename):
+    ds = xr.DataArray(
+        data=[
+            [False, True, True, True, True],
+            [False, False, True, True, True],
+            [False, False, True, False, True],
+            [False, False, False, False, False],
+            [False, False, False, False, False],
+        ],
+        coords={
+            "longitude": [19.05, 19.15, 19.25, 19.35, 19.45],
+            "latitude": [-33.05, -33.15, -33.25, -33.35, -33.45],
+        },
+        dims=["longitude", "latitude"],
+    )
+    ds.to_netcdf(filename)
+    return DataFile(filename)
+
+
+class TestGenerateForcingFromLisvap:
+    def test_result(
+        self,
+        tmp_path,
+        sample_shape,
+        sample_lisvap_config,
+        mock_recipe_run,
+        mocked_config,
+    ):
+        parameterset_dir = tmp_path / "myparameters"
+        mask_map = tmp_path / "mymask.nc"
+        create_mask_netcdf(mask_map)
+
+        with patch("subprocess.Popen") as mocked_popen:
+
+            def write_mocked_lisvap_output(*_args, **_kwargs):
+                create_netcdf(
+                    "e0", tmp_path / "reindexed" / "lisflood_ERA5_Rhine_e0_1989_1999.nc"
+                )
+                create_netcdf(
+                    "es0",
+                    tmp_path / "reindexed" / "lisflood_ERA5_Rhine_es0_1989_1999.nc",
+                )
+                create_netcdf(
+                    "et0",
+                    tmp_path / "reindexed" / "lisflood_ERA5_Rhine_et0_1989_1999.nc",
+                )
+                return 0
+
+            mocked_popen.return_value.communicate.return_value = ("output", "error")
+            mocked_popen.return_value.wait.side_effect = write_mocked_lisvap_output
+
+            forcing = generate(
+                target_model="lisflood",
+                dataset="ERA5",
+                start_time="1989-01-02T00:00:00Z",
+                end_time="1999-01-02T00:00:00Z",
+                shape=sample_shape,
+                model_specific_options={
+                    "run_lisvap": {
+                        "lisvap_config": sample_lisvap_config,
+                        "mask_map": str(mask_map),
+                        "version": "20.10",
+                        "parameterset_dir": str(parameterset_dir),
+                    }
+                },
+            )
+
+        expected = LisfloodForcing(
+            directory=str(tmp_path / "reindexed"),
+            start_time="1989-01-02T00:00:00Z",
+            end_time="1999-01-02T00:00:00Z",
+            shape=str(sample_shape),
+            PrefixPrecipitation="lisflood_pr.nc",
+            PrefixTavg="lisflood_tas.nc",
+            PrefixE0="lisflood_ERA5_Rhine_e0_1989_1999.nc",
+            PrefixES0="lisflood_ERA5_Rhine_es0_1989_1999.nc",
+            PrefixET0="lisflood_ERA5_Rhine_et0_1989_1999.nc",
+        )
+        assert forcing == expected
