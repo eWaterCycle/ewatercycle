@@ -316,10 +316,12 @@ class TestGenerateForcingFromLisvap:
                     "e0", tmp_path / "reindexed" / "lisflood_ERA5_Rhine_e0_1989_1999.nc"
                 )
                 create_netcdf(
-                    "es0", tmp_path / "reindexed" / "lisflood_ERA5_Rhine_es0_1989_1999.nc"
+                    "es0",
+                    tmp_path / "reindexed" / "lisflood_ERA5_Rhine_es0_1989_1999.nc",
                 )
                 create_netcdf(
-                    "et0", tmp_path / "reindexed" / "lisflood_ERA5_Rhine_et0_1989_1999.nc"
+                    "et0",
+                    tmp_path / "reindexed" / "lisflood_ERA5_Rhine_et0_1989_1999.nc",
                 )
                 return 0
 
