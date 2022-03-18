@@ -8,7 +8,7 @@ from hydrostats import metrics
 from matplotlib.dates import DateFormatter
 
 
-def downsample(df, nrows=100, agg="mean"):
+def _downsample(df, nrows=100, agg="mean"):
     """Resample dataframe with datetimeindex to a fixed number of rows."""
     if len(df) <= nrows:
         return df, df.index[1] - df.index[0]
@@ -102,7 +102,9 @@ def hydrograph(
     if precipitation is not None:
 
         if nbars is not None:
-            precipitation, barwidth = downsample(precipitation, nrows=nbars, agg="mean")
+            precipitation, barwidth = _downsample(
+                precipitation, nrows=nbars, agg="mean"
+            )
         else:
             barwidth = 0.8  # default value for matplotlib barplot
 
