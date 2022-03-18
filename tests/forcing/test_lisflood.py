@@ -313,13 +313,13 @@ class TestGenerateForcingFromLisvap:
 
             def write_mocked_lisvap_output(*_args, **_kwargs):
                 create_netcdf(
-                    "e0", tmp_path / "global" / "lisflood_ERA5_Rhine_e0_1989_1999.nc"
+                    "e0", tmp_path / "reindexed" / "lisflood_ERA5_Rhine_e0_1989_1999.nc"
                 )
                 create_netcdf(
-                    "es0", tmp_path / "global" / "lisflood_ERA5_Rhine_es0_1989_1999.nc"
+                    "es0", tmp_path / "reindexed" / "lisflood_ERA5_Rhine_es0_1989_1999.nc"
                 )
                 create_netcdf(
-                    "et0", tmp_path / "global" / "lisflood_ERA5_Rhine_et0_1989_1999.nc"
+                    "et0", tmp_path / "reindexed" / "lisflood_ERA5_Rhine_et0_1989_1999.nc"
                 )
                 return 0
 
@@ -343,7 +343,7 @@ class TestGenerateForcingFromLisvap:
             )
 
         expected = LisfloodForcing(
-            directory=str(tmp_path / "global"),
+            directory=str(tmp_path / "reindexed"),
             start_time="1989-01-02T00:00:00Z",
             end_time="1999-01-02T00:00:00Z",
             shape=str(sample_shape),
