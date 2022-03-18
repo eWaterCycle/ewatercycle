@@ -33,5 +33,4 @@ def test_hydrograph():
     }
 
     df_pr = pd.DataFrame(precipitation)
-
-    hydrograph(df, reference="reference", precipitation=df_pr)
+    hydrograph(df, reference="reference", precipitation=df_pr, nbars=100)

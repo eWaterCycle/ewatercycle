@@ -1,5 +1,5 @@
 import os
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -33,7 +33,7 @@ def hydrograph(
     precipitation_units: str = "mm day$^{-1}$",
     figsize: Tuple[float, float] = (10, 10),
     filename: Union[os.PathLike, str] = None,
-    nbars: int = 100,
+    nbars: Optional[int] = None,
     **kwargs,
 ) -> Tuple[plt.Figure, Tuple[plt.Axes, plt.Axes]]:
     """Plot a hydrograph.
@@ -100,7 +100,11 @@ def hydrograph(
 
     # Add precipitation as bar plot to the top if specified
     if precipitation is not None:
-        precipitation, barwidth = downsample(precipitation, nrows=nbars, agg="mean")
+
+        if nbars is not None:
+            precipitation, barwidth = downsample(precipitation, nrows=nbars, agg="mean")
+        else:
+            barwidth = 0.8  # default value for matplotlib barplot
 
         ax_pr = ax.twinx()
         ax_pr.invert_yaxis()
