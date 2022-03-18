@@ -140,16 +140,16 @@ class LisfloodForcing(DefaultForcing):
             parameterset_dir = str(to_absolute_path(run_lisvap["parameterset_dir"]))
 
             # Reindex data because recipe cropped the data
-            # Also, create a sub dir for global dataset because xarray does not
+            # Also, create a sub dir for reindexed dataset because xarray does not
             # let to overwrite!
-            global_forcing_directory = Path(f"{directory}/global")
-            global_forcing_directory.mkdir(parents=True, exist_ok=True)
+            reindexed_forcing_directory = Path(f"{directory}/reindexed")
+            reindexed_forcing_directory.mkdir(parents=True, exist_ok=True)
             for var_name in {"pr", "tas", "tasmax", "tasmin", "sfcWind", "rsds", "e"}:
                 reindex(
                     f"{directory}/{forcing_files[var_name]}",
                     var_name,
                     mask_map,
-                    f"{global_forcing_directory}/{forcing_files[var_name]}",
+                    f"{reindexed_forcing_directory}/{forcing_files[var_name]}",
                 )
             # Add lisvap file names
             for var_name in {"e0", "es0", "et0"}:
@@ -159,7 +159,7 @@ class LisfloodForcing(DefaultForcing):
 
             config_file = create_lisvap_config(
                 parameterset_dir,
-                str(global_forcing_directory),
+                str(reindexed_forcing_directory),
                 dataset,
                 lisvap_config,
                 mask_map,
@@ -170,7 +170,7 @@ class LisfloodForcing(DefaultForcing):
             lisvap(
                 version,
                 parameterset_dir,
-                str(global_forcing_directory),
+                str(reindexed_forcing_directory),
                 mask_map,
                 config_file,
             )
@@ -178,7 +178,7 @@ class LisfloodForcing(DefaultForcing):
             # exit_code, stdout, stderr
             # Instantiate forcing object based on generated data
             return LisfloodForcing(
-                directory=str(global_forcing_directory),
+                directory=str(reindexed_forcing_directory),
                 start_time=start_time,
                 end_time=end_time,
                 shape=shape,
