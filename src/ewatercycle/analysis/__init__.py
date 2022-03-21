@@ -1,10 +1,25 @@
 import os
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from hydrostats import metrics
 from matplotlib.dates import DateFormatter
+
+
+def _downsample(df, nrows=100, agg="mean"):
+    """Resample dataframe with datetimeindex to a fixed number of rows."""
+    if len(df) <= nrows:
+        return df, df.index[1] - df.index[0]
+
+    grouper = np.arange(len(df)) // (len(df) / nrows)
+    new_df = df.groupby(grouper).agg(agg)
+    new_df.index = pd.date_range(df.index[0], df.index[-1], periods=nrows)
+
+    new_period = (df.index[-1] - df.index[0]) / nrows
+
+    return new_df, new_period
 
 
 def hydrograph(
@@ -18,6 +33,7 @@ def hydrograph(
     precipitation_units: str = "mm day$^{-1}$",
     figsize: Tuple[float, float] = (10, 10),
     filename: Union[os.PathLike, str] = None,
+    nbars: Optional[int] = None,
     **kwargs,
 ) -> Tuple[plt.Figure, Tuple[plt.Axes, plt.Axes]]:
     """Plot a hydrograph.
@@ -52,6 +68,8 @@ def hydrograph(
         With, height of the plot in inches.
     filename : str or Path, optional
         If specified, a copy of the plot will be saved to this path.
+    nbars : Int, optional
+        Number of bars to use for downsampling precipitation.
     **kwargs:
         Options to pass to the matplotlib plotting function
 
@@ -75,26 +93,32 @@ def hydrograph(
     ax.set_title(title)
     ax.set_ylabel(f"Discharge ({discharge_units})")
 
-    y_obs.plot(ax=ax, **kwargs)
     y_sim.plot(ax=ax, **kwargs)
+    y_obs.plot(ax=ax, **kwargs)
 
     handles, labels = ax.get_legend_handles_labels()
 
     # Add precipitation as bar plot to the top if specified
     if precipitation is not None:
+
+        if nbars is not None:
+            precipitation, barwidth = _downsample(
+                precipitation, nrows=nbars, agg="mean"
+            )
+        else:
+            barwidth = 0.8  # default value for matplotlib barplot
+
         ax_pr = ax.twinx()
         ax_pr.invert_yaxis()
         ax_pr.set_ylabel(f"Precipitation ({precipitation_units})")
-        prop_cycler = ax._get_lines.prop_cycler
 
         for pr_label, pr_timeseries in precipitation.iteritems():
-            color = next(prop_cycler)["color"]
             ax_pr.bar(
                 pr_timeseries.index.values,
                 pr_timeseries.values,
+                width=barwidth,
                 alpha=0.4,
                 label=pr_label,
-                color=color,
             )
 
         # tweak ylim to make space at bottom and top
