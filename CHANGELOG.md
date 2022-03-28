@@ -6,6 +6,13 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+## [1.2.0] (2022-03-28)
+
+### Added
+
+- Evaporation Pre-Processor for the LISFLOOD (Lisvap) to forcing ([#282](https://github.com/eWaterCycle/ewatercycle/issues/282))
+- Set number of bars in hydrograph ([#298](https://github.com/eWaterCycle/ewatercycle/pull/298))
+
 ## [1.1.4] (2022-01-14)
 
 ### Added
@@ -125,7 +132,8 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.4...HEAD
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/1.2.0...HEAD
+[1.2.0]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.4...1.2.0
 [1.1.4]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.3...1.1.4
 [1.1.3]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.2...1.1.3
 [1.1.2]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.1...1.1.2

@@ -7,7 +7,6 @@ from ewatercycle.analysis import hydrograph
 
 @image_comparison(
     baseline_images=["hydrograph"],
-    remove_text=True,
     extensions=["png"],
     savefig_kwarg={"bbox_inches": "tight"},
 )
