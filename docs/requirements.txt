@@ -2,3 +2,5 @@ ipython
 nbsphinx
 ruamel.yaml
 sphinx-copybutton
+# TODO workaround till https://github.com/jupyter/nbconvert/issues/1736 is fixed
+jinja2 = "~=3.0.0"
