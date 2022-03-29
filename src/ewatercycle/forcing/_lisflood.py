@@ -3,8 +3,10 @@
 import logging
 from pathlib import Path
 from typing import Optional
+from packaging import Version
 
 from esmvalcore.experimental import get_recipe
+from esmvaltool import __version__ as esmvaltool_version
 
 from ..util import (
     data_files_from_recipe_output,
@@ -67,7 +69,11 @@ class LisfloodForcing(DefaultForcing):
     ) -> "LisfloodForcing":
         """
         extract_region (dict): Region specification, dictionary must contain
-            `start_longitude`, `end_longitude`, `start_latitude`, `end_latitude`
+            `start_longitude`, `end_longitude`, `step_longitude`,
+            `start_latitude`, `end_latitude`, `step_latitude.
+            See :py:fun:`esmvalcore.preprocessor.regrid`.
+
+            Make sure the region matches up with the grid in the mask_map and files in parameterset_dir.
         run_lisvap (dict): Lisvap specification. Default is None. If lisvap should be run then
             give a dictionary with following key/value pairs:
 
@@ -105,9 +111,14 @@ class LisfloodForcing(DefaultForcing):
         if extract_region is None:
             extract_region = get_extents(shape)
         for preproc_name in preproc_names:
-            recipe.data["preprocessors"][preproc_name][
-                "extract_region"
-            ] = extract_region
+            preproc = recipe.data["preprocessors"][preproc_name]
+            preproc["regrid"]["target_grid"] = extract_region
+            if Version(esmvaltool_version) <= Version("2.5.0"):
+                # Deletes only needed for ESMValTool older than or equal to 2.5.0
+                del preproc["extract_region"]
+                del preproc["custom_order"]
+                del preproc["regrid"]["lon_offset"]
+                del preproc["regrid"]["lat_offset"]
 
         recipe.data["datasets"] = [DATASETS[dataset]]
 
