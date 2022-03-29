@@ -3,7 +3,6 @@
 import logging
 from pathlib import Path
 from typing import Optional
-from packaging import Version
 
 from esmvalcore.experimental import get_recipe
 from esmvaltool import __version__ as esmvaltool_version
@@ -110,15 +109,16 @@ class LisfloodForcing(DefaultForcing):
 
         if extract_region is None:
             extract_region = get_extents(shape)
+            # TODO complain that extract_region will likely have a grid offset different than parameter set.
         for preproc_name in preproc_names:
             preproc = recipe.data["preprocessors"][preproc_name]
-            preproc["regrid"]["target_grid"] = extract_region
-            if Version(esmvaltool_version) <= Version("2.5.0"):
-                # Deletes only needed for ESMValTool older than or equal to 2.5.0
+            # Remove stuff from old version of ESMValTool recipe
+            if "extract_region" in preproc and preproc["regrid"]["target_grid"] == "0.1x0.1":
                 del preproc["extract_region"]
                 del preproc["custom_order"]
                 del preproc["regrid"]["lon_offset"]
                 del preproc["regrid"]["lat_offset"]
+            preproc["regrid"]["target_grid"] = extract_region
 
         recipe.data["datasets"] = [DATASETS[dataset]]
 
