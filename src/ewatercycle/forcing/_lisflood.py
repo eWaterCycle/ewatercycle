@@ -63,16 +63,23 @@ class LisfloodForcing(DefaultForcing):
         start_time: str,
         end_time: str,
         shape: str,
-        extract_region: dict = None,
+        target_grid: dict,
         run_lisvap: dict = None,
     ) -> "LisfloodForcing":
         """
-        extract_region (dict): Region specification, dictionary must contain
-            `start_longitude`, `end_longitude`, `step_longitude`,
-            `start_latitude`, `end_latitude`, `step_latitude.
-            See :py:fun:`esmvalcore.preprocessor.regrid`.
+        target_grid (dict): the ``target_grid`` should be a ``dict`` with the
+            following keys:
 
-            Make sure the region matches up with the grid in the mask_map and files in parameterset_dir.
+            - ``start_longitude``: longitude at the center of the first grid cell.
+            - ``end_longitude``: longitude at the center of the last grid cell.
+            - ``step_longitude``: constant longitude distance between grid cell \
+                centers.
+            - ``start_latitude``: latitude at the center of the first grid cell.
+            - ``end_latitude``: longitude at the center of the last grid cell.
+            - ``step_latitude``: constant latitude distance between grid cell centers.
+
+            Make sure the target grid matches up with the grid in the mask_map and files in parameterset_dir.
+            Also the `shape` should be within the target grid.
         run_lisvap (dict): Lisvap specification. Default is None. If lisvap should be run then
             give a dictionary with following key/value pairs:
 
@@ -107,18 +114,15 @@ class LisfloodForcing(DefaultForcing):
             "catchment"
         ] = basin
 
-        if extract_region is None:
-            extract_region = get_extents(shape)
-            # TODO complain that extract_region will likely have a grid offset different than parameter set.
         for preproc_name in preproc_names:
             preproc = recipe.data["preprocessors"][preproc_name]
-            # Remove stuff from old version of ESMValTool recipe
-            if "extract_region" in preproc and preproc["regrid"]["target_grid"] == "0.1x0.1":
+            # Remove stuff from old version of ESMValTool recipe, as regrid preproccesor takes care of region extraction.
+            if "extract_region" in preproc:
                 del preproc["extract_region"]
                 del preproc["custom_order"]
                 del preproc["regrid"]["lon_offset"]
                 del preproc["regrid"]["lat_offset"]
-            preproc["regrid"]["target_grid"] = extract_region
+            preproc["regrid"]["target_grid"] = target_grid
 
         recipe.data["datasets"] = [DATASETS[dataset]]
 
