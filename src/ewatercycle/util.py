@@ -96,6 +96,27 @@ def get_extents(shapefile: Any, pad=0) -> Dict[str, float]:
     }
 
 
+def fit_extents_to_grid(extents, step=0.1, offset=0.05, ndigits=2) -> Dict[str, float]:
+    """Get lat/lon extents fitted to a grid.
+
+    Args:
+        extents: Dict with `start_longitude`, `start_latitude`, `end_longitude`, `end_latitude`
+        step: Distance between to grid cells
+        offset: Offset to pad with after rounding extent to step.
+        ndigits: Number of digits to return
+
+    Returns:
+        Dict with `start_longitude`, `start_latitude`, `end_longitude`, `end_latitude`
+    """
+    fit = lambda v, offset: round((round(v / step) * step) + offset, ndigits)
+    return {
+        "start_longitude": fit(extents["start_longitude"], -offset),
+        "start_latitude": fit(extents["start_latitude"], -offset),
+        "end_longitude": fit(extents["end_longitude"], offset),
+        "end_latitude": fit(extents["end_latitude"], offset),
+    }
+
+
 def data_files_from_recipe_output(
     recipe_output: RecipeOutput,
 ) -> Tuple[str, Dict[str, str]]:

@@ -5,7 +5,13 @@ import pytest
 import xarray as xr
 from numpy.testing import assert_array_equal
 
-from ewatercycle.util import find_closest_point, get_time, reindex, to_absolute_path
+from ewatercycle.util import (
+    find_closest_point,
+    fit_extents_to_grid,
+    get_time,
+    reindex,
+    to_absolute_path,
+)
 
 
 def test_get_time_with_utc():
@@ -139,3 +145,42 @@ def test_reindex(tmp_path):
     reindexed_val = reindexed_data["tas"].isel(latitude=1, longitude=4).values
     expected_val = expected_source.isel(latitude=1, longitude=1).values
     assert reindexed_val == expected_val
+
+
+class TestFitExtents2Map:
+    @pytest.mark.parametrize(
+        "extents, expected",
+        [
+            [
+                {
+                    "start_longitude": 4.1,
+                    "start_latitude": 46.3,
+                    "end_longitude": 11.9,
+                    "end_latitude": 52.2,
+                },
+                {
+                    "start_longitude": 4.05,
+                    "start_latitude": 46.25,
+                    "end_longitude": 11.95,
+                    "end_latitude": 52.25,
+                },
+            ],
+            [
+                {
+                    "start_longitude": -76.101,
+                    "start_latitude": 40.395,
+                    "end_longitude": -73.664,
+                    "end_latitude": 41.951,
+                },
+                {
+                    "start_longitude": -76.15,
+                    "start_latitude": 40.35,
+                    "end_longitude": -73.65,
+                    "end_latitude": 42.05,
+                },
+            ],
+        ],
+    )
+    def test_defaults(self, extents, expected):
+        result = fit_extents_to_grid(extents)
+        assert result == expected
