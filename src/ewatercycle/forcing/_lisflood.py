@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Optional
 
 from esmvalcore.experimental import get_recipe
-from esmvaltool import __version__ as esmvaltool_version
 
 from ..util import (
     data_files_from_recipe_output,
