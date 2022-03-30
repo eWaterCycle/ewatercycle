@@ -167,6 +167,7 @@ class TestGenerateForcingWithoutLisvap:
                 "references": ["acknow_project"],
                 "description": "Recipe pre-process files for use in the "
                 "LISFLOOD hydrological model.\n",
+                "title": "Generate forcing for the Lisflood hydrological " "model",
             },
             "preprocessors": {
                 "daily_radiation": {
