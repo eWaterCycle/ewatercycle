@@ -120,8 +120,10 @@ class LisfloodForcing(DefaultForcing):
             if "extract_region" in preproc:
                 del preproc["extract_region"]
                 del preproc["custom_order"]
-                del preproc["regrid"]["lon_offset"]
-                del preproc["regrid"]["lat_offset"]
+                if "lon_offset" in preproc["regrid"]:
+                    del preproc["regrid"]["lon_offset"]
+                if "lat_offset" in preproc["regrid"]:
+                    del preproc["regrid"]["lat_offset"]
             preproc["regrid"]["target_grid"] = target_grid
 
         recipe.data["datasets"] = [DATASETS[dataset]]
