@@ -80,6 +80,8 @@ class LisfloodForcing(DefaultForcing):
 
             Make sure the target grid matches up with the grid in the mask_map and files in parameterset_dir.
             Also the `shape` should be within the target grid.
+
+            If not given will guestimate target grid from `shape` using a 0.1x0.1 grid with 0.05 offset.
         run_lisvap (dict): Lisvap specification. Default is None. If lisvap should be run then
             give a dictionary with following key/value pairs:
 
