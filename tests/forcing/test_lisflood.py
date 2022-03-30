@@ -361,3 +361,46 @@ class TestGenerateForcingWithLisvap:
             PrefixET0="lisflood_ERA5_Rhine_et0_1989_1999.nc",
         )
         assert forcing == expected
+
+
+class TestGenerateForcingWithoutTargetGrid:
+    def test_recipe_configured(self, mock_recipe_run, sample_shape):
+        generate(
+            target_model="lisflood",
+            dataset="ERA5",
+            start_time="1989-01-02T00:00:00Z",
+            end_time="1999-01-02T00:00:00Z",
+            shape=sample_shape,
+        )
+
+        actual = mock_recipe_run["data_during_run"]
+
+        # Extent of sample_shape fitted to 0.1x0.1 grid with 0.05 offset
+        expected_target_grid = {
+            "end_latitude": 52.25,
+            "end_longitude": 11.95,
+            "start_latitude": 46.25,
+            "start_longitude": 4.05,
+            "step_latitude": 0.1,
+            "step_longitude": 0.1,
+        }
+        assert (
+            actual["preprocessors"]["general"]["regrid"]["target_grid"]
+            == expected_target_grid
+        )
+        assert (
+            actual["preprocessors"]["daily_water"]["regrid"]["target_grid"]
+            == expected_target_grid
+        )
+        assert (
+            actual["preprocessors"]["daily_temperature"]["regrid"]["target_grid"]
+            == expected_target_grid
+        )
+        assert (
+            actual["preprocessors"]["daily_radiation"]["regrid"]["target_grid"]
+            == expected_target_grid
+        )
+        assert (
+            actual["preprocessors"]["daily_windspeed"]["regrid"]["target_grid"]
+            == expected_target_grid
+        )

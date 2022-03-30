@@ -9,6 +9,7 @@ from esmvaltool import __version__ as esmvaltool_version
 
 from ..util import (
     data_files_from_recipe_output,
+    fit_extents_to_grid,
     get_extents,
     get_time,
     reindex,
@@ -63,7 +64,7 @@ class LisfloodForcing(DefaultForcing):
         start_time: str,
         end_time: str,
         shape: str,
-        target_grid: dict,
+        target_grid: dict = None,
         run_lisvap: dict = None,
     ) -> "LisfloodForcing":
         """
@@ -114,6 +115,16 @@ class LisfloodForcing(DefaultForcing):
             "catchment"
         ] = basin
 
+        if target_grid is None:
+            logger.warn("target_grid was not given, guestimating from shape")
+            step = 0.1
+            target_grid = fit_extents_to_grid(get_extents(shape), step=step)
+            target_grid.update(
+                {
+                    "step_longitude": step,
+                    "step_latitude": step,
+                }
+            )
         for preproc_name in preproc_names:
             preproc = recipe.data["preprocessors"][preproc_name]
             # Remove stuff from old version of ESMValTool recipe, as regrid preproccesor takes care of region extraction.
