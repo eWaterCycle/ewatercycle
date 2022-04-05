@@ -69,7 +69,7 @@ class MarrmotForcing(DefaultForcing):
             variables[var_name]["end_year"] = endyear
 
         # generate forcing data and retrieve useful information
-        recipe_output = recipe.run(_session(directory))
+        recipe_output = recipe.run(session=_session(directory))
         forcing_file: Path = list(recipe_output.values())[0].files[0].path
 
         directory = str(Path(forcing_file).parent)

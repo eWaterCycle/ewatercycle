@@ -63,7 +63,7 @@ class HypeForcing(DefaultForcing):
             variables[var_name]["end_year"] = endyear
 
         # generate forcing data and retreive useful information
-        recipe_output = recipe.run(_session(directory))
+        recipe_output = recipe.run(session=_session(directory))
         # TODO return files created by ESMValTOOL which are needed by Hype Model
         # forcing_path = list(recipe_output['...........']).data_files[0]
         forcing_path = "/foobar.txt"

@@ -90,7 +90,7 @@ class WflowForcing(DefaultForcing):
             variables[var_name]["end_year"] = endyear
 
         # generate forcing data and retreive useful information
-        recipe_output = recipe.run(_session(directory))
+        recipe_output = recipe.run(session=_session(directory))
         forcing_data = recipe_output["wflow_daily/script"].data_files[0]
 
         forcing_file = forcing_data.path

@@ -159,7 +159,7 @@ class LisfloodForcing(DefaultForcing):
         # ValueError: The 'longitude' DimCoord points array must be strictly monotonic.
 
         # generate forcing data and retrieve useful information
-        recipe_output = recipe.run(_session(directory))
+        recipe_output = recipe.run(session=_session(directory))
         directory, forcing_files = data_files_from_recipe_output(recipe_output)
 
         if run_lisvap:

@@ -106,7 +106,7 @@ class PCRGlobWBForcing(DefaultForcing):
             variables[var_name]["end_year"] = endyear_climatology
 
         # generate forcing data and retrieve useful information
-        recipe_output = recipe.run(_session(directory))
+        recipe_output = recipe.run(session=_session(directory))
         # TODO dont open recipe output, but use standard name from ESMValTool
         directory, forcing_files = data_files_from_recipe_output(recipe_output)
 
