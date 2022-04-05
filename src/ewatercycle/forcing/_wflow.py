@@ -5,7 +5,7 @@ from typing import Dict, Optional
 from esmvalcore.experimental import get_recipe
 
 from ..util import get_extents, get_time, to_absolute_path
-from ._default import DefaultForcing
+from ._default import DefaultForcing, _session
 from .datasets import DATASETS
 
 
@@ -49,6 +49,7 @@ class WflowForcing(DefaultForcing):
         end_time: str,
         shape: str,
         dem_file: str,
+        directory: Optional[str] = None,
         extract_region: Dict[str, float] = None,
     ) -> "WflowForcing":
         """
@@ -89,7 +90,7 @@ class WflowForcing(DefaultForcing):
             variables[var_name]["end_year"] = endyear
 
         # generate forcing data and retreive useful information
-        recipe_output = recipe.run()
+        recipe_output = recipe.run(_session(directory))
         forcing_data = recipe_output["wflow_daily/script"].data_files[0]
 
         forcing_file = forcing_data.path

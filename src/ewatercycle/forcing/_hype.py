@@ -6,7 +6,7 @@ from typing import Optional
 from esmvalcore.experimental import get_recipe
 
 from ..util import get_time, to_absolute_path
-from ._default import DefaultForcing
+from ._default import DefaultForcing, _session
 from .datasets import DATASETS
 
 
@@ -27,7 +27,12 @@ class HypeForcing(DefaultForcing):
 
     @classmethod
     def generate(  # type: ignore
-        cls, dataset: str, start_time: str, end_time: str, shape: str
+        cls,
+        dataset: str,
+        start_time: str,
+        end_time: str,
+        shape: str,
+        directory: Optional[str] = None,
     ) -> "HypeForcing":
         """
         None: Hype does not have model-specific generate options.
@@ -58,7 +63,7 @@ class HypeForcing(DefaultForcing):
             variables[var_name]["end_year"] = endyear
 
         # generate forcing data and retreive useful information
-        recipe_output = recipe.run()
+        recipe_output = recipe.run(_session(directory))
         # TODO return files created by ESMValTOOL which are needed by Hype Model
         # forcing_path = list(recipe_output['...........']).data_files[0]
         forcing_path = "/foobar.txt"

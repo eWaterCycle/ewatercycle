@@ -14,7 +14,7 @@ from ..util import (
     reindex,
     to_absolute_path,
 )
-from ._default import DefaultForcing
+from ._default import DefaultForcing, _session
 from ._lisvap import create_lisvap_config, lisvap
 from .datasets import DATASETS
 
@@ -63,6 +63,7 @@ class LisfloodForcing(DefaultForcing):
         start_time: str,
         end_time: str,
         shape: str,
+        directory: Optional[str] = None,
         target_grid: dict = None,
         run_lisvap: dict = None,
     ) -> "LisfloodForcing":
@@ -158,7 +159,7 @@ class LisfloodForcing(DefaultForcing):
         # ValueError: The 'longitude' DimCoord points array must be strictly monotonic.
 
         # generate forcing data and retrieve useful information
-        recipe_output = recipe.run()
+        recipe_output = recipe.run(_session(directory))
         directory, forcing_files = data_files_from_recipe_output(recipe_output)
 
         if run_lisvap:

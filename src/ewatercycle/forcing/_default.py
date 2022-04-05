@@ -1,8 +1,11 @@
 """Forcing related functionality for default models"""
 import logging
 from copy import copy
+from pathlib import Path
 from typing import Optional
 
+from esmvalcore.experimental import CFG
+from esmvalcore.experimental.config import Session
 from ruamel.yaml import YAML
 
 from ewatercycle.util import to_absolute_path
@@ -53,6 +56,7 @@ class DefaultForcing:
         start_time: str,
         end_time: str,
         shape: str,
+        directory: Optional[str] = None,
         **model_specific_options,
     ) -> "DefaultForcing":
         """Generate forcing data with ESMValTool."""
@@ -87,3 +91,20 @@ class DefaultForcing:
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
+
+
+def _session(directory: Optional[str] = None) -> Optional[Session]:
+    """When directory is set return a ESMValTool session that will write recipe output to that directory."""
+    if directory is None:
+        return None
+
+    class TimeLessSession(Session):
+        def __init__(self, output_dir: Path):
+            super().__init__(CFG.copy())
+            self.output_dir = output_dir
+
+        @property
+        def session_dir(self):
+            return self.output_dir
+
+    return TimeLessSession(Path(directory))
