@@ -8,6 +8,7 @@ from esmvalcore.experimental import get_recipe
 
 from ..util import (
     data_files_from_recipe_output,
+    fit_extents_to_grid,
     get_extents,
     get_time,
     reindex,
@@ -62,12 +63,25 @@ class LisfloodForcing(DefaultForcing):
         start_time: str,
         end_time: str,
         shape: str,
-        extract_region: dict = None,
+        target_grid: dict = None,
         run_lisvap: dict = None,
     ) -> "LisfloodForcing":
         """
-        extract_region (dict): Region specification, dictionary must contain
-            `start_longitude`, `end_longitude`, `start_latitude`, `end_latitude`
+        target_grid (dict): the ``target_grid`` should be a ``dict`` with the
+            following keys:
+
+            - ``start_longitude``: longitude at the center of the first grid cell.
+            - ``end_longitude``: longitude at the center of the last grid cell.
+            - ``step_longitude``: constant longitude distance between grid cell \
+                centers.
+            - ``start_latitude``: latitude at the center of the first grid cell.
+            - ``end_latitude``: longitude at the center of the last grid cell.
+            - ``step_latitude``: constant latitude distance between grid cell centers.
+
+            Make sure the target grid matches up with the grid in the mask_map and files in parameterset_dir.
+            Also the `shape` should be within the target grid.
+
+            If not given will guestimate target grid from `shape` using a 0.1x0.1 grid with 0.05 offset.
         run_lisvap (dict): Lisvap specification. Default is None. If lisvap should be run then
             give a dictionary with following key/value pairs:
 
@@ -102,12 +116,27 @@ class LisfloodForcing(DefaultForcing):
             "catchment"
         ] = basin
 
-        if extract_region is None:
-            extract_region = get_extents(shape)
+        if target_grid is None:
+            logger.warn("target_grid was not given, guestimating from shape")
+            step = 0.1
+            target_grid = fit_extents_to_grid(get_extents(shape), step=step)
+            target_grid.update(
+                {
+                    "step_longitude": step,
+                    "step_latitude": step,
+                }
+            )
         for preproc_name in preproc_names:
-            recipe.data["preprocessors"][preproc_name][
-                "extract_region"
-            ] = extract_region
+            preproc = recipe.data["preprocessors"][preproc_name]
+            # Remove stuff from old version of ESMValTool recipe, as regrid preproccesor takes care of region extraction.
+            if "extract_region" in preproc:
+                del preproc["extract_region"]
+                del preproc["custom_order"]
+                if "lon_offset" in preproc["regrid"]:
+                    del preproc["regrid"]["lon_offset"]
+                if "lat_offset" in preproc["regrid"]:
+                    del preproc["regrid"]["lat_offset"]
+            preproc["regrid"]["target_grid"] = target_grid
 
         recipe.data["datasets"] = [DATASETS[dataset]]
 

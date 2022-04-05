@@ -6,6 +6,10 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+### Changed
+
+- Improved performance of forcing generation of LISFLOOD model ([#301](https://github.com/eWaterCycle/ewatercycle/pull/301))
+
 ## [1.2.0] (2022-03-28)
 
 ### Added
