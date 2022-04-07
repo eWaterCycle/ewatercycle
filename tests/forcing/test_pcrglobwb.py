@@ -36,10 +36,11 @@ def mock_recipe_run(monkeypatch, tmp_path):
             create_netcdf("tas", tmp_path / "pcrglobwb_tas.nc"),
         )
 
-    def mock_run(self):
+    def mock_run(self, session=None):
         """Store recipe for inspection and return dummy output."""
         nonlocal data
         data["data_during_run"] = self.data
+        data["session"] = session
         return {"diagnostic_daily/script": MockTaskOutput()}
 
     monkeypatch.setattr(Recipe, "run", mock_run)

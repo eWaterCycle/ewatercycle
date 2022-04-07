@@ -28,10 +28,11 @@ def mock_recipe_run(monkeypatch, tmp_path):
         fake_forcing_path = str(tmp_path / "marrmot.mat")
         files = (OutputFile(fake_forcing_path),)
 
-    def mock_run(self):
+    def mock_run(self, session=None):
         """Store recipe for inspection and return dummy output."""
         nonlocal recorder
         recorder["data_during_run"] = self.data
+        recorder["session"] = session
         return {"diagnostic_daily/script": MockTaskOutput()}
 
     monkeypatch.setattr(Recipe, "run", mock_run)
