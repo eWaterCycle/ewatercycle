@@ -22,7 +22,7 @@ def mock_recipe_run(monkeypatch, tmp_path):
         nonlocal data
         data["data_during_run"] = self.data
         data["session"] = session
-        return {"diagnostic_daily/script": MockTaskOutput()}
+        return {"wflow_daily/script": MockTaskOutput()}
 
     monkeypatch.setattr(Recipe, "run", mock_run)
     return data
