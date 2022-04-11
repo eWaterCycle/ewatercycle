@@ -24,7 +24,7 @@ from ewatercycle.util import find_closest_point, get_time, to_absolute_path
 logger = logging.getLogger(__name__)
 
 
-class GenericDistributedModel(AbstractModel[GenericDistributedForcing]):
+class GenericDistributedModel(AbstractModel):
     """Create an instance of the GenericDistributedModel class.
 
     Args:
@@ -42,7 +42,7 @@ class GenericDistributedModel(AbstractModel[GenericDistributedForcing]):
         self,
         version: str,
         parameter_set: ParameterSet,
-        forcing: Optional[GenericDistributedForcing] = None,
+        forcing: Optional[ForcingT] = None,
     ):
         super().__init__(version, parameter_set, forcing)
         self._set_docker_image()
