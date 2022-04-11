@@ -1,5 +1,5 @@
-import numpy as np
-import pandas as pd
+from unittest.mock import patch
+
 import pytest
 import xarray as xr
 from esmvalcore.experimental import Recipe
@@ -20,16 +20,15 @@ def test_plot():
 
 
 def create_netcdf(var_name, filename):
-    var = 15 + 8 * np.random.randn(2, 2, 3)
-    lon = [[-99.83, -99.32], [-99.79, -99.23]]
-    lat = [[42.25, 42.21], [42.63, 42.59]]
-    ds = xr.Dataset(
-        {var_name: (["longitude", "latitude", "time"], var)},
+    ds = xr.DataArray(
+        data=[[1.0, 2.0], [3.0, 4.0]],
         coords={
-            "lon": (["longitude", "latitude"], lon),
-            "lat": (["longitude", "latitude"], lat),
-            "time": pd.date_range("2014-09-06", periods=3),
+            "longitude": [19.35, 19.45],
+            "latitude": [-33.05, -33.15],
+            "time": "2014-09-06",
         },
+        dims=["longitude", "latitude"],
+        name=var_name,
     )
     ds.to_netcdf(filename)
     return DataFile(filename)
@@ -44,6 +43,11 @@ def mock_recipe_run(monkeypatch, tmp_path):
         data_files = (
             create_netcdf("pr", tmp_path / "lisflood_pr.nc"),
             create_netcdf("tas", tmp_path / "lisflood_tas.nc"),
+            create_netcdf("tasmax", tmp_path / "lisflood_tasmax.nc"),
+            create_netcdf("tasmin", tmp_path / "lisflood_tasmin.nc"),
+            create_netcdf("sfcWind", tmp_path / "lisflood_sfcWind.nc"),
+            create_netcdf("rsds", tmp_path / "lisflood_rsds.nc"),
+            create_netcdf("e", tmp_path / "lisflood_e.nc"),
         )
 
     def mock_run(self):
@@ -56,19 +60,33 @@ def mock_recipe_run(monkeypatch, tmp_path):
     return data
 
 
-class TestGenerateRegionFromShapeFile:
+@pytest.fixture
+def sample_target_grid():
+    # Based on extents of sample_shape and offset of mask
+    return dict(
+        start_longitude=4.05,
+        end_longitude=11.95,
+        step_longitude=0.1,
+        start_latitude=46.25,
+        end_latitude=52.25,
+        step_latitude=0.1,
+    )
+
+
+class TestGenerateForcingWithoutLisvap:
     @pytest.fixture
-    def forcing(self, mock_recipe_run, sample_shape):
+    def forcing(self, mock_recipe_run, sample_shape, sample_target_grid):
         return generate(
             target_model="lisflood",
             dataset="ERA5",
             start_time="1989-01-02T00:00:00Z",
             end_time="1999-01-02T00:00:00Z",
             shape=sample_shape,
+            model_specific_options=dict(target_grid=sample_target_grid),
         )
 
     @pytest.fixture
-    def reference_recipe(self):
+    def expected_recipe(self):
         return {
             "datasets": [
                 {
@@ -147,90 +165,82 @@ class TestGenerateRegionFromShapeFile:
                 "authors": ["verhoeven_stefan", "kalverla_peter", "andela_bouwe"],
                 "projects": ["ewatercycle"],
                 "references": ["acknow_project"],
-                "title": "Generate forcing for the Lisflood hydrological model",
+                "description": "Recipe pre-process files for use in the "
+                "LISFLOOD hydrological model.\n",
+                "title": "Generate forcing for the Lisflood hydrological " "model",
             },
             "preprocessors": {
                 "daily_radiation": {
                     "convert_units": {"units": "J m-2 " "day-1"},
-                    "custom_order": True,
-                    "extract_region": {
-                        "end_latitude": 52.2,
-                        "end_longitude": 11.9,
-                        "start_latitude": 46.3,
-                        "start_longitude": 4.1,
-                    },
                     "extract_shape": {"crop": True, "method": "contains"},
                     "regrid": {
-                        "lat_offset": True,
-                        "lon_offset": True,
                         "scheme": "linear",
-                        "target_grid": "0.1x0.1",
+                        "target_grid": {
+                            "end_latitude": 52.25,
+                            "end_longitude": 11.95,
+                            "start_latitude": 46.25,
+                            "start_longitude": 4.05,
+                            "step_latitude": 0.1,
+                            "step_longitude": 0.1,
+                        },
                     },
                 },
                 "daily_temperature": {
                     "convert_units": {"units": "degC"},
-                    "custom_order": True,
-                    "extract_region": {
-                        "end_latitude": 52.2,
-                        "end_longitude": 11.9,
-                        "start_latitude": 46.3,
-                        "start_longitude": 4.1,
-                    },
                     "extract_shape": {"crop": True, "method": "contains"},
                     "regrid": {
-                        "lat_offset": True,
-                        "lon_offset": True,
                         "scheme": "linear",
-                        "target_grid": "0.1x0.1",
+                        "target_grid": {
+                            "end_latitude": 52.25,
+                            "end_longitude": 11.95,
+                            "start_latitude": 46.25,
+                            "start_longitude": 4.05,
+                            "step_latitude": 0.1,
+                            "step_longitude": 0.1,
+                        },
                     },
                 },
                 "daily_water": {
                     "convert_units": {"units": "kg m-2 d-1"},
-                    "custom_order": True,
-                    "extract_region": {
-                        "end_latitude": 52.2,
-                        "end_longitude": 11.9,
-                        "start_latitude": 46.3,
-                        "start_longitude": 4.1,
-                    },
                     "extract_shape": {"crop": True, "method": "contains"},
                     "regrid": {
-                        "lat_offset": True,
-                        "lon_offset": True,
                         "scheme": "linear",
-                        "target_grid": "0.1x0.1",
+                        "target_grid": {
+                            "end_latitude": 52.25,
+                            "end_longitude": 11.95,
+                            "start_latitude": 46.25,
+                            "start_longitude": 4.05,
+                            "step_latitude": 0.1,
+                            "step_longitude": 0.1,
+                        },
                     },
                 },
                 "daily_windspeed": {
-                    "custom_order": True,
-                    "extract_region": {
-                        "end_latitude": 52.2,
-                        "end_longitude": 11.9,
-                        "start_latitude": 46.3,
-                        "start_longitude": 4.1,
-                    },
                     "extract_shape": {"crop": True, "method": "contains"},
                     "regrid": {
-                        "lat_offset": True,
-                        "lon_offset": True,
                         "scheme": "linear",
-                        "target_grid": "0.1x0.1",
+                        "target_grid": {
+                            "end_latitude": 52.25,
+                            "end_longitude": 11.95,
+                            "start_latitude": 46.25,
+                            "start_longitude": 4.05,
+                            "step_latitude": 0.1,
+                            "step_longitude": 0.1,
+                        },
                     },
                 },
                 "general": {
-                    "custom_order": True,
-                    "extract_region": {
-                        "end_latitude": 52.2,
-                        "end_longitude": 11.9,
-                        "start_latitude": 46.3,
-                        "start_longitude": 4.1,
-                    },
                     "extract_shape": {"crop": True, "method": "contains"},
                     "regrid": {
-                        "lat_offset": True,
-                        "lon_offset": True,
                         "scheme": "linear",
-                        "target_grid": "0.1x0.1",
+                        "target_grid": {
+                            "end_latitude": 52.25,
+                            "end_longitude": 11.95,
+                            "start_latitude": 46.25,
+                            "start_longitude": 4.05,
+                            "step_latitude": 0.1,
+                            "step_longitude": 0.1,
+                        },
                     },
                 },
             },
@@ -248,12 +258,10 @@ class TestGenerateRegionFromShapeFile:
         assert forcing == expected
 
     def test_recipe_configured(
-        self, forcing, mock_recipe_run, reference_recipe, sample_shape
+        self, forcing, mock_recipe_run, expected_recipe, sample_shape
     ):
         actual = mock_recipe_run["data_during_run"]
-        # Remove long description and absolute path so assert is easier
-        actual_desc = actual["documentation"]["description"]
-        del actual["documentation"]["description"]
+        # Remove absolute path so assert is easier
         actual_shapefile = actual["preprocessors"]["general"]["extract_shape"][
             "shapefile"
         ]
@@ -261,9 +269,8 @@ class TestGenerateRegionFromShapeFile:
         # being shared between preprocessors
         del actual["preprocessors"]["general"]["extract_shape"]["shapefile"]
 
-        assert actual == reference_recipe
+        assert actual == expected_recipe
         assert actual_shapefile == sample_shape
-        assert "LISFLOOD" in actual_desc
 
     def test_saved_yaml(self, forcing, tmp_path):
         saved_forcing = load(tmp_path)
@@ -271,3 +278,129 @@ class TestGenerateRegionFromShapeFile:
         forcing.shape = None
 
         assert forcing == saved_forcing
+
+
+def create_mask_netcdf(filename):
+    ds = xr.DataArray(
+        data=[
+            [False, True, True, True, True],
+            [False, False, True, True, True],
+            [False, False, True, False, True],
+            [False, False, False, False, False],
+            [False, False, False, False, False],
+        ],
+        coords={
+            "longitude": [19.05, 19.15, 19.25, 19.35, 19.45],
+            "latitude": [-33.05, -33.15, -33.25, -33.35, -33.45],
+        },
+        dims=["longitude", "latitude"],
+    )
+    ds.to_netcdf(filename)
+    return DataFile(filename)
+
+
+class TestGenerateForcingWithLisvap:
+    def test_result(
+        self,
+        tmp_path,
+        sample_shape,
+        sample_lisvap_config,
+        sample_target_grid,
+        mock_recipe_run,
+        mocked_config,
+    ):
+        parameterset_dir = tmp_path / "myparameters"
+        mask_map = tmp_path / "mymask.nc"
+        create_mask_netcdf(mask_map)
+
+        with patch("subprocess.Popen") as mocked_popen:
+
+            def write_mocked_lisvap_output(*_args, **_kwargs):
+                create_netcdf(
+                    "e0", tmp_path / "reindexed" / "lisflood_ERA5_Rhine_e0_1989_1999.nc"
+                )
+                create_netcdf(
+                    "es0",
+                    tmp_path / "reindexed" / "lisflood_ERA5_Rhine_es0_1989_1999.nc",
+                )
+                create_netcdf(
+                    "et0",
+                    tmp_path / "reindexed" / "lisflood_ERA5_Rhine_et0_1989_1999.nc",
+                )
+                return 0
+
+            mocked_popen.return_value.communicate.return_value = ("output", "error")
+            mocked_popen.return_value.wait.side_effect = write_mocked_lisvap_output
+
+            forcing = generate(
+                target_model="lisflood",
+                dataset="ERA5",
+                start_time="1989-01-02T00:00:00Z",
+                end_time="1999-01-02T00:00:00Z",
+                shape=sample_shape,
+                model_specific_options={
+                    "target_grid": sample_target_grid,
+                    "run_lisvap": {
+                        "lisvap_config": sample_lisvap_config,
+                        "mask_map": str(mask_map),
+                        "version": "20.10",
+                        "parameterset_dir": str(parameterset_dir),
+                    },
+                },
+            )
+
+        expected = LisfloodForcing(
+            directory=str(tmp_path / "reindexed"),
+            start_time="1989-01-02T00:00:00Z",
+            end_time="1999-01-02T00:00:00Z",
+            shape=str(sample_shape),
+            PrefixPrecipitation="lisflood_pr.nc",
+            PrefixTavg="lisflood_tas.nc",
+            PrefixE0="lisflood_ERA5_Rhine_e0_1989_1999.nc",
+            PrefixES0="lisflood_ERA5_Rhine_es0_1989_1999.nc",
+            PrefixET0="lisflood_ERA5_Rhine_et0_1989_1999.nc",
+        )
+        assert forcing == expected
+
+
+class TestGenerateForcingWithoutTargetGrid:
+    def test_recipe_configured(self, mock_recipe_run, sample_shape):
+        generate(
+            target_model="lisflood",
+            dataset="ERA5",
+            start_time="1989-01-02T00:00:00Z",
+            end_time="1999-01-02T00:00:00Z",
+            shape=sample_shape,
+        )
+
+        actual = mock_recipe_run["data_during_run"]
+
+        # Extent of sample_shape fitted to 0.1x0.1 grid with 0.05 offset
+        expected_target_grid = {
+            "end_latitude": 52.25,
+            "end_longitude": 11.95,
+            "start_latitude": 46.25,
+            "start_longitude": 4.05,
+            "step_latitude": 0.1,
+            "step_longitude": 0.1,
+        }
+        assert (
+            actual["preprocessors"]["general"]["regrid"]["target_grid"]
+            == expected_target_grid
+        )
+        assert (
+            actual["preprocessors"]["daily_water"]["regrid"]["target_grid"]
+            == expected_target_grid
+        )
+        assert (
+            actual["preprocessors"]["daily_temperature"]["regrid"]["target_grid"]
+            == expected_target_grid
+        )
+        assert (
+            actual["preprocessors"]["daily_radiation"]["regrid"]["target_grid"]
+            == expected_target_grid
+        )
+        assert (
+            actual["preprocessors"]["daily_windspeed"]["regrid"]["target_grid"]
+            == expected_target_grid
+        )

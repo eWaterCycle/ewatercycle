@@ -7,12 +7,11 @@ from ewatercycle.analysis import hydrograph
 
 @image_comparison(
     baseline_images=["hydrograph"],
-    remove_text=True,
     extensions=["png"],
     savefig_kwarg={"bbox_inches": "tight"},
 )
 def test_hydrograph():
-    ntime = 300
+    ntime = 3000
 
     dti = pd.date_range("2018-01-01", periods=ntime, freq="d")
 
@@ -33,5 +32,4 @@ def test_hydrograph():
     }
 
     df_pr = pd.DataFrame(precipitation)
-
-    hydrograph(df, reference="reference", precipitation=df_pr)
+    hydrograph(df, reference="reference", precipitation=df_pr, nbars=100)

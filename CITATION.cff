@@ -68,7 +68,4 @@ identifiers:
   - description: Latest version of software
     type: doi
     value: "10.5281/zenodo.5119389"
-  - description: Version 1.1.0
-    type: doi
-    value: "10.5281/zenodo.5175508"
 ...

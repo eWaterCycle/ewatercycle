@@ -2,9 +2,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
-from numpy.testing import assert_array_almost_equal
+import xarray as xr
+from numpy.testing import assert_array_equal
 
-from ewatercycle.util import find_closest_point, get_time, to_absolute_path
+from ewatercycle.util import (
+    find_closest_point,
+    fit_extents_to_grid,
+    get_time,
+    reindex,
+    to_absolute_path,
+)
 
 
 def test_get_time_with_utc():
@@ -85,3 +92,95 @@ def test_to_absolute_path_with_absolute_input_and_nonrelative_parent(tmp_path):
         to_absolute_path(str(input_path), parent=parent)
 
     assert "is not a subpath of parent" in str(excinfo.value)
+
+
+def test_reindex(tmp_path):
+    expected_source = xr.DataArray(
+        data=[[1.0, 2.0], [3.0, 4.0]],
+        coords={
+            "longitude": [19.35, 19.45],
+            "latitude": [-33.05, -33.15],
+            "time": "2014-09-06",
+        },
+        dims=["longitude", "latitude"],
+        name="tas",
+        attrs=dict(units="degC"),
+    )
+    expected_source.to_netcdf(f"{tmp_path}/tas.nc")
+    expected_mask = xr.DataArray(
+        data=[
+            [False, True, True, True, True],
+            [False, False, True, True, True],
+            [False, False, True, False, True],
+            [False, False, False, False, False],
+            [False, False, False, False, False],
+        ],
+        coords={
+            "longitude": [19.05, 19.15, 19.25, 19.35, 19.45],
+            "latitude": [-33.05, -33.15, -33.25, -33.35, -33.45],
+        },
+    )
+    expected_mask.to_netcdf(f"{tmp_path}/mask.nc")
+    reindex(
+        f"{tmp_path}/tas.nc",
+        "tas",
+        f"{tmp_path}/mask.nc",
+        f"{tmp_path}/tas_global.nc",
+    )
+    reindexed_data = xr.open_dataset(f"{tmp_path}/tas_global.nc")
+    # Check coords
+    assert_array_equal(
+        reindexed_data["latitude"].values, expected_mask["latitude"].values
+    )
+    assert_array_equal(
+        reindexed_data["longitude"].values, expected_mask["longitude"].values
+    )
+
+    # Check values based on coords values
+    reindexed_val = reindexed_data["tas"].sel(latitude=-33.05, longitude=19.35).values
+    expected_val = expected_source.sel(latitude=-33.05, longitude=19.35).values
+    assert reindexed_val == expected_val
+
+    # Check values based on coords indices
+    reindexed_val = reindexed_data["tas"].isel(latitude=1, longitude=4).values
+    expected_val = expected_source.isel(latitude=1, longitude=1).values
+    assert reindexed_val == expected_val
+
+
+class TestFitExtents2Map:
+    @pytest.mark.parametrize(
+        "extents, expected",
+        [
+            [
+                {
+                    "start_longitude": 4.1,
+                    "start_latitude": 46.3,
+                    "end_longitude": 11.9,
+                    "end_latitude": 52.2,
+                },
+                {
+                    "start_longitude": 4.05,
+                    "start_latitude": 46.25,
+                    "end_longitude": 11.95,
+                    "end_latitude": 52.25,
+                },
+            ],
+            [
+                {
+                    "start_longitude": -76.101,
+                    "start_latitude": 40.395,
+                    "end_longitude": -73.664,
+                    "end_latitude": 41.951,
+                },
+                {
+                    "start_longitude": -76.15,
+                    "start_latitude": 40.35,
+                    "end_longitude": -73.65,
+                    "end_latitude": 42.05,
+                },
+            ],
+        ],
+    )
+    def test_defaults(self, extents, expected):
+        result = fit_extents_to_grid(extents)
+        assert result == expected
