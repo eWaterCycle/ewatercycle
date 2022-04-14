@@ -190,3 +190,17 @@ def test_load_foreign_without_forcing_info(sample_shape):
         forcing_file="marrmot.mat",
     )
     assert actual == expected
+
+
+def test_generate_with_directory(mock_recipe_run, sample_shape, tmp_path):
+    forcing_dir = tmp_path / "myforcing"
+    generate(
+        target_model="marrmot",
+        dataset="ERA5",
+        start_time="1989-01-02T00:00:00Z",
+        end_time="1999-01-02T00:00:00Z",
+        shape=sample_shape,
+        directory=forcing_dir,
+    )
+
+    assert mock_recipe_run["session"].session_dir == forcing_dir

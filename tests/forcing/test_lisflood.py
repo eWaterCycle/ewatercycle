@@ -405,3 +405,20 @@ class TestGenerateForcingWithoutTargetGrid:
             actual["preprocessors"]["daily_windspeed"]["regrid"]["target_grid"]
             == expected_target_grid
         )
+
+
+def test_generate_with_directory(
+    mock_recipe_run, sample_shape, tmp_path, sample_target_grid
+):
+    forcing_dir = tmp_path / "myforcing"
+    generate(
+        target_model="lisflood",
+        dataset="ERA5",
+        start_time="1989-01-02T00:00:00Z",
+        end_time="1999-01-02T00:00:00Z",
+        shape=sample_shape,
+        model_specific_options=dict(target_grid=sample_target_grid),
+        directory=forcing_dir,
+    )
+
+    assert mock_recipe_run["session"].session_dir == forcing_dir
