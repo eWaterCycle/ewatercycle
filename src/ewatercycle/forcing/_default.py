@@ -107,4 +107,4 @@ def _session(directory: Optional[str] = None) -> Optional[Session]:
         def session_dir(self):
             return self.output_dir
 
-    return TimeLessSession(Path(directory))
+    return TimeLessSession(Path(directory).absolute())
