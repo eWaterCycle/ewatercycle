@@ -6,6 +6,10 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+### Added
+
+- Directory argument to `ewatercycle.forcing.generate()` ([#145](https://github.com/eWaterCycle/ewatercycle/issues/145))
+
 ### Changed
 
 - Improved performance of forcing generation of LISFLOOD model ([#301](https://github.com/eWaterCycle/ewatercycle/pull/301))

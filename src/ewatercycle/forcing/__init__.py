@@ -127,6 +127,7 @@ def generate(
     start_time: str,
     end_time: str,
     shape: str,
+    directory: Optional[str] = None,
     model_specific_options: Optional[Dict] = None,
 ):
     """Generate forcing data with ESMValTool.
@@ -139,6 +140,8 @@ def generate(
         end_time: End time of forcing in UTC and ISO format string e.g.
             'YYYY-MM-DDTHH:MM:SSZ'.
         shape: Path to a shape file. Used for spatial selection.
+        directory: Directory in which forcing should be written.
+            If not given will create timestamped directory.
         model_specific_options: Dictionary with model-specific recipe settings.
             See below for the available options for each model.
 
@@ -157,7 +160,12 @@ def generate(
     if model_specific_options is None:
         model_specific_options = {}
     forcing_info = constructor.generate(
-        dataset, start_time, end_time, shape, **model_specific_options
+        dataset,
+        start_time,
+        end_time,
+        shape,
+        directory=directory,
+        **model_specific_options,
     )
     forcing_info.save()
     return forcing_info

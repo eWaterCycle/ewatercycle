@@ -17,10 +17,11 @@ def mock_recipe_run(monkeypatch, tmp_path):
         fake_forcing_path = str(tmp_path / "wflow_forcing.nc")
         data_files = (DataFile(fake_forcing_path),)
 
-    def mock_run(self):
+    def mock_run(self, session=None):
         """Store recipe for inspection and return dummy output."""
         nonlocal data
         data["data_during_run"] = self.data
+        data["session"] = session
         return {"wflow_daily/script": MockTaskOutput()}
 
     monkeypatch.setattr(Recipe, "run", mock_run)
@@ -149,3 +150,26 @@ class TestGenerateWithExtractRegion:
         forcing.shape = None
 
         assert forcing == saved_forcing
+
+
+def test_with_directory(mock_recipe_run, sample_shape, tmp_path):
+    forcing_dir = tmp_path / "myforcing"
+    generate(
+        target_model="wflow",
+        dataset="ERA5",
+        start_time="1989-01-02T00:00:00Z",
+        end_time="1999-01-02T00:00:00Z",
+        shape=sample_shape,
+        directory=forcing_dir,
+        model_specific_options=dict(
+            dem_file="wflow_parameterset/meuse/staticmaps/wflow_dem.map",
+            extract_region={
+                "start_longitude": 10,
+                "end_longitude": 16.75,
+                "start_latitude": 7.25,
+                "end_latitude": 2.5,
+            },
+        ),
+    )
+
+    assert mock_recipe_run["session"].session_dir == forcing_dir

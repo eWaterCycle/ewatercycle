@@ -43,7 +43,7 @@ def find_closest_point(
 
     # approximate radius of earth in km
     radius = 6373.0
-    distances = radius * np.sqrt(dlat ** 2 + (np.cos(latm) * dlon) ** 2)
+    distances = radius * np.sqrt(dlat**2 + (np.cos(latm) * dlon) ** 2)
     idx_lat, idx_lon = np.unravel_index(distances.argmin(), distances.shape)
     distance = distances.min()
 
