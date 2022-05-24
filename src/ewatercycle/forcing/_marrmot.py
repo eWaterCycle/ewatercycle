@@ -6,7 +6,7 @@ from typing import Optional
 from esmvalcore.experimental import get_recipe
 
 from ..util import get_time, to_absolute_path
-from ._default import DefaultForcing
+from ._default import DefaultForcing, _session
 from .datasets import DATASETS
 
 
@@ -36,6 +36,7 @@ class MarrmotForcing(DefaultForcing):
         start_time: str,
         end_time: str,
         shape: str,
+        directory: Optional[str] = None,
     ) -> "MarrmotForcing":
         """
         None: Marrmot does not have model-specific generate options.
@@ -68,7 +69,7 @@ class MarrmotForcing(DefaultForcing):
             variables[var_name]["end_year"] = endyear
 
         # generate forcing data and retrieve useful information
-        recipe_output = recipe.run()
+        recipe_output = recipe.run(session=_session(directory))
         forcing_file: Path = list(recipe_output.values())[0].files[0].path
 
         directory = str(Path(forcing_file).parent)

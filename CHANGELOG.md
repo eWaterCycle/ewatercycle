@@ -6,6 +6,12 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+## [1.3.0] (2022-04-20)
+
+### Added
+
+- Directory argument to `ewatercycle.forcing.generate()` ([#145](https://github.com/eWaterCycle/ewatercycle/issues/145))
+
 ### Changed
 
 - Improved performance of forcing generation of LISFLOOD model ([#301](https://github.com/eWaterCycle/ewatercycle/pull/301))
@@ -136,7 +142,8 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/1.2.0...HEAD
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/1.3.0...HEAD
+[1.3.0]: https://github.com/eWaterCycle/ewatercycle/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.4...1.2.0
 [1.1.4]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.3...1.1.4
 [1.1.3]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.2...1.1.3

@@ -11,7 +11,7 @@ from ..util import (
     get_time,
     to_absolute_path,
 )
-from ._default import DefaultForcing
+from ._default import DefaultForcing, _session
 from .datasets import DATASETS
 
 
@@ -45,6 +45,7 @@ class PCRGlobWBForcing(DefaultForcing):
         start_time_climatology: str,  # TODO make optional, default to start_time
         end_time_climatology: str,  # TODO make optional, defaults to start_time + 1 y
         extract_region: dict = None,
+        directory: Optional[str] = None,
     ) -> "PCRGlobWBForcing":
         """
         start_time_climatology (str): Start time for the climatology data
@@ -105,7 +106,7 @@ class PCRGlobWBForcing(DefaultForcing):
             variables[var_name]["end_year"] = endyear_climatology
 
         # generate forcing data and retrieve useful information
-        recipe_output = recipe.run()
+        recipe_output = recipe.run(session=_session(directory))
         # TODO dont open recipe output, but use standard name from ESMValTool
         directory, forcing_files = data_files_from_recipe_output(recipe_output)
 
