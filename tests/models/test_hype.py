@@ -24,7 +24,7 @@ def mocked_config(tmp_path):
 
 @pytest.fixture
 def parameter_set(mocked_config):
-    # Contents copied/inspired by demo.zip at https://sourceforge.net/projects/hype/files/release_hype_5_18_0/
+    # Contents copied/inspired by demo.zip at https://sourceforge.net/projects/hype/files/release_hype_5_6_2/
     directory = mocked_config["parameterset_dir"] / "hype_testcase"
     directory.mkdir(parents=True)
     config = directory / "info.txt"
