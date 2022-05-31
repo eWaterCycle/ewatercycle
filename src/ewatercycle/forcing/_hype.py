@@ -19,11 +19,22 @@ class HypeForcing(DefaultForcing):
         end_time: str,
         directory: str,
         shape: Optional[str] = None,
+        Pobs: str = "Pobs.txt",
+        TMAXobs: str = "TMAXobs.txt",
+        TMINobs: str = "TMINobs.txt",
+        Tobs: str = "Tobs.txt",
     ):
         """
-        None: Hype does not have model-specific load options.
+        Pobs (str): Input file for precipitation data.
+        TMAXobs (str): Input file for maximum temperature data.
+        TMINobs (str): Input file for minimum temperature data.
+        Tobs (str): Input file for temperature data.
         """
         super().__init__(start_time, end_time, directory, shape)
+        self.Pobs = Pobs
+        self.TMAXobs = TMAXobs
+        self.TMINobs = TMINobs
+        self.Tobs = Tobs
 
     @classmethod
     def generate(  # type: ignore
@@ -64,19 +75,22 @@ class HypeForcing(DefaultForcing):
 
         # generate forcing data and retreive useful information
         recipe_output = recipe.run(session=_session(directory))
-        # TODO return files created by ESMValTOOL which are needed by Hype Model
-        # forcing_path = list(recipe_output['...........']).data_files[0]
-        forcing_path = "/foobar.txt"
 
-        forcing_file = Path(forcing_path).name
-        directory = str(Path(forcing_file).parent)
+        # retrieve forcing files
+        recipe_files = list(recipe_output.values())[0].files
+        forcing_files = {f.path.stem: f.path for f in recipe_files}
+        directory = str(forcing_files["Pobs"].parent)
 
         # instantiate forcing object based on generated data
         return HypeForcing(
             directory=directory,
-            start_time=str(startyear),
-            end_time=str(endyear),
+            start_time=start_time,
+            end_time=end_time,
             shape=shape,
+            Pobs=forcing_files["Pobs"].name,
+            TMAXobs=forcing_files["TMAXobs"].name,
+            TMINobs=forcing_files["TMINobs"].name,
+            Tobs=forcing_files["Tobs"].name,
         )
 
     def plot(self):
