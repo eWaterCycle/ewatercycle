@@ -54,7 +54,7 @@ class Hype(AbstractModel[HypeForcing]):
     def _setup_default_config(self):
         assert self.parameter_set
         # read config file from parameter_set
-        self._cfg = self.parameter_set.config.read_text()
+        self._cfg = self.parameter_set.config.read_text(encoding="cp437")
         self._start = _get_hype_time(_get_code_in_cfg(self._cfg, "bdate"))
         self._end = _get_hype_time(_get_code_in_cfg(self._cfg, "edate"))
         self._crit = _get_hype_time(_get_code_in_cfg(self._cfg, "cdate"))
@@ -145,7 +145,7 @@ class Hype(AbstractModel[HypeForcing]):
 
         # write info.txt
         cfg_file = cfg_dir_as_path / "info.txt"
-        cfg_file.write_text(self._cfg)
+        cfg_file.write_text(self._cfg, encoding="cp437")
 
         # start container
         work_dir = str(cfg_dir_as_path)
