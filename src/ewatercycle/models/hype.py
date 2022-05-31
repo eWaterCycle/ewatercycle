@@ -1,10 +1,13 @@
 import datetime
 import logging
+import shutil
 from typing import Any, Iterable, Optional, Tuple, cast
 
 import numpy as np
 import xarray as xr
 from cftime import num2date
+from grpc4bmi.bmi_client_docker import BmiClientDocker
+from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
 from ewatercycle.forcing._hype import HypeForcing
@@ -77,7 +80,12 @@ class Hype(AbstractModel[HypeForcing]):
         """
         cfg_dir_as_path = _setup_cfg_dir(cfg_dir)
 
-        # TODO copy parameter set files to cfg_dir
+        # copy parameter set files to cfg_dir
+        assert self.parameter_set
+        shutil.copytree(
+            src=self.parameter_set.directory, dst=cfg_dir_as_path, dirs_exist_ok=True
+        )
+
         # TODO copy forcing files to cfg_dir
 
         # TODO merge args into config object
@@ -85,9 +93,11 @@ class Hype(AbstractModel[HypeForcing]):
         # TODO write info.txt
         cfg_file = cfg_dir_as_path / "info.txt"
 
-        # TODO start container
+        # start container
+        work_dir = str(cfg_dir_as_path)
+        self.bmi = _start_container(self.version, work_dir)
 
-        return str(cfg_file), str(cfg_dir_as_path)
+        return str(cfg_file), work_dir
 
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
@@ -137,3 +147,23 @@ def _setup_cfg_dir(cfg_dir: str = None):
         work_dir = to_absolute_path(f"hype_{timestamp}", parent=CFG["output_dir"])
     work_dir.mkdir(parents=True, exist_ok=True)
     return work_dir
+
+
+def _start_container(version: str, work_dir: str):
+    if CFG["container_engine"].lower() == "singularity":
+        image = CFG["singularity_dir"] / _version_images[version]["singularity"]
+        return BmiClientSingularity(
+            image=str(image),
+            work_dir=work_dir,
+        )
+    elif CFG["container_engine"].lower() == "docker":
+        image = _version_images[version]["docker"]
+        return BmiClientDocker(
+            image=image,
+            image_port=55555,  # TODO needed?
+            work_dir=work_dir,
+        )
+    else:
+        raise ValueError(
+            f"Unknown container technology in CFG: {CFG['container_engine']}"
+        )
