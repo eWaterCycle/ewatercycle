@@ -1,11 +1,12 @@
 import datetime
 import logging
 import shutil
-from typing import Any, Iterable, Optional, Tuple, cast
+from typing import Any, Iterable, Optional, Tuple
 
 import numpy as np
 import xarray as xr
 from cftime import num2date
+from dateutil.parser import parse
 from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
@@ -13,7 +14,7 @@ from ewatercycle import CFG
 from ewatercycle.forcing._hype import HypeForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
-from ewatercycle.util import to_absolute_path
+from ewatercycle.util import get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,17 @@ class Hype(AbstractModel[HypeForcing]):
     ):
         super().__init__(version, parameter_set, forcing)
         assert version in _version_images
-        # TODO read config file from parameter_set
+        self._setup_default_config()
+
+    def _setup_default_config(self):
+        assert self.parameter_set
+        # read config file from parameter_set
+        self._cfg = self.parameter_set.config.read_text()
+        self._start = _get_hype_time(_get_code_in_cfg(self._cfg, "bdate"))
+        self._end = _get_hype_time(_get_code_in_cfg(self._cfg, "edate"))
+        self._crit = _get_hype_time(_get_code_in_cfg(self._cfg, "cdate"))
+        if self._crit is None:
+            self._crit = self._start
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(  # type: ignore
@@ -88,10 +99,32 @@ class Hype(AbstractModel[HypeForcing]):
 
         # TODO copy forcing files to cfg_dir
 
-        # TODO merge args into config object
+        # merge args into config object
+        if start_time is not None:
+            self._start = get_time(start_time)
+            self._cfg = _set_code_in_cfg(
+                self._cfg, "bdate", self._start.strftime("%Y-%m-%d %H:%M:%S")
+            )
+        if end_time is not None:
+            self._end = get_time(end_time)
+            self._cfg = _set_code_in_cfg(
+                self._cfg, "edate", self._end.strftime("%Y-%m-%d %H:%M:%S")
+            )
+        if start_time is not None and crit_time is None:
+            # Overwrite cdate to start when no crit is given
+            self._crit = self._start
+            self._cfg = _set_code_in_cfg(
+                self._cfg, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
+            )
+        elif crit_time is not None:
+            self._crit = get_time(crit_time)
+            self._cfg = _set_code_in_cfg(
+                self._cfg, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
+            )
 
-        # TODO write info.txt
+        # write info.txt
         cfg_file = cfg_dir_as_path / "info.txt"
+        cfg_file.write_text(self._cfg)
 
         # start container
         work_dir = str(cfg_dir_as_path)
@@ -104,7 +137,9 @@ class Hype(AbstractModel[HypeForcing]):
         """List the parameters for this model."""
         assert self.parameter_set is not None
         return [
-            # TODO add start_time, end_time, crit_time
+            ("start_time", self._start.strftime("%Y-%m-%dT%H:%M:%SZ")),
+            ("end_time", self._end.strftime("%Y-%m-%dT%H:%M:%SZ")),
+            ("crit_time", self._crit.strftime("%Y-%m-%dT%H:%M:%SZ")),
         ]
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
@@ -167,3 +202,32 @@ def _start_container(version: str, work_dir: str):
         raise ValueError(
             f"Unknown container technology in CFG: {CFG['container_engine']}"
         )
+
+
+def _get_code_in_cfg(content: str, code: str):
+    lines = content.splitlines()
+    for line in lines:
+        if line.startswith(code):
+            chunks = line.split()
+            chunks.pop(0)  # Only works with code without spaces
+            return " ".join(chunks)
+
+
+def _set_code_in_cfg(content: str, code: str, value: str) -> str:
+    lines = content.splitlines()
+    new_lines = []
+    found = False
+    for line in lines:
+        if line.startswith(code):
+            line = f"{code} {value}"
+            found = True
+        new_lines.append(line)
+    if not found:
+        new_lines.append("{code} {value}")
+    new_lines.append("")
+    return "\n".join(new_lines)
+
+
+def _get_hype_time(value: str) -> datetime.datetime:
+    """Converts `yyyy-mm-dd [HH:MM]` string to datetime object"""
+    return parse(value)
