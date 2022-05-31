@@ -7,6 +7,7 @@ import pytest
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
+from ewatercycle.forcing import load_foreign
 from ewatercycle.models.hype import Hype, _set_code_in_cfg
 from ewatercycle.parameter_sets import ParameterSet
 
@@ -63,9 +64,6 @@ def parameter_set(mocked_config):
         """
         )
     )
-
-    # TODO write forcing files as part of parameter set
-
     return ParameterSet(
         "hype_testcase",
         directory=str(directory),
@@ -254,3 +252,91 @@ def test_set_code_in_cfg():
             """
     )
     assert actual == expected
+
+
+class TestWithForcingAndDefaults:
+    @pytest.fixture
+    def forcing(self, tmp_path):
+        forcing_dir = tmp_path / "forcing"
+        forcing_dir.mkdir()
+        pobs = forcing_dir / "Pobs.txt"
+        pobs.write_text(
+            dedent(
+                """\
+            DATE	609
+            1986-01-02	0.6
+            """
+            )
+        )
+        return load_foreign(
+            target_model="hype",
+            start_time="1986-01-02T00:00:00Z",
+            end_time="2018-01-02T00:00:00Z",
+            directory=str(forcing_dir),
+            forcing_info={"Pobs": pobs.name},
+        )
+
+    @pytest.fixture
+    def model(self, parameter_set, forcing):
+        return Hype("feb2021", parameter_set, forcing)
+
+    @pytest.fixture
+    def model_with_setup(self, mocked_config, model: Hype):
+        with patch.object(
+            BmiClientSingularity, "__init__", return_value=None
+        ) as mocked_constructor, patch("datetime.datetime") as mocked_datetime:
+            mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
+            config_file, config_dir = model.setup()
+        return config_file, config_dir, mocked_constructor
+
+    def test_setup_container(self, model_with_setup, tmp_path):
+        mocked_constructor = model_with_setup[2]
+        mocked_constructor.assert_called_once_with(
+            image=f"{tmp_path}/ewatercycle-hype-grpc4bmi_feb2021.sif",
+            work_dir=f"{tmp_path}/hype_20210102_030405",
+        )
+
+    def test_setup_forcing_files(self, model_with_setup):
+        config_dir = model_with_setup[1]
+        pobs = Path(config_dir) / "Pobs.txt"
+        assert "DATE" in pobs.read_text()
+
+    def test_setup_parameter_set_files(self, model_with_setup):
+        config_dir = model_with_setup[1]
+        geodata = Path(config_dir) / "GeoData.txt"
+        assert "subareaname" in geodata.read_text()
+
+    def test_setup_config_file(self, model_with_setup):
+        config_file = model_with_setup[0]
+        expected = dedent(
+            """\
+                !!Information om k�rningen.
+                bdate 1986-01-02 00:00:00
+                cdate 1986-01-02 00:00:00
+                edate 2018-01-02 00:00:00
+                substance N P
+                readobsid n
+                !!basinoutput
+                basinoutput variable prec temp cout ccIN ccON ccSP ccPP
+                basinoutput subbasin 609
+                basinoutput meanperiod   1
+                basinoutput decimals 7
+                !!mapoutput
+                mapoutput variable cTNl cTPl prec ccTN ccTP
+                mapoutput meanperiod  5
+                mapoutput decimals 3
+                !!timeoutput
+                timeoutput variable   prec temp crun
+                timeoutput meanperiod 3
+                timeoutput decimals 2
+        """
+        )
+        assert Path(config_file).read_text() == expected
+
+    def test_parameters(self, model):
+        expected = [
+            ("start_time", "1986-01-02T00:00:00Z"),
+            ("end_time", "2018-01-02T00:00:00Z"),
+            ("crit_time", "1986-01-02T00:00:00Z"),
+        ]
+        assert model.parameters == expected

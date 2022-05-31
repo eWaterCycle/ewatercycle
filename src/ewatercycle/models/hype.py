@@ -7,6 +7,7 @@ import numpy as np
 import xarray as xr
 from cftime import num2date
 from dateutil.parser import parse
+from dateutil.tz import UTC
 from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
@@ -59,6 +60,23 @@ class Hype(AbstractModel[HypeForcing]):
         self._crit = _get_hype_time(_get_code_in_cfg(self._cfg, "cdate"))
         if self._crit is None:
             self._crit = self._start
+            self._cfg = _set_code_in_cfg(
+                self._cfg, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
+            )
+        if self.forcing is not None:
+            self._start = get_time(self.forcing.start_time)
+            self._cfg = _set_code_in_cfg(
+                self._cfg, "bdate", self._start.strftime("%Y-%m-%d %H:%M:%S")
+            )
+            self._end = get_time(self.forcing.end_time)
+            self._cfg = _set_code_in_cfg(
+                self._cfg, "edate", self._end.strftime("%Y-%m-%d %H:%M:%S")
+            )
+            # Also set crit time to start time, it can be overwritten in setup()
+            self._crit = self._start
+            self._cfg = _set_code_in_cfg(
+                self._cfg, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
+            )
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(  # type: ignore
@@ -97,7 +115,10 @@ class Hype(AbstractModel[HypeForcing]):
             src=self.parameter_set.directory, dst=cfg_dir_as_path, dirs_exist_ok=True
         )
 
-        # TODO copy forcing files to cfg_dir
+        # copy forcing files to cfg_dir
+        if self.forcing is not None:
+            forcing_dir = self.forcing.directory
+            shutil.copytree(src=forcing_dir, dst=cfg_dir_as_path, dirs_exist_ok=True)
 
         # merge args into config object
         if start_time is not None:
@@ -230,4 +251,4 @@ def _set_code_in_cfg(content: str, code: str, value: str) -> str:
 
 def _get_hype_time(value: str) -> datetime.datetime:
     """Converts `yyyy-mm-dd [HH:MM]` string to datetime object"""
-    return parse(value)
+    return parse(value).replace(tzinfo=UTC)
