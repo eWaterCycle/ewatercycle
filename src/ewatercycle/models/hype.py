@@ -3,10 +3,10 @@ import logging
 import shutil
 import types
 from typing import Any, Iterable, Optional, Tuple
-from basic_modeling_interface import Bmi
 
 import numpy as np
 import xarray as xr
+from basic_modeling_interface import Bmi
 from cftime import num2date
 from dateutil.parser import parse
 from dateutil.tz import UTC
@@ -27,6 +27,7 @@ _version_images = {
         "singularity": "ewatercycle-hype-grpc4bmi_feb2021.sif",
     }
 }
+
 
 class BmiHypeWorkaround(Bmi):
     def __init__(self, start_time: datetime.datetime) -> None:
@@ -162,7 +163,7 @@ class Hype(AbstractModel[HypeForcing]):
         # The Hype get_time_units() returns `hours since start of simulation` and get_start_time() returns 0
         # A relative datetime is not very useful, so here we overwrite the get_time_units to return the absolute datetime.
         def get_time_units(_self):
-            return f'hours since {since}'
+            return f"hours since {since}"
 
         self.bmi.get_time_units = types.MethodType(get_time_units, self.bmi)
 
@@ -188,23 +189,7 @@ class Hype(AbstractModel[HypeForcing]):
             Xarray with values for each sub catchment
 
         """
-        """Return the value as xarray object."""
-        # Get time information
-        time_units = self.bmi.get_time_units()
-        grid = self.bmi.get_var_grid(name)
-        shape = self.bmi.get_grid_shape(grid)
-
-        return xr.DataArray(
-            data=np.reshape(self.bmi.get_value(name), shape),
-            coords={
-                "longitude": self.bmi.get_grid_y(grid),
-                "latitude": self.bmi.get_grid_x(grid),
-                "time": num2date(self.bmi.get_current_time(), time_units),
-            },
-            dims=["latitude", "longitude"],
-            name=name,
-            attrs={"units": self.bmi.get_var_units(name)},
-        )
+        raise NotImplementedError("Hype coordinates cannot be mapped to grid")
 
 
 def _setup_cfg_dir(cfg_dir: str = None):

@@ -133,6 +133,10 @@ class TestWithOnlyParameterSetAndDefaults:
         ]
         assert model.parameters == expected
 
+    def test_get_value_as_xarray(self, model):
+        with pytest.raises(NotImplementedError):
+            model.get_value_as_xarray("comp outflow olake")
+
 
 class TestWithOnlyParameterSetAndFullSetup:
     @pytest.fixture
