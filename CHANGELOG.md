@@ -6,6 +6,10 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+### Removed
+
+- Python 3.7 support
+
 ## [1.3.0] (2022-04-20)
 
 ### Added
