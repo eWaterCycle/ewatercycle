@@ -1,6 +1,5 @@
 """Forcing related functionality for hype"""
 
-from pathlib import Path
 from typing import Optional
 
 from esmvalcore.experimental import get_recipe
