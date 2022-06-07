@@ -1,7 +1,9 @@
 import datetime
 import logging
 import shutil
+import types
 from typing import Any, Iterable, Optional, Tuple
+from basic_modeling_interface import Bmi
 
 import numpy as np
 import xarray as xr
@@ -25,6 +27,10 @@ _version_images = {
         "singularity": "ewatercycle-hype-grpc4bmi_feb2021.sif",
     }
 }
+
+class BmiHypeWorkaround(Bmi):
+    def __init__(self, start_time: datetime.datetime) -> None:
+        super().__init__()
 
 
 class Hype(AbstractModel[HypeForcing]):
@@ -150,6 +156,15 @@ class Hype(AbstractModel[HypeForcing]):
         # start container
         work_dir = str(cfg_dir_as_path)
         self.bmi = _start_container(self.version, work_dir)
+
+        since = self._start.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        # The Hype get_time_units() returns `hours since start of simulation` and get_start_time() returns 0
+        # A relative datetime is not very useful, so here we overwrite the get_time_units to return the absolute datetime.
+        def get_time_units(_self):
+            return f'hours since {since}'
+
+        self.bmi.get_time_units = types.MethodType(get_time_units, self.bmi)
 
         return str(cfg_file), work_dir
 
