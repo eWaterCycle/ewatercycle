@@ -3,7 +3,9 @@ from pathlib import Path
 from textwrap import dedent
 from unittest.mock import patch
 
+import numpy as np
 import pytest
+from basic_modeling_interface import Bmi
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
@@ -136,6 +138,33 @@ class TestWithOnlyParameterSetAndDefaults:
     def test_get_value_as_xarray(self, model):
         with pytest.raises(NotImplementedError):
             model.get_value_as_xarray("comp outflow olake")
+
+    def test_get_value_at_coords(self, model):
+        class MockedBmi(Bmi):
+            """Pretend to be a real BMI model."""
+
+            def get_var_grid(self, name):
+                return 1
+
+            def get_grid_x(self, grid_id):
+                return np.array(
+                    [5.8953929, 4.9553967, 5.6387277]
+                )  # x subbasin lons of subbasinsin hype
+
+            def get_grid_y(self, grid_id):
+                return np.array(
+                    [51.16437912, 50.21104813, 48.6910553]
+                )  # y are lats of subbasins in hype
+
+            def get_value_at_indices(self, name, indices):
+                self.indices = indices
+                return np.array([13.0])
+
+        model.bmi = MockedBmi()
+
+        actual = model.get_value_at_coords("comp outflow olake", lon=[5], lat=[50])
+        assert actual == np.array([13.0])
+        assert model.bmi.indices == [1]
 
 
 class TestWithOnlyParameterSetAndFullSetup:

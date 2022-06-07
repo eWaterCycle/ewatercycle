@@ -17,7 +17,7 @@ from ewatercycle import CFG
 from ewatercycle.forcing._hype import HypeForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
-from ewatercycle.util import get_time, to_absolute_path
+from ewatercycle.util import geographical_distances, get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 
@@ -27,11 +27,6 @@ _version_images = {
         "singularity": "ewatercycle-hype-grpc4bmi_feb2021.sif",
     }
 }
-
-
-class BmiHypeWorkaround(Bmi):
-    def __init__(self, start_time: datetime.datetime) -> None:
-        super().__init__()
 
 
 class Hype(AbstractModel[HypeForcing]):
@@ -190,6 +185,21 @@ class Hype(AbstractModel[HypeForcing]):
 
         """
         raise NotImplementedError("Hype coordinates cannot be mapped to grid")
+
+    def _coords_to_indices(
+        self, name: str, lat: Iterable[float], lon: Iterable[float]
+    ) -> Iterable[int]:
+        grid_id = self.bmi.get_var_grid(name)
+        x = self.bmi.get_grid_x(grid_id)
+        y = self.bmi.get_grid_y(grid_id)
+
+        indices = []
+        for plon, plat in zip(lon, lat):
+            dist = geographical_distances(plon, plat, x, y)
+            index = dist.argmin()
+            indices.append(index)
+
+        return indices
 
 
 def _setup_cfg_dir(cfg_dir: str = None):

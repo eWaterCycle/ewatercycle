@@ -18,9 +18,6 @@ def find_closest_point(
 ) -> Tuple[int, int]:
     """Find closest grid cell to a point based on Geographical distances.
 
-    It uses Spherical Earth projected to a plane formula:
-    https://en.wikipedia.org/wiki/Geographical_distance
-
     args:
         grid_longitudes: 1d array of model grid longitudes in degrees
         grid_latitudes: 1d array of model grid latitudes in degrees
@@ -37,13 +34,9 @@ def find_closest_point(
     # Create a grid from coordinates (shape will be (nlat, nlon))
     lon_vectors, lat_vectors = np.meshgrid(grid_longitudes_array, grid_latitudes_array)
 
-    dlon = np.radians(lon_vectors - point_longitude)
-    dlat = np.radians(lat_vectors - point_latitude)
-    latm = np.radians((lat_vectors + point_latitude) / 2)
-
-    # approximate radius of earth in km
-    radius = 6373.0
-    distances = radius * np.sqrt(dlat**2 + (np.cos(latm) * dlon) ** 2)
+    distances = geographical_distances(
+        point_longitude, point_latitude, lon_vectors, lat_vectors
+    )
     idx_lat, idx_lon = np.unravel_index(distances.argmin(), distances.shape)
     distance = distances.min()
 
@@ -54,6 +47,33 @@ def find_closest_point(
         raise ValueError(f"Point {point_longitude, point_latitude} outside model grid.")
 
     return idx_lon, idx_lat
+
+
+def geographical_distances(
+    point_longitude: float,
+    point_latitude: float,
+    lon_vectors: np.array,
+    lat_vectors: np.array,
+    radius=6373.0,
+) -> np.array:
+    """It uses Spherical Earth projected to a plane formula:
+    https://en.wikipedia.org/wiki/Geographical_distance
+
+    args:
+        point_longitude: longitude in degrees of target coordinate
+        point_latitude: latitude in degrees of target coordinate
+        lon_vectors: 1d array of longitudes in degrees
+        lat_vectors: 1d array of latitudes in degrees
+        radius: Radius of a sphere in km. Default is Earths approximate radius.
+
+    returns:
+        distances: array of geographical distance of point to all vector members
+
+    """
+    dlon = np.radians(lon_vectors - point_longitude)
+    dlat = np.radians(lat_vectors - point_latitude)
+    latm = np.radians((lat_vectors + point_latitude) / 2)
+    return radius * np.sqrt(dlat**2 + (np.cos(latm) * dlon) ** 2)
 
 
 # TODO rename to to_utcdatetime
