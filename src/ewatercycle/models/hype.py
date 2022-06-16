@@ -145,6 +145,9 @@ class Hype(AbstractModel[HypeForcing]):
                 self._cfg, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
             )
 
+        # Set resultdir to . so no sub dirs are needed
+        self._cfg = _set_code_in_cfg(self._cfg, "resultdir", "./")
+
         # write info.txt
         cfg_file = cfg_dir_as_path / "info.txt"
         cfg_file.write_text(self._cfg, encoding="cp437")
@@ -254,7 +257,7 @@ def _set_code_in_cfg(content: str, code: str, value: str) -> str:
             found = True
         new_lines.append(line)
     if not found:
-        new_lines.append("{code} {value}")
+        new_lines.append(f"{code} {value}")
     new_lines.append("")
     return "\n".join(new_lines)
 

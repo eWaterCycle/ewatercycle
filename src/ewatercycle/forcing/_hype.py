@@ -1,7 +1,9 @@
 """Forcing related functionality for hype"""
 
+from pathlib import Path
 from typing import Optional
 
+import pandas as pd
 from esmvalcore.experimental import get_recipe
 
 from ..util import get_time, to_absolute_path
@@ -79,6 +81,21 @@ class HypeForcing(DefaultForcing):
         recipe_files = list(recipe_output.values())[0].files
         forcing_files = {f.path.stem: f.path for f in recipe_files}
         directory = str(forcing_files["Pobs"].parent)
+
+        # Workaround: change subbasin id from 1234.0 to 1234 in all forcing files
+        # Can removed once https://github.com/ESMValGroup/ESMValTool/issues/2678 is fixed
+        for f in [
+            forcing_files["Pobs"].name,
+            forcing_files["Pobs"].name,
+            forcing_files["Pobs"].name,
+            forcing_files["Pobs"].name,
+        ]:
+            p = Path(directory, f)
+            ds = pd.read_csv(p, sep=" ", index_col="DATE")
+            ds.rename(
+                columns={x: x.replace(".0", "") for x in ds.columns}, inplace=True
+            )
+            ds.to_csv(p, sep=" ", index_label="DATE", float_format="%.3f")
 
         # instantiate forcing object based on generated data
         return HypeForcing(

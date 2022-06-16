@@ -123,6 +123,7 @@ class TestWithOnlyParameterSetAndDefaults:
                 timeoutput variable   prec temp crun
                 timeoutput meanperiod 3
                 timeoutput decimals 2
+                resultdir ./
         """
         )
         assert Path(config_file).read_text() == expected
@@ -221,6 +222,7 @@ class TestWithOnlyParameterSetAndFullSetup:
                 timeoutput variable   prec temp crun
                 timeoutput meanperiod 3
                 timeoutput decimals 2
+                resultdir ./
         """
         )
         assert Path(config_file).read_text() == expected
@@ -362,6 +364,7 @@ class TestWithForcingAndDefaults:
                 timeoutput variable   prec temp crun
                 timeoutput meanperiod 3
                 timeoutput decimals 2
+                resultdir ./
         """
         )
         assert Path(config_file).read_text() == expected
