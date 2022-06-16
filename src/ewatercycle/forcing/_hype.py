@@ -86,9 +86,9 @@ class HypeForcing(DefaultForcing):
         # Can removed once https://github.com/ESMValGroup/ESMValTool/issues/2678 is fixed
         for f in [
             forcing_files["Pobs"].name,
-            forcing_files["Pobs"].name,
-            forcing_files["Pobs"].name,
-            forcing_files["Pobs"].name,
+            forcing_files["Tobs"].name,
+            forcing_files["TMAXobs"].name,
+            forcing_files["TMINobs"].name,
         ]:
             p = Path(directory, f)
             ds = pd.read_csv(p, sep=" ", index_col="DATE")
