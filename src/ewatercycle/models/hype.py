@@ -202,7 +202,7 @@ class Hype(AbstractModel[HypeForcing]):
         for plon, plat in zip(lon, lat):
             dist = geographical_distances(plon, plat, x, y)
             index = dist.argmin()
-            indices.append(index)
+            indices.append(int(index))
 
         return indices
 

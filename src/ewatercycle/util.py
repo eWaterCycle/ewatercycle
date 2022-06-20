@@ -46,16 +46,16 @@ def find_closest_point(
     if distance > max(dx, dy) * 2:
         raise ValueError(f"Point {point_longitude, point_latitude} outside model grid.")
 
-    return idx_lon, idx_lat
+    return int(idx_lon), int(idx_lat)
 
 
 def geographical_distances(
     point_longitude: float,
     point_latitude: float,
-    lon_vectors: np.array,
-    lat_vectors: np.array,
+    lon_vectors: np.ndarray,
+    lat_vectors: np.ndarray,
     radius=6373.0,
-) -> np.array:
+) -> np.ndarray:
     """It uses Spherical Earth projected to a plane formula:
     https://en.wikipedia.org/wiki/Geographical_distance
 
