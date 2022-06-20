@@ -10,6 +10,10 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 - delay argument to `ewatercycle.models.Marrmot*.setup()_ ([#303](https://github.com/eWaterCycle/ewatercycle/issues/303))
 
+### Removed
+
+- Python 3.7 support
+
 ## [1.3.0] (2022-04-20)
 
 ### Added

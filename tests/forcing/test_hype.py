@@ -22,7 +22,7 @@ def create_txt(dir: Path, var_name: str) -> OutputFile:
     fn = dir / f"{var_name}.txt"
     # Some dummy data shaped as the model expects it
     lines = [
-        "DATE 300730.0 300822.0",
+        "DATE 300730 300822",
         "1990-01-01 -0.943 -2.442",
         "1990-01-02 -0.308 -0.868",
     ]

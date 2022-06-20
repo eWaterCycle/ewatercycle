@@ -10,4 +10,5 @@ Examples
   MARRMoT M14 <examples/MarrmotM14.ipynb>
   PCRGlobWB <examples/pcrglobwb.ipynb>
   Wflow <examples/wflow.ipynb>
+  Hype <examples/hype.ipynb>
   Irrigation experiment <examples/Irrigation.ipynb>

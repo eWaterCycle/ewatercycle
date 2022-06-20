@@ -1,10 +1,12 @@
 import datetime
 import logging
 import shutil
+import types
 from typing import Any, Iterable, Optional, Tuple
 
 import numpy as np
 import xarray as xr
+from basic_modeling_interface import Bmi
 from cftime import num2date
 from dateutil.parser import parse
 from dateutil.tz import UTC
@@ -15,7 +17,7 @@ from ewatercycle import CFG
 from ewatercycle.forcing._hype import HypeForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
-from ewatercycle.util import get_time, to_absolute_path
+from ewatercycle.util import geographical_distances, get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 
@@ -143,6 +145,9 @@ class Hype(AbstractModel[HypeForcing]):
                 self._cfg, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
             )
 
+        # Set resultdir to . so no sub dirs are needed
+        self._cfg = _set_code_in_cfg(self._cfg, "resultdir", "./")
+
         # write info.txt
         cfg_file = cfg_dir_as_path / "info.txt"
         cfg_file.write_text(self._cfg, encoding="cp437")
@@ -150,6 +155,15 @@ class Hype(AbstractModel[HypeForcing]):
         # start container
         work_dir = str(cfg_dir_as_path)
         self.bmi = _start_container(self.version, work_dir)
+
+        since = self._start.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        # The Hype get_time_units() returns `hours since start of simulation` and get_start_time() returns 0
+        # A relative datetime is not very useful, so here we overwrite the get_time_units to return the absolute datetime.
+        def get_time_units(_self):
+            return f"hours since {since}"
+
+        self.bmi.get_time_units = types.MethodType(get_time_units, self.bmi)
 
         return str(cfg_file), work_dir
 
@@ -173,23 +187,22 @@ class Hype(AbstractModel[HypeForcing]):
             Xarray with values for each sub catchment
 
         """
-        """Return the value as xarray object."""
-        # Get time information
-        time_units = self.bmi.get_time_units()
-        grid = self.bmi.get_var_grid(name)
-        shape = self.bmi.get_grid_shape(grid)
+        raise NotImplementedError("Hype coordinates cannot be mapped to grid")
 
-        return xr.DataArray(
-            data=np.reshape(self.bmi.get_value(name), shape),
-            coords={
-                "longitude": self.bmi.get_grid_y(grid),
-                "latitude": self.bmi.get_grid_x(grid),
-                "time": num2date(self.bmi.get_current_time(), time_units),
-            },
-            dims=["latitude", "longitude"],
-            name=name,
-            attrs={"units": self.bmi.get_var_units(name)},
-        )
+    def _coords_to_indices(
+        self, name: str, lat: Iterable[float], lon: Iterable[float]
+    ) -> Iterable[int]:
+        grid_id = self.bmi.get_var_grid(name)
+        x = self.bmi.get_grid_x(grid_id)
+        y = self.bmi.get_grid_y(grid_id)
+
+        indices = []
+        for plon, plat in zip(lon, lat):
+            dist = geographical_distances(plon, plat, x, y)
+            index = dist.argmin()
+            indices.append(index)
+
+        return indices
 
 
 def _setup_cfg_dir(cfg_dir: str = None):
@@ -244,7 +257,7 @@ def _set_code_in_cfg(content: str, code: str, value: str) -> str:
             found = True
         new_lines.append(line)
     if not found:
-        new_lines.append("{code} {value}")
+        new_lines.append(f"{code} {value}")
     new_lines.append("")
     return "\n".join(new_lines)
 
