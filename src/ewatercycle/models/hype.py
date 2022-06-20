@@ -32,6 +32,8 @@ _version_images = {
 class Hype(AbstractModel[HypeForcing]):
     """eWaterCycle implementation of Hype hydrological model.
 
+    Model documentation at http://www.smhi.net/hype/wiki/doku.php .
+
     Args:
         version: pick a version from :py:attr:`~available_versions`
         parameter_set: instance of
