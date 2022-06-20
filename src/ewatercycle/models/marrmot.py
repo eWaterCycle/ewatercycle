@@ -103,6 +103,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
         end_time: str = None,
         solver: Solver = None,
         cfg_dir: str = None,
+        delay: int = 0,
     ) -> Tuple[str, str]:
         """Configure model run.
 
@@ -122,6 +123,8 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
                 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
             solver: Solver settings
             cfg_dir: a run directory given by user or created for user.
+            delay: Number of seconds to wait before communicating with model.
+                Increase the delay when model takes a while to start.
 
         Returns:
             Path to config file and path to config directory
@@ -147,6 +150,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
                 image=str(self.singularity_image),
                 work_dir=str(cfg_dir_as_path),
                 timeout=300,
+                delay=delay,
             )
         elif CFG["container_engine"].lower() == "docker":
             self.bmi = BmiClientDocker(
@@ -154,6 +158,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
                 image_port=55555,
                 work_dir=str(cfg_dir_as_path),
                 timeout=300,
+                delay=delay,
             )
         else:
             raise ValueError(
@@ -358,6 +363,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
         end_time: str = None,
         solver: Solver = None,
         cfg_dir: str = None,
+        delay: int = 0,
     ) -> Tuple[str, str]:
         """Configure model run.
 
@@ -384,6 +390,8 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
                 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
                 solver: Solver settings
             cfg_dir: a run directory given by user or created for user.
+            delay: Number of seconds to wait before communicating with model.
+                Increase the delay when model takes a while to start.
 
         Returns:
             Path to config file and path to config directory
@@ -414,6 +422,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
                 image=str(self.singularity_image),
                 work_dir=str(cfg_dir_as_path),
                 timeout=300,
+                delay=delay,
             )
         elif CFG["container_engine"].lower() == "docker":
             self.bmi = BmiClientDocker(
@@ -421,6 +430,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
                 image_port=55555,
                 work_dir=str(cfg_dir_as_path),
                 timeout=300,
+                delay=delay,
             )
         else:
             raise ValueError(

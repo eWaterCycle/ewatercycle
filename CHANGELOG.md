@@ -6,6 +6,10 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+### Added
+
+- delay argument to `ewatercycle.models.Marrmot*.setup()_ ([#303](https://github.com/eWaterCycle/ewatercycle/issues/303))
+
 ## [1.3.0] (2022-04-20)
 
 ### Added
