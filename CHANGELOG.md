@@ -9,6 +9,11 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 ### Added
 
 - delay argument to `ewatercycle.models.Marrmot*.setup()_ ([#303](https://github.com/eWaterCycle/ewatercycle/issues/303))
+- Hype forcing generation and model [#308](https://github.com/eWaterCycle/ewatercycle/pull/308)
+
+### Removed
+
+- Python 3.7 support
 
 ## [1.3.0] (2022-04-20)
 
