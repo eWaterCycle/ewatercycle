@@ -7,15 +7,12 @@ scientific discovery instead. By contrast, adding new models to eWaterCycle
 requires a deep understanding of the technologies used to build the system and
 the models of which it is comprised.
 
-So far, the process for adding new models to eWaterCycle has been coordinated by
-the system developers. Should you wish to add a new model yourself, it is
-advisable to contact us well in advance (e.g. through GitHub), so we may be able
-to provide assistance. In the meantime, we're working towards a process where
+So far, the addition of new models to eWaterCycle has been coordinated by the
+system developers. Should you wish to add a new model yourself, it is advisable
+to contact us well in advance (e.g. through GitHub), so we may be able to
+provide assistance. In the meantime, we're working towards a process where
 adding models to eWaterCycle can be carried out by the eWaterCycle community.
 
-.. note::
-  The instructions on this page are still rudimentary. If you would like to help
-  us improve them, please don't hesitate to get in touch by opening an issue.
 
 There are roughly five steps to adding a model to eWaterCycle:
 
@@ -29,6 +26,11 @@ If you want to add a new version of a model the procedure is roughly the
 same, but you can skip several steps. If you are already familiar with the
 eWaterCycle bits and pieces, you can refer to :ref:`New versions` for a
 condensed version of the necessary steps.
+
+.. note::
+  The instructions on this page are still rudimentary. If you would like to help
+  us improve them, please don't hesitate to get in touch by `opening an issue
+  <https://github.com/eWaterCycle/ewatercycle/issues/new>`_.
 
 .. _BMI model:
 
