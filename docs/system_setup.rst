@@ -6,6 +6,8 @@ and data.
 
 This chapter is for system administrators or Research Software Engineers who need to set up a system for the eWaterCycle platform.
 
+These instructions cover installing an eWaterCycle system from scratch on an "empty" Linux machine. We have also have created a codified version of these instructions using `Ansible <https://docs.ansible.com/ansible/latest/index.html>`__ specifically targeted at the `SURF Research Cloud <https://servicedesk.surfsara.nl/wiki/display/WIKI/Research+Cloud+Documentation>`__ in a `separate Infra repo <https://github.com/eWaterCycle/infra>`__.
+
 The setup steps:
 
 1.  `Conda environment <#conda-environment>`__
