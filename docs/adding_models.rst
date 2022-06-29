@@ -148,7 +148,7 @@ information about the contributing process.
 Make the new model available on a machine that's running eWaterCycle
 ********************************************************************
 
-At this stage, anyone can see and use your inside eWaterCycle on their own
+At this stage, anyone can see and use your model inside eWaterCycle on their own
 machine. However, the more interesting and common use case for eWaterCycle is
 for it to be hosted on a tailor-made platform. That is, you get access to a
 machine with a Jupyter Lab environment, an explorer, and lot's of data readily
