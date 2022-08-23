@@ -407,12 +407,12 @@ Download example forcing
 To be able to run the Marrmot example notebooks you need a forcing file.
 You can use ``ewatercycle.forcing.generate()`` to make it or use an
 already prepared `forcing
-file <https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat>`__.
+file <https://github.com/wknoben/MARRMoT/blob/dev-docker-BMI/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat>`__.
 
 .. code:: shell
 
     cd docs/examples
-    wget https://github.com/wknoben/MARRMoT/raw/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
+    wget https://github.com/wknoben/MARRMoT/raw/dev-docker-BMI/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
     cd -
 
 Download observation data
