@@ -71,7 +71,7 @@ class WflowForcing(DefaultForcing):
         script["dem_file"] = dem_file
 
         if extract_region is None:
-            extract_region = get_extents(shape)
+            extract_region = get_extents(shape, pad=3)
         recipe.data["preprocessors"]["rough_cutout"]["extract_region"] = extract_region
 
         recipe.data["diagnostics"]["wflow_daily"]["additional_datasets"] = [
