@@ -1,5 +1,4 @@
-"""Forcing related functionality for wflow"""
-from pathlib import Path
+"""Forcing related functionality for wflow."""
 from typing import Dict, Optional
 
 from esmvalcore.experimental import get_recipe
@@ -19,13 +18,13 @@ class WflowForcing(DefaultForcing):
         directory: str,
         shape: Optional[str] = None,
         netcdfinput: str = "inmaps.nc",
-        Precipitation: str = "/pr",
+        Precipitation: str = "/pr",  # noqa: N803
         EvapoTranspiration: str = "/pet",
         Temperature: str = "/tas",
         Inflow: Optional[str] = None,
     ):
         """
-        netcdfinput (str) = "inmaps.nc": Path to forcing file."
+        netcdfinput (str) = "inmaps.nc": Path to forcing file.
         Precipitation (str) = "/pr": Variable name of precipitation data in
             input file.
         EvapoTranspiration (str) = "/pet": Variable name of
@@ -33,7 +32,7 @@ class WflowForcing(DefaultForcing):
         Temperature (str) = "/tas": Variable name of temperature data in
             input file.
         Inflow (str) = None: Variable name of inflow data in input file.
-        """
+        """  # noqa docstrings are combined with forcing.load_foreign()
         super().__init__(start_time, end_time, directory, shape)
         self.netcdfinput = netcdfinput
         self.Precipitation = Precipitation
@@ -58,7 +57,7 @@ class WflowForcing(DefaultForcing):
         extract_region (dict): Region specification, dictionary must
             contain `start_longitude`, `end_longitude`, `start_latitude`,
             `end_latitude`
-        """
+        """  # noqa docstrings are combined with forcing.generate()
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_wflow.yml"
         recipe = get_recipe(recipe_name)
@@ -71,7 +70,7 @@ class WflowForcing(DefaultForcing):
         script["dem_file"] = dem_file
 
         if extract_region is None:
-            extract_region = get_extents(shape)
+            extract_region = get_extents(shape, pad=3)
         recipe.data["preprocessors"]["rough_cutout"]["extract_region"] = extract_region
 
         recipe.data["diagnostics"]["wflow_daily"]["additional_datasets"] = [
@@ -115,7 +114,7 @@ class WflowForcing(DefaultForcing):
                 f"Start time: {self.start_time}",
                 f"End time: {self.end_time}",
                 f"Shapefile: {self.shape}",
-                f"Additional information for model config:",
+                "Additional information for model config:",
                 f"  - netcdfinput: {self.netcdfinput}",
                 f"  - Precipitation: {self.Precipitation}",
                 f"  - Temperature: {self.Temperature}",
@@ -125,4 +124,5 @@ class WflowForcing(DefaultForcing):
         )
 
     def plot(self):
+        """Visualize the forcing data."""
         raise NotImplementedError("Dont know how to plot")
