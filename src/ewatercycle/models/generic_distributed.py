@@ -15,7 +15,7 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
-#from ewatercycle.forcing._wflow import WflowForcing
+from ewatercycle.forcing._wflow import WflowForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser
@@ -35,67 +35,44 @@ class GenericDistributedModel(AbstractModel):
             If None, it is assumed that forcing is included with the parameter_set.
     """
 
-    available_versions = ("EmptyModel.1.0")
+    available_versions = ("EmptyModel.1.0","ownImage")
     """Show supported WFlow versions in eWaterCycle"""
 
     def __init__(  # noqa: D107
         self,
         version: str,
-        parameter_set: ParameterSet,
-        forcing: Optional[ForcingT] = None,
+        parameter_set: Optional[ParameterSet] = None,
+        forcing: Optional[WflowForcing] = None,
+        image: Optional[str] = None
     ):
         super().__init__(version, parameter_set, forcing)
-        self._set_docker_image()
+        self._set_docker_image(image)
         self._setup_default_config()
 
-    def _set_docker_image(self):
+    def _set_docker_image(self, image = ""):
         images = {
-            # "2019.1": "ewatercycle/wflow-grpc4bmi:2019.1", # no good ini file
-            "EmptyModel.1.0": "ewatercycle/[TOBECREATED]"
+            "EmptyModel.1.0": "ewatercycle/[TOBECREATED]",
+            "ownImage": image
         }
         self.docker_image = images[self.version]
 
-    def _singularity_image(self, singularity_dir):
+    def _singularity_image(self, singularity_dir, image = ""):
         images = {
-            "EmptyModel.1.0": "ewatercycle-[TOBECREATED].sif"
+            "EmptyModel.1.0": "ewatercycle-[TOBECREATED].sif",
+            "ownImage": image
         }
         image = singularity_dir / images[self.version]
         return str(image)
 
     def _setup_default_config(self):
-        config_file = self.parameter_set.config
-        forcing = self.forcing
-
-        cfg = CaseConfigParser()
-        cfg.read(config_file)
-
-### This part was written for WFLOW and I think can be removed [TODO]        
-#        if forcing:
-#            cfg.set("framework", "netcdfinput", Path(forcing.netcdfinput).name)
-#            cfg.set("inputmapstacks", "Precipitation", forcing.Precipitation)
-#            cfg.set(
-#                "inputmapstacks",
-#                "EvapoTranspiration",
-#                forcing.EvapoTranspiration,
-#            )
-#            cfg.set("inputmapstacks", "Temperature", forcing.Temperature)
-#            cfg.set("run", "starttime", _iso_to_wflow(forcing.start_time))
-#            cfg.set("run", "endtime", _iso_to_wflow(forcing.end_time))
-#        if self.version in self.available_versions:
-#            if not cfg.has_section("API"):
-#                logger.warning(
-#                    "Config file from parameter set is missing API section, "
-#                    "adding section"
-#                )
-#                cfg.add_section("API")
-#            if not cfg.has_option("API", "RiverRunoff"):
-#                logger.warning(
-#                    "Config file from parameter set is missing RiverRunoff "
-#                    "option in API section, added it with value '2, m/s option'"
-#                )
-#                cfg.set("API", "RiverRunoff", "2, m/s")
-
-        self.config = cfg
+        if self.parameter_set is not None:
+            config_file = self.parameter_set.config
+            #forcing = self.forcing
+            cfg = CaseConfigParser()
+            cfg.read(config_file)
+            self.config = cfg
+        else:
+            self.config = None
 
     def setup(self, cfg_dir: str = None, **kwargs) -> Tuple[str, str]:  # type: ignore
         """Start the model inside a container and return a valid config file.
@@ -109,18 +86,20 @@ class GenericDistributedModel(AbstractModel):
             Path to config file and working directory
         """
         self._setup_working_directory(cfg_dir)
-        cfg = self.config
+        
+        if self.config is not None:
+            cfg = self.config
 
-        if "start_time" in kwargs:
-            cfg.set("run", "starttime", _iso_to_wflow(kwargs["start_time"]))
-        if "end_time" in kwargs:
-            cfg.set("run", "endtime", _iso_to_wflow(kwargs["end_time"]))
+            if "start_time" in kwargs:
+                cfg.set("run", "starttime", kwargs["start_time"])
+            if "end_time" in kwargs:
+                cfg.set("run", "endtime", kwargs["end_time"])
 
-        updated_cfg_file = to_absolute_path(
-            "generic_distributed_model.ini", parent=self.work_dir
-        )
-        with updated_cfg_file.open("w") as filename:
-            cfg.write(filename)
+            updated_cfg_file = to_absolute_path(
+                "generic_distributed_model.ini", parent=self.work_dir
+            )
+            with updated_cfg_file.open("w") as filename:
+                cfg.write(filename)
 
         try:
             self._start_container()

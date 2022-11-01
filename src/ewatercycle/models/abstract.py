@@ -30,7 +30,7 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
         forcing: Optional[ForcingT] = None,
     ):
         self.version = version
-        self.parameter_set = parameter_set
+        self.parameter_set: optional[ParameterSet] = parameter_set
         self.forcing: Optional[ForcingT] = forcing
         self._check_version()
         self._check_parameter_set()
@@ -167,7 +167,6 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
         """
 
     @property
-    @abstractmethod
     def parameters(self) -> Iterable[Tuple[str, Any]]:
         """Default values for the setup() inputs"""
 
