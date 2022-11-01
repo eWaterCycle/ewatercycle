@@ -36,7 +36,7 @@ class GenericDistributedModel(AbstractModel):
     """
 
     available_versions = ("EmptyModel.1.0","ownImage")
-    """Show supported WFlow versions in eWaterCycle"""
+    """Show supported versions in eWaterCycle"""
 
     def __init__(  # noqa: D107
         self,
@@ -94,17 +94,20 @@ class GenericDistributedModel(AbstractModel):
         
         if self.config is not None:
             cfg = self.config
+        else: 
+            cfg = CaseConfigParser()
+            cfg.add_section("run")
 
-            if "start_time" in kwargs:
-                cfg.set("run", "starttime", kwargs["start_time"])
-            if "end_time" in kwargs:
-                cfg.set("run", "endtime", kwargs["end_time"])
+        if "start_time" in kwargs:
+            cfg.set("run", "starttime", kwargs["start_time"])
+        if "end_time" in kwargs:
+            cfg.set("run", "endtime", kwargs["end_time"])
 
-            updated_cfg_file = to_absolute_path(
-                "generic_distributed_model.ini", parent=self.work_dir
-            )
-            with updated_cfg_file.open("w") as filename:
-                cfg.write(filename)
+        updated_cfg_file = to_absolute_path(
+            "generic_distributed_model.ini", parent=self.work_dir
+        )
+        with updated_cfg_file.open("w") as filename:
+            cfg.write(filename)
 
         try:
             self._start_container()
@@ -210,25 +213,3 @@ class GenericDistributedModel(AbstractModel):
         )
 
         return da.where(da != -999)
-
-### This part was written for WFLOW and I think can be removed [TODO]        
-# 
-#    @property
-#    def parameters(self) -> Iterable[Tuple[str, Any]]:
-#        """List the configurable parameters for this model."""
-#        # An opiniated list of configurable parameters.
-#        cfg = self.config
-#        return [
-#            ("start_time", _wflow_to_iso(cfg.get("run", "starttime"))),
-#            ("end_time", _wflow_to_iso(cfg.get("run", "endtime"))),
-#        ]
-#
-#
-#def _wflow_to_iso(time):
-#    dt = datetime.datetime.fromisoformat(time)
-#    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-#
-#
-#def _iso_to_wflow(time):
-#    dt = get_time(time)
-#    return dt.strftime("%Y-%m-%d %H:%M:%S")
