@@ -204,3 +204,41 @@ def test_generate_with_directory(mock_recipe_run, sample_shape, tmp_path):
     )
 
     assert mock_recipe_run["session"].session_dir == forcing_dir
+
+
+def test_generate_no_output_raises(monkeypatch, sample_shape):
+    def failing_recipe_run(self, session):
+        return {"diagnostic_daily/script": ()}
+
+    monkeypatch.setattr(Recipe, "run", failing_recipe_run)
+
+    with pytest.raises(FileNotFoundError):
+        generate(
+            target_model="marrmot",
+            dataset="ERA5",
+            start_time="1989-01-02T00:00:00Z",
+            end_time="1999-01-02T00:00:00Z",
+            shape=sample_shape,
+        )
+
+
+def test_generate_wrong_output_raises(monkeypatch, sample_shape, tmp_path):
+    def failing_recipe_run(self, session):
+        fake_forcing_path1 = str(tmp_path / "marrmot.mat")
+        fake_forcing_path2 = str(tmp_path / "marrmot.mat")
+        files = (
+            OutputFile(fake_forcing_path1),
+            OutputFile(fake_forcing_path2),
+        )
+        return {"diagnostic_daily/script": files}
+
+    monkeypatch.setattr(Recipe, "run", failing_recipe_run)
+
+    with pytest.raises(FileNotFoundError):
+        generate(
+            target_model="marrmot",
+            dataset="ERA5",
+            start_time="1989-01-02T00:00:00Z",
+            end_time="1999-01-02T00:00:00Z",
+            shape=sample_shape,
+        )
