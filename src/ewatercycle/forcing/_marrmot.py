@@ -1,4 +1,4 @@
-"""Forcing related functionality for marrmot"""
+"""Forcing related functionality for marrmot."""
 
 from pathlib import Path
 from typing import Optional
@@ -25,7 +25,7 @@ class MarrmotForcing(DefaultForcing):
         forcing_file: Matlab file that contains forcings for Marrmot
             models. See format forcing file in `model implementation
             <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`_.
-        """
+        """  # noqa: D205,D400
         super().__init__(start_time, end_time, directory, shape)
         self.forcing_file = forcing_file
 
@@ -40,8 +40,7 @@ class MarrmotForcing(DefaultForcing):
     ) -> "MarrmotForcing":
         """
         None: Marrmot does not have model-specific generate options.
-        """
-
+        """  # noqa: D200,D205,D400
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_marrmot.yml"
         recipe = get_recipe(recipe_name)
@@ -71,19 +70,23 @@ class MarrmotForcing(DefaultForcing):
         # generate forcing data and retrieve useful information
         recipe_output = recipe.run(session=_session(directory))
 
-        # check if only one .mat file is written by the recipe and stored in the script folder 
+        # check that recipe output contains only one .mat file
         mat_file_names = []
-        for file_name in recipe_output['diagnostic_daily/script']:
-            if file_name.path.suffix == '.mat':
+        for file_name in recipe_output["diagnostic_daily/script"]:
+            if file_name.path.suffix == ".mat":
                 mat_file_names.append(file_name)
 
         if len(mat_file_names) == 0:
-            raise(FileNotFoundError, "No .mat files found in diagnostic_daily/script output directory: " + str(directory))
+            raise FileNotFoundError(
+                "No .mat files found in output directory: " + str(directory)
+            )
         if len(mat_file_names) > 1:
-            raise(FileNotFoundError, "More than one .mat files found in diagnostic_daily/script output directory: " + str(directory))
+            raise FileNotFoundError(
+                "More than one .mat files found in output directory: " + str(directory)
+            )
 
         forcing_file: Path = mat_file_names[0].path
-    
+
         directory = str(Path(forcing_file).parent)
 
         # instantiate forcing object based on generated data
@@ -96,4 +99,5 @@ class MarrmotForcing(DefaultForcing):
         )
 
     def plot(self):
+        """Visualize forcing."""
         raise NotImplementedError("Dont know how to plot")
