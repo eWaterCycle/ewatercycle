@@ -46,7 +46,12 @@ class GenericDistributedModel(AbstractModel):
         image: Optional[str] = None
     ):
         super().__init__(version, parameter_set, forcing)
-        self._set_docker_image(image)
+        
+        if CFG["container_engine"] == "docker":
+            self._set_docker_image(image)
+        elif CFG["container_engine"] == "singularity":
+            self._set_singularity_image(CFG["singularity_dir"],image)
+            
         self._setup_default_config()
 
     def _set_docker_image(self, image = ""):
@@ -56,13 +61,13 @@ class GenericDistributedModel(AbstractModel):
         }
         self.docker_image = images[self.version]
 
-    def _singularity_image(self, singularity_dir, image = ""):
+    def _set_singularity_image(self, singularity_dir, image = ""):
         images = {
             "EmptyModel.1.0": "ewatercycle-[TOBECREATED].sif",
             "ownImage": image
         }
         image = singularity_dir / images[self.version]
-        return str(image)
+        self.singularity_image = str(image)
 
     def _setup_default_config(self):
         if self.parameter_set is not None:
@@ -132,17 +137,9 @@ class GenericDistributedModel(AbstractModel):
             )
         # Make sure parents exist
         self.work_dir.parent.mkdir(parents=True, exist_ok=True)
-
-
-### This part was written for WFLOW and I think can be removed [TODO]        
-#        assert self.parameter_set
-#        shutil.copytree(src=self.parameter_set.directory, dst=self.work_dir)
-#        if self.forcing:
-#            forcing_path = to_absolute_path(
-#                self.forcing.netcdfinput, parent=self.forcing.directory
-#            )
-#            shutil.copy(src=forcing_path, dst=self.work_dir)
-
+        
+        # create work dir
+        self.work_dir.mkdir(parents=True, exist_ok=True)
 
     def _start_container(self):
         if CFG["container_engine"] == "docker":
@@ -154,7 +151,7 @@ class GenericDistributedModel(AbstractModel):
             )
         elif CFG["container_engine"] == "singularity":
             self.bmi = BmiClientSingularity(
-                image=self._singularity_image(CFG["singularity_dir"]),
+                image=self.singularity_image,
                 work_dir=str(self.work_dir),
                 timeout=300,
             )
