@@ -107,6 +107,7 @@ class TestGenerate:
                 "projects": ["ewatercycle"],
                 "references": ["acknow_project"],
                 "title": "Generate forcing for the Marrmot hydrological model",
+                "maintainer": ["unmaintained"],
             },
             "preprocessors": {
                 "daily": {
