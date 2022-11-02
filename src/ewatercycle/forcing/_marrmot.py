@@ -86,8 +86,8 @@ class MarrmotForcing(DefaultForcing):
                 "More than one .mat files found in output directory: " + str(directory)
             )
 
+        # everything ok so retreive paths
         forcing_file: Path = matlab_files[0].path
-
         directory = str(forcing_file.parent)
 
         # instantiate forcing object based on generated data
