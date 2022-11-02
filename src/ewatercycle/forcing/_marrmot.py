@@ -69,25 +69,26 @@ class MarrmotForcing(DefaultForcing):
 
         # generate forcing data and retrieve useful information
         recipe_output = recipe.run(session=_session(directory))
+        task_output = recipe_output["diagnostic_daily/script"]
 
         # check that recipe output contains only one .mat file
-        mat_file_names = []
-        for file_name in recipe_output["diagnostic_daily/script"]:
-            if file_name.path.suffix == ".mat":
-                mat_file_names.append(file_name)
+        matlab_files = []
+        for datafile in task_output.files:
+            if datafile.path.suffix == ".mat":
+                matlab_files.append(datafile)
 
-        if len(mat_file_names) == 0:
+        if len(matlab_files) == 0:
             raise FileNotFoundError(
                 "No .mat files found in output directory: " + str(directory)
             )
-        if len(mat_file_names) > 1:
+        if len(matlab_files) > 1:
             raise FileNotFoundError(
                 "More than one .mat files found in output directory: " + str(directory)
             )
 
-        forcing_file: Path = mat_file_names[0].path
+        forcing_file: Path = matlab_files[0].path
 
-        directory = str(Path(forcing_file).parent)
+        directory = str(forcing_file.parent)
 
         # instantiate forcing object based on generated data
         return MarrmotForcing(

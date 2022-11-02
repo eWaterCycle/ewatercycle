@@ -207,8 +207,13 @@ def test_generate_with_directory(mock_recipe_run, sample_shape, tmp_path):
 
 
 def test_generate_no_output_raises(monkeypatch, sample_shape):
+    """Should raise when there is no .mat file in output."""
+
+    class MockTaskOutput:
+        files = ()
+
     def failing_recipe_run(self, session):
-        return {"diagnostic_daily/script": ()}
+        return {"diagnostic_daily/script": MockTaskOutput}
 
     monkeypatch.setattr(Recipe, "run", failing_recipe_run)
 
@@ -223,14 +228,18 @@ def test_generate_no_output_raises(monkeypatch, sample_shape):
 
 
 def test_generate_wrong_output_raises(monkeypatch, sample_shape, tmp_path):
-    def failing_recipe_run(self, session):
+    """Should raise when there are more than one .mat files in output."""
+
+    class MockTaskOutput:
         fake_forcing_path1 = str(tmp_path / "marrmot.mat")
         fake_forcing_path2 = str(tmp_path / "marrmot.mat")
         files = (
             OutputFile(fake_forcing_path1),
             OutputFile(fake_forcing_path2),
         )
-        return {"diagnostic_daily/script": files}
+
+    def failing_recipe_run(self, session):
+        return {"diagnostic_daily/script": MockTaskOutput}
 
     monkeypatch.setattr(Recipe, "run", failing_recipe_run)
 
