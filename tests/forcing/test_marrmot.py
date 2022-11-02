@@ -9,14 +9,14 @@ from ewatercycle.forcing._marrmot import MarrmotForcing
 
 
 def test_plot():
-    f = MarrmotForcing(
+    forcing = MarrmotForcing(
         directory=".",
         start_time="1989-01-02T00:00:00Z",
         end_time="1999-01-02T00:00:00Z",
         forcing_file="marrmot.mat",
     )
     with pytest.raises(NotImplementedError):
-        f.plot()
+        forcing.plot()
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def mock_recipe_run(monkeypatch, tmp_path):
         return {"diagnostic_daily/script": MockTaskOutput()}
 
     monkeypatch.setattr(Recipe, "run", mock_run)
-    return recorder
+    return recorder  # noqa: R504
 
 
 class TestGenerate:
@@ -64,7 +64,7 @@ class TestGenerate:
                             "version": 1,
                         }
                     ],
-                    "description": "marrmot input " "preprocessor for daily " "data",
+                    "description": "marrmot input preprocessor for daily data",
                     "scripts": {
                         "script": {"basin": "Rhine", "script": "hydrology/marrmot.py"}
                     },
