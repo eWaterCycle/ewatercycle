@@ -95,6 +95,7 @@ class TestGenerateWithExtractRegion:
                     "aerts_jerom",
                     "andela_bouwe",
                 ],
+                "maintainer": ["unmaintained"],
                 "description": "Pre-processes climate data for the WFlow hydrological model.\n",  # noqa: E501
                 "projects": ["ewatercycle"],
                 "references": ["acknow_project"],
