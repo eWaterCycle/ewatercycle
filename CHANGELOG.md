@@ -6,6 +6,10 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+### Fixed
+
+- Update of ESMValCore breaks (MarrMot) recipes ([#322](https://github.com/eWaterCycle/ewatercycle/issues/322))
+
 ## [1.4.0] (2022-06-20)
 
 ### Added
