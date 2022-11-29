@@ -1,7 +1,7 @@
 import logging
 import weakref
 from datetime import datetime, timezone
-from typing import Any, Iterable, Tuple
+from typing import Any, Iterable, Optional, Tuple
 from unittest.mock import patch
 
 import numpy as np
@@ -28,7 +28,11 @@ def setup_config(tmp_path):
 class MockedModel(AbstractModel):
     available_versions = ("0.4.2",)
 
-    def __init__(self, version: str = "0.4.2", parameter_set: ParameterSet = None):
+    def __init__(
+        self,
+        version: str = "0.4.2",
+        parameter_set: Optional[ParameterSet] = None,
+    ):
         super().__init__(version, parameter_set)
 
     def setup(self, *args, **kwargs) -> Tuple[str, str]:
