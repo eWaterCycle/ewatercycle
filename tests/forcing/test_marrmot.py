@@ -9,14 +9,14 @@ from ewatercycle.forcing._marrmot import MarrmotForcing
 
 
 def test_plot():
-    f = MarrmotForcing(
+    forcing = MarrmotForcing(
         directory=".",
         start_time="1989-01-02T00:00:00Z",
         end_time="1999-01-02T00:00:00Z",
         forcing_file="marrmot.mat",
     )
     with pytest.raises(NotImplementedError):
-        f.plot()
+        forcing.plot()
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def mock_recipe_run(monkeypatch, tmp_path):
         return {"diagnostic_daily/script": MockTaskOutput()}
 
     monkeypatch.setattr(Recipe, "run", mock_run)
-    return recorder
+    return recorder  # noqa: R504
 
 
 class TestGenerate:
@@ -64,7 +64,7 @@ class TestGenerate:
                             "version": 1,
                         }
                     ],
-                    "description": "marrmot input " "preprocessor for daily " "data",
+                    "description": "marrmot input preprocessor for daily data",
                     "scripts": {
                         "script": {"basin": "Rhine", "script": "hydrology/marrmot.py"}
                     },
@@ -205,3 +205,50 @@ def test_generate_with_directory(mock_recipe_run, sample_shape, tmp_path):
     )
 
     assert mock_recipe_run["session"].session_dir == forcing_dir
+
+
+def test_generate_no_output_raises(monkeypatch, sample_shape):
+    """Should raise when there is no .mat file in output."""
+
+    class MockTaskOutput:
+        files = ()
+
+    def failing_recipe_run(self, session):
+        return {"diagnostic_daily/script": MockTaskOutput}
+
+    monkeypatch.setattr(Recipe, "run", failing_recipe_run)
+
+    with pytest.raises(FileNotFoundError):
+        generate(
+            target_model="marrmot",
+            dataset="ERA5",
+            start_time="1989-01-02T00:00:00Z",
+            end_time="1999-01-02T00:00:00Z",
+            shape=sample_shape,
+        )
+
+
+def test_generate_wrong_output_raises(monkeypatch, sample_shape, tmp_path):
+    """Should raise when there are more than one .mat files in output."""
+
+    class MockTaskOutput:
+        fake_forcing_path1 = str(tmp_path / "marrmot.mat")
+        fake_forcing_path2 = str(tmp_path / "marrmot.mat")
+        files = (
+            OutputFile(fake_forcing_path1),
+            OutputFile(fake_forcing_path2),
+        )
+
+    def failing_recipe_run(self, session):
+        return {"diagnostic_daily/script": MockTaskOutput}
+
+    monkeypatch.setattr(Recipe, "run", failing_recipe_run)
+
+    with pytest.raises(FileNotFoundError):
+        generate(
+            target_model="marrmot",
+            dataset="ERA5",
+            start_time="1989-01-02T00:00:00Z",
+            end_time="1999-01-02T00:00:00Z",
+            shape=sample_shape,
+        )

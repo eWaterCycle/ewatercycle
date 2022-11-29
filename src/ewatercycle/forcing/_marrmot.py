@@ -1,4 +1,4 @@
-"""Forcing related functionality for marrmot"""
+"""Forcing related functionality for marrmot."""
 
 from pathlib import Path
 from typing import Optional
@@ -25,7 +25,7 @@ class MarrmotForcing(DefaultForcing):
         forcing_file: Matlab file that contains forcings for Marrmot
             models. See format forcing file in `model implementation
             <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`_.
-        """
+        """  # noqa: D205,D400
         super().__init__(start_time, end_time, directory, shape)
         self.forcing_file = forcing_file
 
@@ -40,8 +40,7 @@ class MarrmotForcing(DefaultForcing):
     ) -> "MarrmotForcing":
         """
         None: Marrmot does not have model-specific generate options.
-        """
-
+        """  # noqa: D200,D205,D400
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_marrmot.yml"
         recipe = get_recipe(recipe_name)
@@ -70,9 +69,26 @@ class MarrmotForcing(DefaultForcing):
 
         # generate forcing data and retrieve useful information
         recipe_output = recipe.run(session=_session(directory))
-        forcing_file: Path = list(recipe_output.values())[0].files[0].path
+        task_output = recipe_output["diagnostic_daily/script"]
 
-        directory = str(Path(forcing_file).parent)
+        # check that recipe output contains only one .mat file
+        matlab_files = []
+        for datafile in task_output.files:
+            if datafile.path.suffix == ".mat":
+                matlab_files.append(datafile)
+
+        if len(matlab_files) == 0:
+            raise FileNotFoundError(
+                "No .mat files found in output directory: " + str(directory)
+            )
+        if len(matlab_files) > 1:
+            raise FileNotFoundError(
+                "More than one .mat files found in output directory: " + str(directory)
+            )
+
+        # everything ok so retreive paths
+        forcing_file: Path = matlab_files[0].path
+        directory = str(forcing_file.parent)
 
         # instantiate forcing object based on generated data
         return MarrmotForcing(
@@ -84,4 +100,5 @@ class MarrmotForcing(DefaultForcing):
         )
 
     def plot(self):
+        """Visualize forcing."""
         raise NotImplementedError("Dont know how to plot")
