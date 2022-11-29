@@ -4,7 +4,7 @@ import datetime
 import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Iterable, List, Tuple
+from typing import Any, Iterable, List, Optional, Tuple
 
 import numpy as np
 import scipy.io as sio
@@ -34,7 +34,7 @@ class Solver:
     resnorm_maxiter: float = 6.0
 
 
-def _generate_cfg_dir(cfg_dir: Path = None) -> Path:
+def _generate_cfg_dir(cfg_dir: Optional[Path] = None) -> Path:
     """Make sure there is a working directory.
 
     Args:
@@ -97,12 +97,12 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
     # unable to subclass with more specialized arguments so ignore type
     def setup(  # type: ignore
         self,
-        maximum_soil_moisture_storage: float = None,
-        initial_soil_moisture_storage: float = None,
-        start_time: str = None,
-        end_time: str = None,
-        solver: Solver = None,
-        cfg_dir: str = None,
+        maximum_soil_moisture_storage: Optional[float] = None,
+        initial_soil_moisture_storage: Optional[float] = None,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+        solver: Optional[Solver] = None,
+        cfg_dir: Optional[str] = None,
         delay: int = 0,
     ) -> Tuple[str, str]:
         """Configure model run.
@@ -192,7 +192,10 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             self.solver.resnorm_maxiter = forcing_solver["resnorm_maxiter"][0][0][0]
 
     def _create_marrmot_config(
-        self, cfg_dir: Path, start_time_iso: str = None, end_time_iso: str = None
+        self,
+        cfg_dir: Path,
+        start_time_iso: Optional[str] = None,
+        end_time_iso: Optional[str] = None,
     ) -> Path:
         """Write model configuration file.
 
@@ -350,19 +353,19 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
     # unable to subclass with more specialized arguments so ignore type
     def setup(  # type: ignore
         self,
-        maximum_soil_moisture_storage: float = None,
-        threshold_flow_generation_evap_change: float = None,
-        leakage_saturated_zone_flow_coefficient: float = None,
-        zero_deficit_base_flow_speed: float = None,
-        baseflow_coefficient: float = None,
-        gamma_distribution_chi_parameter: float = None,
-        gamma_distribution_phi_parameter: float = None,
-        initial_upper_zone_storage: float = None,
-        initial_saturated_zone_storage: float = None,
-        start_time: str = None,
-        end_time: str = None,
-        solver: Solver = None,
-        cfg_dir: str = None,
+        maximum_soil_moisture_storage: Optional[float] = None,
+        threshold_flow_generation_evap_change: Optional[float] = None,
+        leakage_saturated_zone_flow_coefficient: Optional[float] = None,
+        zero_deficit_base_flow_speed: Optional[float] = None,
+        baseflow_coefficient: Optional[float] = None,
+        gamma_distribution_chi_parameter: Optional[float] = None,
+        gamma_distribution_phi_parameter: Optional[float] = None,
+        initial_upper_zone_storage: Optional[float] = None,
+        initial_saturated_zone_storage: Optional[float] = None,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+        solver: Optional[Solver] = None,
+        cfg_dir: Optional[str] = None,
         delay: int = 0,
     ) -> Tuple[str, str]:
         """Configure model run.
@@ -480,7 +483,10 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             self.solver.resnorm_maxiter = forcing_solver["resnorm_maxiter"][0][0][0]
 
     def _create_marrmot_config(
-        self, cfg_dir: Path, start_time_iso: str = None, end_time_iso: str = None
+        self,
+        cfg_dir: Path,
+        start_time_iso: Optional[str] = None,
+        end_time_iso: Optional[str] = None,
     ) -> Path:
         """Write model configuration file.
 

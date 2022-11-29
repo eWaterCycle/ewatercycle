@@ -26,7 +26,7 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
     def __init__(
         self,
         version: str,
-        parameter_set: ParameterSet = None,
+        parameter_set: Optional[ParameterSet] = None,
         forcing: Optional[ForcingT] = None,
     ):
         self.version = version

@@ -44,7 +44,7 @@ class PCRGlobWBForcing(DefaultForcing):
         shape: str,
         start_time_climatology: str,  # TODO make optional, default to start_time
         end_time_climatology: str,  # TODO make optional, defaults to start_time + 1 y
-        extract_region: dict = None,
+        extract_region: Optional[dict] = None,
         directory: Optional[str] = None,
     ) -> "PCRGlobWBForcing":
         """

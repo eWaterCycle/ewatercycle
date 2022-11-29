@@ -1,7 +1,7 @@
 from itertools import chain
 from logging import getLogger
 from os import linesep
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 from ewatercycle import CFG
 
@@ -24,7 +24,7 @@ def _parse_parametersets():
     return parametersets
 
 
-def available_parameter_sets(target_model: str = None) -> Tuple[str, ...]:
+def available_parameter_sets(target_model: Optional[str] = None) -> Tuple[str, ...]:
     """List available parameter sets on this machine.
 
     Args:
