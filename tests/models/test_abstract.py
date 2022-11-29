@@ -38,7 +38,7 @@ class MockedModel(AbstractModel):
     def setup(self, *args, **kwargs) -> Tuple[str, str]:
         if "bmi" in kwargs:
             # sub-class of AbstractModel should construct bmi
-            # using grpc4bmi Docker or Singularity client
+            # using grpc4bmi Docker or Apptainer client
             self.bmi = kwargs["bmi"]
         return "foobar.cfg", "."
 

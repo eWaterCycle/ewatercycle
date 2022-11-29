@@ -10,6 +10,7 @@ from basic_modeling_interface import Bmi
 from cftime import num2date
 from dateutil.parser import parse
 from dateutil.tz import UTC
+from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
@@ -24,7 +25,7 @@ logger = logging.getLogger(__name__)
 _version_images = {
     "feb2021": {
         "docker": "ewatercycle/hype-grpc4bmi:feb2021",
-        "singularity": "ewatercycle-hype-grpc4bmi_feb2021.sif",
+        "apptainer": "ewatercycle-hype-grpc4bmi_feb2021.sif",
     }
 }
 
@@ -222,8 +223,15 @@ def _setup_cfg_dir(cfg_dir: Optional[str] = None):
 
 def _start_container(version: str, work_dir: str):
     if CFG["container_engine"].lower() == "singularity":
-        image = CFG["singularity_dir"] / _version_images[version]["singularity"]
+        # TODO mark as deprecated
+        image = CFG["apptainer_dir"] / _version_images[version]["apptainer"]
         return BmiClientSingularity(
+            image=str(image),
+            work_dir=work_dir,
+        )
+    elif CFG["container_engine"].lower() == "apptainer":
+        image = CFG["apptainer_dir"] / _version_images[version]["apptainer"]
+        return BmiClientApptainer(
             image=str(image),
             work_dir=work_dir,
         )

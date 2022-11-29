@@ -6,6 +6,14 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+### Added
+
+- Apptainer support ([#290](https://github.com/eWaterCycle/ewatercycle/issues))
+
+### Deprecated
+
+- Singularity support
+
 ### Fixed
 
 - PEP 484 prohibits implicit Optional ([325](https://github.com/eWaterCycle/ewatercycle/pull/325))

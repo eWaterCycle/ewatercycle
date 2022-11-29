@@ -7,7 +7,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 from basic_modeling_interface import Bmi
-from grpc4bmi.bmi_client_singularity import BmiClientSingularity
+from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
@@ -20,8 +20,8 @@ from ewatercycle.parametersetdb.config import XmlConfig
 @pytest.fixture
 def mocked_config(tmp_path):
     CFG["output_dir"] = tmp_path
-    CFG["container_engine"] = "singularity"
-    CFG["singularity_dir"] = tmp_path
+    CFG["container_engine"] = "apptainer"
+    CFG["apptainer_dir"] = tmp_path
     CFG["parameterset_dir"] = tmp_path / "psr"
     CFG["parameter_sets"] = {}
 
@@ -85,7 +85,7 @@ class TestLFlatlonUseCase:
     @pytest.fixture
     def model_with_setup(self, mocked_config, model: Lisflood):
         with patch.object(
-            BmiClientSingularity, "__init__", return_value=None
+            BmiClientApptainer, "__init__", return_value=None
         ) as mocked_constructor, patch("datetime.datetime") as mocked_datetime:
             mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
             config_file, config_dir = model.setup(
@@ -184,7 +184,7 @@ class TestLFlatlonUseCase:
         @pytest.fixture
         def model_with_setup(self, tmp_path, mocked_config, model: Lisflood):
             with patch.object(
-                BmiClientSingularity, "__init__", return_value=None
+                BmiClientApptainer, "__init__", return_value=None
             ) as mocked_constructor, patch("datetime.datetime") as mocked_datetime:
                 mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
                 config_file, config_dir = model.setup(

@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 from basic_modeling_interface import Bmi
 from grpc import FutureTimeoutError
-from grpc4bmi.bmi_client_singularity import BmiClientSingularity
+from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
 from ewatercycle import CFG
 from ewatercycle.models import Wflow
@@ -45,8 +45,8 @@ class MockedBmi(Bmi):
 @pytest.fixture
 def mocked_config(tmp_path):
     CFG["output_dir"] = tmp_path
-    CFG["container_engine"] = "singularity"
-    CFG["singularity_dir"] = tmp_path
+    CFG["container_engine"] = "apptainer"
+    CFG["apptainer_dir"] = tmp_path
     CFG["parameterset_dir"] = tmp_path / "wflow_testcase"
     CFG["parameter_sets"] = {}
 
@@ -136,7 +136,7 @@ def test_str(model, tmp_path):
 
 
 def test_setup(model):
-    with patch.object(BmiClientSingularity, "__init__", return_value=None), patch(
+    with patch.object(BmiClientApptainer, "__init__", return_value=None), patch(
         "datetime.datetime"
     ) as mocked_datetime:
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
@@ -154,7 +154,7 @@ def test_setup(model):
 
 def test_setup_withtimeoutexception(model, tmp_path):
     with patch.object(
-        BmiClientSingularity, "__init__", side_effect=FutureTimeoutError()
+        BmiClientApptainer, "__init__", side_effect=FutureTimeoutError()
     ), patch("datetime.datetime") as mocked_datetime, pytest.raises(
         ValueError
     ) as excinfo:
@@ -169,7 +169,7 @@ def test_setup_withtimeoutexception(model, tmp_path):
 
 def test_setup_with_custom_cfg_dir(model, tmp_path):
     my_cfg_dir = str(tmp_path / "mycfgdir")
-    with patch.object(BmiClientSingularity, "__init__", return_value=None), patch(
+    with patch.object(BmiClientApptainer, "__init__", return_value=None), patch(
         "datetime.datetime"
     ) as mocked_datetime:
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)

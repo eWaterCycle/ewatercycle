@@ -165,7 +165,7 @@ def test_config_class():
         "container_engine": "docker",
         "grdc_location": "path/to/grdc_location",
         "output_dir": "path/to/output_dir",
-        "singularity_dir": "path/to/singularity_dir",
+        "apptainer_dir": "path/to/apptainer_dir",
         "parameterset_dir": "path/to/parameter_sets",
         "parameter_sets": {},
     }
@@ -175,6 +175,6 @@ def test_config_class():
     assert isinstance(cfg["container_engine"], str)
     assert isinstance(cfg["grdc_location"], Path)
     assert isinstance(cfg["output_dir"], Path)
-    assert isinstance(cfg["singularity_dir"], Path)
+    assert isinstance(cfg["apptainer_dir"], Path)
     assert isinstance(cfg["parameterset_dir"], Path)
     assert isinstance(cfg["parameter_sets"], dict)

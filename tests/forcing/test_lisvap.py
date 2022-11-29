@@ -75,7 +75,7 @@ def prep_lisvap_input(tmp_path):
 
 
 @patch("subprocess.Popen")
-def test_lisvap_singularity(mocked_popen, tmp_path, mocked_config):
+def test_lisvap_apptainer(mocked_popen, tmp_path, mocked_config):
     config_file, forcing_dir, mask_map = prep_lisvap_input(tmp_path)
     mocked_popen.return_value.communicate.return_value = ("output", "error")
     mocked_popen.return_value.wait.return_value = 0
@@ -89,7 +89,7 @@ def test_lisvap_singularity(mocked_popen, tmp_path, mocked_config):
     )
 
     expected = [
-        "singularity",
+        "apptainer",
         "exec",
         "--bind",
         f"{tmp_path}/psr:{tmp_path}/psr,{tmp_path}/psr/mask.nc:{tmp_path}/psr/mask.nc,{tmp_path}/forc:{tmp_path}/forc",

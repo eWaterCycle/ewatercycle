@@ -28,7 +28,7 @@ from typing import Dict, Tuple
 from ewatercycle import CFG
 from ewatercycle.parametersetdb.config import XmlConfig
 
-from ..config._lisflood_versions import get_docker_image, get_singularity_image
+from ..config._lisflood_versions import get_apptainer_image, get_docker_image
 from ..util import get_time
 
 
@@ -50,8 +50,20 @@ def lisvap(
         forcing_dir,
     )
 
+    if CFG["container_engine"].lower() == "apptainer":
+        image = get_apptainer_image(version, CFG["apptainer"])
+        args = [
+            "apptainer",
+            "exec",
+            "--bind",
+            ",".join([f"{mp}:{mp}" for mp in mount_points]),
+            "--pwd",
+            f"{forcing_dir}",
+            image,
+        ]
     if CFG["container_engine"].lower() == "singularity":
-        image = get_singularity_image(version, CFG["singularity_dir"])
+        # TODO mark as deprecated
+        image = get_apptainer_image(version, CFG["apptainer"])
         args = [
             "singularity",
             "exec",

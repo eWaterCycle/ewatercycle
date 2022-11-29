@@ -10,6 +10,7 @@ import numpy as np
 import xarray as xr
 from cftime import num2date
 from grpc import FutureTimeoutError
+from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
@@ -56,13 +57,13 @@ class Wflow(AbstractModel[WflowForcing]):
         }
         self.docker_image = images[self.version]
 
-    def _singularity_image(self, singularity_dir):
+    def _apptainer_image(self, apptainer_dir):
         images = {
             "2020.1.1": "ewatercycle-wflow-grpc4bmi_2020.1.1.sif",
             "2020.1.2": "ewatercycle-wflow-grpc4bmi_2020.1.2.sif",
             "2020.1.3": "ewatercycle-wflow-grpc4bmi_2020.1.3.sif",
         }
-        image = singularity_dir / images[self.version]
+        image = apptainer_dir / images[self.version]
         return str(image)
 
     def _setup_default_config(self):
@@ -132,9 +133,9 @@ class Wflow(AbstractModel[WflowForcing]):
             raise ValueError(
                 "Couldn't spawn container within allocated time limit "
                 "(300 seconds). You may try pulling the docker image with"
-                f" `docker pull {self.docker_image}` or call `singularity "
-                f"build {self._singularity_image(CFG['singularity_dir'])} "
-                f"docker://{self.docker_image}` if you're using singularity,"
+                f" `docker pull {self.docker_image}` or call `apptainer "
+                f"build {self._apptainer_image(CFG['apptainer_dir'])} "
+                f"docker://{self.docker_image}` if you're using Apptainer,"
                 " and then try again."
             ) from exc
 
@@ -172,9 +173,16 @@ class Wflow(AbstractModel[WflowForcing]):
                 work_dir=str(self.work_dir),
                 timeout=300,
             )
+        elif CFG["container_engine"] == "apptainer":
+            self.bmi = BmiClientApptainer(
+                image=self._apptainer_image(CFG["apptainer_dir"]),
+                work_dir=str(self.work_dir),
+                timeout=300,
+            )
         elif CFG["container_engine"] == "singularity":
+            # TODO mark as deprecated
             self.bmi = BmiClientSingularity(
-                image=self._singularity_image(CFG["singularity_dir"]),
+                image=self._apptainer_image(CFG["apptainer_dir"]),
                 work_dir=str(self.work_dir),
                 timeout=300,
             )

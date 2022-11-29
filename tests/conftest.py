@@ -77,7 +77,7 @@ def sample_lisvap_config():
 @pytest.fixture
 def mocked_config(tmp_path):
     CFG["output_dir"] = tmp_path
-    CFG["container_engine"] = "singularity"
-    CFG["singularity_dir"] = tmp_path
+    CFG["container_engine"] = "apptainer"
+    CFG["apptainer_dir"] = tmp_path
     CFG["parameterset_dir"] = tmp_path / "psr"
     CFG["parameter_sets"] = {}

@@ -135,6 +135,10 @@ validate_dict_parameterset = _make_type_validator(dict, allow_none=True)
 _validators = {
     "grdc_location": validate_path_or_none,
     "container_engine": validate_string_or_none,
+    "apptainer_dir": validate_path_or_none,
+    # TODO mark as deprecated,
+    # TODO use if apptainer_dir not set,
+    # TODO make key optional
     "singularity_dir": validate_path_or_none,
     "output_dir": validate_path_or_none,
     "parameterset_dir": validate_path_or_none,

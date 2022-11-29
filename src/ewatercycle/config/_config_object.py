@@ -82,7 +82,7 @@ class Config(ValidatedConfig):
         cp.pop("ewatercycle_config", None)
 
         cp["grdc_location"] = str(cp["grdc_location"])
-        cp["singularity_dir"] = str(cp["singularity_dir"])
+        cp["apptainer_dir"] = str(cp["apptainer_dir"])
         cp["output_dir"] = str(cp["output_dir"])
         cp["parameterset_dir"] = str(cp["parameterset_dir"])
 
