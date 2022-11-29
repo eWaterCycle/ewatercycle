@@ -85,10 +85,10 @@ class Hype(AbstractModel[HypeForcing]):
     # unable to subclass with more specialized arguments so ignore type
     def setup(  # type: ignore
         self,
-        start_time: str = None,
-        end_time: str = None,
-        crit_time: str = None,
-        cfg_dir: str = None,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+        crit_time: Optional[str] = None,
+        cfg_dir: Optional[str] = None,
     ) -> Tuple[str, str]:
         """Configure model run.
 
@@ -207,7 +207,7 @@ class Hype(AbstractModel[HypeForcing]):
         return indices
 
 
-def _setup_cfg_dir(cfg_dir: str = None):
+def _setup_cfg_dir(cfg_dir: Optional[str] = None):
     if cfg_dir:
         work_dir = to_absolute_path(cfg_dir)
     else:

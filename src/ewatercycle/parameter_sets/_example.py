@@ -1,7 +1,7 @@
 import subprocess
 from logging import getLogger
 from pathlib import Path
-from typing import Set
+from typing import Optional, Set
 from urllib import request
 
 from ewatercycle import CFG
@@ -19,7 +19,7 @@ class ExampleParameterSet(ParameterSet):
         name,
         directory: str,
         config: str,
-        supported_model_versions: Set[str] = None,
+        supported_model_versions: Optional[Set[str]] = None,
         doi="N/A",
         target_model="generic",
     ):

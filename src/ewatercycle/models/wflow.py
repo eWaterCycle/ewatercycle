@@ -99,7 +99,7 @@ class Wflow(AbstractModel[WflowForcing]):
 
         self.config = cfg
 
-    def setup(self, cfg_dir: str = None, **kwargs) -> Tuple[str, str]:  # type: ignore
+    def setup(self, cfg_dir: Optional[str] = None, **kwargs) -> Tuple[str, str]:  # type: ignore
         """Start the model inside a container and return a valid config file.
 
         Args:
@@ -143,7 +143,7 @@ class Wflow(AbstractModel[WflowForcing]):
             str(self.work_dir),
         )
 
-    def _setup_working_directory(self, cfg_dir: str = None):
+    def _setup_working_directory(self, cfg_dir: Optional[str] = None):
         if cfg_dir:
             self.work_dir = to_absolute_path(cfg_dir)
         else:

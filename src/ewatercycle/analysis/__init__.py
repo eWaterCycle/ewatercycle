@@ -26,13 +26,13 @@ def hydrograph(
     discharge: pd.DataFrame,
     *,
     reference: str,
-    precipitation: pd.DataFrame = None,
-    dpi: int = None,
+    precipitation: Optional[pd.DataFrame] = None,
+    dpi: Optional[int] = None,
     title: str = "Hydrograph",
     discharge_units: str = "m$^3$ s$^{-1}$",
     precipitation_units: str = "mm day$^{-1}$",
     figsize: Tuple[float, float] = (10, 10),
-    filename: Union[os.PathLike, str] = None,
+    filename: Optional[Union[os.PathLike, str]] = None,
     nbars: Optional[int] = None,
     **kwargs,
 ) -> Tuple[plt.Figure, Tuple[plt.Axes, plt.Axes]]:
@@ -112,7 +112,7 @@ def hydrograph(
         ax_pr.invert_yaxis()
         ax_pr.set_ylabel(f"Precipitation ({precipitation_units})")
 
-        for pr_label, pr_timeseries in precipitation.iteritems():
+        for pr_label, pr_timeseries in precipitation.items():
             ax_pr.bar(
                 pr_timeseries.index.values,
                 pr_timeseries.values,

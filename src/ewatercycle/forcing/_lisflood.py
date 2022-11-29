@@ -64,8 +64,8 @@ class LisfloodForcing(DefaultForcing):
         end_time: str,
         shape: str,
         directory: Optional[str] = None,
-        target_grid: dict = None,
-        run_lisvap: dict = None,
+        target_grid: Optional[dict] = None,
+        run_lisvap: Optional[dict] = None,
     ) -> "LisfloodForcing":
         """
         target_grid (dict): the ``target_grid`` should be a ``dict`` with the
@@ -118,7 +118,7 @@ class LisfloodForcing(DefaultForcing):
         ] = basin
 
         if target_grid is None:
-            logger.warn("target_grid was not given, guestimating from shape")
+            logger.warning("target_grid was not given, guestimating from shape")
             step = 0.1
             target_grid = fit_extents_to_grid(get_extents(shape), step=step)
             target_grid.update(

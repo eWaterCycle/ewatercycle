@@ -48,7 +48,7 @@ def load_foreign(
     start_time: str,
     end_time: str,
     directory: str = ".",
-    shape: str = None,
+    shape: Optional[str] = None,
     forcing_info: Optional[Dict] = None,
 ):
     """Load existing forcing data generated from an external source.

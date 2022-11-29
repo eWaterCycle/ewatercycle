@@ -164,6 +164,7 @@ class TestGenerateForcingWithoutLisvap:
             },
             "documentation": {
                 "authors": ["verhoeven_stefan", "kalverla_peter", "andela_bouwe"],
+                "maintainer": ["unmaintained"],
                 "projects": ["ewatercycle"],
                 "references": ["acknow_project"],
                 "description": "Recipe pre-process files for use in the "

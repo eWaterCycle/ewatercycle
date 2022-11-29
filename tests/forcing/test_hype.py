@@ -115,6 +115,7 @@ class TestGenerate:
             },
             "documentation": {
                 "authors": ["pelupessy_inti", "kalverla_peter"],
+                "maintainer": ["unmaintained"],
                 "projects": ["ewatercycle"],
                 "references": ["acknow_project"],
                 "title": "Generate forcing for the Hype hydrological model",
