@@ -8,7 +8,10 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ### Fixed
 
-- Update of ESMValCore breaks (MarrMot) recipes ([#322](https://github.com/eWaterCycle/ewatercycle/issues/322))
+- PEP 484 prohibits implicit Optional ([325](https://github.com/eWaterCycle/ewatercycle/pull/325))
+- Update of ESMValCore breaks recipes tests ([#325](https://github.com/eWaterCycle/ewatercycle/issues/322))
+- Update of ESMValCore breaks Marrmot forcing generation ([322](https://github.com/eWaterCycle/ewatercycle/pull/325))
+- Pre-commit hook for flake8 from GitHub instead of GitLab ([325](https://github.com/eWaterCycle/ewatercycle/pull/325))
 
 ## [1.4.0] (2022-06-20)
 

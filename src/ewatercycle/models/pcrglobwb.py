@@ -59,7 +59,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
         image = singularity_dir / images[self.version]
         return str(image)
 
-    def _setup_work_dir(self, cfg_dir: str = None):
+    def _setup_work_dir(self, cfg_dir: Optional[str] = None):
         if cfg_dir:
             self.work_dir = to_absolute_path(cfg_dir)
         else:
@@ -113,7 +113,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
         self.config = cfg
 
-    def setup(self, cfg_dir: str = None, **kwargs) -> Tuple[str, str]:  # type: ignore
+    def setup(self, cfg_dir: Optional[str] = None, **kwargs) -> Tuple[str, str]:  # type: ignore
         """Start model inside container and return config file and work dir.
 
         Args:

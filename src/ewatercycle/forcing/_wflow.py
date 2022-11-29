@@ -49,7 +49,7 @@ class WflowForcing(DefaultForcing):
         shape: str,
         dem_file: str,
         directory: Optional[str] = None,
-        extract_region: Dict[str, float] = None,
+        extract_region: Optional[Dict[str, float]] = None,
     ) -> "WflowForcing":
         """
         dem_file (str): Name of the dem_file to use. Also defines the basin

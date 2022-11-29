@@ -1,7 +1,7 @@
 """Global Runoff Data Centre module."""
 import logging
 import os
-from typing import Dict, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 
 import pandas as pd
 
@@ -18,7 +18,7 @@ def get_grdc_data(
     start_time: str,
     end_time: str,
     parameter: str = "Q",
-    data_home: str = None,
+    data_home: Optional[str] = None,
     column: str = "streamflow",
 ) -> Tuple[pd.core.frame.DataFrame, MetaDataType]:
     """Get river discharge data from Global Runoff Data Centre (GRDC).
