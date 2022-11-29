@@ -94,7 +94,7 @@ class XmlConfig(AbstractConfig):
         """
         super().__init__(source)
         self.tree = ET.parse(source)
-        self.config: ET.Element = self.tree.getroot()
+        self.config = self.tree.getroot()  # mypy complains with ET.Element
         """XML element used to make changes to the config"""
 
     def save(self, target):

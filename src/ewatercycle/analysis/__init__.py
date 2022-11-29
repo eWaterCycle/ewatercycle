@@ -112,7 +112,7 @@ def hydrograph(
         ax_pr.invert_yaxis()
         ax_pr.set_ylabel(f"Precipitation ({precipitation_units})")
 
-        for pr_label, pr_timeseries in precipitation.iteritems():
+        for pr_label, pr_timeseries in precipitation.items():
             ax_pr.bar(
                 pr_timeseries.index.values,
                 pr_timeseries.values,

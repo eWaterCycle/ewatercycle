@@ -118,7 +118,7 @@ class LisfloodForcing(DefaultForcing):
         ] = basin
 
         if target_grid is None:
-            logger.warn("target_grid was not given, guestimating from shape")
+            logger.warning("target_grid was not given, guestimating from shape")
             step = 0.1
             target_grid = fit_extents_to_grid(get_extents(shape), step=step)
             target_grid.update(
