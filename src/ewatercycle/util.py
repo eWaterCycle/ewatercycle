@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, Tuple
+from typing import Any, Dict, Iterable, Optional, Tuple
 
 import fiona
 import numpy as np
@@ -165,7 +165,7 @@ def data_files_from_recipe_output(
 
 def to_absolute_path(
     input_path: str,
-    parent: Path = None,
+    parent: Optional[Path] = None,
     must_exist: bool = False,
     must_be_in_parent=True,
 ) -> Path:

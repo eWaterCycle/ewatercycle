@@ -64,8 +64,8 @@ class LisfloodForcing(DefaultForcing):
         end_time: str,
         shape: str,
         directory: Optional[str] = None,
-        target_grid: dict = None,
-        run_lisvap: dict = None,
+        target_grid: Optional[dict] = None,
+        run_lisvap: Optional[dict] = None,
     ) -> "LisfloodForcing":
         """
         target_grid (dict): the ``target_grid`` should be a ``dict`` with the

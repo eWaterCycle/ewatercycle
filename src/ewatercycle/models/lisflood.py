@@ -3,7 +3,7 @@
 import datetime
 import logging
 from pathlib import Path
-from typing import Any, Iterable, Tuple, cast
+from typing import Any, Iterable, Optional, Tuple, cast
 
 import numpy as np
 import xarray as xr
@@ -62,11 +62,11 @@ class Lisflood(AbstractModel[LisfloodForcing]):
     # unable to subclass with more specialized arguments so ignore type
     def setup(  # type: ignore
         self,
-        IrrigationEfficiency: str = None,  # noqa: N803
-        start_time: str = None,
-        end_time: str = None,
-        MaskMap: str = None,
-        cfg_dir: str = None,
+        IrrigationEfficiency: Optional[str] = None,  # noqa: N803
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+        MaskMap: Optional[str] = None,
+        cfg_dir: Optional[str] = None,
     ) -> Tuple[str, str]:
         """Configure model run.
 
@@ -157,10 +157,10 @@ class Lisflood(AbstractModel[LisfloodForcing]):
     def _create_lisflood_config(
         self,
         cfg_dir: Path,
-        start_time_iso: str = None,
-        end_time_iso: str = None,
-        IrrigationEfficiency: str = None,  # noqa: N803
-        MaskMap: str = None,
+        start_time_iso: Optional[str] = None,
+        end_time_iso: Optional[str] = None,
+        IrrigationEfficiency: Optional[str] = None,  # noqa: N803
+        MaskMap: Optional[str] = None,
     ) -> Path:
         """Create lisflood config file."""
         assert self.parameter_set is not None
@@ -346,7 +346,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
 #     return output_dir
 
 
-def _generate_workdir(cfg_dir: Path = None) -> Path:
+def _generate_workdir(cfg_dir: Optional[Path] = None) -> Path:
     """Create or make sure workdir exists.
 
     Args:
