@@ -93,14 +93,10 @@ This section is for maintainers of the package.
     - Use version as title and tag version.
     - As description use intro text from README.md (to give context to
         Zenodo record) and changes from CHANGELOG.md
+    - Verify that the [Github publish action](https://github.com/eWaterCycle/ewatercycle/actions/workflows/python-publish.yml)
+        successfully uploaded the archives to [PyPI](https://pypi.org/project/ewatercycle/).
 
-9. Create a PyPI release.
-
-    1. Create distribution archives with `python3 -m build`.
-    2. Upload archives to PyPI with `twine upload dist/*` (use your
-        personal PyPI account).
-
-10. Verify
+9.  Verify
 
     1. Has [new Zenodo
         record](https://zenodo.org/search?page=1&size=20&q=ewatercycle)
@@ -111,4 +107,4 @@ This section is for maintainers of the package.
     3. Can new version be installed with pip using
         `pip3 install ewatercycle==<new version>`?
 
-11. Celebrate
+10. Celebrate
