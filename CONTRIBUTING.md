@@ -93,8 +93,6 @@ This section is for maintainers of the package.
     - Use version as title and tag version.
     - As description use intro text from README.md (to give context to
         Zenodo record) and changes from CHANGELOG.md
-    - Verify that the [Github publish action](https://github.com/eWaterCycle/ewatercycle/actions/workflows/python-publish.yml)
-        successfully uploaded the archives to [PyPI](https://pypi.org/project/ewatercycle/).
 
 9.  Verify
 
@@ -104,7 +102,9 @@ This section is for maintainers of the package.
     2. Has [stable
         ReadTheDocs](https://ewatercycle.readthedocs.io/en/stable/) been
         updated?
-    3. Can new version be installed with pip using
+    3. Has the [Github publish action](https://github.com/eWaterCycle/ewatercycle/actions/workflows/python-publish.yml)
+        successfully uploaded the archives to [PyPI](https://pypi.org/project/ewatercycle/)?
+    4. Can new version be installed with pip using
         `pip3 install ewatercycle==<new version>`?
 
 10. Celebrate
