@@ -8,7 +8,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ### Added
 
-- Apptainer support ([#290](https://github.com/eWaterCycle/ewatercycle/issues))
+- Apptainer support ([#290](https://github.com/eWaterCycle/ewatercycle/issues/290))
 
 ### Deprecated
 
