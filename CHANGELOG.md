@@ -14,12 +14,15 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 - Singularity support
 
+## [1.4.1] (2022-12-20)
+
 ### Fixed
 
-- PEP 484 prohibits implicit Optional ([325](https://github.com/eWaterCycle/ewatercycle/pull/325))
-- Update of ESMValCore breaks recipes tests ([#325](https://github.com/eWaterCycle/ewatercycle/issues/322))
-- Update of ESMValCore breaks Marrmot forcing generation ([322](https://github.com/eWaterCycle/ewatercycle/pull/325))
-- Pre-commit hook for flake8 from GitHub instead of GitLab ([325](https://github.com/eWaterCycle/ewatercycle/pull/325))
+- PEP 484 prohibits implicit Optional ([#325](https://github.com/eWaterCycle/ewatercycle/pull/325))
+- Update of ESMValCore breaks recipes tests ([#325](https://github.com/eWaterCycle/ewatercycle/issues/325))
+- Pre-commit hook for flake8 from GitHub instead of GitLab ([#325](https://github.com/eWaterCycle/ewatercycle/pull/325))
+- Update of ESMValCore breaks Marrmot forcing generation ([#322](https://github.com/eWaterCycle/ewatercycle/pull/322))
+- Forcing generation for Wflow has been fixed ([#321](https://github.com/eWaterCycle/ewatercycle/pull/321))
 
 ## [1.4.0] (2022-06-20)
 
@@ -168,7 +171,9 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/1.3.0...HEAD
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/1.4.1...HEAD
+[1.4.1]: https://github.com/eWaterCycle/ewatercycle/compare/1.4.0...1.4.1
+[1.4.0]: https://github.com/eWaterCycle/ewatercycle/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/eWaterCycle/ewatercycle/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.4...1.2.0
 [1.1.4]: https://github.com/eWaterCycle/ewatercycle/compare/1.1.3...1.1.4
