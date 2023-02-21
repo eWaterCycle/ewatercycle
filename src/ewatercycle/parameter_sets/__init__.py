@@ -33,10 +33,8 @@ def available_parameter_sets(target_model: Optional[str] = None) -> Tuple[str, .
     """
     all_parameter_sets = _parse_parametersets()
     if not all_parameter_sets:
-        if CFG["ewatercycle_config"] == DEFAULT_CONFIG:
-            raise ValueError(f"No configuration file found.")
         raise ValueError(
-            f'No parameter sets defined in {CFG["ewatercycle_config"]}. Use '
+            f"No parameter sets defined in {CFG.ewatercycle_config}. Use "
             "`ewatercycle.parameter_sets.download_example_parameter_sets()` to download"
             " examples or define your own or ask whoever setup the ewatercycle "
             "system to do it."

@@ -34,10 +34,10 @@ class ParameterSet:
     ):
         self.name = name
         self.directory = to_absolute_path(
-            directory, parent=CFG.get("parameterset_dir"), must_be_in_parent=False
+            directory, parent=CFG.parameterset_dir, must_be_in_parent=False
         )
         self.config = to_absolute_path(
-            config, parent=CFG.get("parameterset_dir"), must_be_in_parent=False
+            config, parent=CFG.parameterset_dir, must_be_in_parent=False
         )
         self.doi = doi
         self.target_model = target_model
