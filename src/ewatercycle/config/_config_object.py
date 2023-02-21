@@ -50,7 +50,9 @@ class Config(BaseModel):
         singularity_dir = values.get("singularity_dir")
         apptainer_dir = values.get("apptainer_dir")
         if singularity_dir is not None and apptainer_dir is None:
-            logger.warn("singularity_dir has been deprecated please use apptainer_dir")
+            logger.warning(
+                "singularity_dir has been deprecated please use apptainer_dir"
+            )
             values["apptainer_dir"] = singularity_dir
         return values
 
@@ -101,14 +103,17 @@ class Config(BaseModel):
         if not path.exists():
             raise FileNotFoundError(f"Cannot find: `{filename}")
 
-        self.clear()
-        self.update(CFG_DEFAULT)
-        self.update(Config._load_user_config(path))
+        newconfig = Config._load_user_config(path)
+        # TODO assign newconfig props to self
 
     def reload(self) -> None:
         """Reload the config file."""
-        filename = self.get("ewatercycle_config", DEFAULT_CONFIG)
-        self.load_from_file(filename)
+        filename = self.ewatercycle_config
+        if filename is None:
+            newconfig = self.__class__()
+            # TODO assign newconfig props to self
+        else:
+            self.load_from_file(filename)
 
     def dump_to_yaml(self) -> str:
         """Dumps YAML formatted string of Config object"""
@@ -139,9 +144,6 @@ class Config(BaseModel):
             config_file = (
                 USER_HOME_CONFIG if old_config_file is None else old_config_file
             )
-
-        if config_file == DEFAULT_CONFIG:
-            raise PermissionError(f"Not allowed to write to {config_file}", config_file)
 
         with open(config_file, "w") as f:
             self._save_to_stream(f)
@@ -186,7 +188,6 @@ SYSTEM_CONFIG = Path("/etc") / FILENAME
 SOURCES = (USER_HOME_CONFIG, SYSTEM_CONFIG)
 
 USER_CONFIG = find_user_config(SOURCES)
-DEFAULT_CONFIG = Path(__file__).parent / FILENAME
 
 CFG_DEFAULT = Config()
 
