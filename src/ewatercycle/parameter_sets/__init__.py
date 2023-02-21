@@ -15,10 +15,8 @@ logger = getLogger(__name__)
 
 def _parse_parametersets():
     parametersets = {}
-    if CFG["parameter_sets"] is None:
-        return []
-    for name, options in CFG["parameter_sets"].items():
-        parameterset = ParameterSet(name=name, **options)
+    for name, options in CFG.parameter_sets.items():
+        parameterset = ParameterSet(name=name, **options.dict())
         parametersets[name] = parameterset
 
     return parametersets

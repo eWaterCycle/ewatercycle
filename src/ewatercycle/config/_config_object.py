@@ -4,26 +4,69 @@ import os
 from io import StringIO
 from logging import getLogger
 from pathlib import Path
-from typing import Optional, TextIO, Union
+from typing import Any, Dict, Literal, Optional, Set, TextIO, Union
 
+from pydantic import BaseModel, DirectoryPath, FilePath, root_validator
 from ruamel.yaml import YAML
 
 from ewatercycle.util import to_absolute_path
 
-from ._validated_config import ValidatedConfig
-from ._validators import _validators
-
 logger = getLogger(__name__)
 
 
-class Config(ValidatedConfig):
+# TODO dont duplicate
+# src/ewatercycle/parameter_sets/default.py:ParameterSet
+# but fix circular dependency
+class ParameterSetConfig(BaseModel):
+    # TODO prepend directory with CFG.parameterset_dir
+    # and make DirectoryPath type
+    directory: Path
+    # TODO prepend config with CFG.parameterset_dir and .directory
+    # and make FilePath type
+    config: Path
+    doi: str = "N/A"
+    target_model: str = "generic"
+    supported_model_versions: Set[str] = set()
+
+
+class Config(BaseModel):
     """Configuration object.
 
     Do not instantiate this class directly, but use
     :obj:`ewatercycle.CFG` instead.
     """
 
-    _validate = _validators
+    grdc_location: Optional[DirectoryPath]
+    container_engine: Literal["docker", "apptainer", "singularity"] = "docker"
+    apptainer_dir: Optional[DirectoryPath]
+    singularity_dir: Optional[DirectoryPath]
+    output_dir: Optional[DirectoryPath]
+    parameterset_dir: Optional[DirectoryPath]
+    parameter_sets: Dict[str, ParameterSetConfig] = {}
+    ewatercycle_config: Optional[FilePath]
+
+    @root_validator
+    def _deprecate_singularity_dir(cls, values):
+        singularity_dir = values.get("singularity_dir")
+        apptainer_dir = values.get("apptainer_dir")
+        if singularity_dir is not None and apptainer_dir is None:
+            logger.warn("singularity_dir has been deprecated please use apptainer_dir")
+            values["apptainer_dir"] = singularity_dir
+        return values
+
+    # TODO add more cross property validation like
+    # - When container engine is apptainer then apptainer_dir must be set
+    # - When parameter_sets is filled then parameterset_dir must be set
+
+    # TODO drop dict methods and use CFG.bla instead of CFG['bla'] everywhere else
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
+
+    def __delitem__(self, key):
+        setattr(key, None)
 
     @classmethod
     def _load_user_config(cls, filename: Union[os.PathLike, str]) -> "Config":
@@ -36,23 +79,21 @@ class Config(ValidatedConfig):
         filename: pathlike
             Name of the config file, must be yaml format
         """
-        new = cls()
+        new: Dict[str, Any] = {}
         mapping = read_config_file(filename)
         mapping["ewatercycle_config"] = filename
 
         new.update(CFG_DEFAULT)
         new.update(mapping)
 
-        return new
+        return cls(**new)
 
     @classmethod
     def _load_default_config(cls, filename: Union[os.PathLike, str]) -> "Config":
         """Load the default configuration."""
-        new = cls()
         mapping = read_config_file(filename)
-        new.update(mapping)
 
-        return new
+        return cls(**mapping)
 
     def load_from_file(self, filename: Union[os.PathLike, str]) -> None:
         """Load user configuration from the given file."""
@@ -76,15 +117,8 @@ class Config(ValidatedConfig):
         return stream.getvalue()
 
     def _save_to_stream(self, stream: TextIO):
-        cp = self.copy()
-
         # Exclude own path from dump
-        cp.pop("ewatercycle_config", None)
-
-        cp["grdc_location"] = str(cp["grdc_location"])
-        cp["apptainer_dir"] = str(cp["apptainer_dir"])
-        cp["output_dir"] = str(cp["output_dir"])
-        cp["parameterset_dir"] = str(cp["parameterset_dir"])
+        cp = self.dict(exclude={"ewatercycle_config"})
 
         yaml = YAML(typ="safe")
         yaml.dump(cp, stream)
@@ -99,7 +133,7 @@ class Config(ValidatedConfig):
                 the location in users home directory.
         """
         # Exclude own path from dump
-        old_config_file = self.get("ewatercycle_config", None)
+        old_config_file = self.ewatercycle_config
 
         if config_file is None:
             config_file = (
@@ -154,7 +188,7 @@ SOURCES = (USER_HOME_CONFIG, SYSTEM_CONFIG)
 USER_CONFIG = find_user_config(SOURCES)
 DEFAULT_CONFIG = Path(__file__).parent / FILENAME
 
-CFG_DEFAULT = Config._load_default_config(DEFAULT_CONFIG)
+CFG_DEFAULT = Config()
 
 if USER_CONFIG:
     CFG = Config._load_user_config(USER_CONFIG)
