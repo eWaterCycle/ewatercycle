@@ -40,15 +40,15 @@ def _generate_cfg_dir(cfg_dir: Optional[Path] = None) -> Path:
 
     Args:
         cfg_dir: If cfg dir is None or does not exist then create sub-directory
-            in CFG['output_dir']
+            in CFG.output_dir
     """
     if cfg_dir is None:
-        scratch_dir = CFG["output_dir"]
+        scratch_dir = CFG.output_dir
         # TODO this timestamp isnot safe for parallel processing
         timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
             "%Y%m%d_%H%M%S"
         )
-        cfg_dir = to_absolute_path(f"marrmot_{timestamp}", parent=Path(scratch_dir))
+        cfg_dir = to_absolute_path(f"marrmot_{timestamp}", parent=scratch_dir)
     cfg_dir.mkdir(parents=True, exist_ok=True)
     return cfg_dir
 
@@ -92,8 +92,8 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
 
     def _set_apptainer_image(self):
         images = {"2020.11": "ewatercycle-marrmot-grpc4bmi_2020.11.sif"}
-        if CFG.get("apptainer_dir"):
-            self.apptainer_image = CFG["apptainer_dir"] / images[self.version]
+        if CFG.apptainer_dir is not None:
+            self.apptainer_image = CFG.apptainer_dir / images[self.version]
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(  # type: ignore
@@ -144,7 +144,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
         cfg_dir_as_path = _generate_cfg_dir(cfg_dir_as_path)
         config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)
 
-        if CFG["container_engine"].lower() == "apptainer":
+        if CFG.container_engine == "apptainer":
             message = f"The Apptainer image {self.apptainer_image} does not exist."
             assert self.apptainer_image.exists(), message
             self.bmi = BmiClientApptainer(
@@ -153,7 +153,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
                 timeout=300,
                 delay=delay,
             )
-        elif CFG["container_engine"].lower() == "singularity":
+        elif CFG.container_engine == "singularity":
             message = f"The singularity image {self.apptainer_image} does not exist."
             assert self.apptainer_image.exists(), message
             self.bmi = BmiClientSingularity(
@@ -162,7 +162,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
                 timeout=300,
                 delay=delay,
             )
-        elif CFG["container_engine"].lower() == "docker":
+        elif CFG.container_engine == "docker":
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
@@ -172,7 +172,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             )
         else:
             raise ValueError(
-                f"Unknown container technology in CFG: {CFG['container_engine']}"
+                f"Unknown container technology in CFG: {CFG.container_engine}"
             )
         return str(config_file), str(cfg_dir_as_path)
 
@@ -357,8 +357,8 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
 
     def _set_apptainer_image(self):
         images = {"2020.11": "ewatercycle-marrmot-grpc4bmi_2020.11.sif"}
-        if CFG.get("apptainer_dir"):
-            self.apptainer_image = CFG["apptainer_dir"] / images[self.version]
+        if CFG.apptainer_dir is not None:
+            self.apptainer_image = CFG.apptainer_dir / images[self.version]
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(  # type: ignore
@@ -428,7 +428,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
         cfg_dir_as_path = _generate_cfg_dir(cfg_dir_as_path)
         config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)
 
-        if CFG["container_engine"].lower() == "singularity":
+        if CFG.container_engine == "singularity":
             # TODO mark as deprecated
             message = f"The singularity image {self.apptainer_image} does not exist."
             assert self.apptainer_image.exists(), message
@@ -438,7 +438,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
                 timeout=300,
                 delay=delay,
             )
-        elif CFG["container_engine"].lower() == "apptainer":
+        elif CFG.container_engine == "apptainer":
             message = f"The Apptainer image {self.apptainer_image} does not exist."
             assert self.apptainer_image.exists(), message
             self.bmi = BmiClientApptainer(
@@ -447,7 +447,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
                 timeout=300,
                 delay=delay,
             )
-        elif CFG["container_engine"].lower() == "docker":
+        elif CFG.container_engine == "docker":
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
@@ -457,7 +457,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             )
         else:
             raise ValueError(
-                f"Unknown container technology in CFG: {CFG['container_engine']}"
+                f"Unknown container technology in CFG: {CFG.container_engine}"
             )
         return str(config_file), str(cfg_dir_as_path)
 

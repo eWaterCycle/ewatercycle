@@ -11,10 +11,10 @@ class ParameterSet:
     Attributes:
         name (str): Name of parameter set
         directory (Path): Location on disk where files of parameter set are stored.
-            If Path is relative then relative to CFG['parameterset_dir'].
+            If Path is relative then relative to CFG.parameterset_dir.
         config (Path): Model configuration file which uses files from
             :py:attr:`~directory`. If Path is relative then relative to
-            CFG['parameterset_dir'].
+            CFG.parameterset_dir.
         doi (str): Persistent identifier of parameter set. For a example a DOI
             for a Zenodo record.
         target_model (str): Name of model that parameter set can work with

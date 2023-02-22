@@ -174,17 +174,17 @@ The configuration can be set in Python with
     import ewatercycle
     import ewatercycle.parameter_sets
     # Which container engine is used to run the hydrological models
-    ewatercycle.CFG['container_engine'] = 'apptainer'   # or 'docker'
+    ewatercycle.container_engine = 'apptainer'   # or 'docker'
     # If container_engine==apptainer then where can the Apptainer images files (*.sif) be found.
-    ewatercycle.CFG['apptainer_dir'] = './apptainer-images'
+    ewatercycle.CFG.apptainer_dir = './apptainer-images'
     # Directory in which output of model runs is stored. Each model run will generate a sub directory inside output_dir
-    ewatercycle.CFG['output_dir'] = './'
+    ewatercycle.CFG.output_dir = './'
     # Where can GRDC observation files (<station identifier>_Q_Day.Cmd.txt) be found.
-    ewatercycle.CFG['grdc_location'] = './grdc-observations'
+    ewatercycle.CFG.grdc_location = './grdc-observations'
     # Where can parameters sets prepared by the system administator be found
-    ewatercycle.CFG['parameterset_dir'] = './parameter-sets'
+    ewatercycle.CFG.parameterset_dir = './parameter-sets'
     # Where is the configuration saved or loaded from
-    ewatercycle.CFG['ewatercycle_config'] = './ewatercycle.yaml'
+    ewatercycle.CFG.ewatercycle_config = './ewatercycle.yaml'
 
 and then written to disk with
 
@@ -269,11 +269,11 @@ Apptainer
 ~~~~~~~~~
 
 Apptainer images should be stored in configured directory
-(``ewatercycle.CFG['apptainer_dir']``) and can build from Docker with:
+(``ewatercycle.CFG.apptainer_dir``) and can build from Docker with:
 
 .. code:: shell
 
-    cd {ewatercycle.CFG['apptainer_dir']}
+    cd {ewatercycle.CFG.apptainer_dir}
     apptainer build ewatercycle-lisflood-grpc4bmi_20.10.sif docker://ewatercycle/lisflood-grpc4bmi:20.10
     apptainer build ewatercycle-marrmot-grpc4bmi_2020.11.sif docker://ewatercycle/marrmot-grpc4bmi:2020.11
     apptainer build ewatercycle-pcrg-grpc4bmi_setters.sif docker://ewatercycle/pcrg-grpc4bmi:setters
@@ -389,8 +389,8 @@ A new parameter set should be added as a key/value pair in the ``parameter_sets`
 The key should be a unique string on the current system.
 The value is a dictionary with the following items:
 
-* directory: Location on disk where files of the parameter set are stored. If Path is relative then relative to :py:const:`ewatercycle.CFG['parameterset_dir']`.
-* config: Model configuration file which uses files from directory. If Path is relative then relative to :py:const:`ewatercycle.CFG['parameterset_dir']`.
+* directory: Location on disk where files of the parameter set are stored. If Path is relative then relative to :py:const:`ewatercycle.CFG.parameterset_dir`.
+* config: Model configuration file which uses files from directory. If Path is relative then relative to :py:const:`ewatercycle.CFG.parameterset_dir`.
 * doi: Persistent identifier of the parameter set. For example a DOI for a Zenodo record.
 * target_model: Name of the model that parameter set can work with
 * supported_model_versions: Set of model versions that are supported by this parameter set. If not set then parameter set will be supported by all versions of model
@@ -432,5 +432,5 @@ Services (USGS) <https://waterservices.usgs.gov/>`__ data.
 The GRDC daily data files can be ordered at
 https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/riverdischarge_node.html.
 
-The GRDC files should be stored in ``ewatercycle.CFG['grdc_location']``
+The GRDC files should be stored in ``ewatercycle.CFG.grdc_location``
 directory.

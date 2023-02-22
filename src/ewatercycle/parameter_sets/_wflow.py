@@ -6,10 +6,10 @@ from ._example import ExampleParameterSet
 def example_parameter_sets() -> Iterable[ExampleParameterSet]:
     return [
         ExampleParameterSet(
-            # Relative to CFG['parameterset_dir']
+            # Relative to CFG.parameterset_dir
             directory="wflow_rhine_sbm_nc",
             name="wflow_rhine_sbm_nc",
-            # Relative to CFG['parameterset_dir']
+            # Relative to CFG.parameterset_dir
             config="wflow_rhine_sbm_nc/wflow_sbm_NC.ini",
             datafiles_url="https://github.com/openstreams/wflow/trunk/examples/wflow_rhine_sbm_nc",  # noqa: E501
             # Raw url to config file

@@ -2,23 +2,25 @@ from pathlib import Path
 from textwrap import dedent
 
 import pytest
+from pydantic import ValidationError
 
 from ewatercycle import CFG
-from ewatercycle.config._config_object import Config
+from ewatercycle.config._config_object import Configuration
 
 
 def test_config_object():
     """Test that the config is of the right type."""
-    assert isinstance(CFG, Config)
+    assert isinstance(CFG, Configuration)
 
 
 def test_singularity_dir_is_deprecated(tmp_path):
     with pytest.warns(
-        DeprecationWarning, match="ingularity_dir field has been deprecated"
+        DeprecationWarning, match="singularity_dir field has been deprecated"
     ):
-        config = Config(**{"singularity_dir": str(tmp_path)})
+        config = Configuration(**{"singularity_dir": tmp_path})
 
         assert config.apptainer_dir == tmp_path
+        assert config.singularity_dir is None
 
 
 @pytest.fixture
@@ -42,11 +44,11 @@ def example_config_file(tmp_path, example_grdc_location):
 
 
 def test_load_from_file(example_grdc_location, example_config_file):
-    config = Config()
+    config = Configuration()
 
     config.load_from_file(example_config_file)
 
-    expected = Config(
+    expected = Configuration(
         grdc_location=example_grdc_location, ewatercycle_config=example_config_file
     )
     assert config == expected
@@ -54,23 +56,49 @@ def test_load_from_file(example_grdc_location, example_config_file):
 
 def test_load_from_file_given_bad_path():
     config_file = Path("/path/that/does/not/exist")
-    config = Config()
+    config = Configuration()
 
     with pytest.raises(FileNotFoundError):
         config.load_from_file(config_file)
 
 
+def test_load_from_file_bad_path_returns_eror_with_config_file_in_loc(tmp_path):
+    config = Configuration()
+    config_file = tmp_path / "ewatercycle.yaml"
+    config_file.write_text(
+        dedent(
+            f"""\
+        grdc_location: /a/directory/that/does/not/exist
+        """
+        )
+    )
+
+    with pytest.raises(ValidationError) as exc_info:
+        config.load_from_file(config_file)
+
+    errors = exc_info.value.errors()
+    expected = [
+        {
+            "ctx": {"path": "/a/directory/that/does/not/exist"},
+            "loc": (f"{config_file}:grdc_location",),
+            "msg": 'file or directory at path "/a/directory/that/does/not/exist" does not exist',
+            "type": "value_error.path.not_exists",
+        }
+    ]
+    assert errors == expected
+
+
 def test_reload_from_default(tmp_path):
-    config = Config()
+    config = Configuration()
     config.grdc_location = tmp_path
 
     config.reload()
 
-    assert config.grdc_location is None
+    assert config.grdc_location == Path(".")
 
 
 def test_reload_from_file(tmp_path, example_grdc_location, example_config_file):
-    config = Config(ewatercycle_config=example_config_file)
+    config = Configuration(ewatercycle_config=example_config_file)
     config.grdc_location = tmp_path
 
     config.reload()
@@ -79,7 +107,7 @@ def test_reload_from_file(tmp_path, example_grdc_location, example_config_file):
 
 
 def test_save_to_file_given_path(tmp_path: Path):
-    config = Config()
+    config = Configuration()
     config_file = tmp_path / "ewatercycle.yaml"
 
     config.save_to_file(config_file)
@@ -87,31 +115,29 @@ def test_save_to_file_given_path(tmp_path: Path):
     content = config_file.read_text()
     expected = dedent(
         """\
-        apptainer_dir: null
+        apptainer_dir: .
         container_engine: docker
-        grdc_location: null
-        output_dir: null
+        grdc_location: .
+        output_dir: .
         parameter_sets: {}
-        parameterset_dir: null
-        singularity_dir: null
+        parameterset_dir: .
         """
     )
     assert content == expected
 
 
 def test_dump_to_yaml():
-    config = Config()
+    config = Configuration()
     content = config.dump_to_yaml()
 
     expected = dedent(
         """\
-        apptainer_dir: null
+        apptainer_dir: .
         container_engine: docker
-        grdc_location: null
-        output_dir: null
+        grdc_location: .
+        output_dir: .
         parameter_sets: {}
-        parameterset_dir: null
-        singularity_dir: null
+        parameterset_dir: .
         """
     )
     assert content == expected

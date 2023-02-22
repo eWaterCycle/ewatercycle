@@ -9,7 +9,7 @@ from ewatercycle.parameter_sets import ExampleParameterSet
 
 @pytest.fixture
 def setup_config(tmp_path):
-    CFG["parameterset_dir"] = tmp_path
+    CFG.parameterset_dir = tmp_path
     yield CFG
     # Rollback changes made to CFG by tests
     CFG.reload()
@@ -30,7 +30,7 @@ def example(setup_config):
 def test_to_config(example):
     example.to_config()
 
-    assert "firstexample" in CFG["parameter_sets"]
+    assert "firstexample" in CFG.parameter_sets
     expected = dict(
         doi="N/A",
         target_model="generic",
@@ -38,7 +38,7 @@ def test_to_config(example):
         config="mymodelexample/config.ini",
         supported_model_versions={"0.4.2"},
     )
-    assert CFG["parameter_sets"]["firstexample"] == expected
+    assert CFG.parameter_sets["firstexample"] == expected
 
 
 @patch("urllib.request.urlopen")

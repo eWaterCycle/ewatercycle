@@ -9,7 +9,7 @@ from ewatercycle.parameter_sets import ParameterSet
 class TestDefaults:
     @pytest.fixture
     def mocked_config(self, tmp_path):
-        CFG["parameterset_dir"] = tmp_path
+        CFG.parameterset_dir = tmp_path
         config = tmp_path / "mymockedconfig.ini"
         config.write_text("Something")
         return config
@@ -60,7 +60,9 @@ class TestDefaults:
 class TestOutsideCFG:
     @pytest.fixture
     def mocked_config(self, tmp_path):
-        CFG["parameterset_dir"] = tmp_path / "parameter-sets"
+        parameterset_dir = tmp_path / "parameter-sets"
+        parameterset_dir.mkdir()
+        CFG.parameterset_dir = parameterset_dir
         config = tmp_path / "mymockedconfig.ini"
         config.write_text("Something")
         return config

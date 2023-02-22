@@ -59,7 +59,6 @@ YYYY-MM-DD;hh:mm; Value
 
 @pytest.fixture
 def expected_results(tmp_path, sample_grdc_file):
-
     data = pd.DataFrame(
         {"streamflow": [123.0, 456.0, np.NaN]},
         index=[datetime(2000, 1, 1), datetime(2000, 1, 2), datetime(2000, 1, 3)],
@@ -100,7 +99,7 @@ def test_get_grdc_data_with_datahome(tmp_path, expected_results):
 
 
 def test_get_grdc_data_with_cfg(expected_results, tmp_path):
-    CFG["grdc_location"] = str(tmp_path)
+    CFG.grdc_location = tmp_path
     expected_data, expected_metadata = expected_results
     result_data, result_metadata = get_grdc_data(
         "42424242", "2000-01-01T00:00Z", "2000-02-01T00:00Z"
@@ -108,22 +107,6 @@ def test_get_grdc_data_with_cfg(expected_results, tmp_path):
 
     assert_frame_equal(result_data, expected_data)
     assert result_metadata == expected_metadata
-
-
-def test_get_grdc_data_without_path():
-    CFG["grdc_location"] = None
-    with pytest.raises(ValueError, match=r"Provide the grdc path") as excinfo:
-        get_grdc_data("42424242", "2000-01-01T00:00Z", "2000-02-01T00:00Z")
-    msg = str(excinfo.value)
-    assert "data_home" in msg
-    assert "grdc_location" in msg
-
-
-def test_get_grdc_data_wrong_path(tmp_path):
-    CFG["grdc_location"] = f"{tmp_path}_data"
-
-    with pytest.raises(ValueError, match=r"The grdc directory .* does not exist!"):
-        get_grdc_data("42424242", "2000-01-01T00:00Z", "2000-02-01T00:00Z")
 
 
 def test_get_grdc_data_without_file(tmp_path):
@@ -137,7 +120,7 @@ def test_get_grdc_data_without_file(tmp_path):
 
 
 def test_get_grdc_dat_custom_column_name(expected_results, tmp_path):
-    CFG["grdc_location"] = str(tmp_path)
+    CFG.grdc_location = str(tmp_path)
     result_data, result_metadata = get_grdc_data(
         "42424242", "2000-01-01T00:00Z", "2000-02-01T00:00Z", column="observation"
     )

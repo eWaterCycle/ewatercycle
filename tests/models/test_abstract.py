@@ -1,6 +1,7 @@
 import logging
 import weakref
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple
 from unittest.mock import patch
 
@@ -11,17 +12,19 @@ from basic_modeling_interface import Bmi
 from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
-from ewatercycle.config import DEFAULT_CONFIG
+from ewatercycle.config import Configuration
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 
 
 @pytest.fixture
-def setup_config(tmp_path):
-    CFG["parameterset_dir"] = tmp_path
-    CFG["ewatercycle_config"] = tmp_path / "ewatercycle.yaml"
+def setup_config(tmp_path: Path):
+    CFG.parameterset_dir = tmp_path
+    config_file = tmp_path / "ewatercycle.yaml"
+    config_file.write_text("")
+    CFG.ewatercycle_config = config_file
     yield CFG
-    CFG["ewatercycle_config"] = DEFAULT_CONFIG
+    CFG.ewatercycle_config = None
     CFG.reload()
 
 

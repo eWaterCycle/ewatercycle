@@ -15,8 +15,8 @@ from ewatercycle.models.marrmot import MarrmotM01, Solver
 
 @pytest.fixture
 def mocked_config(tmp_path):
-    CFG["output_dir"] = tmp_path
-    CFG["container_engine"] = "docker"
+    CFG.output_dir = tmp_path
+    CFG.container_engine = "docker"
 
 
 class TestWithDefaultsAndExampleData:
@@ -73,7 +73,6 @@ class TestWithDefaultsAndExampleData:
         assert actual == expected
 
     def test_parameters(self, model):
-
         expected = [
             ("maximum_soil_moisture_storage", 10.0),
             ("initial_soil_moisture_storage", 5.0),
@@ -86,7 +85,7 @@ class TestWithDefaultsAndExampleData:
     def test_setup(self, model_with_setup, forcing_file):
         model, cfg_file, cfg_dir = model_with_setup
 
-        expected_cfg_dir = CFG["output_dir"] / "marrmot_20210102_030405"
+        expected_cfg_dir = CFG.output_dir / "marrmot_20210102_030405"
         assert cfg_dir == str(expected_cfg_dir)
         assert cfg_file == str(expected_cfg_dir / "marrmot-m01_config.mat")
         assert model.bmi
@@ -181,7 +180,7 @@ class TestWithCustomSetupAndExampleData:
     def test_setup(self, model_with_setup):
         model, cfg_file, cfg_dir = model_with_setup
 
-        expected_cfg_dir = CFG["output_dir"] / "marrmot_20210102_030405"
+        expected_cfg_dir = CFG.output_dir / "marrmot_20210102_030405"
         assert cfg_dir == str(expected_cfg_dir)
         assert cfg_file == str(expected_cfg_dir / "marrmot-m01_config.mat")
         assert model.bmi

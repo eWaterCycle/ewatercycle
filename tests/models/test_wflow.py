@@ -43,19 +43,20 @@ class MockedBmi(Bmi):
 
 
 @pytest.fixture
-def mocked_config(tmp_path):
-    CFG["output_dir"] = tmp_path
-    CFG["container_engine"] = "apptainer"
-    CFG["apptainer_dir"] = tmp_path
-    CFG["parameterset_dir"] = tmp_path / "wflow_testcase"
-    CFG["parameter_sets"] = {}
+def mocked_config(tmp_path: Path):
+    CFG.output_dir = tmp_path
+    CFG.container_engine = "apptainer"
+    CFG.apptainer_dir = tmp_path
+    parameterset_dir = tmp_path / "wflow_testcase"
+    parameterset_dir.mkdir()
+    CFG.parameterset_dir = parameterset_dir
+    CFG.parameter_sets = {}
 
 
 @pytest.fixture
 def parameter_set(tmp_path, mocked_config):
     """Fake parameter set for tests."""
     directory = tmp_path / "wflow_testcase"
-    directory.mkdir()
     config = directory / "wflow_sbm_nc.ini"
     # Trimmed down config from
     # https://github.com/openstreams/wflow/blob/master/examples/wflow_rhine_sbm_nc/wflow_sbm_NC.ini
@@ -142,7 +143,7 @@ def test_setup(model):
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
 
         cfg_file, cfg_dir = model.setup()
-    expected_cfg_dir = CFG["output_dir"] / "wflow_20210102_030405"
+    expected_cfg_dir = CFG.output_dir / "wflow_20210102_030405"
     assert cfg_dir == str(expected_cfg_dir)
     expected_cfg_file = expected_cfg_dir / "wflow_ewatercycle.ini"
     assert cfg_file == str(expected_cfg_file)

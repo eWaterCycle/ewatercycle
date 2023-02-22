@@ -87,8 +87,8 @@ def get_grdc_data(
     """  # noqa: E501
     if data_home:
         data_path = to_absolute_path(data_home)
-    elif CFG["grdc_location"]:
-        data_path = to_absolute_path(CFG["grdc_location"])
+    elif CFG.grdc_location:
+        data_path = to_absolute_path(CFG.grdc_location)
     else:
         raise ValueError(
             "Provide the grdc path using `data_home` argument"
@@ -193,7 +193,6 @@ def _grdc_metadata_reader(grdc_station_path, all_lines):
         )
 
     if id_from_grdc is not None:
-
         attribute_grdc["grdc_file_name"] = str(grdc_station_path)
         attribute_grdc["id_from_grdc"] = id_from_grdc
 

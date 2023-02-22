@@ -16,18 +16,18 @@ from ewatercycle.parameter_sets import ParameterSet
 
 @pytest.fixture
 def mocked_config(tmp_path):
-    CFG["output_dir"] = tmp_path
-    CFG["container_engine"] = "apptainer"
-    CFG["apptainer_dir"] = tmp_path
-    CFG["parameterset_dir"] = tmp_path / "psr"
-    CFG["parameter_sets"] = {}
+    CFG.output_dir = tmp_path
+    CFG.container_engine = "apptainer"
+    CFG.apptainer_dir = tmp_path
+    CFG.parameterset_dir = tmp_path
+    CFG.parameter_sets = {}
     return CFG
 
 
 @pytest.fixture
 def parameter_set(mocked_config):
     # Contents copied/inspired by demo.zip at https://sourceforge.net/projects/hype/files/release_hype_5_6_2/
-    directory = mocked_config["parameterset_dir"] / "hype_testcase"
+    directory = mocked_config.parameterset_dir / "hype_testcase"
     directory.mkdir(parents=True)
     config = directory / "info.txt"
     # write info.txt

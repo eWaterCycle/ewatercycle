@@ -5,7 +5,7 @@ from typing import Dict, Optional, Tuple
 
 from ewatercycle import CFG
 
-from ..config import DEFAULT_CONFIG, SYSTEM_CONFIG, USER_HOME_CONFIG
+from ..config import SYSTEM_CONFIG, USER_HOME_CONFIG
 from . import _lisflood, _pcrglobwb, _wflow
 from ._example import ExampleParameterSet
 from .default import ParameterSet
@@ -48,7 +48,7 @@ def available_parameter_sets(target_model: Optional[str] = None) -> Tuple[str, .
     if not filtered:
         raise ValueError(
             f"No parameter sets defined for {target_model} model in "
-            f"{CFG['ewatercycle_config']}. Use  "
+            f"{CFG.ewatercycle_config}. Use  "
             "`ewatercycle.parareter_sets.download_example_parameter_sets` to download "
             "examples or define your own or ask whoever setup the ewatercycle "
             "system to do it."
@@ -80,7 +80,7 @@ def get_parameter_set(name: str) -> ParameterSet:
 def download_parameter_sets(zenodo_doi: str, target_model: str, config: str):
     # TODO add docstring
     # TODO download archive matching doi from Zenodo
-    # TODO unpack archive in CFG['parameterset_dir'] subdirectory
+    # TODO unpack archive in CFG.parameterset_dir subdirectory
     # TODO print yaml snippet with target_model and config to add to ewatercycle.yaml
     raise NotImplementedError("Auto download of parameter sets not yet supported")
 

@@ -60,10 +60,10 @@ class ExampleParameterSet(ParameterSet):
     def to_config(self):
         logger.info(f"Adding parameterset {self.name} to ewatercycle.CFG... ")
 
-        if not CFG["parameter_sets"]:
-            CFG["parameter_sets"] = {}
+        if not CFG.parameter_sets:
+            CFG.parameter_sets = {}
 
-        CFG["parameter_sets"][self.name] = dict(
+        CFG.parameter_sets[self.name] = dict(
             directory=str(_abbreviate(self.directory)),
             config=str(_abbreviate(self.config)),
             doi=self.doi,
@@ -74,6 +74,8 @@ class ExampleParameterSet(ParameterSet):
 
 def _abbreviate(path: Path):
     try:
-        return path.relative_to(CFG["parameterset_dir"])
+        if CFG.parameterset_dir is None:
+            raise ValueError(f"Can not abbreviate path without CFG.parameterset_dir")
+        return path.relative_to(CFG.parameterset_dir)
     except ValueError:
         return path

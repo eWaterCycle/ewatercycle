@@ -2,12 +2,10 @@ import datetime
 import logging
 import shutil
 import types
-from typing import Any, Iterable, Optional, Tuple
+from pathlib import Path
+from typing import Any, Iterable, Optional, Tuple, Union
 
-import numpy as np
 import xarray as xr
-from basic_modeling_interface import Bmi
-from cftime import num2date
 from dateutil.parser import parse
 from dateutil.tz import UTC
 from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
@@ -216,26 +214,26 @@ def _setup_cfg_dir(cfg_dir: Optional[str] = None):
         timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
             "%Y%m%d_%H%M%S"
         )
-        work_dir = to_absolute_path(f"hype_{timestamp}", parent=CFG["output_dir"])
+        work_dir = to_absolute_path(f"hype_{timestamp}", parent=CFG.output_dir)
     work_dir.mkdir(parents=True, exist_ok=True)
     return work_dir
 
 
 def _start_container(version: str, work_dir: str):
-    if CFG["container_engine"].lower() == "singularity":
-        # TODO mark as deprecated
-        image = CFG["apptainer_dir"] / _version_images[version]["apptainer"]
+    image: Union[Path, str]
+    if CFG.container_engine == "singularity":
+        image = CFG.apptainer_dir / _version_images[version]["apptainer"]
         return BmiClientSingularity(
             image=str(image),
             work_dir=work_dir,
         )
-    elif CFG["container_engine"].lower() == "apptainer":
-        image = CFG["apptainer_dir"] / _version_images[version]["apptainer"]
+    elif CFG.container_engine == "apptainer":
+        image = CFG.apptainer_dir / _version_images[version]["apptainer"]
         return BmiClientApptainer(
             image=str(image),
             work_dir=work_dir,
         )
-    elif CFG["container_engine"].lower() == "docker":
+    elif CFG.container_engine == "docker":
         image = _version_images[version]["docker"]
         return BmiClientDocker(
             image=image,
@@ -243,9 +241,7 @@ def _start_container(version: str, work_dir: str):
             work_dir=work_dir,
         )
     else:
-        raise ValueError(
-            f"Unknown container technology in CFG: {CFG['container_engine']}"
-        )
+        raise ValueError(f"Unknown container technology in CFG: {CFG.container_engine}")
 
 
 def _get_code_in_cfg(content: str, code: str):

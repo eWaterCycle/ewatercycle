@@ -23,8 +23,8 @@ be updated like this:
 
 .. code-block:: python
 
-    >>> CFG['output_dir'] = '~/output'
-    >>> CFG['output_dir']
+    >>> CFG.output_dir = '~/output'
+    >>> CFG.output_dir
     PosixPath('/home/user/output')
 
 Notice that :py:data:`~ewatercycle.CFG` automatically converts the path to an
@@ -34,14 +34,14 @@ if you make a typo in the key:
 
 .. code-block:: python
 
-    >>> CFG['output_directory'] = '~/output'
+    >>> CFG.output_directory = '~/output'
     InvalidConfigParameter: `output_directory` is not a valid config parameter.
 
 Or, if the value entered cannot be converted to the expected type:
 
 .. code-block:: python
 
-    >>> CFG['output_dir'] = 123
+    >>> CFG.output_dir = 123
     InvalidConfigParameter: Key `output_dir`: Expected a path, but got 123
 
 By default, the config is loaded from the default location (i.e.
@@ -81,6 +81,6 @@ The ``ewatercycle.yaml`` is formatted in YAML and could for example look like:
     # apptainer pull docker://ewatercycle/wflow-grpc4bmi:2020.1.1
 """
 
-from ._config_object import CFG, SYSTEM_CONFIG, USER_HOME_CONFIG, Config
+from ._config_object import CFG, SYSTEM_CONFIG, USER_HOME_CONFIG, Configuration
 
-__all__ = ["CFG", "Config", "SYSTEM_CONFIG", "USER_HOME_CONFIG"]
+__all__ = ["CFG", "Configuration", "SYSTEM_CONFIG", "USER_HOME_CONFIG"]

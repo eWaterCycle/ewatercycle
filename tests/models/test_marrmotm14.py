@@ -15,8 +15,8 @@ from ewatercycle.models.marrmot import MarrmotM14, Solver
 
 @pytest.fixture
 def mocked_config(tmp_path):
-    CFG["output_dir"] = tmp_path
-    CFG["container_engine"] = "docker"
+    CFG.output_dir = tmp_path
+    CFG.container_engine = "docker"
 
 
 class TestWithDefaultsAndExampleData:
@@ -76,7 +76,7 @@ class TestWithDefaultsAndExampleData:
         )
         expected_forcing = loadmat(forcing_file)
 
-        expected_cfg_dir = CFG["output_dir"] / "marrmot_20210102_030405"
+        expected_cfg_dir = CFG.output_dir / "marrmot_20210102_030405"
         assert cfg_dir == str(expected_cfg_dir)
         assert cfg_file == str(expected_cfg_dir / "marrmot-m14_config.mat")
         assert model.bmi
@@ -177,7 +177,7 @@ class TestWithCustomSetupAndExampleData:
 
         actual = loadmat(str(cfg_file))
 
-        expected_cfg_dir = CFG["output_dir"] / "marrmot_20210102_030405"
+        expected_cfg_dir = CFG.output_dir / "marrmot_20210102_030405"
         assert cfg_dir == str(expected_cfg_dir)
         assert cfg_file == str(expected_cfg_dir / "marrmot-m14_config.mat")
         assert model.bmi

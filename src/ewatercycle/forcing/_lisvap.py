@@ -50,8 +50,8 @@ def lisvap(
         forcing_dir,
     )
 
-    if CFG["container_engine"].lower() == "apptainer":
-        image = get_apptainer_image(version, CFG["apptainer"])
+    if CFG.container_engine == "apptainer":
+        image = get_apptainer_image(version, CFG.apptainer_dir)
         args = [
             "apptainer",
             "exec",
@@ -61,9 +61,9 @@ def lisvap(
             f"{forcing_dir}",
             image,
         ]
-    if CFG["container_engine"].lower() == "singularity":
+    elif CFG.container_engine == "singularity":
         # TODO mark as deprecated
-        image = get_apptainer_image(version, CFG["apptainer"])
+        image = get_apptainer_image(version, CFG.apptainer_dir)
         args = [
             "singularity",
             "exec",
@@ -73,7 +73,7 @@ def lisvap(
             f"{forcing_dir}",
             image,
         ]
-    elif CFG["container_engine"].lower() == "docker":
+    elif CFG.container_engine == "docker":
         image = get_docker_image(version)
         args = [
             "docker",
@@ -86,9 +86,7 @@ def lisvap(
             image,
         ]
     else:
-        raise ValueError(
-            f"Unknown container technology in CFG: {CFG['container_engine']}"
-        )
+        raise ValueError(f"Unknown container technology in CFG: {CFG.container_engine}")
 
     args += ["python3", "/opt/Lisvap/src/lisvap1.py", config_file]
     container = subprocess.Popen(

@@ -69,7 +69,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
                 "%Y%m%d_%H%M%S"
             )
             self.work_dir = to_absolute_path(
-                f"pcrglobwb_{timestamp}", parent=CFG["output_dir"]
+                f"pcrglobwb_{timestamp}", parent=CFG.output_dir
             )
         self.work_dir.mkdir(parents=True, exist_ok=True)
 
@@ -140,7 +140,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
                 "Couldn't spawn container within allocated time limit "
                 "(300 seconds). You may try pulling the docker image with"
                 f" `docker pull {self.docker_image}` or call `apptainer "
-                f"build {self._apptainer_image(CFG['apptainer_dir'])} "
+                f"build {self._apptainer_image(CFG.apptainer_dir)} "
                 f"docker://{self.docker_image}` if you're using Apptainer,"
                 " and then try again."
             ) from exc
@@ -197,7 +197,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
         if self.forcing:
             additional_input_dirs.append(self.forcing.directory)
 
-        if CFG["container_engine"] == "docker":
+        if CFG.container_engine == "docker":
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
@@ -205,24 +205,24 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
                 input_dirs=additional_input_dirs,
                 timeout=300,
             )
-        elif CFG["container_engine"] == "apptainer":
+        elif CFG.container_engine == "apptainer":
             self.bmi = BmiClientApptainer(
-                image=self._apptainer_image(CFG["apptainer_dir"]),
+                image=self._apptainer_image(CFG.apptainer_dir),
                 work_dir=str(self.work_dir),
                 input_dirs=additional_input_dirs,
                 timeout=300,
             )
-        elif CFG["container_engine"] == "singularity":
+        elif CFG.container_engine == "singularity":
             # TODO mark as deprecated
             self.bmi = BmiClientSingularity(
-                image=self._apptainer_image(CFG["apptainer_dir"]),
+                image=self._apptainer_image(CFG.apptainer_dir),
                 work_dir=str(self.work_dir),
                 input_dirs=additional_input_dirs,
                 timeout=300,
             )
         else:
             raise ValueError(
-                f"Unknown container technology in CFG: {CFG['container_engine']}"
+                f"Unknown container technology in CFG: {CFG.container_engine}"
             )
 
     def _coords_to_indices(

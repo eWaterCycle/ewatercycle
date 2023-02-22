@@ -134,7 +134,7 @@ class Wflow(AbstractModel[WflowForcing]):
                 "Couldn't spawn container within allocated time limit "
                 "(300 seconds). You may try pulling the docker image with"
                 f" `docker pull {self.docker_image}` or call `apptainer "
-                f"build {self._apptainer_image(CFG['apptainer_dir'])} "
+                f"build {self._apptainer_image(CFG.apptainer_dir)} "
                 f"docker://{self.docker_image}` if you're using Apptainer,"
                 " and then try again."
             ) from exc
@@ -152,7 +152,7 @@ class Wflow(AbstractModel[WflowForcing]):
                 "%Y%m%d_%H%M%S"
             )
             self.work_dir = to_absolute_path(
-                f"wflow_{timestamp}", parent=CFG["output_dir"]
+                f"wflow_{timestamp}", parent=CFG.output_dir
             )
         # Make sure parents exist
         self.work_dir.parent.mkdir(parents=True, exist_ok=True)
@@ -166,28 +166,28 @@ class Wflow(AbstractModel[WflowForcing]):
             shutil.copy(src=forcing_path, dst=self.work_dir)
 
     def _start_container(self):
-        if CFG["container_engine"] == "docker":
+        if CFG.container_engine == "docker":
             self.bmi = BmiClientDocker(
                 image=self.docker_image,
                 image_port=55555,
                 work_dir=str(self.work_dir),
                 timeout=300,
             )
-        elif CFG["container_engine"] == "apptainer":
+        elif CFG.container_engine == "apptainer":
             self.bmi = BmiClientApptainer(
-                image=self._apptainer_image(CFG["apptainer_dir"]),
+                image=self._apptainer_image(CFG.apptainer_dir),
                 work_dir=str(self.work_dir),
                 timeout=300,
             )
-        elif CFG["container_engine"] == "singularity":
+        elif CFG.container_engine == "singularity":
             # TODO mark as deprecated
             self.bmi = BmiClientSingularity(
-                image=self._apptainer_image(CFG["apptainer_dir"]),
+                image=self._apptainer_image(CFG.apptainer_dir),
                 work_dir=str(self.work_dir),
                 timeout=300,
             )
         else:
-            raise ValueError(f"Unknown container technology: {CFG['container_engine']}")
+            raise ValueError(f"Unknown container technology: {CFG.container_engine}")
 
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]

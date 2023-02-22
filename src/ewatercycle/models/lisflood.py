@@ -116,24 +116,24 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                 # If not relative add dir
                 input_dirs.append(str(mask_map.parent))
 
-        if CFG["container_engine"].lower() == "singularity":
+        if CFG.container_engine == "singularity":
             # TODO mark as deprecated
-            image = get_apptainer_image(self.version, CFG["apptainer_dir"])
+            image = get_apptainer_image(self.version, CFG.apptainer_dir)
             self.bmi = BmiClientSingularity(
                 image=str(image),
                 input_dirs=input_dirs,
                 work_dir=str(cfg_dir_as_path),
                 timeout=300,
             )
-        elif CFG["container_engine"].lower() == "apptainer":
-            image = get_apptainer_image(self.version, CFG["apptainer_dir"])
+        elif CFG.container_engine == "apptainer":
+            image = get_apptainer_image(self.version, CFG.apptainer_dir)
             self.bmi = BmiClientApptainer(
                 image=str(image),
                 input_dirs=input_dirs,
                 work_dir=str(cfg_dir_as_path),
                 timeout=300,
             )
-        elif CFG["container_engine"].lower() == "docker":
+        elif CFG.container_engine == "docker":
             image = get_docker_image(self.version)
             self.bmi = BmiClientDocker(
                 image=image,
@@ -144,7 +144,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
             )
         else:
             raise ValueError(
-                f"Unknown container technology in CFG: {CFG['container_engine']}"
+                f"Unknown container technology in CFG: {CFG.container_engine}"
             )
         return str(config_file), str(cfg_dir_as_path)
 
@@ -360,14 +360,14 @@ def _generate_workdir(cfg_dir: Optional[Path] = None) -> Path:
     """Create or make sure workdir exists.
 
     Args:
-        cfg_dir: If cfg dir is None then create sub-directory in CFG['output_dir']
+        cfg_dir: If cfg dir is None then create sub-directory in CFG.output_dir
 
     Returns:
         absolute path of workdir
 
     """
     if cfg_dir is None:
-        scratch_dir = CFG["output_dir"]
+        scratch_dir = CFG.output_dir
         # TODO this timestamp isnot safe for parallel processing
         timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
             "%Y%m%d_%H%M%S"
