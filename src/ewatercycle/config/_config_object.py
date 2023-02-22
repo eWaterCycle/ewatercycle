@@ -1,10 +1,11 @@
 """Importable config object."""
 
 import os
+import warnings
 from io import StringIO
 from logging import getLogger
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional, Set, TextIO, Union
+from typing import Dict, Literal, Optional, Set, TextIO, Union
 
 from pydantic import BaseModel, DirectoryPath, FilePath, root_validator
 from ruamel.yaml import YAML
@@ -45,18 +46,24 @@ class Config(BaseModel):
     parameter_sets: Dict[str, ParameterSetConfig] = {}
     ewatercycle_config: Optional[FilePath]
 
+    class Config:
+        validate_assignment = True
+
     @root_validator
-    def _deprecate_singularity_dir(cls, values):
+    def singularity_dir_is_deprecated(cls, values):
         singularity_dir = values.get("singularity_dir")
         apptainer_dir = values.get("apptainer_dir")
         if singularity_dir is not None and apptainer_dir is None:
-            logger.warning(
-                "singularity_dir has been deprecated please use apptainer_dir"
+            file = values.get("ewatercycle_config", "in-memory object")
+            warnings.warn(
+                f"singularity_dir field has been deprecated please use apptainer_dir in {file}",
+                DeprecationWarning,
+                stacklevel=2,
             )
             values["apptainer_dir"] = singularity_dir
         return values
 
-    # TODO add more cross property validation like
+    # TODO add more multi property validation like
     # - When container engine is apptainer then apptainer_dir must be set
     # - When parameter_sets is filled then parameterset_dir must be set
 
@@ -74,44 +81,32 @@ class Config(BaseModel):
     def _load_user_config(cls, filename: Union[os.PathLike, str]) -> "Config":
         """Load user configuration from the given file.
 
-        The config is cleared and updated in-place.
-
         Parameters
         ----------
         filename: pathlike
             Name of the config file, must be yaml format
         """
-        new: Dict[str, Any] = {}
         mapping = read_config_file(filename)
-        mapping["ewatercycle_config"] = filename
-
-        new.update(CFG_DEFAULT)
-        new.update(mapping)
-
-        return cls(**new)
-
-    @classmethod
-    def _load_default_config(cls, filename: Union[os.PathLike, str]) -> "Config":
-        """Load the default configuration."""
-        mapping = read_config_file(filename)
-
-        return cls(**mapping)
+        return cls(ewatercycle_config=filename, **mapping)
 
     def load_from_file(self, filename: Union[os.PathLike, str]) -> None:
-        """Load user configuration from the given file."""
+        """Load user configuration from the given file.
+
+        The config is cleared and updated in-place.
+        """
         path = to_absolute_path(str(filename))
         if not path.exists():
             raise FileNotFoundError(f"Cannot find: `{filename}")
 
         newconfig = Config._load_user_config(path)
-        # TODO assign newconfig props to self
+        self._overwrite(newconfig)
 
     def reload(self) -> None:
         """Reload the config file."""
         filename = self.ewatercycle_config
         if filename is None:
             newconfig = self.__class__()
-            # TODO assign newconfig props to self
+            self._overwrite(newconfig)
         else:
             self.load_from_file(filename)
 
@@ -133,8 +128,8 @@ class Config(BaseModel):
 
         Args:
             config_file: File to write configuration object to.
-                If not given then will try to use `CFG['ewatercycle_config']`
-                location and if `CFG['ewatercycle_config']` is not set then will use
+                If not given then will try to use `self.ewatercycle_config`
+                location and if `self.ewatercycle_config` is not set then will use
                 the location in users home directory.
         """
         # Exclude own path from dump
@@ -151,6 +146,10 @@ class Config(BaseModel):
         logger.info(f"Config written to {config_file}")
 
         return config_file
+
+    def _overwrite(self, other: Config):
+        for key in self.dict().keys():
+            setattr(self, key, getattr(other, key))
 
 
 def read_config_file(config_file: Union[os.PathLike, str]) -> dict:
