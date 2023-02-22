@@ -54,7 +54,11 @@ def test_to_config(example, tmp_path):
 
 @patch("urllib.request.urlopen")
 @patch("subprocess.check_call")
-def test_download(mock_check_call, mock_urlopen, example, tmp_path):
+def test_download(
+    mock_check_call, mock_urlopen, example: ExampleParameterSet, tmp_path
+):
+    example.config.unlink()
+    example.directory.rmdir()
     ps_dir = tmp_path / "mymodelexample"
     r = Mock()
     r.read.return_value = b"somecontent"
@@ -77,9 +81,9 @@ def test_download(mock_check_call, mock_urlopen, example, tmp_path):
     assert (ps_dir / "config.ini").read_text() == "somecontent"
 
 
-def test_download_already_exists(example, tmp_path):
+def test_download_already_exists(example, tmp_path: Path):
     ps_dir = tmp_path / "mymodelexample"
-    ps_dir.mkdir()
+    ps_dir.mkdir(exist_ok=True)
 
     with pytest.raises(ValueError) as excinfo:
         example.download()
@@ -90,10 +94,10 @@ def test_download_already_exists(example, tmp_path):
 @patch("urllib.request.urlopen")
 @patch("subprocess.check_call")
 def test_download_already_exists_but_skipped(
-    mock_check_call, mock_urlopen, example, tmp_path, caplog
+    mock_check_call, mock_urlopen, example, tmp_path: Path, caplog
 ):
     ps_dir = tmp_path / "mymodelexample"
-    ps_dir.mkdir()
+    ps_dir.mkdir(exist_ok=True)
 
     with caplog.at_level(logging.INFO):
         example.download(skip_existing=True)

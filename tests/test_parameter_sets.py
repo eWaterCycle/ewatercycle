@@ -22,6 +22,7 @@ def setup_config(tmp_path: Path):
     CFG.save_to_file(config_file)
     CFG.ewatercycle_config = config_file
     yield CFG
+    CFG.parameter_sets = {}
     CFG.ewatercycle_config = None
     CFG.reload()
 
