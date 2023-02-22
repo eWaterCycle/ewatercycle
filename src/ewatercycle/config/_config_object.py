@@ -123,7 +123,9 @@ class Config(BaseModel):
         yaml = YAML(typ="safe")
         yaml.dump(cp, stream)
 
-    def save_to_file(self, config_file: Optional[Union[os.PathLike, str]] = None):
+    def save_to_file(
+        self, config_file: Optional[Union[os.PathLike, str]] = None
+    ) -> None:
         """Write conf object to a file.
 
         Args:
@@ -144,8 +146,6 @@ class Config(BaseModel):
             self._save_to_stream(f)
 
         logger.info(f"Config written to {config_file}")
-
-        return config_file
 
     def _overwrite(self, other: Config):
         for key in self.dict().keys():
