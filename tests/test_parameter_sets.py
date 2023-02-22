@@ -49,12 +49,6 @@ def mocked_parameterset_dir(setup_config, tmp_path):
             "target_model": "generic",
             "doi": "somedoi2",
         },
-        "ps3": {
-            "directory": str(tmp_path / "ps3"),
-            "config": "unavailable_config_file",
-            "target_model": "generic",
-            "doi": "somedoi3",
-        },
     }
 
 
@@ -92,10 +86,6 @@ class TestGetParameterSet:
     def test_unknown(self, mocked_parameterset_dir):
         with pytest.raises(KeyError):
             get_parameter_set("ps9999")
-
-    def test_unavailable(self, mocked_parameterset_dir):
-        with pytest.raises(ValueError):
-            get_parameter_set("ps3")
 
 
 def test_example_parameter_sets(setup_config):

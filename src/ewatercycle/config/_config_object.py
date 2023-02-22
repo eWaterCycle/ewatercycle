@@ -19,11 +19,7 @@ logger = getLogger(__name__)
 # src/ewatercycle/parameter_sets/default.py:ParameterSet
 # but fix circular dependency
 class ParameterSetConfig(BaseModel):
-    # TODO prepend directory with CFG.parameterset_dir
-    # and make DirectoryPath type
     directory: Path
-    # TODO prepend config with CFG.parameterset_dir and .directory
-    # and make FilePath type
     config: Path
     doi: str = "N/A"
     target_model: str = "generic"
@@ -77,6 +73,20 @@ class Configuration(BaseModel):
             )
             values["apptainer_dir"] = singularity_dir
             values["singularity_dir"] = None
+        return values
+
+    @root_validator
+    def prepend_root_to_parameterset_paths(cls, values):
+        parameterset_dir = values["parameterset_dir"]
+        parameter_sets = values.get("parameter_sets", {})
+        for ps in parameter_sets.values():
+            if isinstance(ps, ParameterSetConfig):
+                if not ps.directory.is_absolute():
+                    ps.directory = to_absolute_path(ps.directory, parameterset_dir)
+                assert ps.directory.exists(), f"{ps.directory} must exist"
+                if not ps.config.is_absolute():
+                    ps.config = to_absolute_path(ps.config, parameterset_dir)
+                assert ps.config.exists(), f"{ps.config} must exist"
         return values
 
     @classmethod

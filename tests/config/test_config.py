@@ -141,3 +141,44 @@ def test_dump_to_yaml():
         """
     )
     assert content == expected
+
+
+def test_prepend_root_to_parameterset_paths_given_relative_paths(tmp_path: Path):
+    parameterset_dir = tmp_path / "psr"
+    parameterset_dir.mkdir()
+    ps1_dir = parameterset_dir / "ps1"
+    ps1_dir.mkdir()
+    ps1_config = ps1_dir / "config.ini"
+    ps1_config.write_text("something")
+    parameter_sets = {"ps1": {"directory": "ps1", "config": "ps1/config.ini"}}
+
+    config = Configuration(
+        parameterset_dir=parameterset_dir, parameter_sets=parameter_sets
+    )
+
+    ps1 = config.parameter_sets["ps1"]
+    assert ps1.directory == ps1_dir
+    assert ps1.config == ps1_config
+
+
+def test_prepend_root_to_parameterset_paths_given_absolute_paths(tmp_path: Path):
+    parameterset_dir = tmp_path / "psr"
+    parameterset_dir.mkdir()
+    ps1_dir = parameterset_dir / "ps1"
+    ps1_dir.mkdir()
+    ps1_config = ps1_dir / "config.ini"
+    ps1_config.write_text("something")
+    parameter_sets = {
+        "ps1": {
+            "directory": str(ps1_dir.absolute()),
+            "config": str(ps1_config.absolute()),
+        }
+    }
+
+    config = Configuration(
+        parameterset_dir=parameterset_dir, parameter_sets=parameter_sets
+    )
+
+    ps1 = config.parameter_sets["ps1"]
+    assert ps1.directory == ps1_dir
+    assert ps1.config == ps1_config
