@@ -19,7 +19,7 @@ class TestDefaults:
         return ParameterSet(
             name="justatest",
             directory=str(tmp_path),
-            config=mocked_config.name,
+            config=mocked_config,
         )
 
     def test_directory(self, parameter_set: ParameterSet, tmp_path):
@@ -30,18 +30,6 @@ class TestDefaults:
 
     def test_supported_model_versions(self, parameter_set: ParameterSet):
         assert parameter_set.supported_model_versions == set()
-
-    def test_is_available(self, parameter_set: ParameterSet):
-        assert parameter_set.is_available
-
-    def test_repr(self, parameter_set: ParameterSet, tmp_path):
-        expected = (
-            "ParameterSet(name=justatest, "
-            f"directory={str(tmp_path)}, "
-            f"config={str(tmp_path)}/mymockedconfig.ini, "
-            "doi=N/A, target_model=generic, supported_model_versions=set())"
-        )
-        assert repr(parameter_set) == expected
 
     def test_str(self, parameter_set: ParameterSet, tmp_path):
         expected = (

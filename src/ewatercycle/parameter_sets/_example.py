@@ -1,35 +1,23 @@
 import subprocess
 from logging import getLogger
 from pathlib import Path
-from typing import Optional, Set
+from typing import List, Optional, Set
 from urllib import request
+
+from pydantic import AnyUrl
 
 from ewatercycle import CFG
 
-from .default import ParameterSet
+from ..parameter_set import ParameterSet
 
 logger = getLogger(__name__)
 
 
 class ExampleParameterSet(ParameterSet):
-    def __init__(
-        self,
-        config_url: str,
-        datafiles_url: str,
-        name,
-        directory: str,
-        config: str,
-        supported_model_versions: Optional[Set[str]] = None,
-        doi="N/A",
-        target_model="generic",
-    ):
-        super().__init__(
-            name, directory, config, doi, target_model, supported_model_versions
-        )
-        self.config_url = config_url
-        """URL where model configuration file can be downloaded"""
-        self.datafiles_url = datafiles_url
-        """GitHub subversion URL where datafiles can be svn-exported from"""
+    config_url: AnyUrl
+    """URL where model configuration file can be downloaded"""
+    datafiles_url: AnyUrl
+    """GitHub subversion URL where datafiles can be svn-exported from"""
 
     def download(self, skip_existing=False):
         if self.directory.exists():

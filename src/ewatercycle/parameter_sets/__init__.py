@@ -6,20 +6,11 @@ from typing import Dict, Optional, Tuple
 from ewatercycle import CFG
 
 from ..config import SYSTEM_CONFIG, USER_HOME_CONFIG
+from ..parameter_set import ParameterSet
 from . import _lisflood, _pcrglobwb, _wflow
 from ._example import ExampleParameterSet
-from .default import ParameterSet
 
 logger = getLogger(__name__)
-
-
-def _parse_parametersets():
-    parametersets = {}
-    for name, options in CFG.parameter_sets.items():
-        parameterset = ParameterSet(name=name, **options.dict())
-        parametersets[name] = parameterset
-
-    return parametersets
 
 
 def available_parameter_sets(target_model: Optional[str] = None) -> Tuple[str, ...]:
@@ -31,7 +22,7 @@ def available_parameter_sets(target_model: Optional[str] = None) -> Tuple[str, .
     Returns: Names of available parameter sets on current machine.
 
     """
-    all_parameter_sets = _parse_parametersets()
+    all_parameter_sets = CFG.parameter_sets
     if not all_parameter_sets:
         raise ValueError(
             f"No parameter sets defined in {CFG.ewatercycle_config}. Use "
@@ -43,7 +34,7 @@ def available_parameter_sets(target_model: Optional[str] = None) -> Tuple[str, .
     filtered = tuple(
         name
         for name, ps in all_parameter_sets.items()
-        if ps.is_available and (target_model is None or ps.target_model == target_model)
+        if (target_model is None or ps.target_model == target_model)
     )
     if not filtered:
         raise ValueError(
@@ -65,14 +56,11 @@ def get_parameter_set(name: str) -> ParameterSet:
     Returns: Parameter set object that can be used in an ewatercycle model constructor.
 
     """
-    all_parameter_sets = _parse_parametersets()
+    all_parameter_sets = CFG.parameter_sets
 
     ps = all_parameter_sets.get(name)
     if ps is None:
         raise KeyError(f"No parameter set available with name {name}")
-
-    if not ps.is_available:
-        raise ValueError(f"Cannot find parameter set with attributes {ps}")
 
     return ps
 

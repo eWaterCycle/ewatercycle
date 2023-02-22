@@ -10,20 +10,10 @@ from typing import Dict, Literal, Optional, Set, TextIO, Union
 from pydantic import BaseModel, DirectoryPath, FilePath, ValidationError, root_validator
 from ruamel.yaml import YAML
 
+from ewatercycle.parameter_set import ParameterSet
 from ewatercycle.util import to_absolute_path
 
 logger = getLogger(__name__)
-
-
-# TODO dont duplicate
-# src/ewatercycle/parameter_sets/default.py:ParameterSet
-# but fix circular dependency
-class ParameterSetConfig(BaseModel):
-    directory: Path
-    config: Path
-    doi: str = "N/A"
-    target_model: str = "generic"
-    supported_model_versions: Set[str] = set()
 
 
 ContainerEngine = Literal["docker", "apptainer", "singularity"]
@@ -50,13 +40,15 @@ class Configuration(BaseModel):
     Each model run will generate a sub directory inside output_dir"""
     parameterset_dir: DirectoryPath = Path(".")
     """Root directory for all parameter sets."""
-    parameter_sets: Dict[str, ParameterSetConfig] = {}
+    parameter_sets: Dict[str, ParameterSet] = {}
     """Dictionary of parameter sets.
 
     Data source for :py:func:`ewatercycle.parameter_sets.available_parameter_sets` and :py:func:`ewatercycle.parameter_sets.get_parameter_set` methods.
     """
     ewatercycle_config: Optional[FilePath]
-    """Where is the configuration saved or loaded from."""
+    """Where is the configuration saved or loaded from.
+
+    If None then the configuration was not loaded from a file."""
 
     class Config:
         validate_assignment = True
@@ -79,13 +71,13 @@ class Configuration(BaseModel):
     def prepend_root_to_parameterset_paths(cls, values):
         parameterset_dir = values["parameterset_dir"]
         parameter_sets = values.get("parameter_sets", {})
-        for ps in parameter_sets.values():
-            if isinstance(ps, ParameterSetConfig):
-                if not ps.directory.is_absolute():
-                    ps.directory = to_absolute_path(ps.directory, parameterset_dir)
+        for ps_name, ps in parameter_sets.items():
+            if isinstance(ps, dict):
+                ps = ParameterSet(**ps)
+            if isinstance(ps, ParameterSet):
+                ps.name = ps_name
+                ps.make_absolute(parameterset_dir)
                 assert ps.directory.exists(), f"{ps.directory} must exist"
-                if not ps.config.is_absolute():
-                    ps.config = to_absolute_path(ps.config, parameterset_dir)
                 assert ps.config.exists(), f"{ps.config} must exist"
         return values
 
@@ -140,6 +132,7 @@ class Configuration(BaseModel):
 
     def _save_to_stream(self, stream: TextIO):
         yaml = YAML(typ="safe")
+        # TODO make paths in parameter_sets relative again
         # TODO use self.dict() instead of ugly py>json>py>yaml chain,
         # tried but returns PosixPath values, which YAML library can not represent
         json_string = self.json(exclude={"ewatercycle_config"}, exclude_none=True)
