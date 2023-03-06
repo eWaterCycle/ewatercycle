@@ -20,6 +20,7 @@ class ExampleParameterSet(ParameterSet):
     """GitHub subversion URL where datafiles can be svn-exported from"""
 
     def download(self, skip_existing=False):
+        self.make_absolute(CFG.parameterset_dir)
         if self.directory.exists():
             if not skip_existing:
                 raise ValueError(

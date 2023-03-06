@@ -47,3 +47,4 @@ class ParameterSet(BaseModel):
             self.config = to_absolute_path(
                 self.config, parameterset_dir, must_be_in_parent=False
             )
+        return self

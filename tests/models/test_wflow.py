@@ -47,10 +47,10 @@ def mocked_config(tmp_path: Path):
     CFG.output_dir = tmp_path
     CFG.container_engine = "apptainer"
     CFG.apptainer_dir = tmp_path
+    CFG.parameter_sets = {}
     parameterset_dir = tmp_path / "wflow_testcase"
     parameterset_dir.mkdir()
     CFG.parameterset_dir = parameterset_dir
-    CFG.parameter_sets = {}
 
 
 @pytest.fixture
@@ -78,7 +78,7 @@ def parameter_set(tmp_path, mocked_config):
     )
     config.write_text(config_body)
     return ParameterSet(
-        "wflow_testcase",
+        name="wflow_testcase",
         directory=str(directory),
         config=str(config),
         target_model="wflow",

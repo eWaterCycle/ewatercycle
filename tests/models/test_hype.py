@@ -19,8 +19,8 @@ def mocked_config(tmp_path):
     CFG.output_dir = tmp_path
     CFG.container_engine = "apptainer"
     CFG.apptainer_dir = tmp_path
-    CFG.parameterset_dir = tmp_path
     CFG.parameter_sets = {}
+    CFG.parameterset_dir = tmp_path
     return CFG
 
 
@@ -67,7 +67,7 @@ def parameter_set(mocked_config):
         )
     )
     return ParameterSet(
-        "hype_testcase",
+        name="hype_testcase",
         directory=str(directory),
         config=str(config),
         target_model="hype",

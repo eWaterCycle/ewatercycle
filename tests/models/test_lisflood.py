@@ -22,10 +22,10 @@ def mocked_config(tmp_path: Path):
     CFG.output_dir = tmp_path
     CFG.container_engine = "apptainer"
     CFG.apptainer_dir = tmp_path
+    CFG.parameter_sets = {}
     parameterset_dir = tmp_path / "psr"
     parameterset_dir.mkdir()
     CFG.parameterset_dir = parameterset_dir
-    CFG.parameter_sets = {}
 
 
 def find_values_in_xml(tree, name):
