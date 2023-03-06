@@ -51,7 +51,7 @@ def lisvap(
     )
 
     if CFG["container_engine"].lower() == "apptainer":
-        image = get_apptainer_image(version, CFG["apptainer"])
+        image = get_apptainer_image(version, CFG["apptainer_dir"])
         args = [
             "apptainer",
             "exec",
@@ -61,9 +61,9 @@ def lisvap(
             f"{forcing_dir}",
             image,
         ]
-    if CFG["container_engine"].lower() == "singularity":
+    elif CFG["container_engine"].lower() == "singularity":
         # TODO mark as deprecated
-        image = get_apptainer_image(version, CFG["apptainer"])
+        image = get_apptainer_image(version, CFG["apptainer_dir"])
         args = [
             "singularity",
             "exec",
