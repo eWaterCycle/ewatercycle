@@ -9,17 +9,21 @@ imported from the :py:mod:`eWaterCycle` module as :py:data:`~ewatercycle.CFG`:
 
     >>> from ewatercycle import CFG
     >>> CFG
-    Config({'container_engine': None,
-            'grdc_location': None,
-            'output_dir': None,
-            'apptainer_dir': None,
-            })
+    Configuration(
+        grdc_location=PosixPath('.'),
+        container_engine='docker',
+        apptainer_dir=PosixPath('.'),
+        singularity_dir=None,
+        output_dir=PosixPath('.'),
+        parameterset_dir=PosixPath('.'),
+        parameter_sets={},
+        ewatercycle_config=None
+    )
 
-By default all values are initialized as ``None``.
+By default all values have usable values.
 
-:py:data:`~ewatercycle.CFG` is essentially a python dictionary with a few extra
-functions, similar to :py:mod:`matplotlib.rcParams`. This means that values can
-be updated like this:
+:py:data:`~ewatercycle.CFG` is a `Pydantic model <https://docs.pydantic.dev/usage/models/>`_.
+This means that values can be updated like this:
 
 .. code-block:: python
 
@@ -34,15 +38,21 @@ if you make a typo in the key:
 
 .. code-block:: python
 
-    >>> CFG.output_directory = '~/output'
-    InvalidConfigParameter: `output_directory` is not a valid config parameter.
+    >>> CFG.output_directory = '/output'
+    ValidationError: 1 validation error for Configuration
+    output_directory
+        extra fields not permitted (type=value_error.extra)
+
 
 Or, if the value entered cannot be converted to the expected type:
 
 .. code-block:: python
 
     >>> CFG.output_dir = 123
-    InvalidConfigParameter: Key `output_dir`: Expected a path, but got 123
+    ValidationError: 1 validation error for Configuration
+    output_dir
+        value is not a valid path (type=type_error.path)
+
 
 By default, the config is loaded from the default location (i.e.
 ``~/.config/ewatercycle/ewatercycle.yaml``). If it does not exist, it falls back

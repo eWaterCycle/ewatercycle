@@ -28,6 +28,9 @@ class ParameterSet(BaseModel):
     supported by this parameter set. If not set then parameter set will be
     supported by all versions of model"""
 
+    class Config:
+        extra = "forbid"
+
     def __str__(self):
         """Nice formatting of parameter set."""
         return "\n".join(
@@ -38,7 +41,15 @@ class ParameterSet(BaseModel):
             + [f"{k}={v!s}" for k, v in self.__dict__.items()]
         )
 
-    def make_absolute(self, parameterset_dir: Path):
+    def make_absolute(self, parameterset_dir: Path) -> "ParameterSet":
+        """Make self.directory and self.config absolute paths.
+
+        Args:
+            parameterset_dir: Directory to which relative paths should be made absolute.
+
+        Returns:
+            self
+        """
         if not self.directory.is_absolute():
             self.directory = to_absolute_path(
                 self.directory, parameterset_dir, must_be_in_parent=False

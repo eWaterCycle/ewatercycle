@@ -182,3 +182,23 @@ def test_prepend_root_to_parameterset_paths_given_absolute_paths(tmp_path: Path)
     ps1 = config.parameter_sets["ps1"]
     assert ps1.directory == ps1_dir
     assert ps1.config == ps1_config
+
+
+@pytest.mark.parametrize(
+    "key,value,expected",
+    [
+        ("grdc_location", "/tmp", Path("/tmp")),
+        ("grdc_location", "~/", Path("~/").expanduser()),
+        ("grdc_location", Path("~/"), Path("~/").expanduser()),
+        ("apptainer_dir", "~/", Path("~/").expanduser()),
+        ("output_dir", "~/", Path("~/").expanduser()),
+        ("parameterset_dir", "~/", Path("~/").expanduser()),
+        # Unable to test ewatercycle_config as
+        # we would need to create file in home dir.
+        ("ewatercycle_config", None, None),
+    ],
+)
+def test_expand_user(key, value, expected):
+    config = Configuration(**{key: value})
+
+    assert getattr(config, key) == expected

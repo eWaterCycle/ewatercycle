@@ -7,7 +7,14 @@ from logging import getLogger
 from pathlib import Path
 from typing import Dict, Literal, Optional, Set, TextIO, Union
 
-from pydantic import BaseModel, DirectoryPath, FilePath, ValidationError, root_validator
+from pydantic import (
+    BaseModel,
+    DirectoryPath,
+    FilePath,
+    ValidationError,
+    root_validator,
+    validator,
+)
 from ruamel.yaml import YAML
 
 from ewatercycle.parameter_set import ParameterSet
@@ -52,6 +59,7 @@ class Configuration(BaseModel):
 
     class Config:
         validate_assignment = True
+        extra = "forbid"
 
     @root_validator
     def singularity_dir_is_deprecated(cls, values):
@@ -80,6 +88,22 @@ class Configuration(BaseModel):
                 assert ps.directory.exists(), f"{ps.directory} must exist"
                 assert ps.config.exists(), f"{ps.config} must exist"
         return values
+
+    @validator(
+        "grdc_location",
+        "apptainer_dir",
+        "output_dir",
+        "parameterset_dir",
+        "ewatercycle_config",
+        pre=True,
+    )
+    def expand_user_in_paths(cls, value):
+        if isinstance(value, str):
+            return Path(value).expanduser()
+        if isinstance(value, Path):
+            return value.expanduser()
+        # paths in parameter_sets items is already expanded by ps.make_absolute()
+        return value
 
     @classmethod
     def _load_user_config(cls, filename: Union[os.PathLike, str]) -> "Configuration":
@@ -119,10 +143,14 @@ class Configuration(BaseModel):
         """Reload the config file."""
         filename = self.ewatercycle_config
         if filename is None:
-            newconfig = Configuration()
-            self.overwrite(newconfig)
+            self.reset()
         else:
             self.load_from_file(filename)
+
+    def reset(self) -> None:
+        """Reset to empty configuration."""
+        newconfig = Configuration()
+        self.overwrite(newconfig)
 
     def dump_to_yaml(self) -> str:
         """Dumps YAML formatted string of Config object"""
