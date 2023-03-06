@@ -10,6 +10,10 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 - Apptainer support ([#290](https://github.com/eWaterCycle/ewatercycle/issues/290))
 
+### Changed
+
+- ewatercycle config validation now uses Pydantic instead of matplotlib inspired validation. ([#332](https://github.com/eWaterCycle/ewatercycle/issues/332))
+
 ### Deprecated
 
 - Singularity support
