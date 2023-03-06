@@ -172,9 +172,8 @@ The configuration can be set in Python with
     import logging
     logging.basicConfig(level=logging.INFO)
     import ewatercycle
-    import ewatercycle.parameter_sets
     # Which container engine is used to run the hydrological models
-    ewatercycle.container_engine = 'apptainer'   # or 'docker'
+    ewatercycle.CFG.container_engine = 'apptainer'   # or 'docker'
     # If container_engine==apptainer then where can the Apptainer images files (*.sif) be found.
     ewatercycle.CFG.apptainer_dir = './apptainer-images'
     # Directory in which output of model runs is stored. Each model run will generate a sub directory inside output_dir
@@ -183,14 +182,12 @@ The configuration can be set in Python with
     ewatercycle.CFG.grdc_location = './grdc-observations'
     # Where can parameters sets prepared by the system administator be found
     ewatercycle.CFG.parameterset_dir = './parameter-sets'
-    # Where is the configuration saved or loaded from
-    ewatercycle.CFG.ewatercycle_config = './ewatercycle.yaml'
 
 and then written to disk with
 
 .. code:: ipython3
 
-    ewatercycle.CFG.save_to_file()
+    ewatercycle.CFG.save_to_file('./ewatercycle.yaml')
 
 Later it can be loaded by using:
 
