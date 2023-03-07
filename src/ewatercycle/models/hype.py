@@ -153,7 +153,7 @@ class Hype(AbstractModel[HypeForcing]):
 
         # start container
         self.bmi = start_container(
-            version_image=_version_images[self.version],
+            image_engine=_version_images[self.version],
             work_dir=cfg_dir_as_path,
         )
 

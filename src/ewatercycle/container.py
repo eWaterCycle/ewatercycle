@@ -1,6 +1,6 @@
 """Container utilities."""
 from pathlib import Path
-from typing import Iterable, Literal, Mapping, Optional, TypedDict, Union
+from typing import Dict, Iterable, Literal, Mapping, Optional, Union
 
 from bmipy import Bmi
 from grpc import FutureTimeoutError
@@ -11,23 +11,22 @@ from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 
 from ewatercycle import CFG
 
+ContainerEngines = Literal["docker", "singularity"]
+"""Supported container engines."""
 
-class VersionImage(TypedDict):
-    """Image container for each container technology."""
+ImageForContainerEngines = Dict[ContainerEngines, str]
+"""Container image name for each container engine."""
 
-    docker: str
-    """Docker image name."""
-    singularity: str
-    """Singularity image name. Should be *.sif file in CFG["singularity_dir"]."""
+VersionImages = Mapping[str, ImageForContainerEngines]
+"""Dictionary of versions of a model.
 
-
-VersionImages = Mapping[str, VersionImage]
-"""Image containers for each version."""
+Each version has the image name for each container engine.
+"""
 
 
 def start_container(
     work_dir: Union[str, Path],
-    version_image: VersionImage,
+    image_engine: ImageForContainerEngines,
     input_dirs: Optional[Iterable[str]] = None,
     image_port=55555,
     timeout=None,
@@ -53,8 +52,8 @@ def start_container(
     Returns:
         _description_
     """
-    engine: Literal["docker", "singularity"] = CFG["container_engine"]
-    image = version_image[engine]
+    engine: ContainerEngines = CFG["container_engine"]
+    image = image_engine[engine]
     if input_dirs is None:
         input_dirs = []
     if engine == "docker":
@@ -86,7 +85,7 @@ def start_container(
                 delay=delay,
             )
         except FutureTimeoutError as exc:
-            docker_image = version_image["docker"]
+            docker_image = image_engine["docker"]
             raise TimeoutError(
                 "Couldn't spawn container within allocated time limit "
                 f"({timeout} seconds). You may try pulling the docker image with"

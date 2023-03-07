@@ -139,7 +139,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
         config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)
 
         self.bmi = start_container(
-            version_image=_version_images[self.version],
+            image_engine=_version_images[self.version],
             work_dir=cfg_dir_as_path,
             timeout=300,
             delay=delay,
@@ -388,7 +388,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
         config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)
 
         self.bmi = start_container(
-            version_image=_version_images[self.version],
+            image_engine=_version_images[self.version],
             work_dir=cfg_dir_as_path,
             timeout=300,
             delay=delay,

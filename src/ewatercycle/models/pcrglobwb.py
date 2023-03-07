@@ -127,7 +127,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
         if self.forcing:
             additional_input_dirs.append(str(self.forcing.directory))
         self.bmi = start_container(
-            version_image=_version_images[self.version],
+            image_engine=_version_images[self.version],
             work_dir=self.work_dir,
             input_dirs=additional_input_dirs,
             timeout=300,

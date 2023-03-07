@@ -111,7 +111,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                 input_dirs.append(str(mask_map.parent))
 
         self.bmi = start_container(
-            version_image=version_images[self.version],
+            image_engine=version_images[self.version],
             work_dir=cfg_dir_as_path,
             input_dirs=input_dirs,
             timeout=300,

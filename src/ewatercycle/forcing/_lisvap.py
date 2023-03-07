@@ -23,9 +23,10 @@ lisvap(
 
 import os
 import subprocess
-from typing import Dict, Literal, Tuple
+from typing import Dict, Tuple
 
 from ewatercycle import CFG
+from ewatercycle.container import ContainerEngines
 from ewatercycle.parametersetdb.config import XmlConfig
 
 from ..config._lisflood_versions import version_images
@@ -49,7 +50,7 @@ def lisvap(
         mask_map,
         forcing_dir,
     )
-    engine: Literal["docker", "singularity"] = CFG["container_engine"]
+    engine: ContainerEngines = CFG["container_engine"]
     image = version_images[version][engine]
     if CFG["container_engine"].lower() == "singularity":
         image = CFG["singularity_dir"] / image

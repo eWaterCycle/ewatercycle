@@ -123,7 +123,7 @@ class Wflow(AbstractModel[WflowForcing]):
             cfg.write(filename)
 
         self.bmi = start_container(
-            version_image=_version_images[self.version],
+            image_engine=_version_images[self.version],
             work_dir=self.work_dir,
             timeout=300,
         )
