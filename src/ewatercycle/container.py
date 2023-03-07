@@ -72,11 +72,11 @@ def start_container(
             # https://github.com/eWaterCycle/grpc4bmi/issues/100
             raise TimeoutError(
                 "Couldn't spawn container within allocated time limit "
-                "({timeout} seconds). You may try pulling the docker image with"
+                f"({timeout} seconds). You may try pulling the docker image with"
                 f" `docker pull {image}` and then try again."
             ) from exc
     elif engine == "singularity":
-        image = CFG["singularity_dir"] / image
+        image = str(CFG["singularity_dir"] / image)
         try:
             bmi = BmiClientSingularity(
                 image=image,
@@ -89,7 +89,7 @@ def start_container(
             docker_image = version_image["docker"]
             raise TimeoutError(
                 "Couldn't spawn container within allocated time limit "
-                "({timeout} seconds). You may try pulling the docker image with"
+                f"({timeout} seconds). You may try pulling the docker image with"
                 f" `singularity build {image} "
                 f"docker://{docker_image}` and then try again."
             ) from exc

@@ -52,6 +52,7 @@ def lisvap(
     engine: Literal["docker", "singularity"] = CFG["container_engine"]
     image = version_images[version][engine]
     if CFG["container_engine"].lower() == "singularity":
+        image = CFG["singularity_dir"] / image
         args = [
             "singularity",
             "exec",

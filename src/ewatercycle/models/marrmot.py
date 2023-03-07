@@ -53,7 +53,7 @@ def _generate_cfg_dir(cfg_dir: Optional[Path] = None) -> Path:
 
 _version_images: VersionImages = {
     "2020.11": {
-        "docker": "ewatercycle/pcrg-grpc4bmi:setters",
+        "docker": "ewatercycle/marrmot-grpc4bmi:2020.11",
         "singularity": "ewatercycle-marrmot-grpc4bmi_2020.11.sif",
     }
 }

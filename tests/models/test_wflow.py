@@ -6,7 +6,6 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from bmipy import Bmi
 from grpc import FutureTimeoutError
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
@@ -14,10 +13,14 @@ from ewatercycle import CFG
 from ewatercycle.models import Wflow
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser
+from tests.models.fake_models import FailingModel
 
 
-class MockedBmi(Bmi):
+class MockedBmi(FailingModel):
     """Pretend to be a real BMI model."""
+
+    def get_component_name(self) -> str:
+        return "mocked"
 
     def initialize(self, config_file):
         pass
@@ -156,13 +159,12 @@ def test_setup_withtimeoutexception(model, tmp_path):
     with patch.object(
         BmiClientSingularity, "__init__", side_effect=FutureTimeoutError()
     ), patch("datetime.datetime") as mocked_datetime, pytest.raises(
-        ValueError
+        TimeoutError
     ) as excinfo:
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
         model.setup()
 
     msg = str(excinfo.value)
-    assert "docker pull ewatercycle/wflow-grpc4bmi:2020.1.1" in msg
     sif = tmp_path / "ewatercycle-wflow-grpc4bmi_2020.1.1.sif"
     assert f"build {sif} docker://ewatercycle/wflow-grpc4bmi:2020.1.1" in msg
 

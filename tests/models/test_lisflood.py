@@ -15,6 +15,7 @@ from ewatercycle.forcing import load_foreign
 from ewatercycle.models.lisflood import Lisflood
 from ewatercycle.parameter_sets import ParameterSet, example_parameter_sets
 from ewatercycle.parametersetdb.config import XmlConfig
+from tests.models.fake_models import FailingModel
 
 
 @pytest.fixture
@@ -110,6 +111,7 @@ class TestLFlatlonUseCase:
             ],
             work_dir=f"{tmp_path}/lisflood_20210102_030405",
             timeout=300,
+            delay=0,
         )
 
         # Check content config file
@@ -210,6 +212,7 @@ class TestLFlatlonUseCase:
                 ],
                 work_dir=f"{tmp_path}/lisflood_20210102_030405",
                 timeout=300,
+                delay=0,
             )
 
             # Check content config file
@@ -248,7 +251,7 @@ class TestLFlatlonUseCase:
             assert model.parameters == expected_parameters
 
 
-class MockedBmi(Bmi):
+class MockedBmi(FailingModel):
     """Mimic a real use case with realistic shape and abitrary high precision."""
 
     def get_var_grid(self, name):
