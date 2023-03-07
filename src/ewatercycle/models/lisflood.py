@@ -8,15 +8,10 @@ from typing import Any, Iterable, Optional, Tuple, cast
 import numpy as np
 import xarray as xr
 from cftime import num2date
-from grpc4bmi.bmi_client_docker import BmiClientDocker
-from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
-from ewatercycle.config._lisflood_versions import (
-    get_docker_image,
-    get_singularity_image,
-    version_images,
-)
+from ewatercycle.config._lisflood_versions import version_images
+from ewatercycle.container import start_container
 from ewatercycle.forcing._lisflood import LisfloodForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
@@ -115,27 +110,13 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                 # If not relative add dir
                 input_dirs.append(str(mask_map.parent))
 
-        if CFG["container_engine"].lower() == "singularity":
-            image = get_singularity_image(self.version, CFG["singularity_dir"])
-            self.bmi = BmiClientSingularity(
-                image=str(image),
-                input_dirs=input_dirs,
-                work_dir=str(cfg_dir_as_path),
-                timeout=300,
-            )
-        elif CFG["container_engine"].lower() == "docker":
-            image = get_docker_image(self.version)
-            self.bmi = BmiClientDocker(
-                image=image,
-                image_port=55555,
-                input_dirs=input_dirs,
-                work_dir=str(cfg_dir_as_path),
-                timeout=300,
-            )
-        else:
-            raise ValueError(
-                f"Unknown container technology in CFG: {CFG['container_engine']}"
-            )
+        self.bmi = start_container(
+            version_image=version_images[self.version],
+            work_dir=cfg_dir_as_path,
+            input_dirs=input_dirs,
+            timeout=300,
+        )
+
         return str(config_file), str(cfg_dir_as_path)
 
     def _check_forcing(self, forcing):

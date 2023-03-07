@@ -1,30 +1,15 @@
+"""Abstract class of a eWaterCycle model."""
 import logging
 import textwrap
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
-from pathlib import Path
-from typing import (
-    Any,
-    ClassVar,
-    Generic,
-    Iterable,
-    Optional,
-    Set,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import Any, ClassVar, Generic, Iterable, Optional, Tuple, TypeVar
 
 import numpy as np
 import xarray as xr
 from bmipy import Bmi
 from cftime import num2date
-from grpc4bmi.bmi_client_docker import BmiClientDocker
-from grpc4bmi.bmi_client_singularity import BmiClientSingularity
-from grpc4bmi.bmi_memoized import MemoizedBmi
-from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 
-from ewatercycle import CFG
 from ewatercycle.forcing import DefaultForcing
 from ewatercycle.parameter_sets import ParameterSet
 
@@ -185,7 +170,7 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
     @property
     @abstractmethod
     def parameters(self) -> Iterable[Tuple[str, Any]]:
-        """Default values for the setup() inputs"""
+        """Default values for the setup() inputs."""
 
     @property
     def start_time(self) -> float:
@@ -297,31 +282,3 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
                 f"Supplied version {self.version} is not supported by this model. "
                 f"Available versions are {self.available_versions}."
             )
-
-    # TODO centralize way to start container
-    def _start_container(
-        self,
-        image: str,
-        work_dir: Union[str, Path],
-        image_port=55555,
-        timeout=300,
-        delay=0,
-    ) -> None:
-        if CFG["container_engine"] == "docker":
-            bmi = BmiClientDocker(
-                image=image,
-                image_port=image_port,
-                work_dir=str(work_dir),
-                timeout=timeout,
-                delay=delay,
-            )
-        elif CFG["container_engine"] == "singularity":
-            bmi = BmiClientSingularity(
-                image=image,
-                work_dir=str(work_dir),
-                timeout=timeout,
-                delay=delay,
-            )
-        else:
-            raise ValueError(f"Unknown container technology: {CFG['container_engine']}")
-        self.bmi = OptionalDestBmi(MemoizedBmi(bmi))
