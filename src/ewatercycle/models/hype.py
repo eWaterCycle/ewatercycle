@@ -4,10 +4,7 @@ import shutil
 import types
 from typing import Any, Iterable, Optional, Tuple
 
-import numpy as np
 import xarray as xr
-from basic_modeling_interface import Bmi
-from cftime import num2date
 from dateutil.parser import parse
 from dateutil.tz import UTC
 from grpc4bmi.bmi_client_docker import BmiClientDocker

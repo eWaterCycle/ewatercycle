@@ -1,14 +1,20 @@
 import logging
+from pathlib import Path
 import textwrap
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
-from typing import Any, ClassVar, Generic, Iterable, Optional, Set, Tuple, TypeVar
+from typing import Any, ClassVar, Generic, Iterable, Optional, Set, Tuple, TypeVar, Union
 
 import numpy as np
 import xarray as xr
-from basic_modeling_interface import Bmi
+from bmipy import Bmi
 from cftime import num2date
+from grpc4bmi.bmi_client_docker import BmiClientDocker
+from grpc4bmi.bmi_client_singularity import BmiClientSingularity
+from grpc4bmi.bmi_memoized import MemoizedBmi
+from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 
+from ewatercycle import CFG
 from ewatercycle.forcing import DefaultForcing
 from ewatercycle.parameter_sets import ParameterSet
 

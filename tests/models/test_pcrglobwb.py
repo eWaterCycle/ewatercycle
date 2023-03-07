@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from basic_modeling_interface import Bmi
+from bmipy import Bmi
 from grpc import FutureTimeoutError
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
