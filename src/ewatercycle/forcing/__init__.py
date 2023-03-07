@@ -3,17 +3,24 @@ from typing import Dict, Optional, Type
 
 from ruamel.yaml import YAML
 
+from ..plugins.pcrglobwb import _pcrglobwb
+
+from ..plugins.marrmot import forcing
+
+from ..plugins.hype import forcing
+from ..plugins.wflow import forcing
+
 from ewatercycle.util import to_absolute_path
 
-from . import _hype, _lisflood, _marrmot, _pcrglobwb, _wflow
+from . import _lisflood
 from ._default import FORCING_YAML, DefaultForcing
 
 FORCING_CLASSES: Dict[str, Type[DefaultForcing]] = {
-    "hype": _hype.HypeForcing,
+    "hype": forcing.HypeForcing,
     "lisflood": _lisflood.LisfloodForcing,
-    "marrmot": _marrmot.MarrmotForcing,
+    "marrmot": forcing.MarrmotForcing,
     "pcrglobwb": _pcrglobwb.PCRGlobWBForcing,
-    "wflow": _wflow.WflowForcing,
+    "wflow": forcing.WflowForcing,
 }
 
 

@@ -14,7 +14,7 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
-from ewatercycle.forcing._hype import HypeForcing
+from ewatercycle.plugins.hype.forcing import HypeForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.util import geographical_distances, get_time, to_absolute_path

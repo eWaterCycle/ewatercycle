@@ -12,7 +12,7 @@ from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
-from ewatercycle.config._lisflood_versions import (
+from ewatercycle.plugins.lisflood._lisflood_versions import (
     get_docker_image,
     get_singularity_image,
     version_images,

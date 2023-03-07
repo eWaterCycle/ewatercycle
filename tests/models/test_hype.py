@@ -10,7 +10,7 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
-from ewatercycle.models.hype import Hype, _set_code_in_cfg
+from ewatercycle.plugins.hype.ewc_model import Hype, _set_code_in_cfg
 from ewatercycle.parameter_sets import ParameterSet
 
 

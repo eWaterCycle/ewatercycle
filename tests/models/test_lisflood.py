@@ -12,7 +12,7 @@ from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
-from ewatercycle.models.lisflood import Lisflood
+from ewatercycle.plugins.lisflood.ewc_model import Lisflood
 from ewatercycle.parameter_sets import ParameterSet, example_parameter_sets
 from ewatercycle.parametersetdb.config import XmlConfig
 
