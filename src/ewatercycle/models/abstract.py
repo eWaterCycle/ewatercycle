@@ -1,9 +1,19 @@
 import logging
-from pathlib import Path
 import textwrap
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
-from typing import Any, ClassVar, Generic, Iterable, Optional, Set, Tuple, TypeVar, Union
+from pathlib import Path
+from typing import (
+    Any,
+    ClassVar,
+    Generic,
+    Iterable,
+    Optional,
+    Set,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 import numpy as np
 import xarray as xr
@@ -287,3 +297,31 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
                 f"Supplied version {self.version} is not supported by this model. "
                 f"Available versions are {self.available_versions}."
             )
+
+    # TODO centralize way to start container
+    def _start_container(
+        self,
+        image: str,
+        work_dir: Union[str, Path],
+        image_port=55555,
+        timeout=300,
+        delay=0,
+    ) -> None:
+        if CFG["container_engine"] == "docker":
+            bmi = BmiClientDocker(
+                image=image,
+                image_port=image_port,
+                work_dir=str(work_dir),
+                timeout=timeout,
+                delay=delay,
+            )
+        elif CFG["container_engine"] == "singularity":
+            bmi = BmiClientSingularity(
+                image=image,
+                work_dir=str(work_dir),
+                timeout=timeout,
+                delay=delay,
+            )
+        else:
+            raise ValueError(f"Unknown container technology: {CFG['container_engine']}")
+        self.bmi = OptionalDestBmi(MemoizedBmi(bmi))
