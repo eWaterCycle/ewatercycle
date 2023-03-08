@@ -12,7 +12,7 @@ from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
 from ewatercycle.config import DEFAULT_CONFIG
-from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.models.abstract import DefaultModel
 from ewatercycle.parameter_sets import ParameterSet
 
 
@@ -25,7 +25,7 @@ def setup_config(tmp_path):
     CFG.reload()
 
 
-class MockedModel(AbstractModel):
+class MockedModel(DefaultModel):
     available_versions = ("0.4.2",)
 
     def __init__(
@@ -85,7 +85,7 @@ def model(bmi: Bmi):
 
 def test_construct():
     with pytest.raises(TypeError) as excinfo:
-        AbstractModel(version="0.4.2")
+        DefaultModel(version="0.4.2")
     msg = str(excinfo.value)
     assert "Can't instantiate abstract class" in msg
     assert "setup" in msg

@@ -14,7 +14,7 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
 from ewatercycle.plugins.pcrglobwb._pcrglobwb import PCRGlobWBForcing
-from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.models.abstract import DefaultModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.util import find_closest_point, get_time, to_absolute_path
@@ -22,7 +22,7 @@ from ewatercycle.util import find_closest_point, get_time, to_absolute_path
 logger = logging.getLogger(__name__)
 
 
-class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
+class PCRGlobWB(DefaultModel[PCRGlobWBForcing]):
     """eWaterCycle implementation of PCRGlobWB hydrological model.
 
     Args:

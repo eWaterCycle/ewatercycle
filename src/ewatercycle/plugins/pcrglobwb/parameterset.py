@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from ..example.parameterset import ExampleParameterSet
+from ...parameter_sets.example_parameterset import ExampleParameterSet
 
 
 def example_parameter_sets() -> Iterable[ExampleParameterSet]:

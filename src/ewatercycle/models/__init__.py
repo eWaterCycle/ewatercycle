@@ -17,3 +17,7 @@ models = entry_points(group='ewatercycle.models')
 # Expose as "from ewatercycle.models import Model"
 for model in models:
     globals()[model.name] = model.load()
+
+
+def list_models():
+    return models.keys()

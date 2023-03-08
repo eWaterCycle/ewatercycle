@@ -6,7 +6,7 @@ from urllib import request
 
 from ewatercycle import CFG
 
-from ...parameter_sets.default import ParameterSet
+from .default import ParameterSet
 
 logger = getLogger(__name__)
 

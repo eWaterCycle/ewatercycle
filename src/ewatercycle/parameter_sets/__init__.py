@@ -9,7 +9,7 @@ from ..plugins.pcrglobwb import parameterset
 
 from ..config import DEFAULT_CONFIG, SYSTEM_CONFIG, USER_HOME_CONFIG
 from ..plugins.lisflood import parametersets
-from ..plugins.example.parameterset import ExampleParameterSet
+from .example_parameterset import ExampleParameterSet
 from .default import ParameterSet
 
 logger = getLogger(__name__)
@@ -97,9 +97,9 @@ def example_parameter_sets() -> Dict[str, ExampleParameterSet]:
     They can be downloaded with :py:func:`~download_example_parameter_sets`."""
     # TODO how to add a new model docs should be updated with this part
     examples = chain(
-        parameterset.example_parameter_sets(),
-        parameterset.example_parameter_sets(),
-        parameterset.example_parameter_sets(),
+        example_parameterset.example_parameter_sets(),
+        example_parameterset.example_parameter_sets(),
+        example_parameterset.example_parameter_sets(),
     )
     return {e.name: e for e in examples}
 

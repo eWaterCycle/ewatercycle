@@ -15,7 +15,7 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
 from ewatercycle.plugins.marrmot.forcing import MarrmotForcing
-from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.models.abstract import DefaultModel
 from ewatercycle.util import get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ def _generate_cfg_dir(cfg_dir: Optional[Path] = None) -> Path:
     return cfg_dir
 
 
-class MarrmotM01(AbstractModel[MarrmotForcing]):
+class MarrmotM01(DefaultModel[MarrmotForcing]):
     """eWaterCycle implementation of Marrmot Collie River 1 (traditional bucket) model.
 
     It sets MarrmotM01 parameter with an initial value that is the mean value of
@@ -307,7 +307,7 @@ M14_PARAMS = (
 )
 
 
-class MarrmotM14(AbstractModel[MarrmotForcing]):
+class MarrmotM14(DefaultModel[MarrmotForcing]):
     """eWaterCycle implementation of Marrmot Top Model hydrological model.
 
     It sets MarrmotM14 parameter with an initial value that is the mean value of

@@ -15,7 +15,7 @@ from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
 from ewatercycle.plugins.hype.forcing import HypeForcing
-from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.models.abstract import DefaultModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.util import geographical_distances, get_time, to_absolute_path
 
@@ -29,7 +29,7 @@ _version_images = {
 }
 
 
-class Hype(AbstractModel[HypeForcing]):
+class Hype(DefaultModel[HypeForcing]):
     """eWaterCycle implementation of Hype hydrological model.
 
     Model documentation at http://www.smhi.net/hype/wiki/doku.php .

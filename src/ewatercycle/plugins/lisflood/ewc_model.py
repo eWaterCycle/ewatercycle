@@ -18,7 +18,7 @@ from ewatercycle.plugins.lisflood._lisflood_versions import (
     version_images,
 )
 from ewatercycle.forcing._lisflood import LisfloodForcing
-from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.models.abstract import DefaultModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import XmlConfig
 from ewatercycle.util import find_closest_point, get_time, to_absolute_path
@@ -26,7 +26,7 @@ from ewatercycle.util import find_closest_point, get_time, to_absolute_path
 logger = logging.getLogger(__name__)
 
 
-class Lisflood(AbstractModel[LisfloodForcing]):
+class Lisflood(DefaultModel[LisfloodForcing]):
     """eWaterCycle implementation of Lisflood hydrological model.
 
     Args:
