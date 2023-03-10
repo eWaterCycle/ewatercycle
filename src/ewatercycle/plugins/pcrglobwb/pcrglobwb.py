@@ -11,7 +11,7 @@ from cftime import num2date
 
 from ewatercycle import CFG
 from ewatercycle.container import VersionImages, start_container
-from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.models.abstract import DefaultModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing
@@ -27,7 +27,7 @@ _version_images: VersionImages = {
 }
 
 
-class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
+class PCRGlobWB(DefaultModel):
     """eWaterCycle implementation of PCRGlobWB hydrological model.
 
     Args:

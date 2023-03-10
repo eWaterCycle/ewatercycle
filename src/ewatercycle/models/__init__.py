@@ -16,6 +16,11 @@ else:
 
 models = entry_points(group="ewatercycle.models")
 
-# Expose as "from ewatercycle.models import Model"
-for model in models:
-    globals()[model.name] = model.load()
+# # Expose as "from ewatercycle.models import Model"
+# for model in models:
+#     globals()[model.name] = model.load()
+
+
+# Alternative to the above (avoids circular imports with plugins)
+def available_models():
+    return {model.name: model.load() for model in models}
