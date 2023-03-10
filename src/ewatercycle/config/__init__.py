@@ -91,6 +91,18 @@ The ``ewatercycle.yaml`` is formatted in YAML and could for example look like:
     # apptainer pull docker://ewatercycle/wflow-grpc4bmi:2020.1.1
 """
 
-from ._config_object import CFG, SYSTEM_CONFIG, USER_HOME_CONFIG, Configuration
+from ._config_object import (
+    CFG,
+    SYSTEM_CONFIG,
+    USER_HOME_CONFIG,
+    Configuration,
+    ContainerEngine,
+)
 
-__all__ = ["CFG", "Configuration", "SYSTEM_CONFIG", "USER_HOME_CONFIG"]
+__all__ = [
+    "CFG",
+    "Configuration",
+    "ContainerEngine",
+    "SYSTEM_CONFIG",
+    "USER_HOME_CONFIG",
+]

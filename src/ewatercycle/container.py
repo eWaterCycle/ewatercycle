@@ -1,6 +1,6 @@
 """Container utilities."""
 from pathlib import Path
-from typing import Dict, Iterable, Literal, Mapping, Optional, Union
+from typing import Dict, Iterable, Mapping, Optional, Union
 
 from bmipy import Bmi
 from grpc import FutureTimeoutError
@@ -9,12 +9,9 @@ from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 from grpc4bmi.bmi_memoized import MemoizedBmi
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 
-from ewatercycle import CFG
+from ewatercycle.config import CFG, ContainerEngine
 
-ContainerEngines = Literal["docker", "apptainer"]
-"""Supported container engines."""
-
-ImageForContainerEngines = Dict[ContainerEngines, str]
+ImageForContainerEngines = Dict[ContainerEngine, str]
 """Container image name for each container engine."""
 
 VersionImages = Mapping[str, ImageForContainerEngines]
@@ -52,7 +49,7 @@ def start_container(
     Returns:
         _description_
     """
-    engine: ContainerEngines = CFG.container_engine
+    engine: ContainerEngine = CFG.container_engine
     image = image_engine[engine]
     if input_dirs is None:
         input_dirs = []
@@ -75,10 +72,10 @@ def start_container(
                 f" `docker pull {image}` and then try again."
             ) from exc
     elif engine == "apptainer":
-        image = CFG.apptainer_dir / image
+        image = str(CFG.apptainer_dir / image)
         try:
             bmi = BmiClientApptainer(
-                image=str(image),
+                image=image,
                 work_dir=str(work_dir),
                 input_dirs=input_dirs,
                 timeout=timeout,
