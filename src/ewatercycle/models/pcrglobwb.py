@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 _version_images: VersionImages = {
     "setters": {
         "docker": "ewatercycle/pcrg-grpc4bmi:setters",
-        "singularity": "ewatercycle-pcrg-grpc4bmi_setters.sif",
+        "apptainer": "ewatercycle-pcrg-grpc4bmi_setters.sif",
     }
 }
 

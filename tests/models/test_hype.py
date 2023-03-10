@@ -6,7 +6,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 from bmipy import Bmi
-from grpc4bmi.bmi_client_singularity import BmiClientSingularity
+from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
 from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign

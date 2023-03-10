@@ -50,12 +50,12 @@ def lisvap(
         mask_map,
         forcing_dir,
     )
-    engine: ContainerEngines = CFG["container_engine"]
+    engine: ContainerEngines = CFG.container_engine
     image = version_images[version][engine]
-    if CFG["container_engine"].lower() == "singularity":
-        image = CFG["singularity_dir"] / image
+    if CFG.container_engine.lower() == "apptainer":
+        image = CFG.apptainer_dir / image
         args = [
-            "singularity",
+            "apptainer",
             "exec",
             "--bind",
             ",".join([f"{mp}:{mp}" for mp in mount_points]),
@@ -63,7 +63,7 @@ def lisvap(
             f"{forcing_dir}",
             image,
         ]
-    elif CFG["container_engine"].lower() == "docker":
+    elif CFG.container_engine.lower() == "docker":
         args = [
             "docker",
             "run",

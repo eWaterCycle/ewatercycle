@@ -5,13 +5,13 @@ from typing import Dict, Iterable, Literal, Mapping, Optional, Union
 from bmipy import Bmi
 from grpc import FutureTimeoutError
 from grpc4bmi.bmi_client_docker import BmiClientDocker
-from grpc4bmi.bmi_client_singularity import BmiClientSingularity
+from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 from grpc4bmi.bmi_memoized import MemoizedBmi
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 
 from ewatercycle import CFG
 
-ContainerEngines = Literal["docker", "singularity"]
+ContainerEngines = Literal["docker", "apptainer"]
 """Supported container engines."""
 
 ImageForContainerEngines = Dict[ContainerEngines, str]
@@ -34,7 +34,7 @@ def start_container(
 ) -> Bmi:
     """Start container with model inside.
 
-    The `ewatercycle.CFG['container_engine']` value determines
+    The `ewatercycle.'CFG.container_engine` value determines
     the engine used to start a container.
 
     Args:
@@ -52,7 +52,7 @@ def start_container(
     Returns:
         _description_
     """
-    engine: ContainerEngines = CFG["container_engine"]
+    engine: ContainerEngines = CFG.container_engine
     image = image_engine[engine]
     if input_dirs is None:
         input_dirs = []
@@ -74,11 +74,11 @@ def start_container(
                 f"({timeout} seconds). You may try pulling the docker image with"
                 f" `docker pull {image}` and then try again."
             ) from exc
-    elif engine == "singularity":
-        image = str(CFG["singularity_dir"] / image)
+    elif engine == "apptainer":
+        image = CFG.apptainer_dir / image
         try:
-            bmi = BmiClientSingularity(
-                image=image,
+            bmi = BmiClientApptainer(
+                image=str(image),
                 work_dir=str(work_dir),
                 input_dirs=input_dirs,
                 timeout=timeout,
@@ -89,9 +89,9 @@ def start_container(
             raise TimeoutError(
                 "Couldn't spawn container within allocated time limit "
                 f"({timeout} seconds). You may try pulling the docker image with"
-                f" `singularity build {image} "
+                f" `apptainer build {image} "
                 f"docker://{docker_image}` and then try again."
             ) from exc
     else:
-        raise ValueError(f"Unknown container technology: {CFG['container_engine']}")
+        raise ValueError(f"Unknown container technology: {CFG.container_engine}")
     return OptionalDestBmi(MemoizedBmi(bmi))

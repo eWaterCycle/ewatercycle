@@ -23,19 +23,19 @@ logger = logging.getLogger(__name__)
 _version_images: VersionImages = {
     # "2019.1": {
     #     "docker":"ewatercycle/wflow-grpc4bmi:2019.1",
-    #     "singularity": "ewatercycle-wflow-grpc4bmi_2019.1.sif",
+    #     "apptainer": "ewatercycle-wflow-grpc4bmi_2019.1.sif",
     # }, # no good ini file
     "2020.1.1": {
         "docker": "ewatercycle/wflow-grpc4bmi:2020.1.1",
-        "singularity": "ewatercycle-wflow-grpc4bmi_2020.1.1.sif",
+        "apptainer": "ewatercycle-wflow-grpc4bmi_2020.1.1.sif",
     },
     "2020.1.2": {
         "docker": "ewatercycle/wflow-grpc4bmi:2020.1.2",
-        "singularity": "ewatercycle-wflow-grpc4bmi_2020.1.2.sif",
+        "apptainer": "ewatercycle-wflow-grpc4bmi_2020.1.2.sif",
     },
     "2020.1.3": {
         "docker": "ewatercycle/wflow-grpc4bmi:2020.1.3",
-        "singularity": "ewatercycle-wflow-grpc4bmi_2020.1.3.sif",
+        "apptainer": "ewatercycle-wflow-grpc4bmi_2020.1.3.sif",
     },
 }
 
