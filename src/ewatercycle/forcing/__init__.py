@@ -1,23 +1,23 @@
+import sys
 from pathlib import Path
 from typing import Dict, Optional, Type
 
 from ruamel.yaml import YAML
 
-from ewatercycle.plugins.hype.forcing import HypeForcing
-from ewatercycle.plugins.lisflood.forcing import LisfloodForcing
-from ewatercycle.plugins.marrmot.forcing import MarrmotForcing
-from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing
-from ewatercycle.plugins.wflow.forcing import WflowForcing
 from ewatercycle.util import to_absolute_path
 
 from ._default import FORCING_YAML, DefaultForcing
 
-FORCING_CLASSES: Dict[str, Type[DefaultForcing]] = {
-    "hype": HypeForcing,
-    "lisflood": LisfloodForcing,
-    "marrmot": MarrmotForcing,
-    "pcrglobwb": PCRGlobWBForcing,
-    "wflow": WflowForcing,
+if sys.version_info < (3, 10):
+    from importlib_metadata import entry_points
+else:
+    from importlib.metadata import entry_points
+
+
+# Find available forcing classes
+FORCING_CLASSES = {
+    forcing.name: forcing.load()  # type: ignore
+    for forcing in entry_points(group="ewatercycle.forcing")  # type: ignore
 }
 
 
