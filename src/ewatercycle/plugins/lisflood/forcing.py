@@ -6,7 +6,7 @@ from typing import Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ..util import (
+from ewatercycle.util import (
     data_files_from_recipe_output,
     fit_extents_to_grid,
     get_extents,
@@ -14,9 +14,9 @@ from ..util import (
     reindex,
     to_absolute_path,
 )
-from ._default import DefaultForcing, _session
-from ._lisvap import create_lisvap_config, lisvap
-from .datasets import DATASETS
+from ...forcing._default import DefaultForcing, _session
+from .lisvap import create_lisvap_config, lisvap
+from ...forcing.datasets import DATASETS
 
 logger = logging.getLogger(__name__)
 

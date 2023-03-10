@@ -12,7 +12,7 @@ from cftime import num2date
 from ewatercycle import CFG
 from ewatercycle.config._lisflood_versions import version_images
 from ewatercycle.container import start_container
-from ewatercycle.forcing._lisflood import LisfloodForcing
+from ewatercycle.plugins.lisflood.forcing import LisfloodForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import XmlConfig

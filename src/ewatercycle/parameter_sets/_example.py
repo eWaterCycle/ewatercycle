@@ -8,7 +8,7 @@ from pydantic import AnyUrl
 
 from ewatercycle import CFG
 
-from ..parameter_set import ParameterSet
+from ewatercycle.parameter_set import ParameterSet
 
 logger = getLogger(__name__)
 

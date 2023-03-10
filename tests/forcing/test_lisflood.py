@@ -6,7 +6,7 @@ from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import DataFile
 
 from ewatercycle.forcing import generate, load
-from ewatercycle.forcing._lisflood import LisfloodForcing
+from ewatercycle.plugins.lisflood.forcing import LisfloodForcing
 
 
 def test_plot():

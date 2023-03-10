@@ -3,7 +3,7 @@ import subprocess
 from unittest.mock import patch
 
 from ewatercycle import CFG
-from ewatercycle.forcing._lisvap import XmlConfig, create_lisvap_config, lisvap
+from ewatercycle.plugins.lisflood.lisvap import XmlConfig, create_lisvap_config, lisvap
 
 
 def find_values_in_xml(tree, name):

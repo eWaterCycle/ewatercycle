@@ -5,7 +5,7 @@ from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import OutputFile
 
 from ewatercycle.forcing import generate, load
-from ewatercycle.forcing._hype import HypeForcing
+from ewatercycle.plugins.hype.forcing import HypeForcing
 
 
 def test_plot():
