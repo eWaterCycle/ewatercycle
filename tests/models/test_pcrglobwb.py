@@ -10,8 +10,8 @@ from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
 from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
-from ewatercycle.plugins.pcrglobwb.pcrglobwb import PCRGlobWB
 from ewatercycle.parameter_sets import ParameterSet, example_parameter_sets
+from ewatercycle.plugins.pcrglobwb.pcrglobwb import PCRGlobWB
 from tests.models.fake_models import FailingModel
 
 

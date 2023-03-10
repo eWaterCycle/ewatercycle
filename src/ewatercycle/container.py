@@ -4,8 +4,8 @@ from typing import Dict, Iterable, Mapping, Optional, Union
 
 from bmipy import Bmi
 from grpc import FutureTimeoutError
-from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
+from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_memoized import MemoizedBmi
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 
