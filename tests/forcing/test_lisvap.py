@@ -1,6 +1,5 @@
 import os
 import subprocess
-from pathlib import PosixPath
 from unittest.mock import patch
 
 from ewatercycle import CFG
@@ -95,7 +94,7 @@ def test_lisvap_apptainer(mocked_popen, tmp_path, mocked_config):
         f"{tmp_path}/psr:{tmp_path}/psr,{tmp_path}/psr/mask.nc:{tmp_path}/psr/mask.nc,{tmp_path}/forc:{tmp_path}/forc",
         "--pwd",
         f"{tmp_path}/forc",
-        PosixPath(f"{tmp_path}/ewatercycle-lisflood-grpc4bmi_20.10.sif"),
+        f"{tmp_path}/ewatercycle-lisflood-grpc4bmi_20.10.sif",
         "python3",
         "/opt/Lisvap/src/lisvap1.py",
         f"{tmp_path}/lisvap.xml",
