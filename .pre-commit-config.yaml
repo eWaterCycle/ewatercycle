@@ -73,14 +73,14 @@ repos:
     rev: v0.910
     hooks:
       - id: mypy
-        additional_dependencies: [types-python-dateutil]
+        additional_dependencies: [types-python-dateutil, pydantic]
   - repo: https://github.com/nbQA-dev/nbQA
     rev: 1.1.0
     hooks:
       - id: nbqa-isort
         additional_dependencies: [isort==5.11.2]
       - id: nbqa-mypy
-        additional_dependencies: [mypy==0.910, types-python-dateutil]
+        additional_dependencies: [mypy==0.910, types-python-dateutil, pydantic]
       # TODO renable when errors are fixed/ignored
       - id: nbqa-flake8
         additional_dependencies: *fd
