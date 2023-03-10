@@ -191,7 +191,7 @@ texinfo_documents = [
 ]
 
 autodoc_mock_imports = [
-    "basic_modeling_interface",
+    "bmipy",
     "cftime",
     "dask",
     "esmvalcore",

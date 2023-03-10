@@ -1,12 +1,13 @@
+"""Abstract class of a eWaterCycle model."""
 import logging
 import textwrap
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
-from typing import Any, ClassVar, Generic, Iterable, Optional, Set, Tuple, TypeVar
+from typing import Any, ClassVar, Generic, Iterable, Optional, Tuple, TypeVar
 
 import numpy as np
 import xarray as xr
-from basic_modeling_interface import Bmi
+from bmipy import Bmi
 from cftime import num2date
 
 from ewatercycle.forcing import DefaultForcing
@@ -169,7 +170,7 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
     @property
     @abstractmethod
     def parameters(self) -> Iterable[Tuple[str, Any]]:
-        """Default values for the setup() inputs"""
+        """Default values for the setup() inputs."""
 
     @property
     def start_time(self) -> float:

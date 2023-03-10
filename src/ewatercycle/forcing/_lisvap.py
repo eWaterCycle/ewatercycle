@@ -26,9 +26,10 @@ import subprocess
 from typing import Dict, Tuple
 
 from ewatercycle import CFG
+from ewatercycle.container import ContainerEngines
 from ewatercycle.parametersetdb.config import XmlConfig
 
-from ..config._lisflood_versions import get_apptainer_image, get_docker_image
+from ..config._lisflood_versions import version_images
 from ..util import get_time
 
 
@@ -49,21 +50,10 @@ def lisvap(
         mask_map,
         forcing_dir,
     )
-
-    if CFG.container_engine == "apptainer":
-        image = get_apptainer_image(version, CFG.apptainer_dir)
-        args = [
-            "apptainer",
-            "exec",
-            "--bind",
-            ",".join([f"{mp}:{mp}" for mp in mount_points]),
-            "--pwd",
-            f"{forcing_dir}",
-            image,
-        ]
-    elif CFG.container_engine == "singularity":
-        # TODO mark as deprecated
-        image = get_apptainer_image(version, CFG.apptainer_dir)
+    engine: ContainerEngines = CFG["container_engine"]
+    image = version_images[version][engine]
+    if CFG["container_engine"].lower() == "singularity":
+        image = CFG["singularity_dir"] / image
         args = [
             "singularity",
             "exec",
@@ -73,8 +63,7 @@ def lisvap(
             f"{forcing_dir}",
             image,
         ]
-    elif CFG.container_engine == "docker":
-        image = get_docker_image(version)
+    elif CFG["container_engine"].lower() == "docker":
         args = [
             "docker",
             "run",

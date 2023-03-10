@@ -8,7 +8,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 import xarray as xr
-from basic_modeling_interface import Bmi
+from bmipy import Bmi
 from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
@@ -69,7 +69,7 @@ class MockedModel(AbstractModel):
 
 
 @pytest.fixture
-@patch("basic_modeling_interface.Bmi")
+@patch("bmipy.Bmi")
 def bmi(MockedBmi):
     mocked_bmi = MockedBmi()
     mocked_bmi.get_start_time.return_value = 42.0

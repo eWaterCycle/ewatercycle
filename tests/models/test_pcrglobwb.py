@@ -5,7 +5,6 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from basic_modeling_interface import Bmi
 from grpc import FutureTimeoutError
 from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
@@ -13,9 +12,10 @@ from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
 from ewatercycle.models import PCRGlobWB
 from ewatercycle.parameter_sets import ParameterSet, example_parameter_sets
+from tests.models.fake_models import FailingModel
 
 
-class MockedBmi(Bmi):
+class MockedBmi(FailingModel):
     """Pretend to be a real BMI model."""
 
     def initialize(self, config_file):
@@ -104,13 +104,12 @@ def test_setup_withtimeoutexception(model, tmp_path):
     with patch.object(
         BmiClientApptainer, "__init__", side_effect=FutureTimeoutError()
     ), patch("datetime.datetime") as mocked_datetime, pytest.raises(
-        ValueError
+        TimeoutError
     ) as excinfo:
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
         model.setup()
 
     msg = str(excinfo.value)
-    assert "docker pull ewatercycle/pcrg-grpc4bmi:setters" in msg
     sif = tmp_path / "ewatercycle-pcrg-grpc4bmi_setters.sif"
     assert f"build {sif} docker://ewatercycle/pcrg-grpc4bmi:setters" in msg
 

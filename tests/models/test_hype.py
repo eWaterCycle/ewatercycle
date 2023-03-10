@@ -5,13 +5,14 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from basic_modeling_interface import Bmi
-from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
+from bmipy import Bmi
+from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
 from ewatercycle.models.hype import Hype, _set_code_in_cfg
 from ewatercycle.parameter_sets import ParameterSet
+from tests.models.fake_models import FailingModel
 
 
 @pytest.fixture
@@ -93,6 +94,9 @@ class TestWithOnlyParameterSetAndDefaults:
         mocked_constructor.assert_called_once_with(
             image=f"{tmp_path}/ewatercycle-hype-grpc4bmi_feb2021.sif",
             work_dir=f"{tmp_path}/hype_20210102_030405",
+            input_dirs=[],
+            timeout=None,
+            delay=0,
         )
 
     def test_setup_parameter_set_files(self, model_with_setup):
@@ -141,7 +145,7 @@ class TestWithOnlyParameterSetAndDefaults:
             model.get_value_as_xarray("comp outflow olake")
 
     def test_get_value_at_coords(self, model):
-        class MockedBmi(Bmi):
+        class MockedBmi(FailingModel):
             """Pretend to be a real BMI model."""
 
             def get_var_grid(self, name):
@@ -192,6 +196,9 @@ class TestWithOnlyParameterSetAndFullSetup:
         mocked_constructor.assert_called_once_with(
             image=f"{tmp_path}/ewatercycle-hype-grpc4bmi_feb2021.sif",
             work_dir=f"{tmp_path}/myworkdir",
+            input_dirs=[],
+            timeout=None,
+            delay=0,
         )
 
     def test_setup_parameter_set_files(self, model_with_setup):
@@ -329,6 +336,9 @@ class TestWithForcingAndDefaults:
         mocked_constructor.assert_called_once_with(
             image=f"{tmp_path}/ewatercycle-hype-grpc4bmi_feb2021.sif",
             work_dir=f"{tmp_path}/hype_20210102_030405",
+            input_dirs=[],
+            timeout=None,
+            delay=0,
         )
 
     def test_setup_forcing_files(self, model_with_setup):
