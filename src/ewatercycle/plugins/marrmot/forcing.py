@@ -5,8 +5,9 @@ from typing import Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ewatercycle.forcing._default import DefaultForcing, _session
+from ewatercycle.forcing._default import DefaultForcing
 from ewatercycle.forcing.datasets import DATASETS
+from ewatercycle.forcing.utils import _session
 from ewatercycle.util import get_time, to_absolute_path
 
 
