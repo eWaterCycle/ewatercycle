@@ -4,13 +4,12 @@ from os import linesep
 from typing import Dict, Optional, Tuple
 
 from ewatercycle import CFG
-
-from ..config import SYSTEM_CONFIG, USER_HOME_CONFIG
-from ..parameter_set import ParameterSet
-from ..plugins.lisflood import parameter_sets as lisflood_parametersets
-from ..plugins.pcrglobwb import parameter_sets as pcrglobwb_parametersets
-from ..plugins.wflow import parameter_sets as wflow_parametersets
-from ._example import ExampleParameterSet
+from ewatercycle.config import SYSTEM_CONFIG, USER_HOME_CONFIG
+from ewatercycle.parameter_set import ParameterSet
+from ewatercycle.parameter_sets._example import ExampleParameterSet
+from ewatercycle.plugins.lisflood import parameter_sets as lisflood_parametersets
+from ewatercycle.plugins.pcrglobwb import parameter_sets as pcrglobwb_parametersets
+from ewatercycle.plugins.wflow import parameter_sets as wflow_parametersets
 
 logger = getLogger(__name__)
 
