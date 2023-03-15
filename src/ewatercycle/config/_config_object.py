@@ -226,8 +226,7 @@ def find_user_config(sources: tuple) -> Optional[os.PathLike]:
 FILENAME = "ewatercycle.yaml"
 
 USER_HOME_CONFIG = (
-    Path.home()
-    / os.environ.get("XDG_CONFIG_HOME", ".config")
+    Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
     / "ewatercycle"
     / FILENAME
 )

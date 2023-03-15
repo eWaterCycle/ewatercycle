@@ -2,7 +2,7 @@
 ******
 
 Configuration of eWaterCycle is done via the
-:py:class:`~eWaterCycle.config.Config` object. The global configuration can be
+:py:class:`~eWaterCycle.config.Configuration` object. The global configuration can be
 imported from the :py:mod:`eWaterCycle` module as :py:data:`~ewatercycle.CFG`:
 
 .. code-block:: python
@@ -74,7 +74,7 @@ eWaterCycle configuration object.
 
 The configuration is loaded from:
 
- 1. ``~/$XDG_CONFIG_HOME/ewatercycle/ewatercycle.yaml``
+ 1. ``$XDG_CONFIG_HOME/ewatercycle/ewatercycle.yaml``
  2. ``~/.config/ewatercycle/ewatercycle.yaml``
  3. ``/etc/ewatercycle.yaml``
  4. Fall back to empty configuration
