@@ -73,7 +73,7 @@ repos:
     rev: v0.910
     hooks:
       - id: mypy
-        additional_dependencies: [types-python-dateutil]
+        additional_dependencies: [types-python-dateutil, pydantic]
   - repo: https://github.com/nbQA-dev/nbQA
     rev: 1.1.0
     hooks:
