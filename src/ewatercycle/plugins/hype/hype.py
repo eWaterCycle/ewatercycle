@@ -12,7 +12,7 @@ from dateutil.tz import UTC
 
 from ewatercycle import CFG
 from ewatercycle.container import VersionImages, start_container
-from ewatercycle.models.abstract import DefaultModel
+from ewatercycle.defaults.model import DefaultModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.plugins.hype.forcing import HypeForcing
 from ewatercycle.util import geographical_distances, get_time, to_absolute_path

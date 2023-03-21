@@ -7,7 +7,7 @@ from bmipy import Bmi
 from pydantic import BaseModel
 
 from ewatercycle.forcing._default import DefaultForcing
-from ewatercycle.models.bmi_handles import BmiHandles
+from ewatercycle.defaults.bmi_handles import BmiHandles
 from ewatercycle.parameter_set import ParameterSet
 
 logger = logging.getLogger(__name__)

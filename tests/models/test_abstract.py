@@ -13,7 +13,7 @@ from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
 from ewatercycle.config import Configuration
-from ewatercycle.models.abstract import DefaultModel
+from ewatercycle.defaults.model import DefaultModel
 from ewatercycle.parameter_sets import ParameterSet
 
 
