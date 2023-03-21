@@ -1,6 +1,5 @@
 """Abstract class of a eWaterCycle model."""
 import logging
-import textwrap
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from typing import Any, ClassVar, Generic, Iterable, Optional, Tuple, TypeVar
@@ -10,6 +9,7 @@ import xarray as xr
 from bmipy import Bmi
 from cftime import num2date
 
+from ewatercycle._repr import Representation
 from ewatercycle.forcing import DefaultForcing
 from ewatercycle.parameter_sets import ParameterSet
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 ForcingT = TypeVar("ForcingT", bound=DefaultForcing)
 
 
-class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
+class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
     """Abstract class of a eWaterCycle model."""
 
     available_versions: ClassVar[Tuple[str, ...]] = tuple()
@@ -44,19 +44,13 @@ class AbstractModel(Generic[ForcingT], metaclass=ABCMeta):
         except AttributeError:
             pass
 
-    def __str__(self):
-        """Nice formatting of model object."""
-        return "\n".join(
-            [
-                f"eWaterCycle {self.__class__.__name__}",
-                "-------------------",
-                f"Version = {self.version}",
-                "Parameter set = ",
-                textwrap.indent(str(self.parameter_set), "  "),
-                "Forcing = ",
-                textwrap.indent(str(self.forcing), "  "),
-            ]
-        )
+    def __repr_args__(self):
+        # Ignore bmi and internal state from subclasses
+        return [
+            ("version", self.version),
+            ("parameter_set", self.parameter_set),
+            ("forcing", self.forcing),
+        ]
 
     @abstractmethod
     def setup(self, *args, **kwargs) -> Tuple[str, str]:

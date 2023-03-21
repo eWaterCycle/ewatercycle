@@ -118,24 +118,17 @@ def test_constructor_adds_api_riverrunoff(parameter_set, caplog):
 
 def test_str(model, tmp_path):
     actual = str(model)
-    expected = "\n".join(
+
+    expected_ps = "".join(
         [
-            "eWaterCycle Wflow",
-            "-------------------",
-            "Version = 2020.1.1",
-            "Parameter set = ",
-            "  Parameter set",
-            "  -------------",
-            "  name=wflow_testcase",
-            f"  directory={str(tmp_path / 'wflow_testcase')}",
-            f"  config={str(tmp_path / 'wflow_testcase' / 'wflow_sbm_nc.ini')}",
-            "  doi=N/A",
-            "  target_model=wflow",
-            "  supported_model_versions=set()",
-            "Forcing = ",
-            "  None",
+            "ParameterSet(name='wflow_testcase', ",
+            f"directory={repr(tmp_path / 'wflow_testcase')}, ",
+            f"config={repr(tmp_path / 'wflow_testcase' / 'wflow_sbm_nc.ini')}, ",
+            "doi='N/A', target_model='wflow', supported_model_versions=set())",
         ]
     )
+    expected = f"version='2020.1.1' parameter_set={expected_ps} forcing=None"
+    assert actual == expected
     assert actual == expected
 
 

@@ -53,23 +53,14 @@ class TestWithDefaultsAndExampleData:
 
     def test_str(self, model, forcing_file):
         actual = str(model)
-        expected = "\n".join(
+        expected_forcing = "".join(
             [
-                "eWaterCycle MarrmotM01",
-                "-------------------",
-                "Version = 2020.11",
-                "Parameter set = ",
-                "  None",
-                "Forcing = ",
-                "  eWaterCycle forcing",
-                "  -------------------",
-                "  start_time=1989-01-01T00:00:00Z",
-                "  end_time=1992-12-31T00:00:00Z",
-                f"  directory={str(Path(forcing_file).parent)}",
-                "  shape=None",
-                "  forcing_file=BMI_testcase_m01_BuffaloRiver_TN_USA.mat",
+                "MarrmotForcing(start_time='1989-01-01T00:00:00Z', ",
+                f"end_time='1992-12-31T00:00:00Z', directory={repr(Path(forcing_file).parent)}, ",
+                "forcing_file='BMI_testcase_m01_BuffaloRiver_TN_USA.mat')",
             ]
         )
+        expected = f"version='2020.11' parameter_set=None forcing={expected_forcing}"
         assert actual == expected
 
     def test_parameters(self, model):
