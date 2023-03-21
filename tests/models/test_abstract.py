@@ -12,7 +12,6 @@ from bmipy import Bmi
 from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
-from ewatercycle.config import Configuration
 from ewatercycle.defaults.model import DefaultModel
 from ewatercycle.parameter_sets import ParameterSet
 
@@ -42,7 +41,7 @@ class MockedModel(DefaultModel):
         if "bmi" in kwargs:
             # sub-class of AbstractModel should construct bmi
             # using grpc4bmi Docker or Apptainer client
-            self.bmi = kwargs["bmi"]
+            self._bmi = kwargs["bmi"]
         return "foobar.cfg", "."
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
@@ -100,7 +99,7 @@ def test_construct_with_unsupported_version():
         MockedModel(version="1.2.3")
 
     assert (
-        "Supplied version 1.2.3 is not supported by this model. "
+        "Supplied version 1.2.3 is not available for this model. "
         "Available versions are ('0.4.2',)." in str(excinfo.value)
     )
 
@@ -131,7 +130,7 @@ def test_finalize_resets_bmi(model: MockedModel, bmi):
     with pytest.raises(AttributeError) as excinfo:
         model.bmi
 
-    assert "has no attribute 'bmi'" in str(excinfo.value)
+    assert "No Bmi attached" in str(excinfo.value)
 
 
 def test_update(model: MockedModel, bmi):
@@ -325,7 +324,7 @@ class TestCheckParameterSet:
         with caplog.at_level(logging.INFO):
             MockedModel(parameter_set=ps)
 
-        expected = "is not explicitly listed in the supported model versions"
+        expected = "not explicitly listed in the compatible model versions"
         assert expected in caplog.text
 
     def test_unsupported_version(self, setup_config):
