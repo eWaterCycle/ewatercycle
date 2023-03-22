@@ -1,14 +1,13 @@
 """Forcing related functionality for default models."""
 import logging
-from copy import copy
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 from esmvalcore.experimental import CFG
 from esmvalcore.experimental.config import Session
+from pydantic import BaseModel, validator
 from ruamel.yaml import YAML
 
-from ewatercycle._repr import Representation
 from ewatercycle.util import to_absolute_path
 
 logger = logging.getLogger(__name__)
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 FORCING_YAML = "ewatercycle_forcing.yaml"
 
 
-class DefaultForcing(Representation):
+class DefaultForcing(BaseModel):
     """Container for forcing data.
 
     Args:
@@ -28,17 +27,18 @@ class DefaultForcing(Representation):
         shape: Path to a shape file. Used for spatial selection.
     """
 
-    def __init__(
-        self,
-        start_time: str,
-        end_time: str,
-        directory: str,
-        shape: Optional[str] = None,
-    ):
-        self.start_time = start_time
-        self.end_time = end_time
-        self.directory = to_absolute_path(directory)
-        self.shape = to_absolute_path(shape) if shape is not None else shape
+    start_time: str
+    end_time: str
+    directory: Optional[Path] = None
+    shape: Optional[Path] = None
+
+    @validator("directory")
+    def _absolute_directory(cls, v: Union[str, Path, None]):
+        return to_absolute_path(v) if v is not None else v
+
+    @validator("shape")
+    def _absolute_shape(cls, v: Union[str, Path, None]):
+        return to_absolute_path(v) if v is not None else v
 
     @classmethod
     def generate(
@@ -60,8 +60,7 @@ class DefaultForcing(Representation):
         target = self.directory / FORCING_YAML
         # We want to make the yaml and its parent movable,
         # so the directory and shape should not be included in the yaml file
-        clone = copy(self)
-        del clone.directory
+        clone = self.copy(exclude={"directory"})
 
         if clone.shape:
             try:
@@ -74,7 +73,7 @@ class DefaultForcing(Representation):
                 )
 
         with open(target, "w") as f:
-            yaml.dump(clone, f)
+            yaml.dump(clone.dict(), f)
         return target
 
     def plot(self):
