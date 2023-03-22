@@ -40,9 +40,18 @@ class MockedBmi(FailingModel):
     def get_grid_spacing(self, grid_id):
         return 1.0, 1.0
 
-    def get_value_at_indices(self, name, indices):
+    def get_value_at_indices(self, name, dest, indices):
         self.indices = indices
         return np.array([1.0])
+
+    def get_var_type(self, name):
+        return "float64"
+
+    def get_var_itemsize(self, name):
+        return np.float64().size
+
+    def get_var_nbytes(self, name):
+        return np.float64().size * 3 * 2
 
 
 @pytest.fixture
@@ -159,8 +168,8 @@ def test_setup_withtimeoutexception(model, tmp_path):
         model.setup()
 
     msg = str(excinfo.value)
-    sif = tmp_path / "ewatercycle-wflow-grpc4bmi_2020.1.1.sif"
-    assert f"build {sif} docker://ewatercycle/wflow-grpc4bmi:2020.1.1" in msg
+    assert "docker://ewatercycle/wflow-grpc4bmi:2020.1.1" in msg
+    assert "ewatercycle-wflow-grpc4bmi_2020.1.1.sif" in msg
 
 
 def test_setup_with_custom_cfg_dir(model, tmp_path):

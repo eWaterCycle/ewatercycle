@@ -12,7 +12,6 @@ from bmipy import Bmi
 from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
-from ewatercycle.config import Configuration
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 
@@ -76,14 +75,17 @@ def bmi(MockedBmi):
     mocked_bmi.get_current_time.return_value = 43.0
     mocked_bmi.get_end_time.return_value = 44.0
     mocked_bmi.get_time_units.return_value = "days since 1970-01-01 00:00:00.0 00:00"
+    mocked_bmi.get_var_type.return_value = "float64"
+    mocked_bmi.get_var_itemsize.return_value = np.float64().size
+    mocked_bmi.get_var_nbytes.return_value = np.float64().size * 4
     return mocked_bmi
 
 
 @pytest.fixture
 def model(bmi: Bmi):
-    m = MockedModel()
-    m.setup(bmi=bmi)
-    return m
+    mocked_model = MockedModel()
+    mocked_model.setup(bmi=bmi)
+    return mocked_model
 
 
 def test_construct():
@@ -141,7 +143,7 @@ def test_update(model: MockedModel, bmi):
 
 
 def test_get_value(bmi, model: MockedModel):
-    expected = np.array([[1.0, 2.0], [3.0, 4.0]])
+    expected = np.array([1.0, 2.0, 3.0, 4.0])
     bmi.get_value.return_value = expected
 
     value = model.get_value("discharge")

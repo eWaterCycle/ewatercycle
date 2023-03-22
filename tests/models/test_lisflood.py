@@ -6,7 +6,6 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from bmipy import Bmi
 from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 from numpy.testing import assert_array_equal
 
@@ -106,7 +105,7 @@ class TestLFlatlonUseCase:
 
         # Check container started
         mocked_constructor.assert_called_once_with(
-            image=f"{tmp_path}/ewatercycle-lisflood-grpc4bmi_20.10.sif",
+            image="ewatercycle-lisflood-grpc4bmi_20.10.sif",
             input_dirs=[
                 f"{tmp_path}/psr/lisflood_fraser",
                 f"{tmp_path}/forcing",
@@ -206,7 +205,7 @@ class TestLFlatlonUseCase:
 
             # Check container started
             mocked_constructor.assert_called_once_with(
-                image=f"{tmp_path}/ewatercycle-lisflood-grpc4bmi_20.10.sif",
+                image="ewatercycle-lisflood-grpc4bmi_20.10.sif",
                 input_dirs=[
                     f"{tmp_path}/psr/lisflood_fraser",
                     f"{tmp_path}/forcing",
@@ -322,6 +321,15 @@ class MockedBmi(FailingModel):
     def get_grid_spacing(self, grid_id):
         return 0.1, 0.1
 
-    def get_value_at_indices(self, name, indices):
+    def get_value_at_indices(self, name, dest, indices):
         self.indices = indices
         return np.array([1.0])
+
+    def get_var_type(self, name):
+        return "float64"
+
+    def get_var_itemsize(self, name):
+        return np.float64().size
+
+    def get_var_nbytes(self, name):
+        return np.float64().size * 14 * 31

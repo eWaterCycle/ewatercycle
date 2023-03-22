@@ -8,6 +8,8 @@ import numpy as np
 import xarray as xr
 from bmipy import Bmi
 from cftime import num2date
+from grpc4bmi.bmi_optionaldest import OptionalDestBmi
+from grpc4bmi.reserve import reserve_values, reserve_values_at_indices
 
 from ewatercycle._repr import Representation
 from ewatercycle.forcing import DefaultForcing
@@ -92,7 +94,10 @@ class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
             name: Name of variable
 
         """
-        return self.bmi.get_value(name)
+        if isinstance(self.bmi, OptionalDestBmi):
+            return self.bmi.get_value(name)
+        dest = reserve_values(self.bmi, name)
+        return self.bmi.get_value(name, dest)
 
     def get_value_at_coords(
         self, name, lat: Iterable[float], lon: Iterable[float]
@@ -107,7 +112,10 @@ class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
         """
         indices = self._coords_to_indices(name, lat, lon)
         indices = np.array(indices)
-        return self.bmi.get_value_at_indices(name, indices)
+        if isinstance(self.bmi, OptionalDestBmi):
+            return self.bmi.get_value_at_indices(name, indices)
+        dest = reserve_values_at_indices(self.bmi, name, indices)
+        return self.bmi.get_value_at_indices(name, dest, indices)
 
     def set_value(self, name: str, value: np.ndarray) -> None:
         """Specify a new value for a model variable.
