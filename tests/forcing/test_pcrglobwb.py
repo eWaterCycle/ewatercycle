@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -78,6 +80,17 @@ class TestGenerateWithExtractRegion:
             temperatureNC="pcrglobwb_tas.nc",
         )
         assert forcing == expected
+
+    def test_str(self, forcing, tmp_path, sample_shape):
+        result = str(forcing)
+        expected = "".join(
+            [
+                "start_time='1989-01-02T00:00:00Z' end_time='1999-01-02T00:00:00Z' ",
+                f"directory={repr(tmp_path)} shape={repr(Path(sample_shape))} ",
+                "precipitationNC='pcrglobwb_pr.nc' temperatureNC='pcrglobwb_tas.nc'",
+            ]
+        )
+        assert result == expected
 
 
 # TODO test if recipe was generated correctlu
