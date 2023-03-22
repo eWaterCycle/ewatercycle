@@ -92,7 +92,7 @@ def start_apptainer_container(
     image: str,
     docker_image: str,
     input_dirs: Optional[Iterable[str]] = None,
-    timeout: int = None,
+    timeout: Optional[int] = None,
     delay: int = 0,
 ) -> Bmi:
     """Start Apptainer container with model inside.
@@ -122,7 +122,7 @@ def start_apptainer_container(
         return BmiClientApptainer(
             image=image,
             work_dir=str(work_dir),
-            input_dirs=input_dirs,
+            input_dirs=tuple() if input_dirs is None else input_dirs,
             timeout=timeout,
             delay=delay,
         )
@@ -164,7 +164,7 @@ def start_docker_container(
             image=image,
             image_port=image_port,
             work_dir=str(work_dir),
-            input_dirs=input_dirs,
+            input_dirs=tuple() if input_dirs is None else input_dirs,
             timeout=timeout,
             delay=delay,
         )
