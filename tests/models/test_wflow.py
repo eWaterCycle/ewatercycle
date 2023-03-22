@@ -6,18 +6,21 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from basic_modeling_interface import Bmi
 from grpc import FutureTimeoutError
-from grpc4bmi.bmi_client_singularity import BmiClientSingularity
+from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
 from ewatercycle import CFG
-from ewatercycle.models import Wflow
+from ewatercycle.models.wflow import Wflow
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser
+from tests.models.fake_models import FailingModel
 
 
-class MockedBmi(Bmi):
+class MockedBmi(FailingModel):
     """Pretend to be a real BMI model."""
+
+    def get_component_name(self) -> str:
+        return "mocked"
 
     def initialize(self, config_file):
         pass
@@ -37,25 +40,35 @@ class MockedBmi(Bmi):
     def get_grid_spacing(self, grid_id):
         return 1.0, 1.0
 
-    def get_value_at_indices(self, name, indices):
+    def get_value_at_indices(self, name, dest, indices):
         self.indices = indices
         return np.array([1.0])
 
+    def get_var_type(self, name):
+        return "float64"
+
+    def get_var_itemsize(self, name):
+        return np.float64().size
+
+    def get_var_nbytes(self, name):
+        return np.float64().size * 3 * 2
+
 
 @pytest.fixture
-def mocked_config(tmp_path):
-    CFG["output_dir"] = tmp_path
-    CFG["container_engine"] = "singularity"
-    CFG["singularity_dir"] = tmp_path
-    CFG["parameterset_dir"] = tmp_path / "wflow_testcase"
-    CFG["parameter_sets"] = {}
+def mocked_config(tmp_path: Path):
+    CFG.output_dir = tmp_path
+    CFG.container_engine = "apptainer"
+    CFG.apptainer_dir = tmp_path
+    CFG.parameter_sets = {}
+    parameterset_dir = tmp_path / "wflow_testcase"
+    parameterset_dir.mkdir()
+    CFG.parameterset_dir = parameterset_dir
 
 
 @pytest.fixture
 def parameter_set(tmp_path, mocked_config):
     """Fake parameter set for tests."""
     directory = tmp_path / "wflow_testcase"
-    directory.mkdir()
     config = directory / "wflow_sbm_nc.ini"
     # Trimmed down config from
     # https://github.com/openstreams/wflow/blob/master/examples/wflow_rhine_sbm_nc/wflow_sbm_NC.ini
@@ -77,7 +90,7 @@ def parameter_set(tmp_path, mocked_config):
     )
     config.write_text(config_body)
     return ParameterSet(
-        "wflow_testcase",
+        name="wflow_testcase",
         directory=str(directory),
         config=str(config),
         target_model="wflow",
@@ -114,35 +127,28 @@ def test_constructor_adds_api_riverrunoff(parameter_set, caplog):
 
 def test_str(model, tmp_path):
     actual = str(model)
-    expected = "\n".join(
+
+    expected_ps = "".join(
         [
-            "eWaterCycle Wflow",
-            "-------------------",
-            "Version = 2020.1.1",
-            "Parameter set = ",
-            "  Parameter set",
-            "  -------------",
-            "  name=wflow_testcase",
-            f"  directory={str(tmp_path / 'wflow_testcase')}",
-            f"  config={str(tmp_path / 'wflow_testcase' / 'wflow_sbm_nc.ini')}",
-            "  doi=N/A",
-            "  target_model=wflow",
-            "  supported_model_versions=set()",
-            "Forcing = ",
-            "  None",
+            "ParameterSet(name='wflow_testcase', ",
+            f"directory={repr(tmp_path / 'wflow_testcase')}, ",
+            f"config={repr(tmp_path / 'wflow_testcase' / 'wflow_sbm_nc.ini')}, ",
+            "doi='N/A', target_model='wflow', supported_model_versions=set())",
         ]
     )
+    expected = f"version='2020.1.1' parameter_set={expected_ps} forcing=None"
+    assert actual == expected
     assert actual == expected
 
 
 def test_setup(model):
-    with patch.object(BmiClientSingularity, "__init__", return_value=None), patch(
+    with patch.object(BmiClientApptainer, "__init__", return_value=None), patch(
         "datetime.datetime"
     ) as mocked_datetime:
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
 
         cfg_file, cfg_dir = model.setup()
-    expected_cfg_dir = CFG["output_dir"] / "wflow_20210102_030405"
+    expected_cfg_dir = CFG.output_dir / "wflow_20210102_030405"
     assert cfg_dir == str(expected_cfg_dir)
     expected_cfg_file = expected_cfg_dir / "wflow_ewatercycle.ini"
     assert cfg_file == str(expected_cfg_file)
@@ -154,22 +160,21 @@ def test_setup(model):
 
 def test_setup_withtimeoutexception(model, tmp_path):
     with patch.object(
-        BmiClientSingularity, "__init__", side_effect=FutureTimeoutError()
+        BmiClientApptainer, "__init__", side_effect=FutureTimeoutError()
     ), patch("datetime.datetime") as mocked_datetime, pytest.raises(
-        ValueError
+        TimeoutError
     ) as excinfo:
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
         model.setup()
 
     msg = str(excinfo.value)
-    assert "docker pull ewatercycle/wflow-grpc4bmi:2020.1.1" in msg
-    sif = tmp_path / "ewatercycle-wflow-grpc4bmi_2020.1.1.sif"
-    assert f"build {sif} docker://ewatercycle/wflow-grpc4bmi:2020.1.1" in msg
+    assert "docker://ewatercycle/wflow-grpc4bmi:2020.1.1" in msg
+    assert "ewatercycle-wflow-grpc4bmi_2020.1.1.sif" in msg
 
 
 def test_setup_with_custom_cfg_dir(model, tmp_path):
     my_cfg_dir = str(tmp_path / "mycfgdir")
-    with patch.object(BmiClientSingularity, "__init__", return_value=None), patch(
+    with patch.object(BmiClientApptainer, "__init__", return_value=None), patch(
         "datetime.datetime"
     ) as mocked_datetime:
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)

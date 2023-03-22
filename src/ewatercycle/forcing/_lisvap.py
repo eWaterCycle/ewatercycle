@@ -26,9 +26,10 @@ import subprocess
 from typing import Dict, Tuple
 
 from ewatercycle import CFG
+from ewatercycle.container import ContainerEngine
 from ewatercycle.parametersetdb.config import XmlConfig
 
-from ..config._lisflood_versions import get_docker_image, get_singularity_image
+from ..config._lisflood_versions import version_images
 from ..util import get_time
 
 
@@ -49,11 +50,12 @@ def lisvap(
         mask_map,
         forcing_dir,
     )
-
-    if CFG["container_engine"].lower() == "singularity":
-        image = get_singularity_image(version, CFG["singularity_dir"])
+    engine: ContainerEngine = CFG.container_engine
+    image = version_images[version][engine]
+    if CFG.container_engine.lower() == "apptainer":
+        image = str(CFG.apptainer_dir / image)
         args = [
-            "singularity",
+            "apptainer",
             "exec",
             "--bind",
             ",".join([f"{mp}:{mp}" for mp in mount_points]),
@@ -61,8 +63,7 @@ def lisvap(
             f"{forcing_dir}",
             image,
         ]
-    elif CFG["container_engine"].lower() == "docker":
-        image = get_docker_image(version)
+    elif CFG.container_engine.lower() == "docker":
         args = [
             "docker",
             "run",
@@ -74,9 +75,7 @@ def lisvap(
             image,
         ]
     else:
-        raise ValueError(
-            f"Unknown container technology in CFG: {CFG['container_engine']}"
-        )
+        raise ValueError(f"Unknown container technology in CFG: {CFG.container_engine}")
 
     args += ["python3", "/opt/Lisvap/src/lisvap1.py", config_file]
     container = subprocess.Popen(

@@ -1,9 +1,10 @@
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
 from ewatercycle import CFG
-from ewatercycle.config import DEFAULT_CONFIG
+from ewatercycle.config import Configuration
 from ewatercycle.parameter_sets import (
     ExampleParameterSet,
     available_parameter_sets,
@@ -14,11 +15,15 @@ from ewatercycle.parameter_sets import (
 
 
 @pytest.fixture
-def setup_config(tmp_path):
-    CFG["parameterset_dir"] = tmp_path
-    CFG["ewatercycle_config"] = tmp_path / "ewatercycle.yaml"
+def setup_config(tmp_path: Path):
+    CFG.parameterset_dir = tmp_path
+    CFG.parameter_sets = {}
+    config_file = tmp_path / "ewatercycle.yaml"
+    CFG.save_to_file(config_file)
+    CFG.ewatercycle_config = config_file
     yield CFG
-    CFG["ewatercycle_config"] = DEFAULT_CONFIG
+    CFG.parameter_sets = {}
+    CFG.ewatercycle_config = None
     CFG.reload()
 
 
@@ -32,7 +37,7 @@ def mocked_parameterset_dir(setup_config, tmp_path):
     ps2_dir.mkdir()
     config2 = ps2_dir / "mymockedconfig2.ini"
     config2.write_text("Something else")
-    CFG["parameter_sets"] = {
+    CFG.parameter_sets = {
         "ps1": {
             "directory": str(ps1_dir),
             "config": str(config1.relative_to(tmp_path)),
@@ -45,12 +50,6 @@ def mocked_parameterset_dir(setup_config, tmp_path):
             "target_model": "generic",
             "doi": "somedoi2",
         },
-        "ps3": {
-            "directory": str(tmp_path / "ps3"),
-            "config": "unavailable_config_file",
-            "target_model": "generic",
-            "doi": "somedoi3",
-        },
     }
 
 
@@ -61,16 +60,6 @@ class TestAvailableParameterSets:
             "ps1",
             "ps2",
         }  # ps3 is filtered due to not being available
-
-    def test_no_config(self, tmp_path):
-        # Load default config shipped with package
-        CFG["ewatercycle_config"] = DEFAULT_CONFIG
-        CFG.reload()
-
-        with pytest.raises(ValueError) as excinfo:
-            available_parameter_sets()
-
-        assert "No configuration file found" in str(excinfo.value)
 
     def test_no_sets_in_config(self, setup_config):
         with pytest.raises(ValueError) as excinfo:
@@ -99,10 +88,6 @@ class TestGetParameterSet:
         with pytest.raises(KeyError):
             get_parameter_set("ps9999")
 
-    def test_unavailable(self, mocked_parameterset_dir):
-        with pytest.raises(ValueError):
-            get_parameter_set("ps3")
-
 
 def test_example_parameter_sets(setup_config):
     examples = example_parameter_sets()
@@ -116,5 +101,5 @@ def test_download_example_parameter_sets(mocked_download, setup_config, tmp_path
     download_example_parameter_sets()
 
     assert mocked_download.call_count > 0
-    assert CFG["ewatercycle_config"].read_text() == CFG.dump_to_yaml()
-    assert len(CFG["parameter_sets"]) > 0
+    assert CFG.ewatercycle_config.read_text() == CFG.dump_to_yaml()
+    assert len(CFG.parameter_sets) > 0

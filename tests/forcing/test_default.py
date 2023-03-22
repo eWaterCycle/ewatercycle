@@ -82,7 +82,6 @@ def test_save_with_shapefile_outside_forcing_dir(
 def test_save_with_shapefile_inside_forcing_dir(
     tmp_path, sample_forcing_yaml_content_with_shape, caplog
 ):
-
     forcing = DefaultForcing(
         directory=str(tmp_path),
         start_time="1989-01-02T00:00:00Z",
@@ -100,7 +99,6 @@ def test_save_with_shapefile_inside_forcing_dir(
 
 
 def test_save_without_shapefile(tmp_path, sample_forcing_yaml_content):
-
     forcing = DefaultForcing(
         directory=str(tmp_path),
         start_time="1989-01-02T00:00:00Z",

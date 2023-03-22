@@ -8,11 +8,9 @@ from typing import Any, Iterable, Optional, Tuple, cast
 import numpy as np
 import xarray as xr
 from cftime import num2date
-from grpc import FutureTimeoutError
-from grpc4bmi.bmi_client_docker import BmiClientDocker
-from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
+from ewatercycle.container import VersionImages, start_container
 from ewatercycle.forcing._pcrglobwb import PCRGlobWBForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
@@ -20,6 +18,13 @@ from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.util import find_closest_point, get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
+
+_version_images: VersionImages = {
+    "setters": {
+        "docker": "ewatercycle/pcrg-grpc4bmi:setters",
+        "apptainer": "ewatercycle-pcrg-grpc4bmi_setters.sif",
+    }
+}
 
 
 class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
@@ -34,7 +39,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
     """
 
-    available_versions = ("setters",)
+    available_versions = tuple(_version_images.keys())
 
     def __init__(  # noqa: D107
         self,
@@ -43,21 +48,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
         forcing: Optional[PCRGlobWBForcing] = None,
     ):
         super().__init__(version, parameter_set, forcing)
-        self._set_docker_image()
         self._setup_default_config()
-
-    def _set_docker_image(self):
-        images = {
-            "setters": "ewatercycle/pcrg-grpc4bmi:setters",
-        }
-        self.docker_image = images[self.version]
-
-    def _singularity_image(self, singularity_dir):
-        images = {
-            "setters": "ewatercycle-pcrg-grpc4bmi_setters.sif",
-        }
-        image = singularity_dir / images[self.version]
-        return str(image)
 
     def _setup_work_dir(self, cfg_dir: Optional[str] = None):
         if cfg_dir:
@@ -68,7 +59,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
                 "%Y%m%d_%H%M%S"
             )
             self.work_dir = to_absolute_path(
-                f"pcrglobwb_{timestamp}", parent=CFG["output_dir"]
+                f"pcrglobwb_{timestamp}", parent=CFG.output_dir
             )
         self.work_dir.mkdir(parents=True, exist_ok=True)
 
@@ -130,19 +121,17 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
         cfg_file = self._export_config()
         work_dir = self.work_dir
 
-        try:
-            self._start_container()
-        except FutureTimeoutError as exc:
-            # https://github.com/eWaterCycle/grpc4bmi/issues/95
-            # https://github.com/eWaterCycle/grpc4bmi/issues/100
-            raise ValueError(
-                "Couldn't spawn container within allocated time limit "
-                "(300 seconds). You may try pulling the docker image with"
-                f" `docker pull {self.docker_image}` or call `singularity "
-                f"build {self._singularity_image(CFG['singularity_dir'])} "
-                f"docker://{self.docker_image}` if you're using singularity,"
-                " and then try again."
-            ) from exc
+        additional_input_dirs = []
+        if self.parameter_set:
+            additional_input_dirs.append(str(self.parameter_set.directory))
+        if self.forcing:
+            additional_input_dirs.append(str(self.forcing.directory))
+        self.bmi = start_container(
+            image_engine=_version_images[self.version],
+            work_dir=self.work_dir,
+            input_dirs=additional_input_dirs,
+            timeout=300,
+        )
 
         return str(cfg_file), str(work_dir)
 
@@ -190,31 +179,6 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
         self.cfg_file = new_cfg_file
         return self.cfg_file
-
-    def _start_container(self):
-        additional_input_dirs = [str(self.parameter_set.directory)]
-        if self.forcing:
-            additional_input_dirs.append(self.forcing.directory)
-
-        if CFG["container_engine"] == "docker":
-            self.bmi = BmiClientDocker(
-                image=self.docker_image,
-                image_port=55555,
-                work_dir=str(self.work_dir),
-                input_dirs=additional_input_dirs,
-                timeout=300,
-            )
-        elif CFG["container_engine"] == "singularity":
-            self.bmi = BmiClientSingularity(
-                image=self._singularity_image(CFG["singularity_dir"]),
-                work_dir=str(self.work_dir),
-                input_dirs=additional_input_dirs,
-                timeout=300,
-            )
-        else:
-            raise ValueError(
-                f"Unknown container technology in CFG: {CFG['container_engine']}"
-            )
 
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]

@@ -9,11 +9,9 @@ from typing import Any, Iterable, Optional, Tuple, cast
 import numpy as np
 import xarray as xr
 from cftime import num2date
-from grpc import FutureTimeoutError
-from grpc4bmi.bmi_client_docker import BmiClientDocker
-from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
+from ewatercycle.container import VersionImages, start_container
 from ewatercycle.forcing._wflow import WflowForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
@@ -21,6 +19,25 @@ from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.util import find_closest_point, get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
+
+_version_images: VersionImages = {
+    # "2019.1": {
+    #     "docker":"ewatercycle/wflow-grpc4bmi:2019.1",
+    #     "apptainer": "ewatercycle-wflow-grpc4bmi_2019.1.sif",
+    # }, # no good ini file
+    "2020.1.1": {
+        "docker": "ewatercycle/wflow-grpc4bmi:2020.1.1",
+        "apptainer": "ewatercycle-wflow-grpc4bmi_2020.1.1.sif",
+    },
+    "2020.1.2": {
+        "docker": "ewatercycle/wflow-grpc4bmi:2020.1.2",
+        "apptainer": "ewatercycle-wflow-grpc4bmi_2020.1.2.sif",
+    },
+    "2020.1.3": {
+        "docker": "ewatercycle/wflow-grpc4bmi:2020.1.3",
+        "apptainer": "ewatercycle-wflow-grpc4bmi_2020.1.3.sif",
+    },
+}
 
 
 class Wflow(AbstractModel[WflowForcing]):
@@ -34,7 +51,7 @@ class Wflow(AbstractModel[WflowForcing]):
             If None, it is assumed that forcing is included with the parameter_set.
     """
 
-    available_versions = ("2020.1.1", "2020.1.2", "2020.1.3")
+    available_versions = tuple(_version_images.keys())
     """Show supported WFlow versions in eWaterCycle"""
 
     def __init__(  # noqa: D107
@@ -44,26 +61,7 @@ class Wflow(AbstractModel[WflowForcing]):
         forcing: Optional[WflowForcing] = None,
     ):
         super().__init__(version, parameter_set, forcing)
-        self._set_docker_image()
         self._setup_default_config()
-
-    def _set_docker_image(self):
-        images = {
-            # "2019.1": "ewatercycle/wflow-grpc4bmi:2019.1", # no good ini file
-            "2020.1.1": "ewatercycle/wflow-grpc4bmi:2020.1.1",
-            "2020.1.2": "ewatercycle/wflow-grpc4bmi:2020.1.2",
-            "2020.1.3": "ewatercycle/wflow-grpc4bmi:2020.1.3",
-        }
-        self.docker_image = images[self.version]
-
-    def _singularity_image(self, singularity_dir):
-        images = {
-            "2020.1.1": "ewatercycle-wflow-grpc4bmi_2020.1.1.sif",
-            "2020.1.2": "ewatercycle-wflow-grpc4bmi_2020.1.2.sif",
-            "2020.1.3": "ewatercycle-wflow-grpc4bmi_2020.1.3.sif",
-        }
-        image = singularity_dir / images[self.version]
-        return str(image)
 
     def _setup_default_config(self):
         config_file = self.parameter_set.config
@@ -124,19 +122,11 @@ class Wflow(AbstractModel[WflowForcing]):
         with updated_cfg_file.open("w") as filename:
             cfg.write(filename)
 
-        try:
-            self._start_container()
-        except FutureTimeoutError as exc:
-            # https://github.com/eWaterCycle/grpc4bmi/issues/95
-            # https://github.com/eWaterCycle/grpc4bmi/issues/100
-            raise ValueError(
-                "Couldn't spawn container within allocated time limit "
-                "(300 seconds). You may try pulling the docker image with"
-                f" `docker pull {self.docker_image}` or call `singularity "
-                f"build {self._singularity_image(CFG['singularity_dir'])} "
-                f"docker://{self.docker_image}` if you're using singularity,"
-                " and then try again."
-            ) from exc
+        self.bmi = start_container(
+            image_engine=_version_images[self.version],
+            work_dir=self.work_dir,
+            timeout=300,
+        )
 
         return (
             str(updated_cfg_file),
@@ -151,7 +141,7 @@ class Wflow(AbstractModel[WflowForcing]):
                 "%Y%m%d_%H%M%S"
             )
             self.work_dir = to_absolute_path(
-                f"wflow_{timestamp}", parent=CFG["output_dir"]
+                f"wflow_{timestamp}", parent=CFG.output_dir
             )
         # Make sure parents exist
         self.work_dir.parent.mkdir(parents=True, exist_ok=True)
@@ -163,23 +153,6 @@ class Wflow(AbstractModel[WflowForcing]):
                 self.forcing.netcdfinput, parent=self.forcing.directory
             )
             shutil.copy(src=forcing_path, dst=self.work_dir)
-
-    def _start_container(self):
-        if CFG["container_engine"] == "docker":
-            self.bmi = BmiClientDocker(
-                image=self.docker_image,
-                image_port=55555,
-                work_dir=str(self.work_dir),
-                timeout=300,
-            )
-        elif CFG["container_engine"] == "singularity":
-            self.bmi = BmiClientSingularity(
-                image=self._singularity_image(CFG["singularity_dir"]),
-                work_dir=str(self.work_dir),
-                timeout=300,
-            )
-        else:
-            raise ValueError(f"Unknown container technology: {CFG['container_engine']}")
 
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]

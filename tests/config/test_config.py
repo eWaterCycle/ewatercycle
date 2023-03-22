@@ -1,180 +1,204 @@
-from collections.abc import MutableMapping
 from pathlib import Path
+from textwrap import dedent
 
-import numpy as np
 import pytest
+from pydantic import ValidationError
 
 from ewatercycle import CFG
-from ewatercycle.config._config_object import Config
-from ewatercycle.config._validated_config import InvalidConfigParameter
-from ewatercycle.config._validators import (
-    _listify_validator,
-    validate_float,
-    validate_int,
-    validate_int_or_none,
-    validate_path,
-    validate_path_or_none,
-    validate_string,
-    validate_string_or_none,
-)
-
-
-def generate_validator_testcases(valid):
-    # The code for this function was taken from matplotlib (v3.3) and modified
-    # to fit the needs of ewatercycle. Matplotlib is licenced under the terms of
-    # the the 'Python Software Foundation License'
-    # (https://www.python.org/psf/license)
-
-    validation_tests = (
-        {
-            "validator": _listify_validator(validate_float, n_items=2),
-            "success": (
-                (_, [1.5, 2.5])
-                for _ in (
-                    "1.5, 2.5",
-                    [1.5, 2.5],
-                    [1.5, 2.5],
-                    (1.5, 2.5),
-                    np.array((1.5, 2.5)),
-                )
-            ),
-            "fail": ((_, ValueError) for _ in ("fail", ("a", 1), (1, 2, 3))),
-        },
-        {
-            "validator": _listify_validator(validate_float, n_items=2),
-            "success": (
-                (_, [1.5, 2.5])
-                for _ in (
-                    "1.5, 2.5",
-                    [1.5, 2.5],
-                    [1.5, 2.5],
-                    (1.5, 2.5),
-                    np.array((1.5, 2.5)),
-                )
-            ),
-            "fail": ((_, ValueError) for _ in ("fail", ("a", 1), (1, 2, 3))),
-        },
-        {
-            "validator": _listify_validator(validate_int, n_items=2),
-            "success": (
-                (_, [1, 2])
-                for _ in ("1, 2", [1.5, 2.5], [1, 2], (1, 2), np.array((1, 2)))
-            ),
-            "fail": ((_, ValueError) for _ in ("fail", ("a", 1), (1, 2, 3))),
-        },
-        {
-            "validator": validate_int_or_none,
-            "success": ((None, None),),
-            "fail": (),
-        },
-        {
-            "validator": validate_path,
-            "success": (
-                ("a/b/c", Path.cwd() / "a" / "b" / "c"),
-                ("/a/b/c/", Path("/", "a", "b", "c")),
-                ("~/", Path.home()),
-            ),
-            "fail": (
-                (None, ValueError),
-                (123, ValueError),
-                (False, ValueError),
-                ([], ValueError),
-            ),
-        },
-        {
-            "validator": validate_path_or_none,
-            "success": ((None, None),),
-            "fail": (),
-        },
-        {
-            "validator": _listify_validator(validate_string),
-            "success": (
-                ("", []),
-                ("a,b", ["a", "b"]),
-                ("abc", ["abc"]),
-                ("abc, ", ["abc"]),
-                ("abc, ,", ["abc"]),
-                (["a", "b"], ["a", "b"]),
-                (("a", "b"), ["a", "b"]),
-                (iter(["a", "b"]), ["a", "b"]),
-                (np.array(["a", "b"]), ["a", "b"]),
-                ((1, 2), ["1", "2"]),
-                (np.array([1, 2]), ["1", "2"]),
-            ),
-            "fail": (
-                (set(), ValueError),
-                (1, ValueError),
-            ),
-        },
-        {
-            "validator": validate_string_or_none,
-            "success": ((None, None),),
-            "fail": (),
-        },
-    )
-
-    for validator_dict in validation_tests:
-        validator = validator_dict["validator"]
-        if valid:
-            for arg, target in validator_dict["success"]:
-                yield validator, arg, target
-        else:
-            for arg, error_type in validator_dict["fail"]:
-                yield validator, arg, error_type
-
-
-@pytest.mark.parametrize("validator, arg, target", generate_validator_testcases(True))
-def test_validator_valid(validator, arg, target):
-    """Test valid cases for the validators."""
-    res = validator(arg)
-    assert res == target
-
-
-@pytest.mark.parametrize(
-    "validator, arg, exception_type", generate_validator_testcases(False)
-)
-def test_validator_invalid(validator, arg, exception_type):
-    """Test invalid cases for the validators."""
-    with pytest.raises(exception_type):
-        validator(arg)
+from ewatercycle.config import Configuration
 
 
 def test_config_object():
     """Test that the config is of the right type."""
-    assert isinstance(CFG, MutableMapping)
-
-    del CFG["output_dir"]
-    assert "output_dir" not in CFG
-
-    CFG.reload()
-    assert "output_dir" in CFG
+    assert isinstance(CFG, Configuration)
 
 
-def test_config_update():
-    """Test whether `config.update` raises the correct exception."""
-    config = Config({"output_dir": "directory"})
-    fail_dict = {"output_dir": 123}
+def test_singularity_dir_is_deprecated(tmp_path):
+    with pytest.warns(
+        DeprecationWarning, match="singularity_dir field has been deprecated"
+    ):
+        config = Configuration(**{"singularity_dir": tmp_path})
 
-    with pytest.raises(InvalidConfigParameter):
-        config.update(fail_dict)
+        assert config.apptainer_dir == tmp_path
+        assert config.singularity_dir is None
 
 
-def test_config_class():
-    """Test that the validators turn strings into paths."""
-    config = {
-        "container_engine": "docker",
-        "grdc_location": "path/to/grdc_location",
-        "output_dir": "path/to/output_dir",
-        "singularity_dir": "path/to/singularity_dir",
-        "parameterset_dir": "path/to/parameter_sets",
-        "parameter_sets": {},
+@pytest.fixture
+def example_grdc_location(tmp_path):
+    grdc_location = tmp_path / "grdc"
+    grdc_location.mkdir()
+    return grdc_location
+
+
+@pytest.fixture
+def example_config_file(tmp_path, example_grdc_location):
+    config_file = tmp_path / "ewatercycle.yaml"
+    config_file.write_text(
+        dedent(
+            f"""\
+        grdc_location: {example_grdc_location}
+        """
+        )
+    )
+    return config_file
+
+
+def test_load_from_file(example_grdc_location, example_config_file):
+    config = Configuration()
+
+    config.load_from_file(example_config_file)
+
+    expected = Configuration(
+        grdc_location=example_grdc_location, ewatercycle_config=example_config_file
+    )
+    assert config == expected
+
+
+def test_load_from_file_given_bad_path():
+    config_file = Path("/path/that/does/not/exist")
+    config = Configuration()
+
+    with pytest.raises(FileNotFoundError):
+        config.load_from_file(config_file)
+
+
+def test_load_from_file_bad_path_returns_eror_with_config_file_in_loc(tmp_path):
+    config = Configuration()
+    config_file = tmp_path / "ewatercycle.yaml"
+    config_file.write_text(
+        dedent(
+            f"""\
+        grdc_location: /a/directory/that/does/not/exist
+        """
+        )
+    )
+
+    with pytest.raises(ValidationError) as exc_info:
+        config.load_from_file(config_file)
+
+    errors = exc_info.value.errors()
+    expected = [
+        {
+            "ctx": {"path": "/a/directory/that/does/not/exist"},
+            "loc": (f"{config_file}:grdc_location",),
+            "msg": 'file or directory at path "/a/directory/that/does/not/exist" does not exist',
+            "type": "value_error.path.not_exists",
+        }
+    ]
+    assert errors == expected
+
+
+def test_reload_from_default(tmp_path):
+    config = Configuration()
+    config.grdc_location = tmp_path
+
+    config.reload()
+
+    assert config.grdc_location == Path(".")
+
+
+def test_reload_from_file(tmp_path, example_grdc_location, example_config_file):
+    config = Configuration(ewatercycle_config=example_config_file)
+    config.grdc_location = tmp_path
+
+    config.reload()
+
+    assert config.grdc_location == example_grdc_location
+
+
+def test_save_to_file_given_path(tmp_path: Path):
+    config = Configuration()
+    config_file = tmp_path / "ewatercycle.yaml"
+
+    config.save_to_file(config_file)
+
+    content = config_file.read_text()
+    expected = dedent(
+        """\
+        apptainer_dir: .
+        container_engine: docker
+        grdc_location: .
+        output_dir: .
+        parameter_sets: {}
+        parameterset_dir: .
+        """
+    )
+    assert content == expected
+
+
+def test_dump_to_yaml():
+    config = Configuration()
+    content = config.dump_to_yaml()
+
+    expected = dedent(
+        """\
+        apptainer_dir: .
+        container_engine: docker
+        grdc_location: .
+        output_dir: .
+        parameter_sets: {}
+        parameterset_dir: .
+        """
+    )
+    assert content == expected
+
+
+def test_prepend_root_to_parameterset_paths_given_relative_paths(tmp_path: Path):
+    parameterset_dir = tmp_path / "psr"
+    parameterset_dir.mkdir()
+    ps1_dir = parameterset_dir / "ps1"
+    ps1_dir.mkdir()
+    ps1_config = ps1_dir / "config.ini"
+    ps1_config.write_text("something")
+    parameter_sets = {"ps1": {"directory": "ps1", "config": "ps1/config.ini"}}
+
+    config = Configuration(
+        parameterset_dir=parameterset_dir, parameter_sets=parameter_sets
+    )
+
+    ps1 = config.parameter_sets["ps1"]
+    assert ps1.directory == ps1_dir
+    assert ps1.config == ps1_config
+
+
+def test_prepend_root_to_parameterset_paths_given_absolute_paths(tmp_path: Path):
+    parameterset_dir = tmp_path / "psr"
+    parameterset_dir.mkdir()
+    ps1_dir = parameterset_dir / "ps1"
+    ps1_dir.mkdir()
+    ps1_config = ps1_dir / "config.ini"
+    ps1_config.write_text("something")
+    parameter_sets = {
+        "ps1": {
+            "directory": str(ps1_dir.absolute()),
+            "config": str(ps1_config.absolute()),
+        }
     }
 
-    cfg = Config(config)
+    config = Configuration(
+        parameterset_dir=parameterset_dir, parameter_sets=parameter_sets
+    )
 
-    assert isinstance(cfg["container_engine"], str)
-    assert isinstance(cfg["grdc_location"], Path)
-    assert isinstance(cfg["output_dir"], Path)
-    assert isinstance(cfg["singularity_dir"], Path)
-    assert isinstance(cfg["parameterset_dir"], Path)
-    assert isinstance(cfg["parameter_sets"], dict)
+    ps1 = config.parameter_sets["ps1"]
+    assert ps1.directory == ps1_dir
+    assert ps1.config == ps1_config
+
+
+@pytest.mark.parametrize(
+    "key,value,expected",
+    [
+        ("grdc_location", "/tmp", Path("/tmp")),
+        ("grdc_location", "~/", Path("~/").expanduser()),
+        ("grdc_location", Path("~/"), Path("~/").expanduser()),
+        ("apptainer_dir", "~/", Path("~/").expanduser()),
+        ("output_dir", "~/", Path("~/").expanduser()),
+        ("parameterset_dir", "~/", Path("~/").expanduser()),
+        # Unable to test ewatercycle_config as
+        # we would need to create file in home dir.
+        ("ewatercycle_config", None, None),
+    ],
+)
+def test_expand_user(key, value, expected):
+    config = Configuration(**{key: value})
+
+    assert getattr(config, key) == expected

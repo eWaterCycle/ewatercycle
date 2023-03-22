@@ -122,19 +122,3 @@ class PCRGlobWBForcing(DefaultForcing):
 
     def plot(self):
         raise NotImplementedError("Dont know how to plot")
-
-    def __str__(self):
-        """Nice formatting of the forcing data object."""
-        return "\n".join(
-            [
-                "Forcing data for PCRGlobWB",
-                "--------------------------",
-                f"Directory: {self.directory}",
-                f"Start time: {self.start_time}",
-                f"End time: {self.end_time}",
-                f"Shapefile: {self.shape}",
-                f"Additional information for model config:",
-                f"  - temperatureNC: {self.temperatureNC}",
-                f"  - precipitationNC: {self.precipitationNC}",
-            ]
-        )

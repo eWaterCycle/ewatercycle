@@ -1,37 +1,26 @@
 import subprocess
 from logging import getLogger
 from pathlib import Path
-from typing import Optional, Set
+from typing import List, Optional, Set
 from urllib import request
+
+from pydantic import AnyUrl
 
 from ewatercycle import CFG
 
-from .default import ParameterSet
+from ..parameter_set import ParameterSet
 
 logger = getLogger(__name__)
 
 
 class ExampleParameterSet(ParameterSet):
-    def __init__(
-        self,
-        config_url: str,
-        datafiles_url: str,
-        name,
-        directory: str,
-        config: str,
-        supported_model_versions: Optional[Set[str]] = None,
-        doi="N/A",
-        target_model="generic",
-    ):
-        super().__init__(
-            name, directory, config, doi, target_model, supported_model_versions
-        )
-        self.config_url = config_url
-        """URL where model configuration file can be downloaded"""
-        self.datafiles_url = datafiles_url
-        """GitHub subversion URL where datafiles can be svn-exported from"""
+    config_url: AnyUrl
+    """URL where model configuration file can be downloaded"""
+    datafiles_url: AnyUrl
+    """GitHub subversion URL where datafiles can be svn-exported from"""
 
     def download(self, skip_existing=False):
+        self.make_absolute(CFG.parameterset_dir)
         if self.directory.exists():
             if not skip_existing:
                 raise ValueError(
@@ -60,10 +49,10 @@ class ExampleParameterSet(ParameterSet):
     def to_config(self):
         logger.info(f"Adding parameterset {self.name} to ewatercycle.CFG... ")
 
-        if not CFG["parameter_sets"]:
-            CFG["parameter_sets"] = {}
+        if not CFG.parameter_sets:
+            CFG.parameter_sets = {}
 
-        CFG["parameter_sets"][self.name] = dict(
+        CFG.parameter_sets[self.name] = dict(
             directory=str(_abbreviate(self.directory)),
             config=str(_abbreviate(self.config)),
             doi=self.doi,
@@ -74,6 +63,8 @@ class ExampleParameterSet(ParameterSet):
 
 def _abbreviate(path: Path):
     try:
-        return path.relative_to(CFG["parameterset_dir"])
+        if CFG.parameterset_dir is None:
+            raise ValueError(f"Can not abbreviate path without CFG.parameterset_dir")
+        return path.relative_to(CFG.parameterset_dir)
     except ValueError:
         return path

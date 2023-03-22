@@ -5,29 +5,29 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from basic_modeling_interface import Bmi
-from grpc4bmi.bmi_client_singularity import BmiClientSingularity
+from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
 from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
 from ewatercycle.models.hype import Hype, _set_code_in_cfg
 from ewatercycle.parameter_sets import ParameterSet
+from tests.models.fake_models import FailingModel
 
 
 @pytest.fixture
 def mocked_config(tmp_path):
-    CFG["output_dir"] = tmp_path
-    CFG["container_engine"] = "singularity"
-    CFG["singularity_dir"] = tmp_path
-    CFG["parameterset_dir"] = tmp_path / "psr"
-    CFG["parameter_sets"] = {}
+    CFG.output_dir = tmp_path
+    CFG.container_engine = "apptainer"
+    CFG.apptainer_dir = tmp_path
+    CFG.parameter_sets = {}
+    CFG.parameterset_dir = tmp_path
     return CFG
 
 
 @pytest.fixture
 def parameter_set(mocked_config):
     # Contents copied/inspired by demo.zip at https://sourceforge.net/projects/hype/files/release_hype_5_6_2/
-    directory = mocked_config["parameterset_dir"] / "hype_testcase"
+    directory = mocked_config.parameterset_dir / "hype_testcase"
     directory.mkdir(parents=True)
     config = directory / "info.txt"
     # write info.txt
@@ -67,7 +67,7 @@ def parameter_set(mocked_config):
         )
     )
     return ParameterSet(
-        "hype_testcase",
+        name="hype_testcase",
         directory=str(directory),
         config=str(config),
         target_model="hype",
@@ -82,7 +82,7 @@ class TestWithOnlyParameterSetAndDefaults:
     @pytest.fixture
     def model_with_setup(self, mocked_config, model: Hype):
         with patch.object(
-            BmiClientSingularity, "__init__", return_value=None
+            BmiClientApptainer, "__init__", return_value=None
         ) as mocked_constructor, patch("datetime.datetime") as mocked_datetime:
             mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
             config_file, config_dir = model.setup()
@@ -91,8 +91,11 @@ class TestWithOnlyParameterSetAndDefaults:
     def test_setup_container(self, model_with_setup, tmp_path):
         mocked_constructor = model_with_setup[2]
         mocked_constructor.assert_called_once_with(
-            image=f"{tmp_path}/ewatercycle-hype-grpc4bmi_feb2021.sif",
+            image="ewatercycle-hype-grpc4bmi_feb2021.sif",
             work_dir=f"{tmp_path}/hype_20210102_030405",
+            input_dirs=[],
+            timeout=None,
+            delay=0,
         )
 
     def test_setup_parameter_set_files(self, model_with_setup):
@@ -141,7 +144,7 @@ class TestWithOnlyParameterSetAndDefaults:
             model.get_value_as_xarray("comp outflow olake")
 
     def test_get_value_at_coords(self, model):
-        class MockedBmi(Bmi):
+        class MockedBmi(FailingModel):
             """Pretend to be a real BMI model."""
 
             def get_var_grid(self, name):
@@ -157,9 +160,18 @@ class TestWithOnlyParameterSetAndDefaults:
                     [51.16437912, 50.21104813, 48.6910553]
                 )  # y are lats of subbasins in hype
 
-            def get_value_at_indices(self, name, indices):
+            def get_value_at_indices(self, name, dest, indices):
                 self.indices = indices
                 return np.array([13.0])
+
+            def get_var_type(self, name):
+                return "float64"
+
+            def get_var_itemsize(self, name):
+                return np.float64().size
+
+            def get_var_nbytes(self, name):
+                return np.float64().size * 3 * 3
 
         model.bmi = MockedBmi()
 
@@ -176,7 +188,7 @@ class TestWithOnlyParameterSetAndFullSetup:
     @pytest.fixture
     def model_with_setup(self, mocked_config, model: Hype, tmp_path):
         with patch.object(
-            BmiClientSingularity, "__init__", return_value=None
+            BmiClientApptainer, "__init__", return_value=None
         ) as mocked_constructor, patch("datetime.datetime") as mocked_datetime:
             mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
             config_file, config_dir = model.setup(
@@ -190,8 +202,11 @@ class TestWithOnlyParameterSetAndFullSetup:
     def test_setup_container(self, model_with_setup, tmp_path):
         mocked_constructor = model_with_setup[2]
         mocked_constructor.assert_called_once_with(
-            image=f"{tmp_path}/ewatercycle-hype-grpc4bmi_feb2021.sif",
+            image="ewatercycle-hype-grpc4bmi_feb2021.sif",
             work_dir=f"{tmp_path}/myworkdir",
+            input_dirs=[],
+            timeout=None,
+            delay=0,
         )
 
     def test_setup_parameter_set_files(self, model_with_setup):
@@ -318,7 +333,7 @@ class TestWithForcingAndDefaults:
     @pytest.fixture
     def model_with_setup(self, mocked_config, model: Hype):
         with patch.object(
-            BmiClientSingularity, "__init__", return_value=None
+            BmiClientApptainer, "__init__", return_value=None
         ) as mocked_constructor, patch("datetime.datetime") as mocked_datetime:
             mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
             config_file, config_dir = model.setup()
@@ -327,8 +342,11 @@ class TestWithForcingAndDefaults:
     def test_setup_container(self, model_with_setup, tmp_path):
         mocked_constructor = model_with_setup[2]
         mocked_constructor.assert_called_once_with(
-            image=f"{tmp_path}/ewatercycle-hype-grpc4bmi_feb2021.sif",
+            image="ewatercycle-hype-grpc4bmi_feb2021.sif",
             work_dir=f"{tmp_path}/hype_20210102_030405",
+            input_dirs=[],
+            timeout=None,
+            delay=0,
         )
 
     def test_setup_forcing_files(self, model_with_setup):

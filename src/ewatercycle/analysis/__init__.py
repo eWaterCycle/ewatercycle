@@ -100,7 +100,6 @@ def hydrograph(
 
     # Add precipitation as bar plot to the top if specified
     if precipitation is not None:
-
         if nbars is not None:
             precipitation, barwidth = _downsample(
                 precipitation, nrows=nbars, agg="mean"

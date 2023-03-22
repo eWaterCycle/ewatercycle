@@ -108,26 +108,28 @@ Install eWatercycle package:
 
 - ``pip install ewatercycle``
 
-**4. Create Singularity Container**
+**4. Create Apptainer container**
 
-On Snellius, Docker requires root access and can therefore not be used. Singularity is similar to, and integrates well with Docker.         It also requires root access, but it is pre-installed on the compute nodes on Snellius.
+On Snellius, Docker requires root access and can therefore not be used.
+Apptainer is similar to, and integrates well with Docker.
+It does not require root access, and is pre-installed on the compute nodes on Snellius.
 
-The first step to run the model on a compute node is thus to use singularity to create a Singularity image (``.sif`` file) based on the Docker image. This is done with (note the ``srun`` command to access the compute node):
+The first step to run the model on a compute node is thus to use apptainer to create a Apptainer image (``.sif`` file) based on the Docker image. This is done with (note the ``srun`` command to access the compute node):
 
-- ``srun -N 1 -t 40 -p short singularity build --disable-cache ewatercycle-wflow-grpc4bmi.sif docker://ewatercycle/wflow-grpc4bmi:latest``
+- ``srun -N 1 -t 40 -p short apptainer build --disable-cache ewatercycle-wflow-grpc4bmi.sif docker://ewatercycle/wflow-grpc4bmi:latest``
 
 This is an example for the wflow_sbm model, change to the correct Docker container:
 
 -  ``docker://ewatercycle/{model}-grpc4bmi:{version}``
 
-**5. Adjust code to run Singularity container**
+**5. Adjust code to run Apptainer container**
 
-Code should be adjusted to run Singularity instead of Docker following:
+Code should be adjusted to run Apptainer instead of Docker following:
 ::
 
-    from grpc4bmi.bmi_client_singularity import BmiClientSingularity
+    from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
-    model = BmiClientSingularity(image='ewatercycle-wflow-grpc4bmi.sif', input_dirs=[input_dir], work_dir=work_dir)
+    model = BmiClientApptainer(image='ewatercycle-wflow-grpc4bmi.sif', input_dirs=[input_dir], work_dir=work_dir)
     ...
 
 **6. Adjust code to use Scratch directory**

@@ -6,10 +6,10 @@ from ._example import ExampleParameterSet
 def example_parameter_sets() -> Iterable[ExampleParameterSet]:
     return [
         ExampleParameterSet(
-            # Relative to CFG['parameterset_dir']
+            # Relative to CFG.parameterset_dir
             directory="pcrglobwb_rhinemeuse_30min",
             name="pcrglobwb_rhinemeuse_30min",
-            # Relative to CFG['parameterset_dir']
+            # Relative to CFG.parameterset_dir
             config="pcrglobwb_rhinemeuse_30min/setup_natural_test.ini",
             datafiles_url="https://github.com/UU-Hydro/PCR-GLOBWB_input_example/trunk/RhineMeuse30min",  # noqa: E501
             # Raw url to config file

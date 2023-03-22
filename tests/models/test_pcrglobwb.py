@@ -5,17 +5,17 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from basic_modeling_interface import Bmi
 from grpc import FutureTimeoutError
-from grpc4bmi.bmi_client_singularity import BmiClientSingularity
+from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
 from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
-from ewatercycle.models import PCRGlobWB
+from ewatercycle.models.pcrglobwb import PCRGlobWB
 from ewatercycle.parameter_sets import ParameterSet, example_parameter_sets
+from tests.models.fake_models import FailingModel
 
 
-class MockedBmi(Bmi):
+class MockedBmi(FailingModel):
     """Pretend to be a real BMI model."""
 
     def initialize(self, config_file):
@@ -36,18 +36,29 @@ class MockedBmi(Bmi):
     def get_grid_spacing(self, grid_id):
         return 1.0, 1.0
 
-    def get_value_at_indices(self, name, indices):
+    def get_value_at_indices(self, name, dest, indices):
         self.indices = indices
         return np.array([1.0])
 
+    def get_var_type(self, name):
+        return "float64"
+
+    def get_var_itemsize(self, name):
+        return np.float64().size
+
+    def get_var_nbytes(self, name):
+        return np.float64().size * 3 * 2
+
 
 @pytest.fixture
-def mocked_config(tmp_path):
-    CFG["output_dir"] = tmp_path
-    CFG["container_engine"] = "singularity"
-    CFG["singularity_dir"] = tmp_path
-    CFG["parameterset_dir"] = tmp_path / "psr"
-    CFG["parameter_sets"] = {}
+def mocked_config(tmp_path: Path):
+    CFG.output_dir = tmp_path
+    CFG.container_engine = "apptainer"
+    CFG.apptainer_dir = tmp_path
+    CFG.parameter_sets = {}
+    parameterset_dir = tmp_path / "psr"
+    parameterset_dir.mkdir()
+    CFG.parameterset_dir = parameterset_dir
 
 
 @pytest.fixture
@@ -86,36 +97,35 @@ def initialized_model(model):
 
 
 def test_setup(model):
-    with patch.object(BmiClientSingularity, "__init__", return_value=None), patch(
+    with patch.object(BmiClientApptainer, "__init__", return_value=None), patch(
         "datetime.datetime"
     ) as mocked_datetime:
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
 
         cfg_file, cfg_dir = model.setup()
 
-    expected_cfg_dir = CFG["output_dir"] / "pcrglobwb_20210102_030405"
+    expected_cfg_dir = CFG.output_dir / "pcrglobwb_20210102_030405"
     assert cfg_dir == str(expected_cfg_dir)
     assert cfg_file == str(expected_cfg_dir / "pcrglobwb_ewatercycle.ini")
 
 
 def test_setup_withtimeoutexception(model, tmp_path):
     with patch.object(
-        BmiClientSingularity, "__init__", side_effect=FutureTimeoutError()
+        BmiClientApptainer, "__init__", side_effect=FutureTimeoutError()
     ), patch("datetime.datetime") as mocked_datetime, pytest.raises(
-        ValueError
+        TimeoutError
     ) as excinfo:
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
         model.setup()
 
     msg = str(excinfo.value)
-    assert "docker pull ewatercycle/pcrg-grpc4bmi:setters" in msg
-    sif = tmp_path / "ewatercycle-pcrg-grpc4bmi_setters.sif"
-    assert f"build {sif} docker://ewatercycle/pcrg-grpc4bmi:setters" in msg
+    assert "docker://ewatercycle/pcrg-grpc4bmi:setters" in msg
+    assert "ewatercycle-pcrg-grpc4bmi_setters.sif" in msg
 
 
 def test_setup_with_custom_cfg_dir(model, tmp_path):
     my_cfg_dir = str(tmp_path / "mycfgdir")
-    with patch.object(BmiClientSingularity, "__init__", return_value=None), patch(
+    with patch.object(BmiClientApptainer, "__init__", return_value=None), patch(
         "datetime.datetime"
     ) as mocked_datetime:
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)

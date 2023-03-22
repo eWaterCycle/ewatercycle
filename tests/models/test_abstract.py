@@ -1,27 +1,29 @@
 import logging
 import weakref
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple
 from unittest.mock import patch
 
 import numpy as np
 import pytest
 import xarray as xr
-from basic_modeling_interface import Bmi
+from bmipy import Bmi
 from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
-from ewatercycle.config import DEFAULT_CONFIG
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 
 
 @pytest.fixture
-def setup_config(tmp_path):
-    CFG["parameterset_dir"] = tmp_path
-    CFG["ewatercycle_config"] = tmp_path / "ewatercycle.yaml"
+def setup_config(tmp_path: Path):
+    CFG.parameterset_dir = tmp_path
+    config_file = tmp_path / "ewatercycle.yaml"
+    config_file.write_text("")
+    CFG.ewatercycle_config = config_file
     yield CFG
-    CFG["ewatercycle_config"] = DEFAULT_CONFIG
+    CFG.ewatercycle_config = None
     CFG.reload()
 
 
@@ -38,7 +40,7 @@ class MockedModel(AbstractModel):
     def setup(self, *args, **kwargs) -> Tuple[str, str]:
         if "bmi" in kwargs:
             # sub-class of AbstractModel should construct bmi
-            # using grpc4bmi Docker or Singularity client
+            # using grpc4bmi Docker or Apptainer client
             self.bmi = kwargs["bmi"]
         return "foobar.cfg", "."
 
@@ -66,21 +68,24 @@ class MockedModel(AbstractModel):
 
 
 @pytest.fixture
-@patch("basic_modeling_interface.Bmi")
+@patch("bmipy.Bmi")
 def bmi(MockedBmi):
     mocked_bmi = MockedBmi()
     mocked_bmi.get_start_time.return_value = 42.0
     mocked_bmi.get_current_time.return_value = 43.0
     mocked_bmi.get_end_time.return_value = 44.0
     mocked_bmi.get_time_units.return_value = "days since 1970-01-01 00:00:00.0 00:00"
+    mocked_bmi.get_var_type.return_value = "float64"
+    mocked_bmi.get_var_itemsize.return_value = np.float64().size
+    mocked_bmi.get_var_nbytes.return_value = np.float64().size * 4
     return mocked_bmi
 
 
 @pytest.fixture
 def model(bmi: Bmi):
-    m = MockedModel()
-    m.setup(bmi=bmi)
-    return m
+    mocked_model = MockedModel()
+    mocked_model.setup(bmi=bmi)
+    return mocked_model
 
 
 def test_construct():
@@ -138,7 +143,7 @@ def test_update(model: MockedModel, bmi):
 
 
 def test_get_value(bmi, model: MockedModel):
-    expected = np.array([[1.0, 2.0], [3.0, 4.0]])
+    expected = np.array([1.0, 2.0, 3.0, 4.0])
     bmi.get_value.return_value = expected
 
     value = model.get_value("discharge")

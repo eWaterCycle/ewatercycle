@@ -11,7 +11,7 @@ repos:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
   - repo: https://github.com/adrienverge/yamllint
-    rev: "v1.26.0"
+    rev: "v1.29.0"
     hooks:
       - id: yamllint
   - repo: https://github.com/asottile/setup-cfg-fmt
@@ -23,7 +23,7 @@ repos:
     hooks:
       - id: black-jupyter
   - repo: https://github.com/PyCQA/isort
-    rev: "5.9.3"
+    rev: 5.12.0
     hooks:
       - id: isort
   # TODO renable when errors are fixed/ignored
@@ -70,17 +70,17 @@ repos:
         verbose: true
         args: &fa [--statistics, --exit-zero]
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.910
+    rev: v1.1.1
     hooks:
       - id: mypy
-        additional_dependencies: [types-python-dateutil]
+        additional_dependencies: [types-python-dateutil, pydantic]
   - repo: https://github.com/nbQA-dev/nbQA
     rev: 1.1.0
     hooks:
       - id: nbqa-isort
-        additional_dependencies: [isort==5.9.3]
+        additional_dependencies: [isort==5.11.2]
       - id: nbqa-mypy
-        additional_dependencies: [mypy==0.910, types-python-dateutil]
+        additional_dependencies: [mypy==1.1.1, types-python-dateutil, pydantic]
       # TODO renable when errors are fixed/ignored
       - id: nbqa-flake8
         additional_dependencies: *fd

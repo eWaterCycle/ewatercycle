@@ -6,8 +6,7 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from basic_modeling_interface import Bmi
-from grpc4bmi.bmi_client_singularity import BmiClientSingularity
+from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
@@ -15,15 +14,18 @@ from ewatercycle.forcing import load_foreign
 from ewatercycle.models.lisflood import Lisflood
 from ewatercycle.parameter_sets import ParameterSet, example_parameter_sets
 from ewatercycle.parametersetdb.config import XmlConfig
+from tests.models.fake_models import FailingModel
 
 
 @pytest.fixture
-def mocked_config(tmp_path):
-    CFG["output_dir"] = tmp_path
-    CFG["container_engine"] = "singularity"
-    CFG["singularity_dir"] = tmp_path
-    CFG["parameterset_dir"] = tmp_path / "psr"
-    CFG["parameter_sets"] = {}
+def mocked_config(tmp_path: Path):
+    CFG.output_dir = tmp_path
+    CFG.container_engine = "apptainer"
+    CFG.apptainer_dir = tmp_path
+    CFG.parameter_sets = {}
+    parameterset_dir = tmp_path / "psr"
+    parameterset_dir.mkdir()
+    CFG.parameterset_dir = parameterset_dir
 
 
 def find_values_in_xml(tree, name):
@@ -85,7 +87,7 @@ class TestLFlatlonUseCase:
     @pytest.fixture
     def model_with_setup(self, mocked_config, model: Lisflood):
         with patch.object(
-            BmiClientSingularity, "__init__", return_value=None
+            BmiClientApptainer, "__init__", return_value=None
         ) as mocked_constructor, patch("datetime.datetime") as mocked_datetime:
             mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
             config_file, config_dir = model.setup(
@@ -97,19 +99,20 @@ class TestLFlatlonUseCase:
         config_file, config_dir, mocked_constructor = model_with_setup
 
         # Check setup returns
-        expected_cfg_dir = CFG["output_dir"] / "lisflood_20210102_030405"
+        expected_cfg_dir = CFG.output_dir / "lisflood_20210102_030405"
         assert config_dir == str(expected_cfg_dir)
         assert config_file == str(expected_cfg_dir / "lisflood_setting.xml")
 
         # Check container started
         mocked_constructor.assert_called_once_with(
-            image=f"{tmp_path}/ewatercycle-lisflood-grpc4bmi_20.10.sif",
+            image="ewatercycle-lisflood-grpc4bmi_20.10.sif",
             input_dirs=[
                 f"{tmp_path}/psr/lisflood_fraser",
                 f"{tmp_path}/forcing",
             ],
             work_dir=f"{tmp_path}/lisflood_20210102_030405",
             timeout=300,
+            delay=0,
         )
 
         # Check content config file
@@ -184,7 +187,7 @@ class TestLFlatlonUseCase:
         @pytest.fixture
         def model_with_setup(self, tmp_path, mocked_config, model: Lisflood):
             with patch.object(
-                BmiClientSingularity, "__init__", return_value=None
+                BmiClientApptainer, "__init__", return_value=None
             ) as mocked_constructor, patch("datetime.datetime") as mocked_datetime:
                 mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
                 config_file, config_dir = model.setup(
@@ -196,13 +199,13 @@ class TestLFlatlonUseCase:
             config_file, config_dir, mocked_constructor = model_with_setup
 
             # Check setup returns
-            expected_cfg_dir = CFG["output_dir"] / "lisflood_20210102_030405"
+            expected_cfg_dir = CFG.output_dir / "lisflood_20210102_030405"
             assert config_dir == str(expected_cfg_dir)
             assert config_file == str(expected_cfg_dir / "lisflood_setting.xml")
 
             # Check container started
             mocked_constructor.assert_called_once_with(
-                image=f"{tmp_path}/ewatercycle-lisflood-grpc4bmi_20.10.sif",
+                image="ewatercycle-lisflood-grpc4bmi_20.10.sif",
                 input_dirs=[
                     f"{tmp_path}/psr/lisflood_fraser",
                     f"{tmp_path}/forcing",
@@ -210,6 +213,7 @@ class TestLFlatlonUseCase:
                 ],
                 work_dir=f"{tmp_path}/lisflood_20210102_030405",
                 timeout=300,
+                delay=0,
             )
 
             # Check content config file
@@ -248,7 +252,7 @@ class TestLFlatlonUseCase:
             assert model.parameters == expected_parameters
 
 
-class MockedBmi(Bmi):
+class MockedBmi(FailingModel):
     """Mimic a real use case with realistic shape and abitrary high precision."""
 
     def get_var_grid(self, name):
@@ -317,6 +321,15 @@ class MockedBmi(Bmi):
     def get_grid_spacing(self, grid_id):
         return 0.1, 0.1
 
-    def get_value_at_indices(self, name, indices):
+    def get_value_at_indices(self, name, dest, indices):
         self.indices = indices
         return np.array([1.0])
+
+    def get_var_type(self, name):
+        return "float64"
+
+    def get_var_itemsize(self, name):
+        return np.float64().size
+
+    def get_var_nbytes(self, name):
+        return np.float64().size * 14 * 31

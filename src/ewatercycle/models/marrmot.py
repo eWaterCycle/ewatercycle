@@ -10,10 +10,9 @@ import numpy as np
 import scipy.io as sio
 import xarray as xr
 from cftime import num2date
-from grpc4bmi.bmi_client_docker import BmiClientDocker
-from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
+from ewatercycle.container import VersionImages, start_container
 from ewatercycle.forcing._marrmot import MarrmotForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.util import get_time, to_absolute_path
@@ -39,17 +38,25 @@ def _generate_cfg_dir(cfg_dir: Optional[Path] = None) -> Path:
 
     Args:
         cfg_dir: If cfg dir is None or does not exist then create sub-directory
-            in CFG['output_dir']
+            in CFG.output_dir
     """
     if cfg_dir is None:
-        scratch_dir = CFG["output_dir"]
+        scratch_dir = CFG.output_dir
         # TODO this timestamp isnot safe for parallel processing
         timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
             "%Y%m%d_%H%M%S"
         )
-        cfg_dir = to_absolute_path(f"marrmot_{timestamp}", parent=Path(scratch_dir))
+        cfg_dir = to_absolute_path(f"marrmot_{timestamp}", parent=scratch_dir)
     cfg_dir.mkdir(parents=True, exist_ok=True)
     return cfg_dir
+
+
+_version_images: VersionImages = {
+    "2020.11": {
+        "docker": "ewatercycle/marrmot-grpc4bmi:2020.11",
+        "apptainer": "ewatercycle-marrmot-grpc4bmi_2020.11.sif",
+    }
+}
 
 
 class MarrmotM01(AbstractModel[MarrmotForcing]):
@@ -72,7 +79,7 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
 
     model_name = "m_01_collie1_1p_1s"
     """Name of model in Matlab code."""
-    available_versions = ("2020.11",)
+    available_versions = tuple(_version_images.keys())
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     def __init__(self, version: str, forcing: MarrmotForcing):  # noqa: D107
@@ -81,18 +88,6 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
         self.store_ini = [900.0]
         self.solver = Solver()
         self._check_forcing(forcing)
-
-        self._set_singularity_image()
-        self._set_docker_image()
-
-    def _set_docker_image(self):
-        images = {"2020.11": "ewatercycle/marrmot-grpc4bmi:2020.11"}
-        self.docker_image = images[self.version]
-
-    def _set_singularity_image(self):
-        images = {"2020.11": "ewatercycle-marrmot-grpc4bmi_2020.11.sif"}
-        if CFG.get("singularity_dir"):
-            self.singularity_image = CFG["singularity_dir"] / images[self.version]
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(  # type: ignore
@@ -143,27 +138,13 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
         cfg_dir_as_path = _generate_cfg_dir(cfg_dir_as_path)
         config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)
 
-        if CFG["container_engine"].lower() == "singularity":
-            message = f"The singularity image {self.singularity_image} does not exist."
-            assert self.singularity_image.exists(), message
-            self.bmi = BmiClientSingularity(
-                image=str(self.singularity_image),
-                work_dir=str(cfg_dir_as_path),
-                timeout=300,
-                delay=delay,
-            )
-        elif CFG["container_engine"].lower() == "docker":
-            self.bmi = BmiClientDocker(
-                image=self.docker_image,
-                image_port=55555,
-                work_dir=str(cfg_dir_as_path),
-                timeout=300,
-                delay=delay,
-            )
-        else:
-            raise ValueError(
-                f"Unknown container technology in CFG: {CFG['container_engine']}"
-            )
+        self.bmi = start_container(
+            image_engine=_version_images[self.version],
+            work_dir=cfg_dir_as_path,
+            timeout=300,
+            delay=delay,
+        )
+
         return str(config_file), str(cfg_dir_as_path)
 
     def _check_forcing(self, forcing):
@@ -328,7 +309,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
 
     model_name = "m_14_topmodel_7p_2s"
     """Name of model in Matlab code."""
-    available_versions = ("2020.11",)
+    available_versions = tuple(_version_images.keys())
     """Versions for which ewatercycle grpc4bmi docker images are available."""
 
     def __init__(self, version: str, forcing: MarrmotForcing):  # noqa: D107
@@ -337,18 +318,6 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
         self.store_ini = [900.0, 900.0]
         self.solver = Solver()
         self._check_forcing(forcing)
-
-        self._set_singularity_image()
-        self._set_docker_image()
-
-    def _set_docker_image(self):
-        images = {"2020.11": "ewatercycle/marrmot-grpc4bmi:2020.11"}
-        self.docker_image = images[self.version]
-
-    def _set_singularity_image(self):
-        images = {"2020.11": "ewatercycle-marrmot-grpc4bmi_2020.11.sif"}
-        if CFG.get("singularity_dir"):
-            self.singularity_image = CFG["singularity_dir"] / images[self.version]
 
     # unable to subclass with more specialized arguments so ignore type
     def setup(  # type: ignore
@@ -418,27 +387,13 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
         cfg_dir_as_path = _generate_cfg_dir(cfg_dir_as_path)
         config_file = self._create_marrmot_config(cfg_dir_as_path, start_time, end_time)
 
-        if CFG["container_engine"].lower() == "singularity":
-            message = f"The singularity image {self.singularity_image} does not exist."
-            assert self.singularity_image.exists(), message
-            self.bmi = BmiClientSingularity(
-                image=str(self.singularity_image),
-                work_dir=str(cfg_dir_as_path),
-                timeout=300,
-                delay=delay,
-            )
-        elif CFG["container_engine"].lower() == "docker":
-            self.bmi = BmiClientDocker(
-                image=self.docker_image,
-                image_port=55555,
-                work_dir=str(cfg_dir_as_path),
-                timeout=300,
-                delay=delay,
-            )
-        else:
-            raise ValueError(
-                f"Unknown container technology in CFG: {CFG['container_engine']}"
-            )
+        self.bmi = start_container(
+            image_engine=_version_images[self.version],
+            work_dir=cfg_dir_as_path,
+            timeout=300,
+            delay=delay,
+        )
+
         return str(config_file), str(cfg_dir_as_path)
 
     def _check_forcing(self, forcing):

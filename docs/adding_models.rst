@@ -50,7 +50,7 @@ Package the model together with grpc4bmi server in a docker container
 
 In eWaterCycle models are stored in Docker container images, which can be shared
 through DockerHub. Because Docker is not always available on compute clusters,
-we also create Singularity images. Besides the model code, the container image
+we also create Apptainer images. Besides the model code, the container image
 should install grpc4bmi server as an entrypoint to enable communication with the
 model from outside of the container. We use standardized image names including a
 unique version number for the model. See the section on :ref:`versions<New
@@ -64,9 +64,9 @@ Concretely, these are the steps you should follow:
   https://grpc4bmi.readthedocs.io/en/latest/container/building.html
 * Host Docker container image on `Docker Hub
   <https://hub.docker.com/u/ewatercycle>`_
-* Create Singularity image from Docker with ``singularity build
+* Create Apptainer image from Docker with ``apptainer build
   ./ewatercycle-<model>-grpc4bmi_<version>.sif
-  docker://ewatercycle/<model>-grpc4bmi:<version>``
+  docker://ewatercycle/<model>-grpc4bmi:<version>``.
 
 .. _Make recipe:
 
@@ -162,7 +162,7 @@ To make sure that your model will be available on a new or existing platform,
 you need to make sure that:
 
 * The latest version of eWaterCycle is installed on that platform
-* The singularity image is available on that platform
+* The Apptainer image is available on that platform
 * The example parameter set is available on that platform
 
 Typically these steps should be performed by platform developers and
@@ -171,7 +171,7 @@ maintainers.
 For SURF infrastructure specifically, this requires to the following changes.
 
 * Install version/branch of eWaterCycle Python package with new model version on any running virtual machines
-* Add Singularity image to storage. In our case, we use a dCache folder ``ewcdcache:/singularity-images/<model>-grpc4bmi_<version>.sif``
+* Add Apptainer image to storage. In our case, we use a dCache folder ``ewcdcache:/apptainer-images/<model>-grpc4bmi_<version>.sif``
 * Add container image to infrastructure repository
 
   * data preparation scripts_
@@ -185,7 +185,7 @@ Adding a new version of a model
 ===============================
 
 A model can have different versions. A model version in the eWaterCycle Python
-package corresponds to the tag of Docker image and the version in a Singularity
+package corresponds to the tag of Docker image and the version in a Apptainer
 container image filename. The version of the container image should preferably
 be one of release versions of the model code. Alternatively the version could be
 the name of a feature branch or a date.

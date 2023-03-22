@@ -133,17 +133,23 @@ Install container engine
 ------------------------
 
 In eWaterCycle package, the hydrological models are run in containers
-with engines like `Singularity <https://singularity.lbl.gov/>`__ or
-`Docker <https://www.docker.com/>`__. At least Singularity or Docker
+with engines like `Apptainer <https://apptainer.org/>`__ or
+`Docker <https://www.docker.com/>`__. At least Apptainer or Docker
 should be installed.
+
+.. note::
+
+    Apptainer is the open source fork of `Singularity <https://sylabs.io/singularity/>`__.
+    In the eWaterCycle project we prefer to use Apptainer over Singularity.
+    Apptainer uses the same image format as Singularity.
 
 Installing a container engine requires root permission on the machine.
 
-Singularity
-~~~~~~~~~~~
+Apptainer
+~~~~~~~~~
 
-Install Singularity using
-`instructions <https://singularity.hpcng.org/user-docs/master/quick_start.html>`__.
+Install Apptainer using
+`instructions <https://apptainer.org/docs/user/main/quick_start.html>`__.
 
 Docker
 ~~~~~~
@@ -166,25 +172,22 @@ The configuration can be set in Python with
     import logging
     logging.basicConfig(level=logging.INFO)
     import ewatercycle
-    import ewatercycle.parameter_sets
     # Which container engine is used to run the hydrological models
-    ewatercycle.CFG['container_engine'] = 'singularity'  # or 'docker'
-    # If container_engine==singularity then where can the singularity images files (*.sif) be found.
-    ewatercycle.CFG['singularity_dir'] = './singularity-images'
+    ewatercycle.CFG.container_engine = 'apptainer'   # or 'docker'
+    # If container_engine==apptainer then where can the Apptainer images files (*.sif) be found.
+    ewatercycle.CFG.apptainer_dir = './apptainer-images'
     # Directory in which output of model runs is stored. Each model run will generate a sub directory inside output_dir
-    ewatercycle.CFG['output_dir'] = './'
+    ewatercycle.CFG.output_dir = './'
     # Where can GRDC observation files (<station identifier>_Q_Day.Cmd.txt) be found.
-    ewatercycle.CFG['grdc_location'] = './grdc-observations'
+    ewatercycle.CFG.grdc_location = './grdc-observations'
     # Where can parameters sets prepared by the system administator be found
-    ewatercycle.CFG['parameterset_dir'] = './parameter-sets'
-    # Where is the configuration saved or loaded from
-    ewatercycle.CFG['ewatercycle_config'] = './ewatercycle.yaml'
+    ewatercycle.CFG.parameterset_dir = './parameter-sets'
 
 and then written to disk with
 
 .. code:: ipython3
 
-    ewatercycle.CFG.save_to_file()
+    ewatercycle.CFG.save_to_file('./ewatercycle.yaml')
 
 Later it can be loaded by using:
 
@@ -198,6 +201,8 @@ it should be copied to ``~/.config/ewatercycle/ewatercycle.yaml`` .
 To make the ewatercycle configuration available to all users on the
 system it should be copied to ``/etc/ewatercycle.yaml`` .
 
+See `CFG API documention <apidocs/ewatercycle.config.rst>`_ for more information.
+
 Configuration file for Snellius system
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -206,8 +211,8 @@ SURF <https://servicedesk.surfsara.nl/wiki/display/WIKI/Snellius>`_:
 
 .. code:: yaml
 
-   container_engine: singularity
-   singularity_dir: /projects/0/wtrcycle/singularity-images
+   container_engine: apptainer
+   apptainer_dir: /projects/0/wtrcycle/apptainer-images
    output_dir: /scratch-shared/ewatercycle
    grdc_location:  /projects/0/wtrcycle/GRDC/GRDC_GCOSGTN-H_27_03_2019
    parameterset_dir: /projects/0/wtrcycle/parameter-sets
@@ -229,8 +234,8 @@ Cloud:
 
 .. code:: yaml
 
-   container_engine: singularity
-   singularity_dir: /mnt/data/singularity-images
+   container_engine: apptainer
+   apptainer_dir: /mnt/data/apptainer-images
    output_dir: /scratch
    grdc_location: /mnt/data/GRDC
    parameterset_dir: /mnt/data/parameter-sets
@@ -259,22 +264,22 @@ Docker images will be downloaded with ``docker pull``:
     docker pull ewatercycle/wflow-grpc4bmi:2020.1.3
     docker pull ewatercycle/hype-grpc4bmi:feb2021
 
-Singularity
-~~~~~~~~~~~
+Apptainer
+~~~~~~~~~
 
-Singularity images should be stored in configured directory
-(``ewatercycle.CFG['singularity_dir']``) and can build from Docker with:
+Apptainer images should be stored in configured directory
+(``ewatercycle.CFG.apptainer_dir``) and can build from Docker with:
 
 .. code:: shell
 
-    cd {ewatercycle.CFG['singularity_dir']}
-    singularity build ewatercycle-lisflood-grpc4bmi_20.10.sif docker://ewatercycle/lisflood-grpc4bmi:20.10
-    singularity build ewatercycle-marrmot-grpc4bmi_2020.11.sif docker://ewatercycle/marrmot-grpc4bmi:2020.11
-    singularity build ewatercycle-pcrg-grpc4bmi_setters.sif docker://ewatercycle/pcrg-grpc4bmi:setters
-    singularity build ewatercycle-wflow-grpc4bmi_2020.1.1.sif docker://ewatercycle/wflow-grpc4bmi:2020.1.1
-    singularity build ewatercycle-wflow-grpc4bmi_2020.1.2.sif docker://ewatercycle/wflow-grpc4bmi:2020.1.2
-    singularity build ewatercycle-wflow-grpc4bmi_2020.1.3.sif docker://ewatercycle/wflow-grpc4bmi:2020.1.3
-    singularity build ewatercycle-hype-grpc4bmi_feb2021.sif docker://ewatercycle/hype-grpc4bmi:feb2021
+    cd {ewatercycle.CFG.apptainer_dir}
+    apptainer build ewatercycle-lisflood-grpc4bmi_20.10.sif docker://ewatercycle/lisflood-grpc4bmi:20.10
+    apptainer build ewatercycle-marrmot-grpc4bmi_2020.11.sif docker://ewatercycle/marrmot-grpc4bmi:2020.11
+    apptainer build ewatercycle-pcrg-grpc4bmi_setters.sif docker://ewatercycle/pcrg-grpc4bmi:setters
+    apptainer build ewatercycle-wflow-grpc4bmi_2020.1.1.sif docker://ewatercycle/wflow-grpc4bmi:2020.1.1
+    apptainer build ewatercycle-wflow-grpc4bmi_2020.1.2.sif docker://ewatercycle/wflow-grpc4bmi:2020.1.2
+    apptainer build ewatercycle-wflow-grpc4bmi_2020.1.3.sif docker://ewatercycle/wflow-grpc4bmi:2020.1.3
+    apptainer build ewatercycle-hype-grpc4bmi_feb2021.sif docker://ewatercycle/hype-grpc4bmi:feb2021
     cd -
 
 Download example parameter sets
@@ -337,7 +342,7 @@ configuration file.
         supported_model_versions: !!set {2020.1.1: null}
         target_model: wflow
     parameterset_dir: /home/verhoes/git/eWaterCycle/ewatercycle/docs/examples/parameter-sets
-    singularity_dir: None
+    apptainer_dir: None
 
 
 .. code:: ipython3
@@ -383,8 +388,8 @@ A new parameter set should be added as a key/value pair in the ``parameter_sets`
 The key should be a unique string on the current system.
 The value is a dictionary with the following items:
 
-* directory: Location on disk where files of the parameter set are stored. If Path is relative then relative to :py:const:`ewatercycle.CFG['parameterset_dir']`.
-* config: Model configuration file which uses files from directory. If Path is relative then relative to :py:const:`ewatercycle.CFG['parameterset_dir']`.
+* directory: Location on disk where files of the parameter set are stored. If Path is relative then relative to :py:const:`ewatercycle.CFG.parameterset_dir`.
+* config: Model configuration file which uses files from directory. If Path is relative then relative to :py:const:`ewatercycle.CFG.parameterset_dir`.
 * doi: Persistent identifier of the parameter set. For example a DOI for a Zenodo record.
 * target_model: Name of the model that parameter set can work with
 * supported_model_versions: Set of model versions that are supported by this parameter set. If not set then parameter set will be supported by all versions of model
@@ -426,5 +431,5 @@ Services (USGS) <https://waterservices.usgs.gov/>`__ data.
 The GRDC daily data files can be ordered at
 https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/riverdischarge_node.html.
 
-The GRDC files should be stored in ``ewatercycle.CFG['grdc_location']``
+The GRDC files should be stored in ``ewatercycle.CFG.grdc_location``
 directory.

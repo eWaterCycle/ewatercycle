@@ -1,6 +1,5 @@
 import os
 import subprocess
-from pathlib import PosixPath
 from unittest.mock import patch
 
 from ewatercycle import CFG
@@ -64,10 +63,10 @@ def test_create_lisvap_config(tmp_path, sample_lisvap_config):
 
 
 def prep_lisvap_input(tmp_path):
-    CFG["parameterset_dir"].mkdir()
+    CFG.parameterset_dir.mkdir(exist_ok=True)
     forcing_dir = tmp_path / "forc"
     forcing_dir.mkdir()
-    mask_map = CFG["parameterset_dir"] / "mask.nc"
+    mask_map = CFG.parameterset_dir / "mask.nc"
     mask_map.write_text("Some file content")
     config_file = tmp_path / "lisvap.xml"
     config_file.write_text("Some file content")
@@ -75,27 +74,27 @@ def prep_lisvap_input(tmp_path):
 
 
 @patch("subprocess.Popen")
-def test_lisvap_singularity(mocked_popen, tmp_path, mocked_config):
+def test_lisvap_apptainer(mocked_popen, tmp_path, mocked_config):
     config_file, forcing_dir, mask_map = prep_lisvap_input(tmp_path)
     mocked_popen.return_value.communicate.return_value = ("output", "error")
     mocked_popen.return_value.wait.return_value = 0
 
     exit_code, stdout, stderr = lisvap(
         "20.10",
-        str(CFG["parameterset_dir"]),
+        str(CFG.parameterset_dir),
         str(forcing_dir),
         str(mask_map),
         str(config_file),
     )
 
     expected = [
-        "singularity",
+        "apptainer",
         "exec",
         "--bind",
         f"{tmp_path}/psr:{tmp_path}/psr,{tmp_path}/psr/mask.nc:{tmp_path}/psr/mask.nc,{tmp_path}/forc:{tmp_path}/forc",
         "--pwd",
         f"{tmp_path}/forc",
-        PosixPath(f"{tmp_path}/ewatercycle-lisflood-grpc4bmi_20.10.sif"),
+        f"{tmp_path}/ewatercycle-lisflood-grpc4bmi_20.10.sif",
         "python3",
         "/opt/Lisvap/src/lisvap1.py",
         f"{tmp_path}/lisvap.xml",
@@ -110,14 +109,14 @@ def test_lisvap_singularity(mocked_popen, tmp_path, mocked_config):
 
 @patch("subprocess.Popen")
 def test_lisvap_docker(mocked_popen, tmp_path, mocked_config):
-    CFG["container_engine"] = "docker"
+    CFG.container_engine = "docker"
     config_file, forcing_dir, mask_map = prep_lisvap_input(tmp_path)
     mocked_popen.return_value.communicate.return_value = ("output", "error")
     mocked_popen.return_value.wait.return_value = 0
 
     exit_code, stdout, stderr = lisvap(
         "20.10",
-        str(CFG["parameterset_dir"]),
+        str(CFG.parameterset_dir),
         str(forcing_dir),
         str(mask_map),
         str(config_file),

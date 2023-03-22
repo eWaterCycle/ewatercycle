@@ -15,8 +15,8 @@ from ewatercycle.models.marrmot import MarrmotM01, Solver
 
 @pytest.fixture
 def mocked_config(tmp_path):
-    CFG["output_dir"] = tmp_path
-    CFG["container_engine"] = "docker"
+    CFG.output_dir = tmp_path
+    CFG.container_engine = "docker"
 
 
 class TestWithDefaultsAndExampleData:
@@ -53,27 +53,17 @@ class TestWithDefaultsAndExampleData:
 
     def test_str(self, model, forcing_file):
         actual = str(model)
-        expected = "\n".join(
+        expected_forcing = "".join(
             [
-                "eWaterCycle MarrmotM01",
-                "-------------------",
-                "Version = 2020.11",
-                "Parameter set = ",
-                "  None",
-                "Forcing = ",
-                "  eWaterCycle forcing",
-                "  -------------------",
-                "  start_time=1989-01-01T00:00:00Z",
-                "  end_time=1992-12-31T00:00:00Z",
-                f"  directory={str(Path(forcing_file).parent)}",
-                "  shape=None",
-                "  forcing_file=BMI_testcase_m01_BuffaloRiver_TN_USA.mat",
+                "MarrmotForcing(start_time='1989-01-01T00:00:00Z', ",
+                f"end_time='1992-12-31T00:00:00Z', directory={repr(Path(forcing_file).parent)}, ",
+                "forcing_file='BMI_testcase_m01_BuffaloRiver_TN_USA.mat')",
             ]
         )
+        expected = f"version='2020.11' parameter_set=None forcing={expected_forcing}"
         assert actual == expected
 
     def test_parameters(self, model):
-
         expected = [
             ("maximum_soil_moisture_storage", 10.0),
             ("initial_soil_moisture_storage", 5.0),
@@ -86,7 +76,7 @@ class TestWithDefaultsAndExampleData:
     def test_setup(self, model_with_setup, forcing_file):
         model, cfg_file, cfg_dir = model_with_setup
 
-        expected_cfg_dir = CFG["output_dir"] / "marrmot_20210102_030405"
+        expected_cfg_dir = CFG.output_dir / "marrmot_20210102_030405"
         assert cfg_dir == str(expected_cfg_dir)
         assert cfg_file == str(expected_cfg_dir / "marrmot-m01_config.mat")
         assert model.bmi
@@ -181,7 +171,7 @@ class TestWithCustomSetupAndExampleData:
     def test_setup(self, model_with_setup):
         model, cfg_file, cfg_dir = model_with_setup
 
-        expected_cfg_dir = CFG["output_dir"] / "marrmot_20210102_030405"
+        expected_cfg_dir = CFG.output_dir / "marrmot_20210102_030405"
         assert cfg_dir == str(expected_cfg_dir)
         assert cfg_file == str(expected_cfg_dir / "marrmot-m01_config.mat")
         assert model.bmi

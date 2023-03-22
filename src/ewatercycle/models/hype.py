@@ -1,19 +1,17 @@
+"""eWaterCycle wrapper around Hype BMI."""
 import datetime
 import logging
 import shutil
 import types
-from typing import Any, Iterable, Optional, Tuple
+from pathlib import Path
+from typing import Any, Iterable, Optional, Tuple, Union
 
-import numpy as np
 import xarray as xr
-from basic_modeling_interface import Bmi
-from cftime import num2date
 from dateutil.parser import parse
 from dateutil.tz import UTC
-from grpc4bmi.bmi_client_docker import BmiClientDocker
-from grpc4bmi.bmi_client_singularity import BmiClientSingularity
 
 from ewatercycle import CFG
+from ewatercycle.container import VersionImages, start_container
 from ewatercycle.forcing._hype import HypeForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
@@ -21,10 +19,10 @@ from ewatercycle.util import geographical_distances, get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 
-_version_images = {
+_version_images: VersionImages = {
     "feb2021": {
         "docker": "ewatercycle/hype-grpc4bmi:feb2021",
-        "singularity": "ewatercycle-hype-grpc4bmi_feb2021.sif",
+        "apptainer": "ewatercycle-hype-grpc4bmi_feb2021.sif",
     }
 }
 
@@ -44,6 +42,7 @@ class Hype(AbstractModel[HypeForcing]):
     """
 
     available_versions = tuple(_version_images.keys())
+    """Show supported Hype versions in eWaterCycle"""
 
     def __init__(
         self,
@@ -52,7 +51,6 @@ class Hype(AbstractModel[HypeForcing]):
         forcing: Optional[HypeForcing] = None,
     ):
         super().__init__(version, parameter_set, forcing)
-        assert version in _version_images
         self._setup_default_config()
 
     def _setup_default_config(self):
@@ -155,8 +153,10 @@ class Hype(AbstractModel[HypeForcing]):
         cfg_file.write_text(self._cfg, encoding="cp437")
 
         # start container
-        work_dir = str(cfg_dir_as_path)
-        self.bmi = _start_container(self.version, work_dir)
+        self.bmi = start_container(
+            image_engine=_version_images[self.version],
+            work_dir=cfg_dir_as_path,
+        )
 
         since = self._start.strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -167,7 +167,7 @@ class Hype(AbstractModel[HypeForcing]):
 
         self.bmi.get_time_units = types.MethodType(get_time_units, self.bmi)
 
-        return str(cfg_file), work_dir
+        return str(cfg_file), str(cfg_dir_as_path)
 
     @property
     def parameters(self) -> Iterable[Tuple[str, Any]]:
@@ -215,29 +215,9 @@ def _setup_cfg_dir(cfg_dir: Optional[str] = None):
         timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
             "%Y%m%d_%H%M%S"
         )
-        work_dir = to_absolute_path(f"hype_{timestamp}", parent=CFG["output_dir"])
+        work_dir = to_absolute_path(f"hype_{timestamp}", parent=CFG.output_dir)
     work_dir.mkdir(parents=True, exist_ok=True)
     return work_dir
-
-
-def _start_container(version: str, work_dir: str):
-    if CFG["container_engine"].lower() == "singularity":
-        image = CFG["singularity_dir"] / _version_images[version]["singularity"]
-        return BmiClientSingularity(
-            image=str(image),
-            work_dir=work_dir,
-        )
-    elif CFG["container_engine"].lower() == "docker":
-        image = _version_images[version]["docker"]
-        return BmiClientDocker(
-            image=image,
-            image_port=55555,  # TODO needed?
-            work_dir=work_dir,
-        )
-    else:
-        raise ValueError(
-            f"Unknown container technology in CFG: {CFG['container_engine']}"
-        )
 
 
 def _get_code_in_cfg(content: str, code: str):
@@ -265,5 +245,5 @@ def _set_code_in_cfg(content: str, code: str, value: str) -> str:
 
 
 def _get_hype_time(value: str) -> datetime.datetime:
-    """Converts `yyyy-mm-dd [HH:MM]` string to datetime object"""
+    """Converts `yyyy-mm-dd [HH:MM]` string to datetime object."""
     return parse(value).replace(tzinfo=UTC)

@@ -5,23 +5,12 @@ from typing import Dict, Optional, Tuple
 
 from ewatercycle import CFG
 
-from ..config import DEFAULT_CONFIG, SYSTEM_CONFIG, USER_HOME_CONFIG
+from ..config import SYSTEM_CONFIG, USER_HOME_CONFIG
+from ..parameter_set import ParameterSet
 from . import _lisflood, _pcrglobwb, _wflow
 from ._example import ExampleParameterSet
-from .default import ParameterSet
 
 logger = getLogger(__name__)
-
-
-def _parse_parametersets():
-    parametersets = {}
-    if CFG["parameter_sets"] is None:
-        return []
-    for name, options in CFG["parameter_sets"].items():
-        parameterset = ParameterSet(name=name, **options)
-        parametersets[name] = parameterset
-
-    return parametersets
 
 
 def available_parameter_sets(target_model: Optional[str] = None) -> Tuple[str, ...]:
@@ -33,12 +22,10 @@ def available_parameter_sets(target_model: Optional[str] = None) -> Tuple[str, .
     Returns: Names of available parameter sets on current machine.
 
     """
-    all_parameter_sets = _parse_parametersets()
+    all_parameter_sets = CFG.parameter_sets
     if not all_parameter_sets:
-        if CFG["ewatercycle_config"] == DEFAULT_CONFIG:
-            raise ValueError(f"No configuration file found.")
         raise ValueError(
-            f'No parameter sets defined in {CFG["ewatercycle_config"]}. Use '
+            f"No parameter sets defined in {CFG.ewatercycle_config}. Use "
             "`ewatercycle.parameter_sets.download_example_parameter_sets()` to download"
             " examples or define your own or ask whoever setup the ewatercycle "
             "system to do it."
@@ -47,12 +34,12 @@ def available_parameter_sets(target_model: Optional[str] = None) -> Tuple[str, .
     filtered = tuple(
         name
         for name, ps in all_parameter_sets.items()
-        if ps.is_available and (target_model is None or ps.target_model == target_model)
+        if (target_model is None or ps.target_model == target_model)
     )
     if not filtered:
         raise ValueError(
             f"No parameter sets defined for {target_model} model in "
-            f"{CFG['ewatercycle_config']}. Use  "
+            f"{CFG.ewatercycle_config}. Use  "
             "`ewatercycle.parareter_sets.download_example_parameter_sets` to download "
             "examples or define your own or ask whoever setup the ewatercycle "
             "system to do it."
@@ -69,14 +56,11 @@ def get_parameter_set(name: str) -> ParameterSet:
     Returns: Parameter set object that can be used in an ewatercycle model constructor.
 
     """
-    all_parameter_sets = _parse_parametersets()
+    all_parameter_sets = CFG.parameter_sets
 
     ps = all_parameter_sets.get(name)
     if ps is None:
         raise KeyError(f"No parameter set available with name {name}")
-
-    if not ps.is_available:
-        raise ValueError(f"Cannot find parameter set with attributes {ps}")
 
     return ps
 
@@ -84,7 +68,7 @@ def get_parameter_set(name: str) -> ParameterSet:
 def download_parameter_sets(zenodo_doi: str, target_model: str, config: str):
     # TODO add docstring
     # TODO download archive matching doi from Zenodo
-    # TODO unpack archive in CFG['parameterset_dir'] subdirectory
+    # TODO unpack archive in CFG.parameterset_dir subdirectory
     # TODO print yaml snippet with target_model and config to add to ewatercycle.yaml
     raise NotImplementedError("Auto download of parameter sets not yet supported")
 
