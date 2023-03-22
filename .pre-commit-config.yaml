@@ -80,7 +80,7 @@ repos:
       - id: nbqa-isort
         additional_dependencies: [isort==5.11.2]
       - id: nbqa-mypy
-        additional_dependencies: [mypy==1.1.1, types-python-dateutil]
+        additional_dependencies: [mypy==1.1.1, types-python-dateutil, pydantic]
       # TODO renable when errors are fixed/ignored
       - id: nbqa-flake8
         additional_dependencies: *fd
