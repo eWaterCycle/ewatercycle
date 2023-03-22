@@ -1,5 +1,7 @@
 """Test forcing data for WFLOW."""
 
+from pathlib import Path
+
 import pytest
 from esmvalcore.experimental.recipe import Recipe
 from esmvalcore.experimental.recipe_output import DataFile
@@ -151,6 +153,18 @@ class TestGenerateWithExtractRegion:
         forcing.shape = None
 
         assert forcing == saved_forcing
+
+    def test_str(self, forcing, tmp_path, sample_shape):
+        result = str(forcing)
+        expected = "".join(
+            [
+                "start_time='1989-01-02T00:00:00Z' end_time='1999-01-02T00:00:00Z' ",
+                f"directory={repr(tmp_path)} shape={repr(Path(sample_shape))} ",
+                "netcdfinput='wflow_forcing.nc' Precipitation='/pr' ",
+                "EvapoTranspiration='/pet' Temperature='/tas'",
+            ]
+        )
+        assert result == expected
 
 
 def test_with_directory(mock_recipe_run, sample_shape, tmp_path):

@@ -201,6 +201,8 @@ it should be copied to ``~/.config/ewatercycle/ewatercycle.yaml`` .
 To make the ewatercycle configuration available to all users on the
 system it should be copied to ``/etc/ewatercycle.yaml`` .
 
+See `CFG API documention <apidocs/ewatercycle.config.rst>`_ for more information.
+
 Configuration file for Snellius system
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -70,7 +70,7 @@ repos:
         verbose: true
         args: &fa [--statistics, --exit-zero]
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.910
+    rev: v1.1.1
     hooks:
       - id: mypy
         additional_dependencies: [types-python-dateutil, pydantic]
@@ -80,7 +80,7 @@ repos:
       - id: nbqa-isort
         additional_dependencies: [isort==5.11.2]
       - id: nbqa-mypy
-        additional_dependencies: [mypy==0.910, types-python-dateutil, pydantic]
+        additional_dependencies: [mypy==1.1.1, types-python-dateutil, pydantic]
       # TODO renable when errors are fixed/ignored
       - id: nbqa-flake8
         additional_dependencies: *fd

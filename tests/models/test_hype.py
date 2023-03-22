@@ -5,13 +5,12 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from bmipy import Bmi
 from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
 from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
 from ewatercycle.parameter_sets import ParameterSet
-from ewatercycle.plugins.hype.hype import Hype, _set_code_in_cfg
+from ewatercycle.plugins.hype.hype import Hype
 from tests.models.fake_models import FailingModel
 
 
@@ -92,7 +91,7 @@ class TestWithOnlyParameterSetAndDefaults:
     def test_setup_container(self, model_with_setup, tmp_path):
         mocked_constructor = model_with_setup[2]
         mocked_constructor.assert_called_once_with(
-            image=f"{tmp_path}/ewatercycle-hype-grpc4bmi_feb2021.sif",
+            image="ewatercycle-hype-grpc4bmi_feb2021.sif",
             work_dir=f"{tmp_path}/hype_20210102_030405",
             input_dirs=[],
             timeout=None,
@@ -161,9 +160,18 @@ class TestWithOnlyParameterSetAndDefaults:
                     [51.16437912, 50.21104813, 48.6910553]
                 )  # y are lats of subbasins in hype
 
-            def get_value_at_indices(self, name, indices):
+            def get_value_at_indices(self, name, dest, indices):
                 self.indices = indices
                 return np.array([13.0])
+
+            def get_var_type(self, name):
+                return "float64"
+
+            def get_var_itemsize(self, name):
+                return np.float64().size
+
+            def get_var_nbytes(self, name):
+                return np.float64().size * 3 * 3
 
         model.bmi = MockedBmi()
 
@@ -194,7 +202,7 @@ class TestWithOnlyParameterSetAndFullSetup:
     def test_setup_container(self, model_with_setup, tmp_path):
         mocked_constructor = model_with_setup[2]
         mocked_constructor.assert_called_once_with(
-            image=f"{tmp_path}/ewatercycle-hype-grpc4bmi_feb2021.sif",
+            image="ewatercycle-hype-grpc4bmi_feb2021.sif",
             work_dir=f"{tmp_path}/myworkdir",
             input_dirs=[],
             timeout=None,
@@ -334,7 +342,7 @@ class TestWithForcingAndDefaults:
     def test_setup_container(self, model_with_setup, tmp_path):
         mocked_constructor = model_with_setup[2]
         mocked_constructor.assert_called_once_with(
-            image=f"{tmp_path}/ewatercycle-hype-grpc4bmi_feb2021.sif",
+            image="ewatercycle-hype-grpc4bmi_feb2021.sif",
             work_dir=f"{tmp_path}/hype_20210102_030405",
             input_dirs=[],
             timeout=None,

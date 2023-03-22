@@ -40,9 +40,18 @@ class MockedBmi(FailingModel):
     def get_grid_spacing(self, grid_id):
         return 1.0, 1.0
 
-    def get_value_at_indices(self, name, indices):
+    def get_value_at_indices(self, name, dest, indices):
         self.indices = indices
         return np.array([1.0])
+
+    def get_var_type(self, name):
+        return "float64"
+
+    def get_var_itemsize(self, name):
+        return np.float64().size
+
+    def get_var_nbytes(self, name):
+        return np.float64().size * 3 * 2
 
 
 @pytest.fixture
@@ -118,24 +127,17 @@ def test_constructor_adds_api_riverrunoff(parameter_set, caplog):
 
 def test_str(model, tmp_path):
     actual = str(model)
-    expected = "\n".join(
+
+    expected_ps = "".join(
         [
-            "eWaterCycle Wflow",
-            "-------------------",
-            "Version = 2020.1.1",
-            "Parameter set = ",
-            "  Parameter set",
-            "  -------------",
-            "  name=wflow_testcase",
-            f"  directory={str(tmp_path / 'wflow_testcase')}",
-            f"  config={str(tmp_path / 'wflow_testcase' / 'wflow_sbm_nc.ini')}",
-            "  doi=N/A",
-            "  target_model=wflow",
-            "  supported_model_versions=set()",
-            "Forcing = ",
-            "  None",
+            "ParameterSet(name='wflow_testcase', ",
+            f"directory={repr(tmp_path / 'wflow_testcase')}, ",
+            f"config={repr(tmp_path / 'wflow_testcase' / 'wflow_sbm_nc.ini')}, ",
+            "doi='N/A', target_model='wflow', supported_model_versions=set())",
         ]
     )
+    expected = f"version='2020.1.1' parameter_set={expected_ps} forcing=None"
+    assert actual == expected
     assert actual == expected
 
 
@@ -166,8 +168,8 @@ def test_setup_withtimeoutexception(model, tmp_path):
         model.setup()
 
     msg = str(excinfo.value)
-    sif = tmp_path / "ewatercycle-wflow-grpc4bmi_2020.1.1.sif"
-    assert f"build {sif} docker://ewatercycle/wflow-grpc4bmi:2020.1.1" in msg
+    assert "docker://ewatercycle/wflow-grpc4bmi:2020.1.1" in msg
+    assert "ewatercycle-wflow-grpc4bmi_2020.1.1.sif" in msg
 
 
 def test_setup_with_custom_cfg_dir(model, tmp_path):

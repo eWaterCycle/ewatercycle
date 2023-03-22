@@ -12,6 +12,7 @@ from cftime import num2date
 
 from ewatercycle import CFG
 from ewatercycle.container import VersionImages, start_container
+from ewatercycle.forcing._wflow import WflowForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser

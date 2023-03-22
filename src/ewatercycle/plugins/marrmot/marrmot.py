@@ -13,6 +13,7 @@ from cftime import num2date
 
 from ewatercycle import CFG
 from ewatercycle.container import VersionImages, start_container
+from ewatercycle.forcing._marrmot import MarrmotForcing
 from ewatercycle.models.abstract import AbstractModel
 from ewatercycle.plugins.marrmot.forcing import MarrmotForcing
 from ewatercycle.util import get_time, to_absolute_path

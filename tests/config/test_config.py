@@ -5,7 +5,7 @@ import pytest
 from pydantic import ValidationError
 
 from ewatercycle import CFG
-from ewatercycle.config._config_object import Configuration
+from ewatercycle.config import Configuration
 
 
 def test_config_object():
