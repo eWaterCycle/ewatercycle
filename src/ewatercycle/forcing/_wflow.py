@@ -9,21 +9,9 @@ from .datasets import DATASETS
 
 
 class WflowForcing(DefaultForcing):
-    """Container for wflow forcing data."""
+    """Container for wflow forcing data.
 
-    def __init__(
-        self,
-        start_time: str,
-        end_time: str,
-        directory: str,
-        shape: Optional[str] = None,
-        netcdfinput: str = "inmaps.nc",
-        Precipitation: str = "/pr",  # noqa: N803
-        EvapoTranspiration: str = "/pet",
-        Temperature: str = "/tas",
-        Inflow: Optional[str] = None,
-    ):
-        """
+    Args:
         netcdfinput (str) = "inmaps.nc": Path to forcing file.
         Precipitation (str) = "/pr": Variable name of precipitation data in
             input file.
@@ -32,13 +20,13 @@ class WflowForcing(DefaultForcing):
         Temperature (str) = "/tas": Variable name of temperature data in
             input file.
         Inflow (str) = None: Variable name of inflow data in input file.
-        """  # noqa docstrings are combined with forcing.load_foreign()
-        super().__init__(start_time, end_time, directory, shape)
-        self.netcdfinput = netcdfinput
-        self.Precipitation = Precipitation
-        self.EvapoTranspiration = EvapoTranspiration
-        self.Temperature = Temperature
-        self.Inflow = Inflow
+    """
+
+    netcdfinput: str = "inmaps.nc"
+    Precipitation: str = "/pr"  # noqa: N803
+    EvapoTranspiration: str = "/pet"
+    Temperature: str = "/tas"
+    Inflow: Optional[str] = None
 
     @classmethod
     def generate(  # type: ignore
@@ -103,7 +91,3 @@ class WflowForcing(DefaultForcing):
             shape=shape,
             netcdfinput=forcing_file.name,
         )
-
-    def plot(self):
-        """Visualize the forcing data."""
-        raise NotImplementedError("Dont know how to plot")

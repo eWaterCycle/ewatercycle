@@ -12,30 +12,19 @@ from .datasets import DATASETS
 
 
 class HypeForcing(DefaultForcing):
-    """Container for hype forcing data."""
+    """Container for hype forcing data.
 
-    def __init__(
-        self,
-        start_time: str,
-        end_time: str,
-        directory: str,
-        shape: Optional[str] = None,
-        Pobs: str = "Pobs.txt",
-        TMAXobs: str = "TMAXobs.txt",
-        TMINobs: str = "TMINobs.txt",
-        Tobs: str = "Tobs.txt",
-    ):
-        """
+    Args:
         Pobs (str): Input file for precipitation data.
         TMAXobs (str): Input file for maximum temperature data.
         TMINobs (str): Input file for minimum temperature data.
         Tobs (str): Input file for temperature data.
-        """
-        super().__init__(start_time, end_time, directory, shape)
-        self.Pobs = Pobs
-        self.TMAXobs = TMAXobs
-        self.TMINobs = TMINobs
-        self.Tobs = Tobs
+    """
+
+    Pobs: str = "Pobs.txt"
+    TMAXobs: str = "TMAXobs.txt"
+    TMINobs: str = "TMINobs.txt"
+    Tobs: str = "Tobs.txt"
 
     @classmethod
     def generate(  # type: ignore
@@ -108,6 +97,3 @@ class HypeForcing(DefaultForcing):
             TMINobs=forcing_files["TMINobs"].name,
             Tobs=forcing_files["Tobs"].name,
         )
-
-    def plot(self):
-        raise NotImplementedError("Dont know how to plot")

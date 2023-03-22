@@ -173,7 +173,10 @@ def generate(
 
 # Append docstrings of with model-specific options to existing docstring
 load_foreign.__doc__ += "".join(  # type:ignore
-    [f"\n    {k}: {v.__init__.__doc__}" for k, v in FORCING_CLASSES.items()]
+    [
+        f"\n    {k}:\n{''.join(v.__doc__.splitlines(keepends=True)[3:])}"
+        for k, v in FORCING_CLASSES.items()
+    ]
 )
 
 generate.__doc__ += "".join(  # type:ignore
