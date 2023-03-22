@@ -99,7 +99,7 @@ import warnings
 from io import StringIO
 from logging import getLogger
 from pathlib import Path
-from typing import Dict, Literal, Optional, Set, TextIO, Union
+from typing import Dict, Literal, Optional, Set, TextIO, Tuple, Union
 
 from pydantic import (
     BaseModel,
@@ -308,7 +308,7 @@ def _read_config_file(config_file: Union[os.PathLike, str]) -> dict:
     return cfg
 
 
-def _find_user_config(sources: tuple[Path, ...]) -> Optional[os.PathLike]:
+def _find_user_config(sources: Tuple[Path, ...]) -> Optional[os.PathLike]:
     """Find user config in list of source directories."""
     for source in sources:
         user_config = source

@@ -2,11 +2,11 @@
 # Code copied from
 # https://github.com/pydantic/pydantic/blob/3b3f400991ea2958c7492e4cdbfeb3d85dd48969/pydantic/_internal/_repr.py
 import typing
-from typing import Any, Union
+from typing import Any, Tuple, Union
 
-ReprArgs = typing.Iterable[tuple[Union[str, None], Any]]
+ReprArgs = typing.Iterable[Tuple[Union[str, None], Any]]
 RichReprResult = typing.Iterable[
-    Union[Any, tuple[Any], tuple[str, Any], tuple[str, Any, Any]]
+    Union[Any, Tuple[Any], Tuple[str, Any], Tuple[str, Any, Any]]
 ]
 
 
