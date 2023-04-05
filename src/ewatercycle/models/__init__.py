@@ -11,8 +11,8 @@ else:
     from importlib.metadata import entry_points
 
 
-models = entry_points(group="ewatercycle.models")
+model_entrypoints = entry_points(group="ewatercycle.models")
 
-# Expose as "from ewatercycle.models import Model"
-for model in models:
+# Expose as "from ewatercycle.models import Model" for backward compatibility
+for model in model_entrypoints:
     globals()[model.name] = model.load()
