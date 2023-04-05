@@ -1,7 +1,10 @@
-from pathlib import Path
-from typing import Annotated, Dict, Optional, Type, Union
+from typing import Dict, Optional, Type, Union
 
-from pydantic import BaseModel, Field, parse_obj_as
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated  # type: ignore
+from pydantic import BaseModel, Field
 from ruamel.yaml import YAML
 
 from ewatercycle.forcing import _hype, _lisflood, _marrmot, _pcrglobwb, _wflow
