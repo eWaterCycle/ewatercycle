@@ -1,10 +1,12 @@
 from pathlib import Path
+from textwrap import dedent
 
 import pytest
 from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import OutputFile
 
 from ewatercycle.forcing import generate, load, load_foreign
+from ewatercycle.forcing._default import FORCING_YAML
 from ewatercycle.forcing._marrmot import MarrmotForcing
 
 
@@ -145,6 +147,20 @@ class TestGenerate:
         assert actual_shapefile == sample_shape
         assert "MARRMoT" in actual_desc
 
+    def test_saved_yaml_content(self, forcing, tmp_path):
+        saved_forcing = (tmp_path / FORCING_YAML).read_text()
+        # shape should is not included in the yaml file
+        expected = dedent(
+            """\
+        model: marrmot
+        start_time: '1989-01-02T00:00:00Z'
+        end_time: '1999-01-02T00:00:00Z'
+        forcing_file: marrmot.mat
+        """
+        )
+
+        assert saved_forcing == expected
+
     def test_saved_yaml(self, forcing, tmp_path):
         saved_forcing = load(tmp_path)
         # shape should is not included in the yaml file
@@ -252,3 +268,24 @@ def test_generate_wrong_output_raises(monkeypatch, sample_shape, tmp_path):
             end_time="1999-01-02T00:00:00Z",
             shape=sample_shape,
         )
+
+
+def test_load_legacy_forcing(tmp_path):
+    (tmp_path / FORCING_YAML).write_text(
+        """\
+        !MarrmotForcing
+        start_time: '1989-01-02T00:00:00Z'
+        end_time: '1999-01-02T00:00:00Z'
+        forcing_file: marrmot.mat
+    """
+    )
+
+    expected = MarrmotForcing(
+        start_time="1989-01-02T00:00:00Z",
+        end_time="1999-01-02T00:00:00Z",
+        directory=tmp_path,
+    )
+
+    result = load(tmp_path)
+
+    assert result == expected

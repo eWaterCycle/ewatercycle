@@ -1,7 +1,7 @@
 """Forcing related functionality for marrmot."""
 
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 from esmvalcore.experimental import get_recipe
 
@@ -19,6 +19,8 @@ class MarrmotForcing(DefaultForcing):
             <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`_.
     """
 
+    # type ignored because pydantic wants literal in base class while mypy does not
+    model: Literal["marrmot"] = "marrmot"  # type: ignore
     forcing_file: Optional[str] = "marrmot.mat"
 
     @classmethod
