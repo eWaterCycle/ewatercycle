@@ -1,6 +1,7 @@
 from pathlib import Path
-from typing import Dict, Optional, Type
+from typing import Dict, Optional, Type, Union
 
+from pydantic import BaseModel, parse_obj_as
 from ruamel.yaml import YAML
 
 from ewatercycle.util import to_absolute_path
@@ -17,6 +18,10 @@ FORCING_CLASSES: Dict[str, Type[DefaultForcing]] = {
 }
 
 
+class ForcingContainer(BaseModel):
+    forcing: DefaultForcing
+
+
 def load(directory: str):
     """Load previously generated or imported forcing data.
 
@@ -26,20 +31,18 @@ def load(directory: str):
 
     Returns: Forcing object
     """
-    yaml = YAML()
+    yaml = YAML(typ="safe")
     source = to_absolute_path(directory)
     # TODO give nicer error
-    yaml.register_class(DefaultForcing)
-    for forcing_cls in FORCING_CLASSES.values():
-        yaml.register_class(forcing_cls)
-    # Set directory in yaml string to parent of yaml file
-    # Because in DefaultForcing.save the directory was removed
-    forcing_info = yaml.load(source / FORCING_YAML)
-    forcing_info.directory = source
-    if forcing_info.shape:
-        forcing_info.shape = to_absolute_path(forcing_info.shape, parent=source)
+    content = (source / FORCING_YAML).read_text()
+    # Workaround for legacy forcing files having !PythonClass tag.
+    content = content.replace("!DefaultForcing", "")
 
-    return forcing_info
+    fdict = yaml.load(content)
+    fdict["directory"] = source
+
+    Forcings = DefaultForcing
+    return parse_obj_as(Forcings, fdict)
 
 
 # Or load_custom , load_external, load_???., from_external, import_forcing,

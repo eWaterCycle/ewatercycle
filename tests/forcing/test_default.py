@@ -37,7 +37,7 @@ def test_load_foreign_unknown():
 
 
 @pytest.fixture
-def sample_forcing_yaml_content():
+def sample_forcing_yaml_legacy_content():
     return "".join(
         [
             "!DefaultForcing\n",
@@ -49,10 +49,31 @@ def sample_forcing_yaml_content():
 
 
 @pytest.fixture
-def sample_forcing_yaml_content_with_shape():
+def sample_forcing_yaml_content():
+    return "".join(
+        [
+            "start_time: '1989-01-02T00:00:00Z'\n",
+            "end_time: '1999-01-02T00:00:00Z'\n",
+        ]
+    )
+
+
+@pytest.fixture
+def sample_forcing_yaml_legacy_content_with_shape():
     return "".join(
         [
             "!DefaultForcing\n",
+            "start_time: '1989-01-02T00:00:00Z'\n",
+            "end_time: '1999-01-02T00:00:00Z'\n",
+            "shape: myshape.shp\n",
+        ]
+    )
+
+
+@pytest.fixture
+def sample_forcing_yaml_content_with_shape():
+    return "".join(
+        [
             "start_time: '1989-01-02T00:00:00Z'\n",
             "end_time: '1999-01-02T00:00:00Z'\n",
             "shape: myshape.shp\n",
@@ -112,9 +133,21 @@ def test_save_without_shapefile(tmp_path, sample_forcing_yaml_content):
     assert written == expected
 
 
-def test_load(tmp_path, sample_forcing_yaml_content):
+def test_load_given(tmp_path, sample_forcing_yaml_content):
     file = tmp_path / FORCING_YAML
     file.write_text(sample_forcing_yaml_content)
+    result = load(tmp_path)
+    expected = DefaultForcing(
+        directory=str(tmp_path),
+        start_time="1989-01-02T00:00:00Z",
+        end_time="1999-01-02T00:00:00Z",
+    )
+    assert result == expected
+
+
+def test_load_given_legacy_content(tmp_path, sample_forcing_yaml_legacy_content):
+    file = tmp_path / FORCING_YAML
+    file.write_text(sample_forcing_yaml_legacy_content)
     result = load(tmp_path)
     expected = DefaultForcing(
         directory=str(tmp_path),
@@ -127,6 +160,21 @@ def test_load(tmp_path, sample_forcing_yaml_content):
 def test_load_with_shape(tmp_path, sample_forcing_yaml_content_with_shape):
     file = tmp_path / FORCING_YAML
     file.write_text(sample_forcing_yaml_content_with_shape)
+    result = load(tmp_path)
+    expected = DefaultForcing(
+        directory=str(tmp_path),
+        start_time="1989-01-02T00:00:00Z",
+        end_time="1999-01-02T00:00:00Z",
+        shape=tmp_path / "myshape.shp",
+    )
+    assert result == expected
+
+
+def test_load_with_shape_given_legacy_content(
+    tmp_path, sample_forcing_yaml_legacy_content_with_shape
+):
+    file = tmp_path / FORCING_YAML
+    file.write_text(sample_forcing_yaml_legacy_content_with_shape)
     result = load(tmp_path)
     expected = DefaultForcing(
         directory=str(tmp_path),

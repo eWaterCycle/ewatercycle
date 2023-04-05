@@ -37,8 +37,12 @@ class DefaultForcing(BaseModel):
         return to_absolute_path(v) if v is not None else v
 
     @validator("shape")
-    def _absolute_shape(cls, v: Union[str, Path, None]):
-        return to_absolute_path(v) if v is not None else v
+    def _absolute_shape(cls, v: Union[str, Path, None], values: dict):
+        return (
+            to_absolute_path(v, parent=values["directory"], must_be_in_parent=False)
+            if v is not None
+            else v
+        )
 
     @classmethod
     def generate(
@@ -72,8 +76,9 @@ class DefaultForcing(BaseModel):
                     f"{self.directory}. So, it won't be saved in {target}."
                 )
 
+        fdict = clone.dict(exclude_none=True, exclude_defaults=True)
         with open(target, "w") as f:
-            yaml.dump(clone.dict(), f)
+            yaml.dump(fdict, f)
         return target
 
     def plot(self):
