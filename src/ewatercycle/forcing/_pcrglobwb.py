@@ -1,7 +1,7 @@
 """Forcing related functionality for pcrglobwb"""
 
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 from esmvalcore.experimental import get_recipe
 
@@ -23,6 +23,8 @@ class PCRGlobWBForcing(DefaultForcing):
         temperatureNC (str): Input file for temperature data.
     """
 
+    # type ignored because pydantic wants literal in base class while mypy does not
+    model: Literal["pcrglobwb"] = "pcrglobwb"  # type: ignore
     precipitationNC: Optional[str] = "precipitation.nc"
     temperatureNC: Optional[str] = "temperature.nc"
 
