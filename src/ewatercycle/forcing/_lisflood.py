@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 from esmvalcore.experimental import get_recipe
 
@@ -37,6 +37,8 @@ class LisfloodForcing(DefaultForcing):
             (reference) evapotranspiration rate data
     """
 
+    # type ignored because pydantic wants literal in base class while mypy does not
+    model: Literal["lisflood"] = "lisflood"  # type: ignore
     PrefixPrecipitation: str = "pr.nc"
     PrefixTavg: str = "tas.nc"
     PrefixE0: str = "e0.nc"

@@ -4,10 +4,9 @@ from typing import Annotated, Dict, Optional, Type, Union
 from pydantic import BaseModel, Field, parse_obj_as
 from ruamel.yaml import YAML
 
+from ewatercycle.forcing import _hype, _lisflood, _marrmot, _pcrglobwb, _wflow
+from ewatercycle.forcing._default import FORCING_YAML, DefaultForcing
 from ewatercycle.util import to_absolute_path
-
-from . import _hype, _lisflood, _marrmot, _pcrglobwb, _wflow
-from ._default import FORCING_YAML, DefaultForcing
 
 FORCING_CLASSES: Dict[str, Type[DefaultForcing]] = {
     "hype": _hype.HypeForcing,
@@ -40,9 +39,13 @@ def load(directory: str):
     fdict["directory"] = source
 
     # TODO use parse_obj_as instead of this ugly workaround
+    forcing_classes = [DefaultForcing] + list(FORCING_CLASSES.values())
+
     class ForcingContainer(BaseModel):
-        forcing: Annotated[
-            Union[_hype.HypeForcing, DefaultForcing], Field(discriminator="model")
+        forcing: Annotated[  # type: ignore
+            # Union accepts tuple but mypy thinks it needs more than one argument
+            Union[tuple(forcing_classes)],  # type: ignore
+            Field(discriminator="model"),
         ]
 
     return ForcingContainer(forcing=fdict).forcing
