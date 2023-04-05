@@ -77,7 +77,6 @@ class DefaultForcing(BaseModel):
                 )
 
         fdict = clone.dict(exclude_none=True)
-        print(fdict)
         with open(target, "w") as f:
             yaml.dump(fdict, f)
         return target
