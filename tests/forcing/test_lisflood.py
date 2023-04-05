@@ -444,3 +444,28 @@ def test_generate_with_directory(
     )
 
     assert mock_recipe_run["session"].session_dir == forcing_dir
+
+
+def test_load_legacy_forcing(tmp_path):
+    (tmp_path / FORCING_YAML).write_text(
+        """\
+        !LisfloodForcing
+        start_time: '1989-01-02T00:00:00Z'
+        end_time: '1999-01-02T00:00:00Z'
+        PrefixPrecipitation: pr.nc
+        PrefixTavg: tas.nc
+        PrefixE0: e0.nc
+        PrefixES0: es0.nc
+        PrefixET0: et0.nc
+    """
+    )
+
+    expected = LisfloodForcing(
+        start_time="1989-01-02T00:00:00Z",
+        end_time="1999-01-02T00:00:00Z",
+        directory=tmp_path,
+    )
+
+    result = load(tmp_path)
+
+    assert result == expected
