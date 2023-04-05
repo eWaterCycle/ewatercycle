@@ -1,5 +1,5 @@
 """Forcing related functionality for wflow."""
-from typing import Dict, Optional
+from typing import Dict, Literal, Optional
 
 from esmvalcore.experimental import get_recipe
 
@@ -22,6 +22,8 @@ class WflowForcing(DefaultForcing):
         Inflow (str) = None: Variable name of inflow data in input file.
     """
 
+    # type ignored because pydantic wants literal in base class while mypy does not
+    model: Literal["wflow"] = "wflow"  # type: ignore
     netcdfinput: str = "inmaps.nc"
     Precipitation: str = "/pr"  # noqa: N803
     EvapoTranspiration: str = "/pet"

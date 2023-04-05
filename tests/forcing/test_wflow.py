@@ -1,12 +1,14 @@
 """Test forcing data for WFLOW."""
 
 from pathlib import Path
+from textwrap import dedent
 
 import pytest
 from esmvalcore.experimental.recipe import Recipe
 from esmvalcore.experimental.recipe_output import DataFile
 
 from ewatercycle.forcing import generate, load
+from ewatercycle.forcing._default import FORCING_YAML
 from ewatercycle.forcing._wflow import WflowForcing
 
 
@@ -147,6 +149,23 @@ class TestGenerateWithExtractRegion:
     def test_recipe_configured(self, forcing, mock_recipe_run, reference_recipe):
         assert mock_recipe_run["data_during_run"] == reference_recipe
 
+    def test_saved_yaml_content(self, forcing, tmp_path):
+        saved_forcing = (tmp_path / FORCING_YAML).read_text()
+        # shape should is not included in the yaml file
+        expected = dedent(
+            """\
+        model: wflow
+        start_time: '1989-01-02T00:00:00Z'
+        end_time: '1999-01-02T00:00:00Z'
+        netcdfinput: wflow_forcing.nc
+        Precipitation: /pr
+        EvapoTranspiration: /pet
+        Temperature: /tas
+        """
+        )
+
+        assert saved_forcing == expected
+
     def test_saved_yaml(self, forcing, tmp_path):
         saved_forcing = load(tmp_path)
         # shape should is not included in the yaml file
@@ -158,10 +177,10 @@ class TestGenerateWithExtractRegion:
         result = str(forcing)
         expected = "".join(
             [
-                "start_time='1989-01-02T00:00:00Z' end_time='1999-01-02T00:00:00Z' ",
+                "model='wflow' start_time='1989-01-02T00:00:00Z' end_time='1999-01-02T00:00:00Z' ",
                 f"directory={repr(tmp_path)} shape={repr(Path(sample_shape))} ",
                 "netcdfinput='wflow_forcing.nc' Precipitation='/pr' ",
-                "EvapoTranspiration='/pet' Temperature='/tas'",
+                "EvapoTranspiration='/pet' Temperature='/tas' Inflow=None",
             ]
         )
         assert result == expected
@@ -188,3 +207,27 @@ def test_with_directory(mock_recipe_run, sample_shape, tmp_path):
     )
 
     assert mock_recipe_run["session"].session_dir == forcing_dir
+
+
+def test_load_legacy_forcing(tmp_path):
+    (tmp_path / FORCING_YAML).write_text(
+        """\
+        !WflowForcing
+        start_time: '1989-01-02T00:00:00Z'
+        end_time: '1999-01-02T00:00:00Z'
+        netcdfinput: inmaps.nc
+        Precipitation: /pr
+        EvapoTranspiration: /pet
+        Temperature: /tas
+    """
+    )
+
+    expected = WflowForcing(
+        start_time="1989-01-02T00:00:00Z",
+        end_time="1999-01-02T00:00:00Z",
+        directory=tmp_path,
+    )
+
+    result = load(tmp_path)
+
+    assert result == expected
