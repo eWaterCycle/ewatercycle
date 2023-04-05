@@ -1,7 +1,7 @@
 """Forcing related functionality for default models."""
 import logging
 from pathlib import Path
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 
 from esmvalcore.experimental import CFG
 from esmvalcore.experimental.config import Session
@@ -27,6 +27,7 @@ class DefaultForcing(BaseModel):
         shape: Path to a shape file. Used for spatial selection.
     """
 
+    model: str = "default"
     start_time: str
     end_time: str
     directory: Optional[Path] = None
@@ -60,7 +61,6 @@ class DefaultForcing(BaseModel):
     def save(self):
         """Export forcing data for later use."""
         yaml = YAML()
-        yaml.register_class(self.__class__)
         target = self.directory / FORCING_YAML
         # We want to make the yaml and its parent movable,
         # so the directory and shape should not be included in the yaml file
@@ -76,7 +76,8 @@ class DefaultForcing(BaseModel):
                     f"{self.directory}. So, it won't be saved in {target}."
                 )
 
-        fdict = clone.dict(exclude_none=True, exclude_defaults=True)
+        fdict = clone.dict(exclude_none=True)
+        print(fdict)
         with open(target, "w") as f:
             yaml.dump(fdict, f)
         return target

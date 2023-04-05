@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import Dict, Optional, Type, Union
+from typing import Annotated, Dict, Optional, Type, Union
 
-from pydantic import BaseModel, parse_obj_as
+from pydantic import BaseModel, Field, parse_obj_as
 from ruamel.yaml import YAML
 
 from ewatercycle.util import to_absolute_path
@@ -36,13 +36,20 @@ def load(directory: str):
     # TODO give nicer error
     content = (source / FORCING_YAML).read_text()
     # Workaround for legacy forcing files having !PythonClass tag.
-    content = content.replace("!DefaultForcing", "")
+    content = content.replace("!DefaultForcing", "model: default")
+    for model_name, model in FORCING_CLASSES.items():
+        content = content.replace(f"!{model.__class__}", f"model: {model_name}")
 
     fdict = yaml.load(content)
     fdict["directory"] = source
 
-    Forcings = DefaultForcing
-    return parse_obj_as(Forcings, fdict)
+    # TODO use parse_obj_as instead of this ugly workaround
+    class ForcingContainer(BaseModel):
+        forcing: Annotated[
+            Union[_hype.HypeForcing, DefaultForcing], Field(discriminator="model")
+        ]
+
+    return ForcingContainer(forcing=fdict).forcing
 
 
 # Or load_custom , load_external, load_???., from_external, import_forcing,

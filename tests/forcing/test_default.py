@@ -52,6 +52,7 @@ def sample_forcing_yaml_legacy_content():
 def sample_forcing_yaml_content():
     return "".join(
         [
+            "model: default\n",
             "start_time: '1989-01-02T00:00:00Z'\n",
             "end_time: '1999-01-02T00:00:00Z'\n",
         ]
@@ -74,6 +75,7 @@ def sample_forcing_yaml_legacy_content_with_shape():
 def sample_forcing_yaml_content_with_shape():
     return "".join(
         [
+            "model: default\n",
             "start_time: '1989-01-02T00:00:00Z'\n",
             "end_time: '1999-01-02T00:00:00Z'\n",
             "shape: myshape.shp\n",

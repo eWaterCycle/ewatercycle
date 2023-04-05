@@ -1,7 +1,7 @@
 """Forcing related functionality for hype"""
 
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 import pandas as pd
 from esmvalcore.experimental import get_recipe
@@ -21,6 +21,7 @@ class HypeForcing(DefaultForcing):
         Tobs (str): Input file for temperature data.
     """
 
+    model: Literal["hype"] = "hype"
     Pobs: str = "Pobs.txt"
     TMAXobs: str = "TMAXobs.txt"
     TMINobs: str = "TMINobs.txt"
