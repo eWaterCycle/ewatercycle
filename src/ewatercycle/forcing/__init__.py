@@ -34,7 +34,7 @@ def load(directory: str):
     # Workaround for legacy forcing files having !PythonClass tag.
     content = content.replace("!DefaultForcing", "model: default")
     for model_name, model in FORCING_CLASSES.items():
-        content = content.replace(f"!{model.__class__}", f"model: {model_name}")
+        content = content.replace(f"!{model.__name__}", f"model: {model_name}")
 
     fdict = yaml.load(content)
     fdict["directory"] = source
