@@ -1,14 +1,13 @@
 """Forcing related functionality for default models."""
 import logging
-from copy import copy
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional, Union
 
 from esmvalcore.experimental import CFG
 from esmvalcore.experimental.config import Session
+from pydantic import BaseModel, validator
 from ruamel.yaml import YAML
 
-from ewatercycle._repr import Representation
 from ewatercycle.util import to_absolute_path
 
 logger = logging.getLogger(__name__)
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 FORCING_YAML = "ewatercycle_forcing.yaml"
 
 
-class DefaultForcing(Representation):
+class DefaultForcing(BaseModel):
     """Container for forcing data.
 
     Args:
@@ -28,17 +27,23 @@ class DefaultForcing(Representation):
         shape: Path to a shape file. Used for spatial selection.
     """
 
-    def __init__(
-        self,
-        start_time: str,
-        end_time: str,
-        directory: str,
-        shape: Optional[str] = None,
-    ):
-        self.start_time = start_time
-        self.end_time = end_time
-        self.directory = to_absolute_path(directory)
-        self.shape = to_absolute_path(shape) if shape is not None else shape
+    model: Literal["default"] = "default"
+    start_time: str
+    end_time: str
+    directory: Optional[Path] = None
+    shape: Optional[Path] = None
+
+    @validator("directory")
+    def _absolute_directory(cls, v: Union[str, Path, None]):
+        return to_absolute_path(v) if v is not None else v
+
+    @validator("shape")
+    def _absolute_shape(cls, v: Union[str, Path, None], values: dict):
+        return (
+            to_absolute_path(v, parent=values["directory"], must_be_in_parent=False)
+            if v is not None
+            else v
+        )
 
     @classmethod
     def generate(
@@ -56,12 +61,10 @@ class DefaultForcing(Representation):
     def save(self):
         """Export forcing data for later use."""
         yaml = YAML()
-        yaml.register_class(self.__class__)
         target = self.directory / FORCING_YAML
         # We want to make the yaml and its parent movable,
         # so the directory and shape should not be included in the yaml file
-        clone = copy(self)
-        del clone.directory
+        clone = self.copy(exclude={"directory"})
 
         if clone.shape:
             try:
@@ -73,8 +76,9 @@ class DefaultForcing(Representation):
                     f"{self.directory}. So, it won't be saved in {target}."
                 )
 
+        fdict = clone.dict(exclude_none=True)
         with open(target, "w") as f:
-            yaml.dump(clone, f)
+            yaml.dump(fdict, f)
         return target
 
     def plot(self):

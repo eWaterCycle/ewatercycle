@@ -1,4 +1,5 @@
 from pathlib import Path
+from textwrap import dedent
 
 import numpy as np
 import pandas as pd
@@ -7,7 +8,8 @@ import xarray as xr
 from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import DataFile
 
-from ewatercycle.forcing import generate
+from ewatercycle.forcing import generate, load
+from ewatercycle.forcing._default import FORCING_YAML
 from ewatercycle.forcing._pcrglobwb import PCRGlobWBForcing
 
 
@@ -85,16 +87,36 @@ class TestGenerateWithExtractRegion:
         result = str(forcing)
         expected = "".join(
             [
-                "start_time='1989-01-02T00:00:00Z' end_time='1999-01-02T00:00:00Z' ",
+                "model='pcrglobwb' start_time='1989-01-02T00:00:00Z' end_time='1999-01-02T00:00:00Z' ",
                 f"directory={repr(tmp_path)} shape={repr(Path(sample_shape))} ",
                 "precipitationNC='pcrglobwb_pr.nc' temperatureNC='pcrglobwb_tas.nc'",
             ]
         )
         assert result == expected
 
+    # TODO test if recipe was generated correctly
 
-# TODO test if recipe was generated correctlu
-# TODO test if yaml was written
+    def test_saved_yaml_content(self, forcing, tmp_path):
+        saved_forcing = (tmp_path / FORCING_YAML).read_text()
+        # shape should is not included in the yaml file
+        expected = dedent(
+            """\
+        model: pcrglobwb
+        start_time: '1989-01-02T00:00:00Z'
+        end_time: '1999-01-02T00:00:00Z'
+        precipitationNC: pcrglobwb_pr.nc
+        temperatureNC: pcrglobwb_tas.nc
+        """
+        )
+
+        assert saved_forcing == expected
+
+    def test_saved_yaml_by_loading(self, forcing, tmp_path):
+        saved_forcing = load(tmp_path)
+        # shape should is not included in the yaml file
+        forcing.shape = None
+
+        assert forcing == saved_forcing
 
 
 def test_with_directory(mock_recipe_run, sample_shape, tmp_path):
@@ -119,3 +141,27 @@ def test_with_directory(mock_recipe_run, sample_shape, tmp_path):
     )
 
     assert mock_recipe_run["session"].session_dir == forcing_dir
+
+
+def test_load_legacy_forcing(tmp_path):
+    (tmp_path / FORCING_YAML).write_text(
+        """\
+        !PCRGlobWBForcing
+        start_time: '1989-01-02T00:00:00Z'
+        end_time: '1999-01-02T00:00:00Z'
+        precipitationNC: pcrglobwb_pr.nc
+        temperatureNC: pcrglobwb_tas.nc
+    """
+    )
+
+    expected = PCRGlobWBForcing(
+        start_time="1989-01-02T00:00:00Z",
+        end_time="1999-01-02T00:00:00Z",
+        directory=tmp_path,
+        precipitationNC="pcrglobwb_pr.nc",
+        temperatureNC="pcrglobwb_tas.nc",
+    )
+
+    result = load(tmp_path)
+
+    assert result == expected

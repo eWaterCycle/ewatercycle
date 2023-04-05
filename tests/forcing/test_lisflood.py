@@ -1,3 +1,4 @@
+from textwrap import dedent
 from unittest.mock import patch
 
 import pytest
@@ -6,6 +7,7 @@ from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import DataFile
 
 from ewatercycle.forcing import generate, load
+from ewatercycle.forcing._default import FORCING_YAML
 from ewatercycle.forcing._lisflood import LisfloodForcing
 
 
@@ -275,6 +277,24 @@ class TestGenerateForcingWithoutLisvap:
         assert actual == expected_recipe
         assert actual_shapefile == sample_shape
 
+    def test_saved_yaml_content(self, forcing, tmp_path):
+        saved_forcing = (tmp_path / FORCING_YAML).read_text()
+        # shape should is not included in the yaml file
+        expected = dedent(
+            """\
+        model: lisflood
+        start_time: '1989-01-02T00:00:00Z'
+        end_time: '1999-01-02T00:00:00Z'
+        PrefixPrecipitation: lisflood_pr.nc
+        PrefixTavg: lisflood_tas.nc
+        PrefixE0: e0.nc
+        PrefixES0: es0.nc
+        PrefixET0: et0.nc
+        """
+        )
+
+        assert saved_forcing == expected
+
     def test_saved_yaml(self, forcing, tmp_path):
         saved_forcing = load(tmp_path)
         # shape should is not included in the yaml file
@@ -424,3 +444,28 @@ def test_generate_with_directory(
     )
 
     assert mock_recipe_run["session"].session_dir == forcing_dir
+
+
+def test_load_legacy_forcing(tmp_path):
+    (tmp_path / FORCING_YAML).write_text(
+        """\
+        !LisfloodForcing
+        start_time: '1989-01-02T00:00:00Z'
+        end_time: '1999-01-02T00:00:00Z'
+        PrefixPrecipitation: pr.nc
+        PrefixTavg: tas.nc
+        PrefixE0: e0.nc
+        PrefixES0: es0.nc
+        PrefixET0: et0.nc
+    """
+    )
+
+    expected = LisfloodForcing(
+        start_time="1989-01-02T00:00:00Z",
+        end_time="1999-01-02T00:00:00Z",
+        directory=tmp_path,
+    )
+
+    result = load(tmp_path)
+
+    assert result == expected

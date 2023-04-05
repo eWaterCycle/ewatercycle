@@ -1,7 +1,7 @@
 """Forcing related functionality for marrmot."""
 
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 from esmvalcore.experimental import get_recipe
 
@@ -11,23 +11,17 @@ from .datasets import DATASETS
 
 
 class MarrmotForcing(DefaultForcing):
-    """Container for marrmot forcing data."""
+    """Container for marrmot forcing data.
 
-    def __init__(
-        self,
-        start_time: str,
-        end_time: str,
-        directory: str,
-        shape: Optional[str] = None,
-        forcing_file: Optional[str] = "marrmot.mat",
-    ):
-        """
+    Args:
         forcing_file: Matlab file that contains forcings for Marrmot
             models. See format forcing file in `model implementation
             <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`_.
-        """  # noqa: D205,D400
-        super().__init__(start_time, end_time, directory, shape)
-        self.forcing_file = forcing_file
+    """
+
+    # type ignored because pydantic wants literal in base class while mypy does not
+    model: Literal["marrmot"] = "marrmot"  # type: ignore
+    forcing_file: Optional[str] = "marrmot.mat"
 
     @classmethod
     def generate(  # type: ignore
@@ -98,7 +92,3 @@ class MarrmotForcing(DefaultForcing):
             shape=shape,
             forcing_file=forcing_file.name,
         )
-
-    def plot(self):
-        """Visualize forcing."""
-        raise NotImplementedError("Dont know how to plot")

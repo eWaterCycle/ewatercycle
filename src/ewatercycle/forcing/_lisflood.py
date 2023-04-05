@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 from esmvalcore.experimental import get_recipe
 
@@ -22,22 +22,9 @@ logger = logging.getLogger(__name__)
 
 
 class LisfloodForcing(DefaultForcing):
-    """Container for lisflood forcing data."""
+    """Container for lisflood forcing data.
 
-    # TODO check whether start/end time are same as in the files
-    def __init__(
-        self,
-        start_time: str,
-        end_time: str,
-        directory: str,
-        shape: Optional[str] = None,
-        PrefixPrecipitation: str = "pr.nc",
-        PrefixTavg: str = "tas.nc",
-        PrefixE0: str = "e0.nc",
-        PrefixES0: str = "es0.nc",
-        PrefixET0: str = "et0.nc",
-    ):
-        """
+    Args:
         PrefixPrecipitation: Path to a NetCDF or pcraster file with
             precipitation data
         PrefixTavg: Path to a NetCDF or pcraster file with average
@@ -48,13 +35,16 @@ class LisfloodForcing(DefaultForcing):
             evaporation rate from bare soil surface data
         PrefixET0: Path to a NetCDF or pcraster file with potential
             (reference) evapotranspiration rate data
-        """
-        super().__init__(start_time, end_time, directory, shape)
-        self.PrefixPrecipitation = PrefixPrecipitation
-        self.PrefixTavg = PrefixTavg
-        self.PrefixE0 = PrefixE0
-        self.PrefixES0 = PrefixES0
-        self.PrefixET0 = PrefixET0
+    """
+
+    # type ignored because pydantic wants literal in base class while mypy does not
+    model: Literal["lisflood"] = "lisflood"  # type: ignore
+    PrefixPrecipitation: str = "pr.nc"
+    PrefixTavg: str = "tas.nc"
+    PrefixE0: str = "e0.nc"
+    PrefixES0: str = "es0.nc"
+    PrefixET0: str = "et0.nc"
+    # TODO check whether start/end time are same as in the files
 
     @classmethod
     def generate(  # type: ignore
@@ -234,6 +224,3 @@ class LisfloodForcing(DefaultForcing):
                 PrefixPrecipitation=forcing_files["pr"],
                 PrefixTavg=forcing_files["tas"],
             )
-
-    def plot(self):
-        raise NotImplementedError("Dont know how to plot")

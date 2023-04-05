@@ -1,10 +1,12 @@
 from pathlib import Path
+from textwrap import dedent
 
 import pytest
 from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import OutputFile
 
 from ewatercycle.forcing import generate, load
+from ewatercycle.forcing._default import FORCING_YAML
 from ewatercycle.forcing._hype import HypeForcing
 
 
@@ -123,17 +125,26 @@ class TestGenerate:
             "preprocessors": {
                 "preprocessor": {
                     "area_statistics": {"operator": "mean"},
-                    "extract_shape": {"decomposed": True, "method": "contains"},
+                    "extract_shape": {
+                        "decomposed": True,
+                        "method": "contains",
+                    },
                 },
                 "temperature": {
                     "area_statistics": {"operator": "mean"},
                     "convert_units": {"units": "degC"},
-                    "extract_shape": {"decomposed": True, "method": "contains"},
+                    "extract_shape": {
+                        "decomposed": True,
+                        "method": "contains",
+                    },
                 },
                 "water": {
                     "area_statistics": {"operator": "mean"},
                     "convert_units": {"units": "kg m-2 d-1"},
-                    "extract_shape": {"decomposed": True, "method": "contains"},
+                    "extract_shape": {
+                        "decomposed": True,
+                        "method": "contains",
+                    },
                 },
             },
         }
@@ -167,7 +178,24 @@ class TestGenerate:
         )
         assert forcing == expected
 
-    def test_saved_yaml(self, forcing, tmp_path):
+    def test_saved_yaml_content(self, forcing, tmp_path):
+        saved_forcing = (tmp_path / FORCING_YAML).read_text()
+        # shape should is not included in the yaml file
+        expected = dedent(
+            """\
+        model: hype
+        start_time: '1989-01-02T00:00:00Z'
+        end_time: '1999-01-02T00:00:00Z'
+        Pobs: Pobs.txt
+        TMAXobs: TMAXobs.txt
+        TMINobs: TMINobs.txt
+        Tobs: Tobs.txt
+        """
+        )
+
+        assert saved_forcing == expected
+
+    def test_saved_yaml_by_loading(self, forcing, tmp_path):
         saved_forcing = load(tmp_path)
         # shape should is not included in the yaml file
         forcing.shape = None
@@ -187,3 +215,27 @@ def test_with_directory(mock_recipe_run, sample_shape, tmp_path):
     )
 
     assert mock_recipe_run["session"].session_dir == forcing_dir
+
+
+def test_load_legacy_forcing(tmp_path):
+    (tmp_path / FORCING_YAML).write_text(
+        """\
+        !HypeForcing
+        start_time: '1989-01-02T00:00:00Z'
+        end_time: '1999-01-02T00:00:00Z'
+        Pobs: Pobs.txt
+        TMAXobs: TMAXobs.txt
+        TMINobs: TMINobs.txt
+        Tobs: Tobs.txt
+    """
+    )
+
+    expected = HypeForcing(
+        start_time="1989-01-02T00:00:00Z",
+        end_time="1999-01-02T00:00:00Z",
+        directory=tmp_path,
+    )
+
+    result = load(tmp_path)
+
+    assert result == expected

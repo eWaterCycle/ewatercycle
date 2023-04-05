@@ -1,12 +1,15 @@
-from pathlib import Path
-from typing import Dict, Optional, Type
+from typing import Dict, Optional, Type, Union
 
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated  # type: ignore
+from pydantic import BaseModel, Field
 from ruamel.yaml import YAML
 
+from ewatercycle.forcing import _hype, _lisflood, _marrmot, _pcrglobwb, _wflow
+from ewatercycle.forcing._default import FORCING_YAML, DefaultForcing
 from ewatercycle.util import to_absolute_path
-
-from . import _hype, _lisflood, _marrmot, _pcrglobwb, _wflow
-from ._default import FORCING_YAML, DefaultForcing
 
 FORCING_CLASSES: Dict[str, Type[DefaultForcing]] = {
     "hype": _hype.HypeForcing,
@@ -26,20 +29,29 @@ def load(directory: str):
 
     Returns: Forcing object
     """
-    yaml = YAML()
+    yaml = YAML(typ="safe")
     source = to_absolute_path(directory)
     # TODO give nicer error
-    yaml.register_class(DefaultForcing)
-    for forcing_cls in FORCING_CLASSES.values():
-        yaml.register_class(forcing_cls)
-    # Set directory in yaml string to parent of yaml file
-    # Because in DefaultForcing.save the directory was removed
-    forcing_info = yaml.load(source / FORCING_YAML)
-    forcing_info.directory = source
-    if forcing_info.shape:
-        forcing_info.shape = to_absolute_path(forcing_info.shape, parent=source)
+    content = (source / FORCING_YAML).read_text()
+    # Workaround for legacy forcing files having !PythonClass tag.
+    content = content.replace("!DefaultForcing", "model: default")
+    for model_name, model in FORCING_CLASSES.items():
+        content = content.replace(f"!{model.__name__}", f"model: {model_name}")
 
-    return forcing_info
+    fdict = yaml.load(content)
+    fdict["directory"] = source
+
+    # TODO use parse_obj_as instead of this ugly workaround
+    forcing_classes = [DefaultForcing] + list(FORCING_CLASSES.values())
+
+    class ForcingContainer(BaseModel):
+        forcing: Annotated[  # type: ignore
+            # Union accepts tuple but mypy thinks it needs more than one argument
+            Union[tuple(forcing_classes)],  # type: ignore
+            Field(discriminator="model"),
+        ]
+
+    return ForcingContainer(forcing=fdict).forcing
 
 
 # Or load_custom , load_external, load_???., from_external, import_forcing,
@@ -173,7 +185,10 @@ def generate(
 
 # Append docstrings of with model-specific options to existing docstring
 load_foreign.__doc__ += "".join(  # type:ignore
-    [f"\n    {k}: {v.__init__.__doc__}" for k, v in FORCING_CLASSES.items()]
+    [
+        f"\n    {k}:\n{''.join(v.__doc__.splitlines(keepends=True)[3:])}"
+        for k, v in FORCING_CLASSES.items()
+    ]
 )
 
 generate.__doc__ += "".join(  # type:ignore

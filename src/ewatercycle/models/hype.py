@@ -118,7 +118,7 @@ class Hype(AbstractModel[HypeForcing]):
         )
 
         # copy forcing files to cfg_dir
-        if self.forcing is not None:
+        if self.forcing is not None and self.forcing.directory is not None:
             forcing_dir = self.forcing.directory
             shutil.copytree(src=forcing_dir, dst=cfg_dir_as_path, dirs_exist_ok=True)
 

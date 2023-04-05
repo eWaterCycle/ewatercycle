@@ -1,7 +1,7 @@
 """Forcing related functionality for pcrglobwb"""
 
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 from esmvalcore.experimental import get_recipe
 
@@ -16,24 +16,17 @@ from .datasets import DATASETS
 
 
 class PCRGlobWBForcing(DefaultForcing):
-    """Container for pcrglobwb forcing data."""
+    """Container for pcrglobwb forcing data.
 
-    def __init__(
-        self,
-        start_time: str,
-        end_time: str,
-        directory: str,
-        shape: Optional[str] = None,
-        precipitationNC: Optional[str] = "precipitation.nc",
-        temperatureNC: Optional[str] = "temperature.nc",
-    ):
-        """
+    Args:
         precipitationNC (str): Input file for precipitation data.
         temperatureNC (str): Input file for temperature data.
-        """
-        super().__init__(start_time, end_time, directory, shape)
-        self.precipitationNC = precipitationNC
-        self.temperatureNC = temperatureNC
+    """
+
+    # type ignored because pydantic wants literal in base class while mypy does not
+    model: Literal["pcrglobwb"] = "pcrglobwb"  # type: ignore
+    precipitationNC: Optional[str] = "precipitation.nc"
+    temperatureNC: Optional[str] = "temperature.nc"
 
     @classmethod
     def generate(  # type: ignore
@@ -119,6 +112,3 @@ class PCRGlobWBForcing(DefaultForcing):
             precipitationNC=forcing_files["pr"],
             temperatureNC=forcing_files["tas"],
         )
-
-    def plot(self):
-        raise NotImplementedError("Dont know how to plot")
