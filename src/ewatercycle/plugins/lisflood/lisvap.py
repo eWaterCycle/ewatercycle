@@ -28,9 +28,8 @@ from typing import Dict, Tuple
 from ewatercycle import CFG
 from ewatercycle.container import ContainerEngine
 from ewatercycle.parametersetdb.config import XmlConfig
-
-from ..config._lisflood_versions import version_images
-from ..util import get_time
+from ewatercycle.plugins.lisflood._lisflood_versions import version_images
+from ewatercycle.util import get_time
 
 
 def lisvap(

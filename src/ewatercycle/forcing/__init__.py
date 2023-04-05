@@ -1,5 +1,11 @@
 from typing import Dict, Optional, Type, Union
 
+from ewatercycle.plugins.hype.forcing import HypeForcing
+from ewatercycle.plugins.lisflood.forcing import LisfloodForcing
+from ewatercycle.plugins.marrmot.forcing import MarrmotForcing
+from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing
+from ewatercycle.plugins.wflow.forcing import WflowForcing
+
 try:
     from typing import Annotated
 except ImportError:
@@ -7,16 +13,15 @@ except ImportError:
 from pydantic import BaseModel, Field
 from ruamel.yaml import YAML
 
-from ewatercycle.forcing import _hype, _lisflood, _marrmot, _pcrglobwb, _wflow
 from ewatercycle.forcing._default import FORCING_YAML, DefaultForcing
 from ewatercycle.util import to_absolute_path
 
 FORCING_CLASSES: Dict[str, Type[DefaultForcing]] = {
-    "hype": _hype.HypeForcing,
-    "lisflood": _lisflood.LisfloodForcing,
-    "marrmot": _marrmot.MarrmotForcing,
-    "pcrglobwb": _pcrglobwb.PCRGlobWBForcing,
-    "wflow": _wflow.WflowForcing,
+    "hype": HypeForcing,
+    "lisflood": LisfloodForcing,
+    "marrmot": MarrmotForcing,
+    "pcrglobwb": PCRGlobWBForcing,
+    "wflow": WflowForcing,
 }
 
 

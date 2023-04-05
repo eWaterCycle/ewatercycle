@@ -1,7 +1,2 @@
-
-
 class BmiHandles:
-    """eWaterCycle BMI handles.
-
-    """
-
+    """eWaterCycle BMI handles."""

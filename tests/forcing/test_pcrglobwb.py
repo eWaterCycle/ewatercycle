@@ -10,7 +10,7 @@ from esmvalcore.experimental.recipe_output import DataFile
 
 from ewatercycle.forcing import generate, load
 from ewatercycle.forcing._default import FORCING_YAML
-from ewatercycle.forcing._pcrglobwb import PCRGlobWBForcing
+from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing
 
 
 def create_netcdf(var_name, filename):

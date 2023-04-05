@@ -4,11 +4,12 @@ from os import linesep
 from typing import Dict, Optional, Tuple
 
 from ewatercycle import CFG
-
-from ..config import SYSTEM_CONFIG, USER_HOME_CONFIG
-from ..parameter_set import ParameterSet
-from . import _lisflood, _pcrglobwb, _wflow
-from ._example import ExampleParameterSet
+from ewatercycle.config import SYSTEM_CONFIG, USER_HOME_CONFIG
+from ewatercycle.parameter_set import ParameterSet
+from ewatercycle.parameter_sets._example import ExampleParameterSet
+from ewatercycle.plugins.lisflood import example_parameterset as lisflood_eps
+from ewatercycle.plugins.pcrglobwb import example_parameterset as pcrglobwb_eps
+from ewatercycle.plugins.wflow import example_parameterset as wflow_eps
 
 logger = getLogger(__name__)
 
@@ -79,9 +80,9 @@ def example_parameter_sets() -> Dict[str, ExampleParameterSet]:
     They can be downloaded with :py:func:`~download_example_parameter_sets`."""
     # TODO how to add a new model docs should be updated with this part
     examples = chain(
-        _wflow.example_parameter_sets(),
-        _pcrglobwb.example_parameter_sets(),
-        _lisflood.example_parameter_sets(),
+        wflow_eps.example_parameter_sets(),
+        lisflood_eps.example_parameter_sets(),
+        pcrglobwb_eps.example_parameter_sets(),
     )
     return {e.name: e for e in examples}
 

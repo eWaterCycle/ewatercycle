@@ -7,7 +7,7 @@ from esmvalcore.experimental.recipe_output import OutputFile
 
 from ewatercycle.forcing import generate, load, load_foreign
 from ewatercycle.forcing._default import FORCING_YAML
-from ewatercycle.forcing._marrmot import MarrmotForcing
+from ewatercycle.plugins.marrmot.forcing import MarrmotForcing
 
 
 def test_plot():
