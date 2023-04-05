@@ -18,10 +18,6 @@ FORCING_CLASSES: Dict[str, Type[DefaultForcing]] = {
 }
 
 
-class ForcingContainer(BaseModel):
-    forcing: DefaultForcing
-
-
 def load(directory: str):
     """Load previously generated or imported forcing data.
 

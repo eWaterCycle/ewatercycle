@@ -27,7 +27,7 @@ class DefaultForcing(BaseModel):
         shape: Path to a shape file. Used for spatial selection.
     """
 
-    model: str = "default"
+    model: Literal["default"] = "default"
     start_time: str
     end_time: str
     directory: Optional[Path] = None

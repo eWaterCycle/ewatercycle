@@ -21,7 +21,8 @@ class HypeForcing(DefaultForcing):
         Tobs (str): Input file for temperature data.
     """
 
-    model: Literal["hype"] = "hype"
+    # type ignored because pydantic wants literal in base class while mypy does not
+    model: Literal["hype"] = "hype"  # type: ignore
     Pobs: str = "Pobs.txt"
     TMAXobs: str = "TMAXobs.txt"
     TMINobs: str = "TMINobs.txt"
