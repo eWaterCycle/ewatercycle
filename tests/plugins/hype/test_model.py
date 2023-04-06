@@ -11,7 +11,7 @@ from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.plugins.hype.model import Hype, _set_code_in_cfg
-from tests.models.fake_models import FailingModel
+from ewatercycle.testing.fake_models import FailingModel
 
 
 @pytest.fixture

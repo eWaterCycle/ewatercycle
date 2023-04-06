@@ -12,7 +12,7 @@ from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
 from ewatercycle.parameter_sets import ParameterSet, example_parameter_sets
 from ewatercycle.plugins.pcrglobwb.model import PCRGlobWB
-from tests.models.fake_models import FailingModel
+from ewatercycle.testing.fake_models import FailingModel
 
 
 class MockedBmi(FailingModel):

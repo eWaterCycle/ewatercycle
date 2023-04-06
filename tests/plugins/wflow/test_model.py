@@ -13,7 +13,7 @@ from ewatercycle import CFG
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.plugins.wflow.model import Wflow
-from tests.models.fake_models import FailingModel
+from ewatercycle.testing.fake_models import FailingModel
 
 
 class MockedBmi(FailingModel):
