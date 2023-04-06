@@ -12,7 +12,7 @@ from bmipy import Bmi
 from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
-from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.model import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 
 

@@ -11,7 +11,7 @@ from cftime import num2date
 
 from ewatercycle import CFG
 from ewatercycle.container import start_container
-from ewatercycle.models.abstract import AbstractModel
+from ewatercycle.model import AbstractModel
 from ewatercycle.parameter_sets import ParameterSet
 from ewatercycle.parametersetdb.config import XmlConfig
 from ewatercycle.plugins.lisflood._lisflood_versions import version_images
