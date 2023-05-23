@@ -4,7 +4,7 @@ channels:
   - conda-forge
 dependencies:
   # Numba 0.56.4 does not support Python 3.11 so set upper limit
-  - python>=3.8,<3.11
+  - python>=3.10,<3.11
   - esmvaltool-python>=2.3.0
   - subversion
   # Pin esmpy so we dont get forced to run all parallel tasks on single cpu

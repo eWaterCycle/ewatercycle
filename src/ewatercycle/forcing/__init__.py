@@ -1,10 +1,5 @@
 from typing import Dict, Optional, Type, Union
-
-from ewatercycle.plugins.hype.forcing import HypeForcing
-from ewatercycle.plugins.lisflood.forcing import LisfloodForcing
-from ewatercycle.plugins.marrmot.forcing import MarrmotForcing
-from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing
-from ewatercycle.plugins.wflow.forcing import WflowForcing
+from importlib.metadata import entry_points
 
 try:
     from typing import Annotated
@@ -16,12 +11,9 @@ from ruamel.yaml import YAML
 from ewatercycle.forcing._default import FORCING_YAML, DefaultForcing
 from ewatercycle.util import to_absolute_path
 
-FORCING_CLASSES: Dict[str, Type[DefaultForcing]] = {
-    "hype": HypeForcing,
-    "lisflood": LisfloodForcing,
-    "marrmot": MarrmotForcing,
-    "pcrglobwb": PCRGlobWBForcing,
-    "wflow": WflowForcing,
+FORCING_CLASSES = {
+    entry_point.name: entry_point.load()
+    for entry_point in entry_points(group="ewatercycle.forcings")
 }
 
 
