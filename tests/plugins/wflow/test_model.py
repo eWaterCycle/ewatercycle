@@ -10,7 +10,7 @@ from grpc import FutureTimeoutError
 from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
 from ewatercycle import CFG
-from ewatercycle.parameter_sets import ParameterSet
+from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.plugins.wflow.model import Wflow
 from ewatercycle.testing.fake_models import FailingModel

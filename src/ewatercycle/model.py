@@ -13,7 +13,7 @@ from grpc4bmi.reserve import reserve_values, reserve_values_at_indices
 
 from ewatercycle._repr import Representation
 from ewatercycle.forcing import DefaultForcing
-from ewatercycle.parameter_sets import ParameterSet
+from ewatercycle.base.parameter_set import ParameterSet
 
 logger = logging.getLogger(__name__)
 

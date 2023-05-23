@@ -11,10 +11,12 @@ from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
-from ewatercycle.parameter_sets import ParameterSet, example_parameter_sets
+from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.parametersetdb.config import XmlConfig
 from ewatercycle.plugins.lisflood.model import Lisflood
 from ewatercycle.testing.fake_models import FailingModel
+
+from ewatercycle.parameter_sets import example_parameter_sets
 
 
 @pytest.fixture

@@ -5,13 +5,10 @@ import pytest
 
 from ewatercycle import CFG
 from ewatercycle.config import Configuration
-from ewatercycle.parameter_sets import (
-    ExampleParameterSet,
-    available_parameter_sets,
-    download_example_parameter_sets,
-    example_parameter_sets,
-    get_parameter_set,
-)
+
+from ewatercycle.parameter_sets import available_parameter_sets, download_example_parameter_sets, example_parameter_sets
+
+from ewatercycle.base.parameter_set import ParameterSet
 
 
 @pytest.fixture
@@ -55,7 +52,7 @@ def mocked_parameterset_dir(setup_config, tmp_path):
 
 class TestAvailableParameterSets:
     def test_filled(self, mocked_parameterset_dir):
-        names = available_parameter_sets("generic")
+        names = available_parameter_sets("generic").keys()
         assert set(names) == {
             "ps1",
             "ps2",
@@ -73,21 +70,14 @@ class TestAvailableParameterSets:
 
         assert "No parameter sets defined for somemodel model in" in str(excinfo.value)
 
-
-class TestGetParameterSet:
-    def test_valid(self, mocked_parameterset_dir, tmp_path):
-        actual = get_parameter_set("ps1")
+    def test_value(self, mocked_parameterset_dir, tmp_path):
+        actual = available_parameter_sets()["ps1"]
 
         assert actual.name == "ps1"
         assert actual.directory == tmp_path / "ps1"
         assert actual.config == tmp_path / "ps1" / "mymockedconfig1.ini"
         assert actual.doi == "somedoi1"
         assert actual.target_model == "generic"
-
-    def test_unknown(self, mocked_parameterset_dir):
-        with pytest.raises(KeyError):
-            get_parameter_set("ps9999")
-
 
 def test_example_parameter_sets(setup_config):
     examples = example_parameter_sets()
@@ -96,7 +86,7 @@ def test_example_parameter_sets(setup_config):
         assert name == examples[name].name
 
 
-@patch.object(ExampleParameterSet, "download")
+@patch.object(ParameterSet, "download")
 def test_download_example_parameter_sets(mocked_download, setup_config, tmp_path):
     download_example_parameter_sets()
 

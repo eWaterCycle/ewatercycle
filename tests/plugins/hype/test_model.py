@@ -9,7 +9,7 @@ from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
 from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
-from ewatercycle.parameter_sets import ParameterSet
+from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.plugins.hype.model import Hype, _set_code_in_cfg
 from ewatercycle.testing.fake_models import FailingModel
 

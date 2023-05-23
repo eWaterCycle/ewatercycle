@@ -1,16 +1,20 @@
-from logging import getLogger
-from pathlib import Path
-from shutil import unpack_archive
-from typing import Set
-import fsspec
-
-from gitdir.gitdir import download as github_download
-from pydantic import BaseModel, HttpUrl
-
 from ewatercycle.util import to_absolute_path
-from ewatercycle.config import CFG
+
+from shutil import unpack_archive
+import fsspec
+from logging import getLogger
+from gitdir.gitdir import download as github_download
+from pydantic import HttpUrl
+from pydantic import BaseModel
+
+
+from pathlib import Path
+from typing import Set
+
 
 logger = getLogger(__name__)
+
+
 
 class GitHubDownloader(BaseModel):
     repo: HttpUrl
@@ -46,6 +50,7 @@ class ArchiveDownloader(BaseModel):
         with fsspec.open(self.url, 'rb') as file:
             unpack_archive(file, directory)
 
+
 class ParameterSet(BaseModel):
     """Container object for parameter set options."""
 
@@ -57,7 +62,7 @@ class ParameterSet(BaseModel):
     config: Path
     """Model configuration file which uses files from
     :py:attr:`~directory`. If Path is relative then relative to
-    CFG.parameterset_dir."""
+    :py:attr:`~directory`."""
     doi: str = "N/A"
     """Persistent identifier of parameter set. For a example a DOI
     for a Zenodo record."""
@@ -67,8 +72,8 @@ class ParameterSet(BaseModel):
     """Set of model versions that are
     supported by this parameter set. If not set then parameter set will be
     supported by all versions of model"""
-    downloader: GitHubDownloader |  | None = None
-    
+    downloader: GitHubDownloader | ZenodoDownloader | ArchiveDownloader  | None = None
+
     class Config:
         extra = "forbid"
 
@@ -82,8 +87,8 @@ class ParameterSet(BaseModel):
             + [f"{k}={v!s}" for k, v in self.__dict__.items()]
         )
 
-    def download(self, force=False):
-        self.make_absolute(CFG.parameterset_dir)
+    def download(self, directory, force=False):
+        self.make_absolute(directory)
         if not self.config.exists() and not force:
             logger.info(
                 f"Directory {self.directory} for parameter set {self.name}"
@@ -104,26 +109,23 @@ class ParameterSet(BaseModel):
     @classmethod
     def from_github(cls, repo: str , **kwargs):
         """Create a parameter set from a GitHub repository.
-
         Args:
             repo: URL of directory in GitHub repository.
             **kwargs: See :py:class:`ParameterSet` for other arguments.
         """
         kwargs.pop('downloader')
-        # TODO deal with missing directory
         downloader = GitHubDownloader(repo=repo)  # pyright: ignore
         return ParameterSet(downloader=downloader,
                             **kwargs)
 
     @classmethod
     def from_zenodo(cls, doi: str, **kwargs):
-        kwargs.pop('doi')
         kwargs.pop('downloader')
         downloader = ZenodoDownloader(doi=doi)
         return ParameterSet(doi=doi,
                             downloader=downloader,
                             **kwargs)
-    
+
     @classmethod
     def from_archive_url(cls, url: str, **kwargs):
         kwargs.pop('downloader')
@@ -133,10 +135,8 @@ class ParameterSet(BaseModel):
 
     def make_absolute(self, parameterset_dir: Path) -> "ParameterSet":
         """Make self.directory and self.config absolute paths.
-
         Args:
             parameterset_dir: Directory to which relative paths should be made absolute.
-
         Returns:
             self
         """
@@ -146,29 +146,6 @@ class ParameterSet(BaseModel):
             )
         if not self.config.is_absolute():
             self.config = to_absolute_path(
-                self.config, parameterset_dir, must_be_in_parent=False
+                self.config, self.directory, must_be_in_parent=False
             )
         return self
-
-def add_to_config(parameter_set: ParameterSet):
-    """Add a parameter set to the ewatercycle.CFG object."""
-    logger.info(f"Adding parameterset {parameter_set.name} to ewatercycle.CFG... ")
-
-    if not CFG.parameter_sets:
-        CFG.parameter_sets = {}
-
-    CFG.parameter_sets[self.name] = dict(
-        directory=str(_abbreviate(parameter_set.directory)),
-        config=str(_abbreviate(parameter_set.config)),
-        doi=parameter_set.doi,
-        target_model=parameter_set.target_model,
-        supported_model_versions=parameter_set.supported_model_versions,
-    )
-
-def _abbreviate(path: Path):
-    try:
-        if CFG.parameterset_dir is None:
-            raise ValueError(f"Can not abbreviate path without CFG.parameterset_dir")
-        return path.relative_to(CFG.parameterset_dir)
-    except ValueError:
-        return path

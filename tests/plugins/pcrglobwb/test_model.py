@@ -10,9 +10,13 @@ from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
 from ewatercycle import CFG
 from ewatercycle.forcing import load_foreign
-from ewatercycle.parameter_sets import ParameterSet, example_parameter_sets
+
 from ewatercycle.plugins.pcrglobwb.model import PCRGlobWB
 from ewatercycle.testing.fake_models import FailingModel
+
+from ewatercycle.parameter_sets import add_to_config, example_parameter_sets
+
+from ewatercycle.base.parameter_set import ParameterSet
 
 
 class MockedBmi(FailingModel):
@@ -65,7 +69,7 @@ def mocked_config(tmp_path: Path):
 def parameter_set(mocked_config):
     example_parameter_set = example_parameter_sets()["pcrglobwb_rhinemeuse_30min"]
     example_parameter_set.download()
-    example_parameter_set.to_config()
+    add_to_config(example_parameter_set)
     return example_parameter_set
 
 

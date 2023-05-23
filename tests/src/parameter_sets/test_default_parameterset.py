@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from ewatercycle import CFG
-from ewatercycle.parameter_sets import ParameterSet
+from ewatercycle.base.parameter_set import ParameterSet
 
 
 class TestDefaults:

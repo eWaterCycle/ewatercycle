@@ -13,7 +13,7 @@ from cftime import num2date
 from ewatercycle import CFG
 from ewatercycle.container import VersionImages, start_container
 from ewatercycle.model import AbstractModel
-from ewatercycle.parameter_sets import ParameterSet
+from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.plugins.wflow.forcing import WflowForcing
 from ewatercycle.util import find_closest_point, get_time, to_absolute_path

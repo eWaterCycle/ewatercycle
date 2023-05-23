@@ -1,24 +1,48 @@
+from importlib.metadata import entry_points
 from logging import getLogger
 from os import linesep
-from typing import Dict, Optional, Tuple
-from importlib.metadata import entry_points
+from pathlib import Path
+from typing import Dict, Optional
 
-from ewatercycle import CFG
-from ewatercycle.config import SYSTEM_CONFIG, USER_HOME_CONFIG
-from ewatercycle.parameter_set import ParameterSet, add_to_config
 
+from ewatercycle.config import CFG, SYSTEM_CONFIG, USER_HOME_CONFIG
+
+from ewatercycle.base.parameter_set import ParameterSet
 
 logger = getLogger(__name__)
 
 
-def available_parameter_sets(target_model: Optional[str] = None) -> Tuple[str, ...]:
-    """List available parameter sets on this machine.
+def add_to_config(parameter_set: ParameterSet):
+    """Add a parameter set to the ewatercycle.CFG object."""
+    logger.info(f"Adding parameterset {parameter_set.name} to ewatercycle.CFG... ")
 
+    if not CFG.parameter_sets:
+        CFG.parameter_sets = {}
+
+    CFG.parameter_sets[self.name] = dict(
+        directory=str(_abbreviate(parameter_set.directory)),
+        config=str(_abbreviate(parameter_set.config)),
+        doi=parameter_set.doi,
+        target_model=parameter_set.target_model,
+        supported_model_versions=parameter_set.supported_model_versions,
+    )
+
+def _abbreviate(path: Path):
+    try:
+        if CFG.parameterset_dir is None:
+            raise ValueError(f"Can not abbreviate path without CFG.parameterset_dir")
+        return path.relative_to(CFG.parameterset_dir)
+    except ValueError:
+        return path
+
+
+def available_parameter_sets(target_model: Optional[str] = None) -> Dict[str, ParameterSet]:
+    """List available parameter sets on this machine.
+    
     Args:
         target_model: Filter parameter sets on a model name
-
-    Returns: Names of available parameter sets on current machine.
-
+    Returns: 
+        Dictionary available parameter sets on current machine.
     """
     all_parameter_sets = CFG.parameter_sets
     if not all_parameter_sets:
@@ -29,11 +53,11 @@ def available_parameter_sets(target_model: Optional[str] = None) -> Tuple[str, .
             "system to do it."
         )
         # TODO explain somewhere how to add new parameter sets
-    filtered = tuple(
-        name
+    filtered = {
+        name: ps
         for name, ps in all_parameter_sets.items()
         if (target_model is None or ps.target_model == target_model)
-    )
+    }
     if not filtered:
         raise ValueError(
             f"No parameter sets defined for {target_model} model in "
@@ -45,52 +69,30 @@ def available_parameter_sets(target_model: Optional[str] = None) -> Tuple[str, .
     return filtered
 
 
-def get_parameter_set(name: str) -> ParameterSet:
-    """Get parameter set object available on this machine so it can be used in a model.
-
-    Args:
-        name: Name of parameter set
-
-    Returns: Parameter set object that can be used in an ewatercycle model constructor.
-
-    """
-    all_parameter_sets = CFG.parameter_sets
-
-    ps = all_parameter_sets.get(name)
-    if ps is None:
-        raise KeyError(f"No parameter set available with name {name}")
-
-    return ps
-
-
 def example_parameter_sets() -> Dict[str, ParameterSet]:
     """Lists the available example parameter sets.
-
     They can be downloaded with :py:func:`~download_example_parameter_sets`."""
     # TODO how to add a new model docs should be updated with this part
     return {
-        entry_point.name: entry_point.load() 
-        for entry_point in entry_points(group="ewatercycle.example_parameter_set")
+        entry_point.name: entry_point.load()
+        for entry_point in entry_points(group="ewatercycle.parameter_sets")
     }
 
 
 def download_example_parameter_sets(skip_existing=True):
     """Downloads all of the example parameter sets and adds them to the config_file.
-
     Downloads to `parameterset_dir` directory defined in
     :py:data:`ewatercycle.config.CFG`.
-
     Args:
         skip_existing: When true will not download any parameter set which
             already has a local directory. When false will raise ValueError
             exception when parameter set already exists.
-
     """
     examples = example_parameter_sets()
 
     i = 0
     for example in examples.values():
-        example.download(force=not skip_existing)
+        example.download(CFG.parameterset_dir, force=not skip_existing)
         add_to_config(example)
         i += 1
 
@@ -106,3 +108,6 @@ def download_example_parameter_sets(skip_existing=True):
             f"or {SYSTEM_CONFIG} file: {linesep}"
             f"{CFG.dump_to_yaml()}"
         ) from e
+
+
+

@@ -13,7 +13,7 @@ from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
 from ewatercycle.model import AbstractModel
-from ewatercycle.parameter_sets import ParameterSet
+from ewatercycle.base.parameter_set import ParameterSet
 
 
 @pytest.fixture

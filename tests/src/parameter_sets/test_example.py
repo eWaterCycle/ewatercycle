@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from ewatercycle import CFG
-from ewatercycle.parameter_sets import ExampleParameterSet
+from ewatercycle.parameter_sets import ParameterSet
 
 
 @pytest.fixture
@@ -26,7 +26,7 @@ def example(setup_config, tmp_path: Path):
     ps_dir.mkdir()
     ps_config = ps_dir / "config.ini"
     ps_config.write_text("some config")
-    ps = ExampleParameterSet(
+    ps = ParameterSet(
         name="firstexample",
         config_url="https://github.com/mymodelorg/mymodelrepo/raw/master/mymodelexample/config.ini",  # noqa: E501
         datafiles_url="https://github.com/mymodelorg/mymodelrepo/trunk/mymodelexample",
