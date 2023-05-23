@@ -1,10 +1,7 @@
 from typing import Dict, Optional, Type, Union
 from importlib.metadata import entry_points
 
-try:
-    from typing import Annotated
-except ImportError:
-    from typing_extensions import Annotated  # type: ignore
+from typing import Annotated
 from pydantic import BaseModel, Field
 from ruamel.yaml import YAML
 
