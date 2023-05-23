@@ -8,7 +8,7 @@ from ruamel.yaml import YAML
 from ewatercycle.forcing._default import FORCING_YAML, DefaultForcing
 from ewatercycle.util import to_absolute_path
 
-FORCING_CLASSES = {
+FORCING_CLASSES: dict[str, Type[DefaultForcing]] = {
     entry_point.name: entry_point.load()
     for entry_point in entry_points(group="ewatercycle.forcings")
 }
