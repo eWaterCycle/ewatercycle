@@ -1,15 +1,12 @@
-from itertools import chain
 from logging import getLogger
 from os import linesep
 from typing import Dict, Optional, Tuple
+from importlib.metadata import entry_points
 
 from ewatercycle import CFG
 from ewatercycle.config import SYSTEM_CONFIG, USER_HOME_CONFIG
-from ewatercycle.parameter_set import ParameterSet
-from ewatercycle.parameter_sets._example import ExampleParameterSet
-from ewatercycle.plugins.lisflood import example_parameterset as lisflood_eps
-from ewatercycle.plugins.pcrglobwb import example_parameterset as pcrglobwb_eps
-from ewatercycle.plugins.wflow import example_parameterset as wflow_eps
+from ewatercycle.parameter_set import ParameterSet, add_to_config
+
 
 logger = getLogger(__name__)
 
@@ -66,25 +63,15 @@ def get_parameter_set(name: str) -> ParameterSet:
     return ps
 
 
-def download_parameter_sets(zenodo_doi: str, target_model: str, config: str):
-    # TODO add docstring
-    # TODO download archive matching doi from Zenodo
-    # TODO unpack archive in CFG.parameterset_dir subdirectory
-    # TODO print yaml snippet with target_model and config to add to ewatercycle.yaml
-    raise NotImplementedError("Auto download of parameter sets not yet supported")
-
-
-def example_parameter_sets() -> Dict[str, ExampleParameterSet]:
+def example_parameter_sets() -> Dict[str, ParameterSet]:
     """Lists the available example parameter sets.
 
     They can be downloaded with :py:func:`~download_example_parameter_sets`."""
     # TODO how to add a new model docs should be updated with this part
-    examples = chain(
-        wflow_eps.example_parameter_sets(),
-        lisflood_eps.example_parameter_sets(),
-        pcrglobwb_eps.example_parameter_sets(),
-    )
-    return {e.name: e for e in examples}
+    return {
+        entry_point.name: entry_point.load() 
+        for entry_point in entry_points(group="ewatercycle.example_parameter_set")
+    }
 
 
 def download_example_parameter_sets(skip_existing=True):
@@ -103,8 +90,8 @@ def download_example_parameter_sets(skip_existing=True):
 
     i = 0
     for example in examples.values():
-        example.download(skip_existing)
-        example.to_config()
+        example.download(force=not skip_existing)
+        add_to_config(example)
         i += 1
 
     logger.info(f"{i} example parameter sets were downloaded")
