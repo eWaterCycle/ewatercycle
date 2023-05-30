@@ -13,7 +13,7 @@ from ewatercycle import CFG
 from ewatercycle.container import VersionImages, start_container
 from ewatercycle.base.model import AbstractModel
 from ewatercycle.base.parameter_set import ParameterSet
-from ewatercycle.parametersetdb.config import CaseConfigParser
+from ewatercycle.util import CaseConfigParser
 from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing
 from ewatercycle.util import find_closest_point, get_time, to_absolute_path
 
