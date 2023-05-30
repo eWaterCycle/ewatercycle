@@ -6,8 +6,8 @@ from typing import Literal, Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ewatercycle.forcing._default import DefaultForcing, _session
-from ewatercycle.forcing.datasets import DATASETS
+from ewatercycle.base.forcing import _session
+from ewatercycle.base.forcing import DATASETS
 from ewatercycle.plugins.lisflood.lisvap import create_lisvap_config, lisvap
 from ewatercycle.util import (
     data_files_from_recipe_output,
@@ -17,6 +17,8 @@ from ewatercycle.util import (
     reindex,
     to_absolute_path,
 )
+
+from ewatercycle.base.forcing import DefaultForcing
 
 logger = logging.getLogger(__name__)
 

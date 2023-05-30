@@ -9,7 +9,7 @@ from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import DataFile
 
 from ewatercycle.forcing import generate, load
-from ewatercycle.forcing._default import FORCING_YAML
+from ewatercycle.base.forcing import FORCING_YAML
 from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing
 
 

@@ -5,8 +5,10 @@ from typing import Annotated
 from pydantic import BaseModel, Field
 from ruamel.yaml import YAML
 
-from ewatercycle.forcing._default import FORCING_YAML, DefaultForcing
+from ewatercycle.base.forcing import FORCING_YAML
 from ewatercycle.util import to_absolute_path
+
+from ewatercycle.base.forcing import DefaultForcing
 
 FORCING_CLASSES: dict[str, Type[DefaultForcing]] = {
     entry_point.name: entry_point.load()

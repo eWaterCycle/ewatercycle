@@ -1,23 +1,22 @@
-"""Forcing related functionality for default models."""
-import logging
-from pathlib import Path
-from typing import Literal, Optional, Union
-
 from esmvalcore.experimental import CFG
 from esmvalcore.experimental.config import Session
+from ewatercycle.util import to_absolute_path
+
+import logging
 from pydantic import BaseModel, validator
 from ruamel.yaml import YAML
 
-from ewatercycle.util import to_absolute_path
+
+from pathlib import Path
+from typing import Literal, Optional, Union
+
 
 logger = logging.getLogger(__name__)
-
 FORCING_YAML = "ewatercycle_forcing.yaml"
 
 
 class DefaultForcing(BaseModel):
     """Container for forcing data.
-
     Args:
         directory: Directory where forcing data files are stored.
         start_time: Start time of forcing in UTC and ISO format string e.g.
@@ -103,3 +102,21 @@ def _session(directory: Optional[str] = None) -> Optional[Session]:
             return self.output_dir
 
     return TimeLessSession(Path(directory).absolute())
+
+
+DATASETS = {
+    "ERA5": {
+        "dataset": "ERA5",
+        "project": "OBS6",
+        "tier": 3,
+        "type": "reanaly",
+        "version": 1,
+    },
+    "ERA-Interim": {
+        "dataset": "ERA-Interim",
+        "project": "OBS6",
+        "tier": 3,
+        "type": "reanaly",
+        "version": 1,
+    },
+}

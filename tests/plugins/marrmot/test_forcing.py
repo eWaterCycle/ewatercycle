@@ -6,7 +6,7 @@ from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import OutputFile
 
 from ewatercycle.forcing import generate, load, load_foreign
-from ewatercycle.forcing._default import FORCING_YAML
+from ewatercycle.base.forcing import FORCING_YAML
 from ewatercycle.plugins.marrmot.forcing import MarrmotForcing
 
 

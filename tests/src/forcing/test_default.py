@@ -3,12 +3,12 @@ import logging
 import pytest
 
 from ewatercycle.forcing import (
-    FORCING_YAML,
-    DefaultForcing,
     generate,
     load,
     load_foreign,
 )
+
+from ewatercycle.base.forcing import FORCING_YAML, DefaultForcing
 
 
 def test_generate_unknown_model(sample_shape):

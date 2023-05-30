@@ -1,6 +1,6 @@
 from ewatercycle._repr import Representation
 from ewatercycle.base.parameter_set import ParameterSet
-from ewatercycle.forcing import DefaultForcing
+from ewatercycle.base.forcing import DefaultForcing
 
 
 import logging

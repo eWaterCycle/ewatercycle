@@ -8,7 +8,7 @@ from esmvalcore.experimental.recipe import Recipe
 from esmvalcore.experimental.recipe_output import DataFile
 
 from ewatercycle.forcing import generate, load
-from ewatercycle.forcing._default import FORCING_YAML
+from ewatercycle.base.forcing import FORCING_YAML
 from ewatercycle.plugins.wflow.forcing import WflowForcing
 
 
