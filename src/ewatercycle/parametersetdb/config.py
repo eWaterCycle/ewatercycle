@@ -1,20 +1,11 @@
 # -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
-from configparser import ConfigParser
-from typing import Any, Dict, Type
+from typing import Any
 from urllib.request import urlopen
-from xml.etree import ElementTree as ET
 
 from ruamel.yaml import YAML
 
-
-class CaseConfigParser(ConfigParser):
-    """Case sensitive config parser
-    See https://stackoverflow.com/questions/1611799/preserve-case-in-configparser
-    """
-
-    def optionxform(self, optionstr):
-        return optionstr
+from ewatercycle.util import CaseConfigParser
 
 
 def fetch(url):
@@ -77,31 +68,4 @@ class YamlConfig(AbstractConfig):
             self.yaml.dump(self.config, f)
 
 
-CONFIG_FORMATS: Dict[str, Type[AbstractConfig]] = {
-    "ini": IniConfig,
-    "yaml": YamlConfig,
-}
 
-
-class XmlConfig(AbstractConfig):
-    """Config container where config is read/saved in xml format."""
-
-    def __init__(self, source):
-        """Config container where config is read/saved in xml format.
-
-        Args:
-            source: file to read from
-        """
-        super().__init__(source)
-        self.tree = ET.parse(source)
-        self.config = self.tree.getroot()  # mypy complains with ET.Element
-        """XML element used to make changes to the config"""
-
-    def save(self, target):
-        """Save xml to file.
-
-        Args:
-            target: file to save to
-
-        """
-        self.tree.write(target)
