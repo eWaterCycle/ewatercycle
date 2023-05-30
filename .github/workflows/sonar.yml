@@ -19,7 +19,7 @@ jobs:
           activate-environment: ewatercycle
           environment-file: environment.yml
           mamba-version: "*"
-          python-version: 3.10
+          python-version: "3.10"
           miniconda-version: "latest"
           channels: conda-forge
       - name: Install dependencies
