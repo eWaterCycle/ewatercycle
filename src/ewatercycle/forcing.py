@@ -1,7 +1,9 @@
 """Forcing module of eWaterCycle. Contains the model sources."""
-from importlib.metadata import entry_points, EntryPoint
+from importlib.metadata import entry_points
+from importlib_metadata import EntryPoint
 from collections.abc import Mapping
 from ewatercycle.base.forcing import DefaultForcing
+from typing import Type, Any
 
 
 class ForcingSources(Mapping):
@@ -15,7 +17,7 @@ class ForcingSources(Mapping):
     def __init__(self, *args, **kw):
         self._raw_dict = dict(*args, **kw)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> Type[DefaultForcing]:
         """Gets the entry point, loads it, and returns the Forcing object."""
         if isinstance(self._raw_dict[key], EntryPoint):
             return self._raw_dict[key].load()
@@ -25,7 +27,7 @@ class ForcingSources(Mapping):
     def __getattr__(self, attr):
         """Accesses the keys like attributes. E.g. sources.HypeForcing."""
         if attr in self._raw_dict.keys():
-            return self[attr]
+            return self.__getitem__(attr)
         else:
             return getattr(self._raw_dict, attr)
 
@@ -39,7 +41,7 @@ class ForcingSources(Mapping):
         return self.__class__.__name__ + str(list(self._raw_dict.keys()))
 
 
-_forcings = {
+_forcings: dict[str, Any] = {
     entry_point.name: entry_point
     for entry_point in entry_points(group="ewatercycle.forcings")
 }

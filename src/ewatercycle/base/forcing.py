@@ -17,6 +17,7 @@ FORCING_YAML = "ewatercycle_forcing.yaml"
 
 class DefaultForcing(BaseModel):
     """Container for forcing data.
+
     Args:
         directory: Directory where forcing data files are stored.
         start_time: Start time of forcing in UTC and ISO format string e.g.
