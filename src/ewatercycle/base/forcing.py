@@ -1,5 +1,5 @@
 from esmvalcore.experimental import CFG
-from esmvalcore.experimental.config import Session
+from esmvalcore.config import Session
 from ewatercycle.util import to_absolute_path
 
 import logging
@@ -79,6 +79,41 @@ class DefaultForcing(BaseModel):
         with open(target, "w") as f:
             yaml.dump(fdict, f)
         return target
+    
+    @classmethod
+    def load(cls, directory: str | Path):
+        """Load previously generated or imported forcing data.
+
+        Args:
+            directory: forcing data directory; must contain
+                `ewatercycle_forcing.yaml` file
+
+        Returns: Forcing object
+        """
+        data_source = to_absolute_path(directory)
+        meta = (data_source / FORCING_YAML)
+        yaml = YAML(typ="safe")
+
+        if not meta.exists():
+            raise FileNotFoundError(
+                f"Forcing file {meta} not found. "
+                f"Perhaps you want to use {cls.__name__}(...)?"
+            )
+        metadata = meta.read_text()
+        # Workaround for legacy forcing files having !PythonClass tag.
+        metadata = metadata.replace(
+            f"!{cls.__name__}",
+            f"model: {cls.model}"
+        )
+
+        fdict = yaml.load(metadata)
+        fdict["directory"] = data_source
+
+        return cls(**fdict)
+
+    @classmethod
+
+
 
     def plot(self):
         raise NotImplementedError("No generic plotting method available.")

@@ -14,6 +14,12 @@ class WflowForcing(DefaultForcing):
     """Container for wflow forcing data.
 
     Args:
+        directory: Directory where forcing data files are stored.
+        start_time: Start time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        end_time: End time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        shape: Path to a shape file. Used for spatial selection.
         netcdfinput (str) = "inmaps.nc": Path to forcing file.
         Precipitation (str) = "/pr": Variable name of precipitation data in
             input file.
@@ -88,10 +94,12 @@ class WflowForcing(DefaultForcing):
         directory = str(forcing_file.parent)
 
         # instantiate forcing object based on generated data
-        return WflowForcing(
+        generated_forcing = WflowForcing(
             directory=directory,
             start_time=start_time,
             end_time=end_time,
             shape=shape,
             netcdfinput=forcing_file.name,
         )
+        generated_forcing.save()
+        return generated_forcing

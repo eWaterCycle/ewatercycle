@@ -20,8 +20,16 @@ class PCRGlobWBForcing(DefaultForcing):
     """Container for pcrglobwb forcing data.
 
     Args:
-        precipitationNC (str): Input file for precipitation data.
-        temperatureNC (str): Input file for temperature data.
+        directory: Directory where forcing data files are stored.
+        start_time: Start time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        end_time: End time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        shape: Path to a shape file. Used for spatial selection.
+        precipitationNC (optional): Input file for precipitation data. Defaults to
+            'precipitation.nc'.
+        temperatureNC (optional): Input file for temperature data. Defaults to
+            'temperature.nc'
     """
 
     # type ignored because pydantic wants literal in base class while mypy does not
@@ -105,7 +113,7 @@ class PCRGlobWBForcing(DefaultForcing):
         directory, forcing_files = data_files_from_recipe_output(recipe_output)
 
         # instantiate forcing object based on generated data
-        return PCRGlobWBForcing(
+        generated_forcing = PCRGlobWBForcing(
             directory=directory,
             start_time=start_time,
             end_time=end_time,
@@ -113,3 +121,5 @@ class PCRGlobWBForcing(DefaultForcing):
             precipitationNC=forcing_files["pr"],
             temperatureNC=forcing_files["tas"],
         )
+        generated_forcing.save()
+        return generated_forcing

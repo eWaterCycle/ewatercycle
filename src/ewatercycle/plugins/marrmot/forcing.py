@@ -16,9 +16,27 @@ class MarrmotForcing(DefaultForcing):
     """Container for marrmot forcing data.
 
     Args:
+        directory: Directory where forcing data files are stored.
+        start_time: Start time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        end_time: End time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        shape: Path to a shape file. Used for spatial selection.
         forcing_file: Matlab file that contains forcings for Marrmot
             models. See format forcing file in `model implementation
             <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`_.
+
+    .. code-block:: python
+
+        from ewatercycle.forcing import sources
+
+        forcing = sources.MarrmotForcing(
+            'marmot',
+            directory='/data/marrmot-forcings-case1',
+            start_time='1989-01-02T00:00:00Z',
+            end_time='1999-01-02T00:00:00Z',
+            forcing_file='marrmot-1989-1999.mat'
+        )
     """
 
     # type ignored because pydantic wants literal in base class while mypy does not
@@ -87,10 +105,12 @@ class MarrmotForcing(DefaultForcing):
         directory = str(forcing_file.parent)
 
         # instantiate forcing object based on generated data
-        return MarrmotForcing(
+        generated_forcing = MarrmotForcing(
             directory=directory,
             start_time=start_time,
             end_time=end_time,
             shape=shape,
             forcing_file=forcing_file.name,
         )
+        generated_forcing.save()
+        return generated_forcing
