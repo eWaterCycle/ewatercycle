@@ -101,9 +101,11 @@ class DefaultForcing(BaseModel):
             )
         metadata = meta.read_text()
         # Workaround for legacy forcing files having !PythonClass tag.
+        #     Get model name of non-initialized BaseModel with Pydantic class property:
+        modelname = cls.__fields__['model'].default
         metadata = metadata.replace(
             f"!{cls.__name__}",
-            f"model: {cls.model}"
+            f"model: {modelname}"
         )
 
         fdict = yaml.load(metadata)
