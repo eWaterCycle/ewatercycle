@@ -1,7 +1,10 @@
 from ewatercycle.base.parameter_set import ParameterSet
 
 wflow_rhine_sbm_nc = ParameterSet.from_github(
-    repo='https://github.com/openstreams/wflow/tree/master/examples/wflow_rhine_sbm_nc',
+    org="openstreams",
+    repo="wflow",
+    branch="master",
+    path="examples/wflow_rhine_sbm_nc/",
     directory="wflow_rhine_sbm_nc",
     name="wflow_rhine_sbm_nc",
     config="wflow_sbm_NC.ini",

@@ -133,7 +133,7 @@ class Configuration(BaseModel):
     """Which container engine is used to run the hydrological models."""
     apptainer_dir: DirectoryPath = Path(".")
     """Where the apptainer images files (*.sif) be found."""
-    singularity_dir: Optional[DirectoryPath]
+    singularity_dir: Optional[DirectoryPath] = None
     """Where the singularity images files (*.sif) be found. DEPRECATED, use apptainer_dir."""
     output_dir: DirectoryPath = Path(".")
     """Directory in which output of model runs is stored.

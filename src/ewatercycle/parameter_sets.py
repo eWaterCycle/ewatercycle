@@ -19,7 +19,7 @@ def add_to_config(parameter_set: ParameterSet):
     if not CFG.parameter_sets:
         CFG.parameter_sets = {}
 
-    CFG.parameter_sets[self.name] = dict(
+    CFG.parameter_sets[parameter_set.name] = dict(
         directory=str(_abbreviate(parameter_set.directory)),
         config=str(_abbreviate(parameter_set.config)),
         doi=parameter_set.doi,

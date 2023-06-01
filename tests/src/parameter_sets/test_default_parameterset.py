@@ -40,7 +40,8 @@ class TestDefaults:
             f"config={str(tmp_path)}/mymockedconfig.ini\n"
             "doi=N/A\n"
             "target_model=generic\n"
-            "supported_model_versions=set()"
+            "supported_model_versions=set()\n"
+            "downloader=None"
         )
         assert str(parameter_set) == expected
 

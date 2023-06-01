@@ -150,7 +150,7 @@ def test_prepend_root_to_parameterset_paths_given_relative_paths(tmp_path: Path)
     ps1_dir.mkdir()
     ps1_config = ps1_dir / "config.ini"
     ps1_config.write_text("something")
-    parameter_sets = {"ps1": {"directory": "ps1", "config": "ps1/config.ini"}}
+    parameter_sets = {"ps1": {"directory": "ps1", "config": "config.ini"}}
 
     config = Configuration(
         parameterset_dir=parameterset_dir, parameter_sets=parameter_sets

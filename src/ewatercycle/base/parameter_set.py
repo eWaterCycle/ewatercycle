@@ -17,7 +17,11 @@ logger = getLogger(__name__)
 
 
 class GitHubDownloader(BaseModel):
-    repo: HttpUrl
+    org: str
+    repo: str
+    branch: str = None
+    path: str = ""
+
     """URL of directory in GitHub repository. 
 
     Examples:
@@ -27,7 +31,10 @@ class GitHubDownloader(BaseModel):
     """
 
     def __call__(self, directory: Path):
-        github_download(self.repo, False, str(directory))
+        directory.mkdir(exist_ok=True, parents=True)
+        fs = fsspec.filesystem("github", org=self.org, repo=self.repo, sha=self.branch)
+        fs.get(fs.ls(self.path), directory.as_posix(), recursive=True)
+
 
 class ZenodoDownloader(BaseModel):
     doi: str
@@ -87,14 +94,14 @@ class ParameterSet(BaseModel):
             + [f"{k}={v!s}" for k, v in self.__dict__.items()]
         )
 
-    def download(self, directory, force=False):
-        self.make_absolute(directory)
-        if not self.config.exists() and not force:
+    def download(self, download_dir: Path, force: bool = False) -> None:
+        self.make_absolute(download_dir)  # makes self.directory & self.config absolute
+        if self.config.exists() and not force:
             logger.info(
                 f"Directory {self.directory} for parameter set {self.name}"
                 f" already exists and download is not forced, skipping download."
             )
-            return
+            return None
         if self.downloader is None:
             raise ValueError(
                 f"Cannot download parameter set {self.name} because no downloader is defined"
@@ -104,23 +111,25 @@ class ParameterSet(BaseModel):
         )
         self.downloader(self.directory)
         logger.info("Download complete.")
-
+        return None
 
     @classmethod
-    def from_github(cls, repo: str , **kwargs):
+    def from_github(cls, org:str, repo: str, branch: str, path: str, **kwargs):
         """Create a parameter set from a GitHub repository.
         Args:
             repo: URL of directory in GitHub repository.
             **kwargs: See :py:class:`ParameterSet` for other arguments.
         """
-        kwargs.pop('downloader')
-        downloader = GitHubDownloader(repo=repo)  # pyright: ignore
+        kwargs.pop('downloader', None)
+        downloader = GitHubDownloader(
+            org=org, repo=repo, branch=branch, path=path,
+        )  # pyright: ignore
         return ParameterSet(downloader=downloader,
                             **kwargs)
 
     @classmethod
     def from_zenodo(cls, doi: str, **kwargs):
-        kwargs.pop('downloader')
+        kwargs.pop('downloader', None)
         downloader = ZenodoDownloader(doi=doi)
         return ParameterSet(doi=doi,
                             downloader=downloader,
@@ -128,7 +137,7 @@ class ParameterSet(BaseModel):
 
     @classmethod
     def from_archive_url(cls, url: str, **kwargs):
-        kwargs.pop('downloader')
+        kwargs.pop('downloader', None)
         downloader = ArchiveDownloader(url=url)  # pyright: ignore
         return ParameterSet(downloader=downloader,
                             **kwargs)

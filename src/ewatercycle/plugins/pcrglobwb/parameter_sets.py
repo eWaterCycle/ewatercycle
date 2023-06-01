@@ -1,8 +1,11 @@
 from ewatercycle.base.parameter_set import ParameterSet
 
 pcrglobwb_rhinemeuse_30min = ParameterSet.from_github(
-    repo="https://github.com/UU-Hydro/PCR-GLOBWB_input_example/tree/master/RhineMeuse30min",
-    # Relative to CFG.parameterset_dir
+    org="UU-Hydro",
+    repo="PCR-GLOBWB_input_example",
+    branch="master",
+    path="RhineMeuse30min/",
+    # Relative to CFG.paramUU-eterset_dir
     directory="pcrglobwb_rhinemeuse_30min",
     name="pcrglobwb_rhinemeuse_30min",
     # Relative to CFG.parameterset_dir / self.name
