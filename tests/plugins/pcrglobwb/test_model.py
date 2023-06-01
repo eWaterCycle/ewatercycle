@@ -21,7 +21,8 @@ PCRGlobWBForcing = sources["PCRGlobWBForcing"]
 @pytest.skip(
     "Skipping the model testing: Downloader is broken.", allow_module_level=True
 )
-class MockedBmi(FailingModel):
+# Mypy throws "error: "NoReturn" not callable [misc]". No idea why.
+class MockedBmi(FailingModel):  # type: ignore
     """Pretend to be a real BMI model."""
 
     def initialize(self, config_file):

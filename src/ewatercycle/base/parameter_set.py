@@ -17,7 +17,7 @@ class GitHubDownloader(BaseModel):
     branch: Optional[str] = None
     path: str = ""
 
-    """URL of directory in GitHub repository. 
+    """URL of directory in GitHub repository.
 
     Examples:
 
