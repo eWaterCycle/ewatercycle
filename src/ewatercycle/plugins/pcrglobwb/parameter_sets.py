@@ -4,7 +4,7 @@ pcrglobwb_rhinemeuse_30min = ParameterSet.from_github(
     org="UU-Hydro",
     repo="PCR-GLOBWB_input_example",
     branch="master",
-    path="RhineMeuse30min/",
+    subfolder="RhineMeuse30min",
     # Relative to CFG.paramUU-eterset_dir
     directory="pcrglobwb_rhinemeuse_30min",
     name="pcrglobwb_rhinemeuse_30min",

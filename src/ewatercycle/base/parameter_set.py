@@ -2,7 +2,11 @@ from logging import getLogger
 from pathlib import Path
 from shutil import unpack_archive
 from typing import Optional, Set
-
+from urllib.request import urlopen
+from io import BytesIO
+from zipfile import ZipFile
+from tempfile import TemporaryDirectory
+import shutil
 import fsspec
 from pydantic import BaseModel, HttpUrl
 
@@ -11,24 +15,80 @@ from ewatercycle.util import to_absolute_path
 logger = getLogger(__name__)
 
 
+def download_github_repo(
+    org: str,
+    repo: str,
+    branch: str,
+    download_dir: Path,
+    subfolder: Optional[str] = None,
+) -> None:
+    """Download a Github repository .zip file, and extract (a subfolder) to a directory.
+
+    Args:
+        org: Github organization (e.g., "eWaterCycle")
+        repo: Repository name (e.g, "ewatercycle")
+        branch: Branch name (e.g., "main")
+        download_dir: Path towards the directory where the data should be downloaded to.
+        subfolder (optional): Subfolder within the github repo to extract.
+            E.g. "src/ewatercycle/base".
+
+    Raises:
+        ConnectionError: If the HTTP return code is not 200.
+    """
+    zip_url = f"https://github.com/{org}/{repo}/archive/refs/heads/{branch}.zip"
+
+    https_response = urlopen(zip_url)
+    if https_response.status != 200:
+        raise ConnectionError(
+            f"HTTP error {https_response.status}\n"
+            f"Attempted to connect to URL: {zip_url}"
+        )
+
+    with ZipFile(BytesIO(https_response.read())) as zipfile:
+        main_folder = f"{repo}-{branch}"
+        fpath = f"{main_folder}/{subfolder}" if subfolder is not None else main_folder
+        fnames = [file for file in zipfile.namelist() if file.startswith(fpath)]
+        for file in fnames:
+            zipfile.extract(file, path=download_dir)
+
+
 class GitHubDownloader(BaseModel):
-    org: str
-    repo: str
-    branch: Optional[str] = None
-    path: str = ""
-
-    """URL of directory in GitHub repository.
-
+    """Download and extract a Github repository.
+ 
     Examples:
 
         * https://github.com/ec-jrc/lisflood-usecases/tree/master/LF_lat_lon_UseCase
 
     """
+    org: str
+    "Github organization (e.g., 'eWaterCycle')"
+    repo: str
+    "Repository name (e.g, 'ewatercycle')"
+    branch: Optional[str] = None
+    "Branch name (e.g., 'main')"
+    subfolder: Optional[str] = None
+    "Subfolder within the github repo to extract. E.g. 'src/ewatercycle/base'."
+    
 
     def __call__(self, directory: Path):
-        directory.mkdir(exist_ok=True, parents=True)
-        fs = fsspec.filesystem("github", org=self.org, repo=self.repo, sha=self.branch)
-        fs.get(fs.ls(self.path), directory.as_posix(), recursive=True)
+        with TemporaryDirectory() as tmpdir_name:
+            tmpdir = Path(tmpdir_name)
+            download_github_repo(
+                org=self.org,
+                repo=self.repo,
+                branch=self.branch,
+                download_dir=tmpdir,
+                subfolder=self.subfolder,
+            )
+            target_path = tmpdir / f"{self.repo}-{self.branch}"
+            if self.subfolder is not None:
+                target_path = target_path / self.subfolder
+
+            shutil.copytree(
+                src=target_path,
+                dst=directory,
+                dirs_exist_ok=True,
+            )
 
 
 class ZenodoDownloader(BaseModel):
@@ -111,7 +171,7 @@ class ParameterSet(BaseModel):
         return None
 
     @classmethod
-    def from_github(cls, org: str, repo: str, branch: str, path: str, **kwargs):
+    def from_github(cls, org: str, repo: str, branch: str, subfolder: str, **kwargs):
         """Create a parameter set from a GitHub repository.
         Args:
             repo: URL of directory in GitHub repository.
@@ -122,7 +182,7 @@ class ParameterSet(BaseModel):
             org=org,
             repo=repo,
             branch=branch,
-            path=path,
+            subfolder=subfolder,
         )  # pyright: ignore
         return ParameterSet(downloader=downloader, **kwargs)
 
