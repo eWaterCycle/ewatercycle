@@ -4,10 +4,8 @@ from os import linesep
 from pathlib import Path
 from typing import Dict, Optional
 
-
-from ewatercycle.config import CFG, SYSTEM_CONFIG, USER_HOME_CONFIG
-
 from ewatercycle.base.parameter_set import ParameterSet
+from ewatercycle.config import CFG, SYSTEM_CONFIG, USER_HOME_CONFIG
 
 logger = getLogger(__name__)
 
@@ -27,6 +25,7 @@ def add_to_config(parameter_set: ParameterSet):
         supported_model_versions=parameter_set.supported_model_versions,
     )
 
+
 def _abbreviate(path: Path):
     try:
         if CFG.parameterset_dir is None:
@@ -36,12 +35,14 @@ def _abbreviate(path: Path):
         return path
 
 
-def available_parameter_sets(target_model: Optional[str] = None) -> Dict[str, ParameterSet]:
+def available_parameter_sets(
+    target_model: Optional[str] = None,
+) -> Dict[str, ParameterSet]:
     """List available parameter sets on this machine.
-    
+
     Args:
         target_model: Filter parameter sets on a model name
-    Returns: 
+    Returns:
         Dictionary available parameter sets on current machine.
     """
     all_parameter_sets = CFG.parameter_sets
@@ -108,6 +109,3 @@ def download_example_parameter_sets(skip_existing=True):
             f"or {SYSTEM_CONFIG} file: {linesep}"
             f"{CFG.dump_to_yaml()}"
         ) from e
-
-
-

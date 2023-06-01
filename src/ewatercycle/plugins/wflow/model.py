@@ -11,12 +11,16 @@ import xarray as xr
 from cftime import num2date
 
 from ewatercycle import CFG
-from ewatercycle.container import VersionImages, start_container
 from ewatercycle.base.model import AbstractModel
 from ewatercycle.base.parameter_set import ParameterSet
-from ewatercycle.util import CaseConfigParser
+from ewatercycle.container import VersionImages, start_container
 from ewatercycle.plugins.wflow.forcing import WflowForcing
-from ewatercycle.util import find_closest_point, get_time, to_absolute_path
+from ewatercycle.util import (
+    CaseConfigParser,
+    find_closest_point,
+    get_time,
+    to_absolute_path,
+)
 
 logger = logging.getLogger(__name__)
 

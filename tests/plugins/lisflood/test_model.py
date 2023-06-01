@@ -11,12 +11,12 @@ from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
 from ewatercycle.base.parameter_set import ParameterSet
+from ewatercycle.forcing import sources
+from ewatercycle.parameter_sets import example_parameter_sets
 from ewatercycle.plugins.lisflood.config import XmlConfig
 from ewatercycle.plugins.lisflood.model import Lisflood
 from ewatercycle.testing.fake_models import FailingModel
 
-from ewatercycle.parameter_sets import example_parameter_sets
-from ewatercycle.forcing import sources
 LisfloodForcing = sources["LisfloodForcing"]
 
 
@@ -46,7 +46,7 @@ class TestLFlatlonUseCase:
     def parameterset(self, mocked_config, tmp_path):
         example_parameter_set = example_parameter_sets()["lisflood_fraser"]
         example_parameter_set.download(tmp_path)
-        #example_parameter_set.to_config()
+        # example_parameter_set.to_config()
         return example_parameter_set
 
     @pytest.fixture

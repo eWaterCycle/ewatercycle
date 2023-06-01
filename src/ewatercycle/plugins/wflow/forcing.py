@@ -3,11 +3,8 @@ from typing import Dict, Literal, Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ewatercycle.base.forcing import _session
-from ewatercycle.base.forcing import DATASETS
+from ewatercycle.base.forcing import DATASETS, DefaultForcing, _session
 from ewatercycle.util import get_extents, get_time, to_absolute_path
-
-from ewatercycle.base.forcing import DefaultForcing
 
 
 class WflowForcing(DefaultForcing):

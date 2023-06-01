@@ -1,6 +1,5 @@
 from ewatercycle.base.parameter_set import ParameterSet
 
-
 lisflood_fraser = ParameterSet.from_github(
     org="ec-jrc",
     repo="lisflood-usecases",

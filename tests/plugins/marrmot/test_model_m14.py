@@ -9,8 +9,9 @@ from scipy.io import loadmat
 from xarray.testing import assert_allclose
 
 from ewatercycle import CFG
-from ewatercycle.plugins.marrmot.model import MarrmotM14, Solver
 from ewatercycle.forcing import sources
+from ewatercycle.plugins.marrmot.model import MarrmotM14, Solver
+
 MarrmotForcing = sources["MarrmotForcing"]
 
 

@@ -1,19 +1,22 @@
 """Forcing module of eWaterCycle. Contains the model sources."""
-from importlib.metadata import entry_points
-from importlib_metadata import EntryPoint
 from collections.abc import Mapping
+from importlib.metadata import entry_points
+from typing import Any, Type
+
+from importlib_metadata import EntryPoint
+
 from ewatercycle.base.forcing import DefaultForcing
-from typing import Type, Any
 
 
 class ForcingSources(Mapping):
     """Lazy dictionary to hold the different forcing sources.
-    
+
     The `sources` object holds the forcing sources.
     Forcing can be generated for a specifc source by doing, for example:
         `from ewatercycle.forcing import sources`,
         `forcing = sources.MarrmotForcing.generate(...)`
     """
+
     def __init__(self, *args, **kw):
         self._raw_dict = dict(*args, **kw)
 
@@ -36,7 +39,7 @@ class ForcingSources(Mapping):
 
     def __len__(self):
         return len(self._raw_dict)
-    
+
     def __repr__(self):
         return self.__class__.__name__ + str(list(self._raw_dict.keys()))
 

@@ -1,22 +1,18 @@
-from ewatercycle._repr import Representation
-from ewatercycle.base.parameter_set import ParameterSet
-from ewatercycle.base.forcing import DefaultForcing
-
-
 import logging
+from abc import ABCMeta, abstractmethod
+from datetime import datetime
+from typing import Any, ClassVar, Generic, Iterable, Optional, Tuple, TypeVar
+
 import numpy as np
 import xarray as xr
-from typing import TypeVar
 from bmipy import Bmi
 from cftime import num2date
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 from grpc4bmi.reserve import reserve_values, reserve_values_at_indices
 
-
-from abc import ABCMeta, abstractmethod
-from datetime import datetime
-from typing import Any, ClassVar, Generic, Iterable, Optional, Tuple
-
+from ewatercycle._repr import Representation
+from ewatercycle.base.forcing import DefaultForcing
+from ewatercycle.base.parameter_set import ParameterSet
 
 logger = logging.getLogger(__name__)
 

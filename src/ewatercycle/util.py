@@ -254,4 +254,3 @@ class CaseConfigParser(ConfigParser):
 
     def optionxform(self, optionstr):
         return optionstr
-

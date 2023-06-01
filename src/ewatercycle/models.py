@@ -5,7 +5,6 @@ https://setuptools.pypa.io/en/latest/userguide/entry_point.html#advertising-beha
 """
 from importlib.metadata import entry_points
 
-
 model_entrypoints = entry_points(group="ewatercycle.models")
 
 # Expose as "from ewatercycle.models import Model" for backward compatibility

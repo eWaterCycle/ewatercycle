@@ -1,25 +1,20 @@
+from logging import getLogger
+from pathlib import Path
+from shutil import unpack_archive
+from typing import Optional, Set
+
+import fsspec
+from pydantic import BaseModel, HttpUrl
+
 from ewatercycle.util import to_absolute_path
 
-from shutil import unpack_archive
-import fsspec
-from logging import getLogger
-from gitdir.gitdir import download as github_download
-from pydantic import HttpUrl
-from pydantic import BaseModel
-
-
-from pathlib import Path
-from typing import Set
-
-
 logger = getLogger(__name__)
-
 
 
 class GitHubDownloader(BaseModel):
     org: str
     repo: str
-    branch: str = None
+    branch: Optional[str] = None
     path: str = ""
 
     """URL of directory in GitHub repository. 
@@ -40,21 +35,23 @@ class ZenodoDownloader(BaseModel):
     doi: str
 
     def __call__(self, directory: Path):
-        # extract record id from doi 
+        # extract record id from doi
         # 10.5281/zenodo.7949784
-        record_id = self.doi.split('.')[-1]
-        # TODO Zenodo entry can have multiple files, 
+        record_id = self.doi.split(".")[-1]
+        # TODO Zenodo entry can have multiple files,
         # how to select the correct one? Pick first
         # TODO construct download url
         # url = 'https://zenodo.org/record/7949784/files/trixi-framework/Trixi.jl-v0.5.24.zip?download=1'
-        ArchiveDownloader(url=url)(directory)  # pyright: ignore
+        # ArchiveDownloader(url=url)(directory)  # pyright: ignore
+
 
 class ArchiveDownloader(BaseModel):
-    """Download and unpack a parameter set from an archive file.	"""	
+    """Download and unpack a parameter set from an archive file."""
+
     url: HttpUrl
 
     def __call__(self, directory: Path):
-        with fsspec.open(self.url, 'rb') as file:
+        with fsspec.open(self.url, "rb") as file:
             unpack_archive(file, directory)
 
 
@@ -79,7 +76,7 @@ class ParameterSet(BaseModel):
     """Set of model versions that are
     supported by this parameter set. If not set then parameter set will be
     supported by all versions of model"""
-    downloader: GitHubDownloader | ZenodoDownloader | ArchiveDownloader  | None = None
+    downloader: GitHubDownloader | ZenodoDownloader | ArchiveDownloader | None = None
 
     class Config:
         extra = "forbid"
@@ -114,33 +111,32 @@ class ParameterSet(BaseModel):
         return None
 
     @classmethod
-    def from_github(cls, org:str, repo: str, branch: str, path: str, **kwargs):
+    def from_github(cls, org: str, repo: str, branch: str, path: str, **kwargs):
         """Create a parameter set from a GitHub repository.
         Args:
             repo: URL of directory in GitHub repository.
             **kwargs: See :py:class:`ParameterSet` for other arguments.
         """
-        kwargs.pop('downloader', None)
+        kwargs.pop("downloader", None)
         downloader = GitHubDownloader(
-            org=org, repo=repo, branch=branch, path=path,
+            org=org,
+            repo=repo,
+            branch=branch,
+            path=path,
         )  # pyright: ignore
-        return ParameterSet(downloader=downloader,
-                            **kwargs)
+        return ParameterSet(downloader=downloader, **kwargs)
 
     @classmethod
     def from_zenodo(cls, doi: str, **kwargs):
-        kwargs.pop('downloader', None)
+        kwargs.pop("downloader", None)
         downloader = ZenodoDownloader(doi=doi)
-        return ParameterSet(doi=doi,
-                            downloader=downloader,
-                            **kwargs)
+        return ParameterSet(doi=doi, downloader=downloader, **kwargs)
 
     @classmethod
     def from_archive_url(cls, url: str, **kwargs):
-        kwargs.pop('downloader', None)
+        kwargs.pop("downloader", None)
         downloader = ArchiveDownloader(url=url)  # pyright: ignore
-        return ParameterSet(downloader=downloader,
-                            **kwargs)
+        return ParameterSet(downloader=downloader, **kwargs)
 
     def make_absolute(self, parameterset_dir: Path) -> "ParameterSet":
         """Make self.directory and self.config absolute paths.

@@ -1,15 +1,13 @@
-from esmvalcore.experimental import CFG
-from esmvalcore.config import Session
-from ewatercycle.util import to_absolute_path
-
 import logging
-from pydantic import BaseModel, validator
-from ruamel.yaml import YAML
-
-
 from pathlib import Path
 from typing import Literal, Optional, Union
 
+from esmvalcore.config import Session
+from esmvalcore.experimental import CFG
+from pydantic import BaseModel, validator
+from ruamel.yaml import YAML
+
+from ewatercycle.util import to_absolute_path
 
 logger = logging.getLogger(__name__)
 FORCING_YAML = "ewatercycle_forcing.yaml"
@@ -80,7 +78,7 @@ class DefaultForcing(BaseModel):
         with open(target, "w") as f:
             yaml.dump(fdict, f)
         return target
-    
+
     @classmethod
     def load(cls, directory: str | Path):
         """Load previously generated or imported forcing data.
@@ -92,7 +90,7 @@ class DefaultForcing(BaseModel):
         Returns: Forcing object
         """
         data_source = to_absolute_path(directory)
-        meta = (data_source / FORCING_YAML)
+        meta = data_source / FORCING_YAML
         yaml = YAML(typ="safe")
 
         if not meta.exists():
@@ -103,11 +101,8 @@ class DefaultForcing(BaseModel):
         metadata = meta.read_text()
         # Workaround for legacy forcing files having !PythonClass tag.
         #     Get model name of non-initialized BaseModel with Pydantic class property:
-        modelname = cls.__fields__['model'].default
-        metadata = metadata.replace(
-            f"!{cls.__name__}",
-            f"model: {modelname}"
-        )
+        modelname = cls.__fields__["model"].default
+        metadata = metadata.replace(f"!{cls.__name__}", f"model: {modelname}")
 
         fdict = yaml.load(metadata)
         fdict["directory"] = data_source
@@ -115,9 +110,6 @@ class DefaultForcing(BaseModel):
         return cls(**fdict)
 
     @classmethod
-
-
-
     def plot(self):
         raise NotImplementedError("No generic plotting method available.")
 

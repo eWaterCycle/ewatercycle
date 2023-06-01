@@ -27,8 +27,8 @@ from typing import Dict, Tuple
 
 from ewatercycle import CFG
 from ewatercycle.container import ContainerEngine
-from ewatercycle.plugins.lisflood.config import XmlConfig
 from ewatercycle.plugins.lisflood._lisflood_versions import version_images
+from ewatercycle.plugins.lisflood.config import XmlConfig
 from ewatercycle.util import get_time
 
 

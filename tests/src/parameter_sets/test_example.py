@@ -28,8 +28,8 @@ def example(setup_config, tmp_path: Path):
     ps_config.write_text("some config")
     ps = ParameterSet(  # TODO CHECK WITH PETER/STEFAN
         name="firstexample",
-        #config_url="https://github.com/mymodelorg/mymodelrepo/raw/master/mymodelexample/config.ini",  # noqa: E501
-        #datafiles_url="https://github.com/mymodelorg/mymodelrepo/trunk/mymodelexample",
+        # config_url="https://github.com/mymodelorg/mymodelrepo/raw/master/mymodelexample/config.ini",  # noqa: E501
+        # datafiles_url="https://github.com/mymodelorg/mymodelrepo/trunk/mymodelexample",
         directory=Path("mymodelexample"),
         config=Path("config.ini"),
         supported_model_versions={"0.4.2"},
@@ -57,10 +57,7 @@ def test_to_config(example, tmp_path):
 @patch("subprocess.check_call")
 @pytest.mark.skip("No downloaders are implemented.")
 def test_download(
-    mock_check_call,
-    mock_urlopen,
-    example, #: "ExampleParameterSet", 
-    tmp_path
+    mock_check_call, mock_urlopen, example, tmp_path  #: "ExampleParameterSet",
 ):
     example.config.unlink()
     example.directory.rmdir()
@@ -100,16 +97,15 @@ def test_download_already_exists(example, tmp_path: Path):
     assert "already exists, will not overwrite." in str(excinfo.value)
 
 
-def test_download_already_exists_but_skipped(
-    example, tmp_path: Path, caplog
-):
+def test_download_already_exists_but_skipped(example, tmp_path: Path, caplog):
     ps_dir = tmp_path / "mymodelexample"
     ps_dir.mkdir(exist_ok=True)
 
     # Make a mock downloader to assert it is not called
     #  mocking the property is not possible, as the object has to be initiated first
-    def mock_downloader(_): 
+    def mock_downloader(_):
         assert False, ".downloader should not be called."
+
     example.downloader = mock_downloader
 
     with caplog.at_level(logging.INFO):

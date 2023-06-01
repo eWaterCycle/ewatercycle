@@ -9,22 +9,18 @@ from grpc import FutureTimeoutError
 from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
 from ewatercycle import CFG
+from ewatercycle.base.parameter_set import ParameterSet
+from ewatercycle.forcing import sources
+from ewatercycle.parameter_sets import add_to_config, example_parameter_sets
 from ewatercycle.plugins.pcrglobwb.model import PCRGlobWB
 from ewatercycle.testing.fake_models import FailingModel
 
-from ewatercycle.parameter_sets import add_to_config, example_parameter_sets
-
-from ewatercycle.base.parameter_set import ParameterSet
-from ewatercycle.forcing import sources
 PCRGlobWBForcing = sources["PCRGlobWBForcing"]
 
 
 @pytest.skip(
-    "Skipping the model testing: Downloader is broken.", 
-    allow_module_level=True
+    "Skipping the model testing: Downloader is broken.", allow_module_level=True
 )
-
-
 class MockedBmi(FailingModel):
     """Pretend to be a real BMI model."""
 

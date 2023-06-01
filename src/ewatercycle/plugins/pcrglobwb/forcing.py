@@ -4,16 +4,13 @@ from typing import Literal, Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ewatercycle.base.forcing import _session
-from ewatercycle.base.forcing import DATASETS
+from ewatercycle.base.forcing import DATASETS, DefaultForcing, _session
 from ewatercycle.util import (
     data_files_from_recipe_output,
     get_extents,
     get_time,
     to_absolute_path,
 )
-
-from ewatercycle.base.forcing import DefaultForcing
 
 
 class PCRGlobWBForcing(DefaultForcing):

@@ -6,11 +6,8 @@ from typing import Literal, Optional
 import pandas as pd
 from esmvalcore.experimental import get_recipe
 
-from ewatercycle.base.forcing import _session
-from ewatercycle.base.forcing import DATASETS
+from ewatercycle.base.forcing import DATASETS, DefaultForcing, _session
 from ewatercycle.util import get_time, to_absolute_path
-
-from ewatercycle.base.forcing import DefaultForcing
 
 
 class HypeForcing(DefaultForcing):
