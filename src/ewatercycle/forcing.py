@@ -46,7 +46,7 @@ class ForcingSources(Mapping):
 
 _forcings: dict[str, Any] = {
     entry_point.name: entry_point
-    for entry_point in entry_points(group="ewatercycle.forcings")
+    for entry_point in entry_points(group="ewatercycle.forcings")  # /NOSONAR
 }
 _forcings["DefaultForcing"] = DefaultForcing
 
