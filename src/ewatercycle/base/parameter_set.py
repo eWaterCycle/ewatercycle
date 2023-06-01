@@ -1,12 +1,13 @@
+import shutil
+from io import BytesIO
 from logging import getLogger
 from pathlib import Path
 from shutil import unpack_archive
+from tempfile import TemporaryDirectory
 from typing import Optional, Set
 from urllib.request import urlopen
-from io import BytesIO
 from zipfile import ZipFile
-from tempfile import TemporaryDirectory
-import shutil
+
 import fsspec
 from pydantic import BaseModel, HttpUrl
 
@@ -54,21 +55,21 @@ def download_github_repo(
 
 class GitHubDownloader(BaseModel):
     """Download and extract a Github repository.
- 
+
     Examples:
 
         * https://github.com/ec-jrc/lisflood-usecases/tree/master/LF_lat_lon_UseCase
 
     """
+
     org: str
     "Github organization (e.g., 'eWaterCycle')"
     repo: str
     "Repository name (e.g, 'ewatercycle')"
-    branch: Optional[str] = None
+    branch: str
     "Branch name (e.g., 'main')"
     subfolder: Optional[str] = None
     "Subfolder within the github repo to extract. E.g. 'src/ewatercycle/base'."
-    
 
     def __call__(self, directory: Path):
         with TemporaryDirectory() as tmpdir_name:
