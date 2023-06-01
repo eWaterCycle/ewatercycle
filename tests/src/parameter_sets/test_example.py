@@ -55,7 +55,7 @@ def test_to_config(example, tmp_path):
 
 @patch("urllib.request.urlopen")
 @patch("subprocess.check_call")
-@pytest.mark.skip("No downloaders are implemented.")
+@pytest.mark.skip("This downloader is removed. A replacement test has to be written.")
 def test_download(
     mock_check_call, mock_urlopen, example, tmp_path  #: "ExampleParameterSet",
 ):

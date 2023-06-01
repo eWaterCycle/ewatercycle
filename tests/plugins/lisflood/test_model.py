@@ -40,7 +40,7 @@ def find_values_in_xml(tree, name):
     return set(values)
 
 
-@pytest.mark.skip("Relies on downloading data: currently not working.")
+@pytest.mark.skip("Calls to `mocked_constructor.assert_called_once_with` are borked.")
 class TestLFlatlonUseCase:
     @pytest.fixture
     def parameterset(self, mocked_config, tmp_path):
