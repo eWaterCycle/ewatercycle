@@ -30,7 +30,7 @@ def add_to_config(parameter_set: ParameterSet):
 def _abbreviate(path: Path):
     try:
         if CFG.parameterset_dir is None:
-            raise ValueError(f"Can not abbreviate path without CFG.parameterset_dir")
+            raise ValueError("Can not abbreviate path without CFG.parameterset_dir")
         return path.relative_to(CFG.parameterset_dir)
     except ValueError:
         return path

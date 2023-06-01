@@ -9,8 +9,9 @@ from scipy.io import loadmat
 from xarray.testing import assert_allclose
 
 from ewatercycle import CFG
-from ewatercycle.forcing import load_foreign
 from ewatercycle.plugins.marrmot.model import MarrmotM14, Solver
+from ewatercycle.forcing import sources
+MarrmotForcing = sources["MarrmotForcing"]
 
 
 @pytest.fixture
@@ -24,12 +25,11 @@ class TestWithDefaultsAndExampleData:
     def generate_forcing(self):
         # Downloaded from
         # https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
-        forcing = load_foreign(
-            "marrmot",
+        forcing = MarrmotForcing(
             directory=f"{Path(__file__).parent}/data",
             start_time="1989-01-01T00:00:00Z",
             end_time="1992-12-31T00:00:00Z",
-            forcing_info={"forcing_file": "BMI_testcase_m01_BuffaloRiver_TN_USA.mat"},
+            forcing_file="BMI_testcase_m01_BuffaloRiver_TN_USA.mat",
         )
         return forcing
 
@@ -141,12 +141,11 @@ class TestWithCustomSetupAndExampleData:
     def generate_forcing(self):
         # Downloaded from
         # https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
-        forcing = load_foreign(
-            "marrmot",
+        forcing = MarrmotForcing(
             directory=f"{Path(__file__).parent}/data",
             start_time="1989-01-01T00:00:00Z",
             end_time="1992-12-31T00:00:00Z",
-            forcing_info={"forcing_file": "BMI_testcase_m01_BuffaloRiver_TN_USA.mat"},
+            forcing_file="BMI_testcase_m01_BuffaloRiver_TN_USA.mat",
         )
         return forcing
 
@@ -195,12 +194,11 @@ class TestWithDatesOutsideRangeSetupAndExampleData:
     def generate_forcing(self):
         # Downloaded from
         # https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
-        forcing = load_foreign(
-            "marrmot",
+        forcing = MarrmotForcing(
             directory=f"{Path(__file__).parent}/data",
             start_time="1989-01-01T00:00:00Z",
             end_time="1992-12-31T00:00:00Z",
-            forcing_info={"forcing_file": "BMI_testcase_m01_BuffaloRiver_TN_USA.mat"},
+            forcing_file="BMI_testcase_m01_BuffaloRiver_TN_USA.mat",
         )
         return forcing
 

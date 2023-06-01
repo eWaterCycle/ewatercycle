@@ -9,8 +9,9 @@ from scipy.io import loadmat
 from xarray.testing import assert_allclose
 
 from ewatercycle import CFG
-from ewatercycle.forcing import load_foreign
 from ewatercycle.plugins.marrmot.model import MarrmotM01, Solver
+from ewatercycle.forcing import sources
+MarrmotForcing = sources["MarrmotForcing"]
 
 
 @pytest.fixture
@@ -26,12 +27,11 @@ class TestWithDefaultsAndExampleData:
 
     @pytest.fixture
     def generate_forcing(self, forcing_file):
-        forcing = load_foreign(
-            "marrmot",
+        forcing = MarrmotForcing(
             directory=str(Path(forcing_file).parent),
             start_time="1989-01-01T00:00:00Z",
             end_time="1992-12-31T00:00:00Z",
-            forcing_info={"forcing_file": str(Path(forcing_file).name)},
+            forcing_file=str(Path(forcing_file).name),
         )
         return forcing
 
@@ -138,12 +138,11 @@ class TestWithCustomSetupAndExampleData:
 
     @pytest.fixture
     def generate_forcing(self, forcing_file):
-        forcing = load_foreign(
-            "marrmot",
+        forcing = MarrmotForcing(
             directory=str(Path(forcing_file).parent),
             start_time="1989-01-01T00:00:00Z",
             end_time="1992-12-31T00:00:00Z",
-            forcing_info={"forcing_file": str(Path(forcing_file).name)},
+            forcing_file=str(Path(forcing_file).name),
         )
         return forcing
 
@@ -190,12 +189,11 @@ class TestWithDatesOutsideRangeSetupAndExampleData:
 
     @pytest.fixture
     def generate_forcing(self, forcing_file):
-        forcing = load_foreign(
-            "marrmot",
+        forcing = MarrmotForcing(
             directory=str(Path(forcing_file).parent),
             start_time="1989-01-01T00:00:00Z",
             end_time="1992-12-31T00:00:00Z",
-            forcing_info={"forcing_file": str(Path(forcing_file).name)},
+            forcing_file=str(Path(forcing_file).name),
         )
         return forcing
 

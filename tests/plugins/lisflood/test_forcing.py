@@ -6,9 +6,9 @@ import xarray as xr
 from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import DataFile
 
-from ewatercycle.forcing import generate, load
 from ewatercycle.base.forcing import FORCING_YAML
-from ewatercycle.plugins.lisflood.forcing import LisfloodForcing
+from ewatercycle.forcing import sources
+LisfloodForcing = sources["LisfloodForcing"]
 
 
 def test_plot():
@@ -80,13 +80,12 @@ def sample_target_grid():
 class TestGenerateForcingWithoutLisvap:
     @pytest.fixture
     def forcing(self, mock_recipe_run, sample_shape, sample_target_grid):
-        return generate(
-            target_model="lisflood",
+        return LisfloodForcing.generate(
             dataset="ERA5",
             start_time="1989-01-02T00:00:00Z",
             end_time="1999-01-02T00:00:00Z",
             shape=sample_shape,
-            model_specific_options=dict(target_grid=sample_target_grid),
+            target_grid=sample_target_grid,
         )
 
     @pytest.fixture
@@ -296,7 +295,7 @@ class TestGenerateForcingWithoutLisvap:
         assert saved_forcing == expected
 
     def test_saved_yaml(self, forcing, tmp_path):
-        saved_forcing = load(tmp_path)
+        saved_forcing = LisfloodForcing.load(tmp_path)
         # shape should is not included in the yaml file
         forcing.shape = None
 
@@ -355,20 +354,17 @@ class TestGenerateForcingWithLisvap:
             mocked_popen.return_value.communicate.return_value = ("output", "error")
             mocked_popen.return_value.wait.side_effect = write_mocked_lisvap_output
 
-            forcing = generate(
-                target_model="lisflood",
+            forcing = LisfloodForcing.generate(
                 dataset="ERA5",
                 start_time="1989-01-02T00:00:00Z",
                 end_time="1999-01-02T00:00:00Z",
                 shape=sample_shape,
-                model_specific_options={
-                    "target_grid": sample_target_grid,
-                    "run_lisvap": {
-                        "lisvap_config": sample_lisvap_config,
-                        "mask_map": str(mask_map),
-                        "version": "20.10",
-                        "parameterset_dir": str(parameterset_dir),
-                    },
+                target_grid=sample_target_grid,
+                run_lisvap={
+                    "lisvap_config": sample_lisvap_config,
+                    "mask_map": str(mask_map),
+                    "version": "20.10",
+                    "parameterset_dir": str(parameterset_dir),
                 },
             )
 
@@ -388,8 +384,7 @@ class TestGenerateForcingWithLisvap:
 
 class TestGenerateForcingWithoutTargetGrid:
     def test_recipe_configured(self, mock_recipe_run, sample_shape):
-        generate(
-            target_model="lisflood",
+        LisfloodForcing.generate(
             dataset="ERA5",
             start_time="1989-01-02T00:00:00Z",
             end_time="1999-01-02T00:00:00Z",
@@ -433,13 +428,12 @@ def test_generate_with_directory(
     mock_recipe_run, sample_shape, tmp_path, sample_target_grid
 ):
     forcing_dir = tmp_path / "myforcing"
-    generate(
-        target_model="lisflood",
+    LisfloodForcing.generate(
         dataset="ERA5",
         start_time="1989-01-02T00:00:00Z",
         end_time="1999-01-02T00:00:00Z",
         shape=sample_shape,
-        model_specific_options=dict(target_grid=sample_target_grid),
+        target_grid=sample_target_grid,
         directory=forcing_dir,
     )
 
@@ -466,6 +460,6 @@ def test_load_legacy_forcing(tmp_path):
         directory=tmp_path,
     )
 
-    result = load(tmp_path)
+    result = LisfloodForcing.load(tmp_path)
 
     assert result == expected

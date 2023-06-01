@@ -8,9 +8,9 @@ import xarray as xr
 from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import DataFile
 
-from ewatercycle.forcing import generate, load
 from ewatercycle.base.forcing import FORCING_YAML
-from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing
+from ewatercycle.forcing import sources
+PCRGlobWBForcing = sources["PCRGlobWBForcing"]
 
 
 def create_netcdf(var_name, filename):
@@ -54,22 +54,19 @@ def mock_recipe_run(monkeypatch, tmp_path):
 class TestGenerateWithExtractRegion:
     @pytest.fixture
     def forcing(self, mock_recipe_run, sample_shape):
-        return generate(
-            target_model="pcrglobwb",
+        return PCRGlobWBForcing.generate(
             dataset="ERA5",
             start_time="1989-01-02T00:00:00Z",
             end_time="1999-01-02T00:00:00Z",
             shape=sample_shape,
-            model_specific_options=dict(
-                start_time_climatology="1979-01-02T00:00:00Z",
-                end_time_climatology="1989-01-02T00:00:00Z",
-                extract_region={
-                    "start_longitude": 10,
-                    "end_longitude": 16.75,
-                    "start_latitude": 7.25,
-                    "end_latitude": 2.5,
-                },
-            ),
+            start_time_climatology="1979-01-02T00:00:00Z",
+            end_time_climatology="1989-01-02T00:00:00Z",
+            extract_region={
+                "start_longitude": 10,
+                "end_longitude": 16.75,
+                "start_latitude": 7.25,
+                "end_latitude": 2.5,
+            },
         )
 
     def test_result(self, forcing, tmp_path, sample_shape):
@@ -112,7 +109,7 @@ class TestGenerateWithExtractRegion:
         assert saved_forcing == expected
 
     def test_saved_yaml_by_loading(self, forcing, tmp_path):
-        saved_forcing = load(tmp_path)
+        saved_forcing = PCRGlobWBForcing.load(tmp_path)
         # shape should is not included in the yaml file
         forcing.shape = None
 
@@ -121,23 +118,20 @@ class TestGenerateWithExtractRegion:
 
 def test_with_directory(mock_recipe_run, sample_shape, tmp_path):
     forcing_dir = tmp_path / "myforcing"
-    generate(
-        target_model="pcrglobwb",
+    PCRGlobWBForcing.generate(
         dataset="ERA5",
         start_time="1989-01-02T00:00:00Z",
         end_time="1999-01-02T00:00:00Z",
         shape=str(sample_shape),
         directory=forcing_dir,
-        model_specific_options=dict(
-            start_time_climatology="1979-01-02T00:00:00Z",
-            end_time_climatology="1989-01-02T00:00:00Z",
-            extract_region={
-                "start_longitude": 10,
-                "end_longitude": 16.75,
-                "start_latitude": 7.25,
-                "end_latitude": 2.5,
-            },
-        ),
+        start_time_climatology="1979-01-02T00:00:00Z",
+        end_time_climatology="1989-01-02T00:00:00Z",
+        extract_region={
+            "start_longitude": 10,
+            "end_longitude": 16.75,
+            "start_latitude": 7.25,
+            "end_latitude": 2.5,
+        },
     )
 
     assert mock_recipe_run["session"].session_dir == forcing_dir
@@ -162,6 +156,6 @@ def test_load_legacy_forcing(tmp_path):
         temperatureNC="pcrglobwb_tas.nc",
     )
 
-    result = load(tmp_path)
+    result = PCRGlobWBForcing.load(tmp_path)
 
     assert result == expected

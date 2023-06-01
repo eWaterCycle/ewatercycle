@@ -133,7 +133,8 @@ def test_str(model, tmp_path):
             "ParameterSet(name='wflow_testcase', ",
             f"directory={repr(tmp_path / 'wflow_testcase')}, ",
             f"config={repr(tmp_path / 'wflow_testcase' / 'wflow_sbm_nc.ini')}, ",
-            "doi='N/A', target_model='wflow', supported_model_versions=set())",
+            "doi='N/A', target_model='wflow', supported_model_versions=set(), ",
+            "downloader=None)"
         ]
     )
     expected = f"version='2020.1.1' parameter_set={expected_ps} forcing=None"

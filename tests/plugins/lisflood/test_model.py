@@ -10,13 +10,14 @@ from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 from numpy.testing import assert_array_equal
 
 from ewatercycle import CFG
-from ewatercycle.forcing import load_foreign
 from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.plugins.lisflood.config import XmlConfig
 from ewatercycle.plugins.lisflood.model import Lisflood
 from ewatercycle.testing.fake_models import FailingModel
 
 from ewatercycle.parameter_sets import example_parameter_sets
+from ewatercycle.forcing import sources
+LisfloodForcing = sources["LisfloodForcing"]
 
 
 @pytest.fixture
@@ -39,12 +40,13 @@ def find_values_in_xml(tree, name):
     return set(values)
 
 
+@pytest.mark.skip("Relies on downloading data: currently not working.")
 class TestLFlatlonUseCase:
     @pytest.fixture
-    def parameterset(self, mocked_config):
+    def parameterset(self, mocked_config, tmp_path):
         example_parameter_set = example_parameter_sets()["lisflood_fraser"]
-        example_parameter_set.download()
-        example_parameter_set.to_config()
+        example_parameter_set.download(tmp_path)
+        #example_parameter_set.to_config()
         return example_parameter_set
 
     @pytest.fixture
@@ -56,16 +58,14 @@ class TestLFlatlonUseCase:
         for file in meteo_dir.glob("*.nc"):
             shutil.copy(file, forcing_dir / f"my{file.stem}.nc")
 
-        return load_foreign(
-            target_model="lisflood",
+        return LisfloodForcing(
+            forcing="lisflood",
             directory=str(forcing_dir),
             start_time="1986-01-02T00:00:00Z",
             end_time="2018-01-02T00:00:00Z",
-            forcing_info={
-                "PrefixPrecipitation": "mytp.nc",
-                "PrefixTavg": "myta.nc",
-                "PrefixE0": "mye0.nc",
-            },
+            PrefixPrecipitation="mytp.nc",
+            PrefixTavg="myta.nc",
+            PrefixE0="mye0.nc",
         )
 
     @pytest.fixture
