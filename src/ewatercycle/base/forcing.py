@@ -110,7 +110,7 @@ class DefaultForcing(BaseModel):
         return cls(**fdict)
 
     @classmethod
-    def plot(self):
+    def plot(cls):
         raise NotImplementedError("No generic plotting method available.")
 
     def __eq__(self, other):

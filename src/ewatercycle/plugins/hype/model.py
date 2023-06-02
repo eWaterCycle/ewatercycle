@@ -10,7 +10,7 @@ from dateutil.parser import parse
 from dateutil.tz import UTC
 
 from ewatercycle import CFG
-from ewatercycle.base.model import AbstractModel
+from ewatercycle.base.model import ISO_TIMEFMT, AbstractModel
 from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.container import VersionImages, start_container
 from ewatercycle.plugins.hype.forcing import HypeForcing
@@ -157,7 +157,7 @@ class Hype(AbstractModel[HypeForcing]):
             work_dir=cfg_dir_as_path,
         )
 
-        since = self._start.strftime("%Y-%m-%dT%H:%M:%SZ")
+        since = self._start.strftime(ISO_TIMEFMT)
 
         # The Hype get_time_units() returns `hours since start of simulation` and get_start_time() returns 0
         # A relative datetime is not very useful, so here we overwrite the get_time_units to return the absolute datetime.
@@ -173,9 +173,9 @@ class Hype(AbstractModel[HypeForcing]):
         """List the parameters for this model."""
         assert self.parameter_set is not None
         return [
-            ("start_time", self._start.strftime("%Y-%m-%dT%H:%M:%SZ")),
-            ("end_time", self._end.strftime("%Y-%m-%dT%H:%M:%SZ")),
-            ("crit_time", self._crit.strftime("%Y-%m-%dT%H:%M:%SZ")),
+            ("start_time", self._start.strftime(ISO_TIMEFMT)),
+            ("end_time", self._end.strftime(ISO_TIMEFMT)),
+            ("crit_time", self._crit.strftime(ISO_TIMEFMT)),
         ]
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:

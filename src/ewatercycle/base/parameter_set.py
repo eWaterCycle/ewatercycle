@@ -96,9 +96,10 @@ class ZenodoDownloader(BaseModel):
     doi: str
 
     def __call__(self, directory: Path):
+        raise NotImplementedError
         # extract record id from doi
         # 10.5281/zenodo.7949784
-        record_id = self.doi.split(".")[-1]
+        # record_id = self.doi.split(".")[-1]
         # TODO Zenodo entry can have multiple files,
         # how to select the correct one? Pick first
         # TODO construct download url

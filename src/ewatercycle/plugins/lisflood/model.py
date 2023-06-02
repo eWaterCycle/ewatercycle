@@ -10,7 +10,7 @@ import xarray as xr
 from cftime import num2date
 
 from ewatercycle import CFG
-from ewatercycle.base.model import AbstractModel
+from ewatercycle.base.model import ISO_TIMEFMT, AbstractModel
 from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.container import start_container
 from ewatercycle.plugins.lisflood._lisflood_versions import version_images
@@ -279,8 +279,8 @@ class Lisflood(AbstractModel[LisfloodForcing]):
                 self._get_textvar_value("IrrigationEfficiency"),
             ),
             ("MaskMap", self._get_textvar_value("MaskMap")),
-            ("start_time", self._start.strftime("%Y-%m-%dT%H:%M:%SZ")),
-            ("end_time", self._end.strftime("%Y-%m-%dT%H:%M:%SZ")),
+            ("start_time", self._start.strftime(ISO_TIMEFMT)),
+            ("end_time", self._end.strftime(ISO_TIMEFMT)),
         ]
 
     def finalize(self) -> None:

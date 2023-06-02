@@ -12,7 +12,7 @@ import xarray as xr
 from cftime import num2date
 
 from ewatercycle import CFG
-from ewatercycle.base.model import AbstractModel
+from ewatercycle.base.model import ISO_TIMEFMT, AbstractModel
 from ewatercycle.container import VersionImages, start_container
 from ewatercycle.plugins.marrmot.forcing import MarrmotForcing
 from ewatercycle.util import get_time, to_absolute_path
@@ -272,8 +272,8 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
             ("maximum_soil_moisture_storage", self._parameters[0]),
             ("initial_soil_moisture_storage", self.store_ini[0]),
             ("solver", self.solver),
-            ("start time", self.forcing_start_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
-            ("end time", self.forcing_end_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
+            ("start time", self.forcing_start_time.strftime(ISO_TIMEFMT)),
+            ("end time", self.forcing_end_time.strftime(ISO_TIMEFMT)),
         ]
 
 
@@ -539,7 +539,7 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
             ("initial_upper_zone_storage", self.store_ini[0]),
             ("initial_saturated_zone_storage", self.store_ini[1]),
             ("solver", self.solver),
-            ("start time", self.forcing_start_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
-            ("end time", self.forcing_end_time.strftime("%Y-%m-%dT%H:%M:%SZ")),
+            ("start time", self.forcing_start_time.strftime(ISO_TIMEFMT)),
+            ("end time", self.forcing_end_time.strftime(ISO_TIMEFMT)),
         ]
         return pars

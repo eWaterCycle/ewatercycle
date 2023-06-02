@@ -19,6 +19,9 @@ logger = logging.getLogger(__name__)
 ForcingT = TypeVar("ForcingT", bound=DefaultForcing)
 
 
+ISO_TIMEFMT = r"%Y-%m-%dT%H:%M:%SZ"
+
+
 class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
     """Abstract class of a eWaterCycle model."""
 
@@ -190,21 +193,21 @@ class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
         """Start time of the model.
         In UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         """
-        return self.start_time_as_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
+        return self.start_time_as_datetime.strftime(ISO_TIMEFMT)
 
     @property
     def end_time_as_isostr(self) -> str:
         """End time of the model.
         In UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         """
-        return self.end_time_as_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
+        return self.end_time_as_datetime.strftime(ISO_TIMEFMT)
 
     @property
     def time_as_isostr(self) -> str:
         """Current time of the model.
         In UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         """
-        return self.time_as_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
+        return self.time_as_datetime.strftime(ISO_TIMEFMT)
 
     @property
     def start_time_as_datetime(self) -> datetime:
