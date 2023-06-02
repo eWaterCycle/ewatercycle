@@ -190,7 +190,7 @@ texinfo_documents = [
     ),
 ]
 
-autodoc_mock_imports = [ # should stay aligned with setup.cfg dependencies.
+autodoc_mock_imports = [  # should stay aligned with setup.cfg dependencies.
     "Fiona",
     "Shapely",
     "bmipy",
