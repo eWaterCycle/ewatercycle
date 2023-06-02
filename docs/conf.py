@@ -190,21 +190,23 @@ texinfo_documents = [
     ),
 ]
 
-autodoc_mock_imports = [
+autodoc_mock_imports = [ # should stay aligned with setup.cfg dependencies.
+    "Fiona",
+    "Shapely",
     "bmipy",
     "cftime",
-    "dask",
-    "esmvalcore",
-    "fiona",
-    "dateutil",
-    "shapely",
+    "esmvaltool",
+    "gitdir",
+    "grpc4bmi",
+    "grpcio",
     "hydrostats",
     "matplotlib",
     "numpy",
     "pandas",
+    "pydantic",
     "pyoos",
-    "grpc4bmi",
-    "grpc",
+    "python-dateutil",
+    "ruamel.yaml",
     "scipy",
     "xarray",
 ]
