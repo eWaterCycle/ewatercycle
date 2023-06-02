@@ -68,4 +68,3 @@ that are commonly used throughout this documentation.
   examples
   hpc_to_cluster
   observations
-  API Reference <apidocs/ewatercycle.rst>

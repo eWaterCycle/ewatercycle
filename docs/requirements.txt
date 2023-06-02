@@ -3,3 +3,4 @@ nbsphinx
 ruamel.yaml
 sphinx-copybutton
 jinja2
+sphinx-autoapi
