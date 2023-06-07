@@ -11,12 +11,16 @@ import xarray as xr
 from cftime import num2date
 
 from ewatercycle import CFG
-from ewatercycle.container import VersionImages, start_container
-from ewatercycle.model import AbstractModel
+from ewatercycle.base.model import ISO_TIMEFMT, AbstractModel
 from ewatercycle.base.parameter_set import ParameterSet
-from ewatercycle.parametersetdb.config import CaseConfigParser
+from ewatercycle.container import VersionImages, start_container
 from ewatercycle.plugins.wflow.forcing import WflowForcing
-from ewatercycle.util import find_closest_point, get_time, to_absolute_path
+from ewatercycle.util import (
+    CaseConfigParser,
+    find_closest_point,
+    get_time,
+    to_absolute_path,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -220,7 +224,7 @@ class Wflow(AbstractModel[WflowForcing]):
 
 def _wflow_to_iso(time):
     dt = datetime.datetime.fromisoformat(time)
-    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return dt.strftime(ISO_TIMEFMT)
 
 
 def _iso_to_wflow(time):

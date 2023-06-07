@@ -8,10 +8,12 @@ import pytest
 from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
 from ewatercycle import CFG
-from ewatercycle.forcing import load_foreign
 from ewatercycle.base.parameter_set import ParameterSet
+from ewatercycle.forcing import sources
 from ewatercycle.plugins.hype.model import Hype, _set_code_in_cfg
 from ewatercycle.testing.fake_models import FailingModel
+
+HypeForcing = sources["HypeForcing"]
 
 
 @pytest.fixture
@@ -318,12 +320,12 @@ class TestWithForcingAndDefaults:
             """
             )
         )
-        return load_foreign(
-            target_model="hype",
+        return HypeForcing(
+            forcing="hype",
             start_time="1986-01-02T00:00:00Z",
             end_time="2018-01-02T00:00:00Z",
             directory=str(forcing_dir),
-            forcing_info={"Pobs": pobs.name},
+            Pobs=pobs.name,
         )
 
     @pytest.fixture

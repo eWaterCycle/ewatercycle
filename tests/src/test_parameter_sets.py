@@ -4,11 +4,12 @@ from unittest.mock import patch
 import pytest
 
 from ewatercycle import CFG
-from ewatercycle.config import Configuration
-
-from ewatercycle.parameter_sets import available_parameter_sets, download_example_parameter_sets, example_parameter_sets
-
 from ewatercycle.base.parameter_set import ParameterSet
+from ewatercycle.parameter_sets import (
+    available_parameter_sets,
+    download_example_parameter_sets,
+    example_parameter_sets,
+)
 
 
 @pytest.fixture
@@ -37,13 +38,13 @@ def mocked_parameterset_dir(setup_config, tmp_path):
     CFG.parameter_sets = {
         "ps1": {
             "directory": str(ps1_dir),
-            "config": str(config1.relative_to(tmp_path)),
+            "config": str(config1.relative_to(ps1_dir)),
             "target_model": "generic",
             "doi": "somedoi1",
         },
         "ps2": {
             "directory": str(ps2_dir),
-            "config": str(config2.relative_to(tmp_path)),
+            "config": str(config2.relative_to(ps2_dir)),
             "target_model": "generic",
             "doi": "somedoi2",
         },
@@ -78,6 +79,7 @@ class TestAvailableParameterSets:
         assert actual.config == tmp_path / "ps1" / "mymockedconfig1.ini"
         assert actual.doi == "somedoi1"
         assert actual.target_model == "generic"
+
 
 def test_example_parameter_sets(setup_config):
     examples = example_parameter_sets()

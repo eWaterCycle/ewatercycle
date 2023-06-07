@@ -17,11 +17,11 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import sys
-from pathlib import Path
+# import sys
+# from pathlib import Path
 
-src = Path(__file__).parent / ".." / "src"
-sys.path.insert(0, str(src.absolute()))
+# src = Path(__file__).parent / ".." / "src"
+# sys.path.insert(0, str(src.absolute()))
 
 
 # -- General configuration ------------------------------------------------
@@ -35,6 +35,7 @@ extensions = [
     "nbsphinx",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
+    "autoapi.extension",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -67,7 +68,7 @@ release = version
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -81,42 +82,10 @@ pygments_style = "sphinx"
 todo_include_todos = False
 
 
-# -- Run apidoc plug-in manually, as readthedocs doesn't support it -------
-# See https://github.com/rtfd/readthedocs.org/issues/1139
-def run_apidoc(_):  # noqa: D103
-    here = Path(__file__).parent
-    out = (here / "apidocs").absolute()
-    source_dir = (here / ".." / "src" / "ewatercycle").absolute()
-
-    ignore_paths = []
-
-    argv = [
-        "-f",
-        "-T",
-        "-e",
-        "-M",
-        "--implicit-namespaces",
-        "-o",
-        str(out),
-        str(source_dir),
-    ] + ignore_paths
-
-    try:
-        # Sphinx 1.7+
-        from sphinx.ext import apidoc
-
-        apidoc.main(argv)
-    except ImportError:
-        # Sphinx 1.6 (and earlier)
-        from sphinx import apidoc
-
-        argv.insert(0, apidoc.__file__)
-        apidoc.main(argv)
-
-
-def setup(app):  # noqa: D103
-    app.connect("builder-inited", run_apidoc)
-
+# -- Use autoapi.extension to run sphinx-apidoc -------
+autoapi_dirs = ["../src"]
+autoapi_python_class_content = "both"
+autoapi_options = ["members", "undoc-members", "imported-members"]
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -191,24 +160,8 @@ texinfo_documents = [
 ]
 
 autodoc_mock_imports = [
-    "bmipy",
-    "cftime",
-    "dask",
-    "esmvalcore",
-    "fiona",
-    "dateutil",
-    "shapely",
-    "hydrostats",
-    "matplotlib",
-    "numpy",
-    "pandas",
-    "pyoos",
-    "grpc4bmi",
-    "grpc",
-    "scipy",
-    "xarray",
+    "cf_units",  # Causes many errors in docs build.
 ]
-
 # Prevent alphabetic sorting of (@data)class attributes/methods
 autodoc_member_order = "bysource"
 
@@ -245,4 +198,5 @@ intersphinx_mapping = {
     "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
     "seaborn": ("https://seaborn.pydata.org/", None),
     "sklearn": ("https://scikit-learn.org/stable", None),
+    "xarray": ("https://docs.xarray.dev/en/stable/", None),
 }

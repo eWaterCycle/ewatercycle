@@ -9,17 +9,20 @@ from grpc import FutureTimeoutError
 from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
 from ewatercycle import CFG
-from ewatercycle.forcing import load_foreign
-
+from ewatercycle.base.parameter_set import ParameterSet
+from ewatercycle.forcing import sources
+from ewatercycle.parameter_sets import add_to_config, example_parameter_sets
 from ewatercycle.plugins.pcrglobwb.model import PCRGlobWB
 from ewatercycle.testing.fake_models import FailingModel
 
-from ewatercycle.parameter_sets import add_to_config, example_parameter_sets
-
-from ewatercycle.base.parameter_set import ParameterSet
+PCRGlobWBForcing = sources["PCRGlobWBForcing"]
 
 
-class MockedBmi(FailingModel):
+# @pytest.skip(
+#     "Skipping the model testing: Downloader is broken.", allow_module_level=True
+# )
+# Mypy throws "error: "NoReturn" not callable [misc]". No idea why.
+class MockedBmi(FailingModel):  # type: ignore
     """Pretend to be a real BMI model."""
 
     def initialize(self, config_file):
@@ -54,7 +57,7 @@ class MockedBmi(FailingModel):
         return np.float64().size * 3 * 2
 
 
-@pytest.fixture
+@pytest.fixture()
 def mocked_config(tmp_path: Path):
     CFG.output_dir = tmp_path
     CFG.container_engine = "apptainer"
@@ -68,7 +71,7 @@ def mocked_config(tmp_path: Path):
 @pytest.fixture
 def parameter_set(mocked_config):
     example_parameter_set = example_parameter_sets()["pcrglobwb_rhinemeuse_30min"]
-    example_parameter_set.download()
+    example_parameter_set.download(CFG.parameterset_dir)
     add_to_config(example_parameter_set)
     return example_parameter_set
 
@@ -76,15 +79,12 @@ def parameter_set(mocked_config):
 @pytest.fixture
 def forcing(parameter_set: ParameterSet):
     forcing_dir = parameter_set.directory / "forcing"
-    return load_foreign(
-        target_model="pcrglobwb",
+    return PCRGlobWBForcing(
         start_time="2001-01-01T00:00:00Z",
         end_time="2010-12-31T00:00:00Z",
         directory=str(forcing_dir),
-        forcing_info=dict(
-            precipitationNC="precipitation_2001to2010.nc",
-            temperatureNC="temperature_2001to2010.nc",
-        ),
+        precipitationNC="precipitation_2001to2010.nc",
+        temperatureNC="temperature_2001to2010.nc",
     )
 
 

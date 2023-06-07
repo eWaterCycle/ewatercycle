@@ -4,10 +4,8 @@ from os import linesep
 from pathlib import Path
 from typing import Dict, Optional
 
-
-from ewatercycle.config import CFG, SYSTEM_CONFIG, USER_HOME_CONFIG
-
 from ewatercycle.base.parameter_set import ParameterSet
+from ewatercycle.config import CFG, SYSTEM_CONFIG, USER_HOME_CONFIG
 
 logger = getLogger(__name__)
 
@@ -19,29 +17,26 @@ def add_to_config(parameter_set: ParameterSet):
     if not CFG.parameter_sets:
         CFG.parameter_sets = {}
 
-    CFG.parameter_sets[self.name] = dict(
-        directory=str(_abbreviate(parameter_set.directory)),
-        config=str(_abbreviate(parameter_set.config)),
-        doi=parameter_set.doi,
-        target_model=parameter_set.target_model,
-        supported_model_versions=parameter_set.supported_model_versions,
-    )
+    CFG.parameter_sets[parameter_set.name] = parameter_set
+
 
 def _abbreviate(path: Path):
     try:
         if CFG.parameterset_dir is None:
-            raise ValueError(f"Can not abbreviate path without CFG.parameterset_dir")
+            raise ValueError("Can not abbreviate path without CFG.parameterset_dir")
         return path.relative_to(CFG.parameterset_dir)
     except ValueError:
         return path
 
 
-def available_parameter_sets(target_model: Optional[str] = None) -> Dict[str, ParameterSet]:
+def available_parameter_sets(
+    target_model: Optional[str] = None,
+) -> Dict[str, ParameterSet]:
     """List available parameter sets on this machine.
-    
+
     Args:
         target_model: Filter parameter sets on a model name
-    Returns: 
+    Returns:
         Dictionary available parameter sets on current machine.
     """
     all_parameter_sets = CFG.parameter_sets
@@ -75,7 +70,7 @@ def example_parameter_sets() -> Dict[str, ParameterSet]:
     # TODO how to add a new model docs should be updated with this part
     return {
         entry_point.name: entry_point.load()
-        for entry_point in entry_points(group="ewatercycle.parameter_sets")
+        for entry_point in entry_points(group="ewatercycle.parameter_sets")  # /NOSONAR
     }
 
 
@@ -108,6 +103,3 @@ def download_example_parameter_sets(skip_existing=True):
             f"or {SYSTEM_CONFIG} file: {linesep}"
             f"{CFG.dump_to_yaml()}"
         ) from e
-
-
-

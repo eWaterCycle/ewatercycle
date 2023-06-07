@@ -6,8 +6,7 @@ from typing import Literal, Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ewatercycle.forcing._default import DefaultForcing, _session
-from ewatercycle.forcing.datasets import DATASETS
+from ewatercycle.base.forcing import DATASETS, DefaultForcing, _session
 from ewatercycle.plugins.lisflood.lisvap import create_lisvap_config, lisvap
 from ewatercycle.util import (
     data_files_from_recipe_output,
@@ -25,6 +24,12 @@ class LisfloodForcing(DefaultForcing):
     """Container for lisflood forcing data.
 
     Args:
+        directory: Directory where forcing data files are stored.
+        start_time: Start time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        end_time: End time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        shape: Path to a shape file. Used for spatial selection.
         PrefixPrecipitation: Path to a NetCDF or pcraster file with
             precipitation data
         PrefixTavg: Path to a NetCDF or pcraster file with average
@@ -35,6 +40,21 @@ class LisfloodForcing(DefaultForcing):
             evaporation rate from bare soil surface data
         PrefixET0: Path to a NetCDF or pcraster file with potential
             (reference) evapotranspiration rate data
+
+    .. code-block:: python
+
+        from ewatercycle.forcing import sources
+
+        forcing = sources.LisfloodForcing(
+            directory='/data/lisflood-forcings-case1',
+            start_time='1989-01-02T00:00:00Z',
+            end_time='1999-01-02T00:00:00Z',
+            PrefixPrecipitation='tp.nc',
+            PrefixTavg='ta.nc',
+            PrefixE0='e.nc',
+            PrefixES0='es.nc',
+            PrefixET0='et.nc'
+        )
     """
 
     # type ignored because pydantic wants literal in base class while mypy does not
@@ -197,7 +217,7 @@ class LisfloodForcing(DefaultForcing):
             # TODO add a logger message about the results of lisvap using
             # exit_code, stdout, stderr
             # Instantiate forcing object based on generated data
-            return LisfloodForcing(
+            generated_forcing = LisfloodForcing(
                 directory=str(reindexed_forcing_directory),
                 start_time=start_time,
                 end_time=end_time,
@@ -216,7 +236,7 @@ class LisfloodForcing(DefaultForcing):
             )
             logger.warning("%s", message)
             # instantiate forcing object based on generated data
-            return LisfloodForcing(
+            generated_forcing = LisfloodForcing(
                 directory=directory,
                 start_time=start_time,
                 end_time=end_time,
@@ -224,3 +244,5 @@ class LisfloodForcing(DefaultForcing):
                 PrefixPrecipitation=forcing_files["pr"],
                 PrefixTavg=forcing_files["tas"],
             )
+        generated_forcing.save()
+        return generated_forcing

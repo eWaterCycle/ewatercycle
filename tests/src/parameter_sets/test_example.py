@@ -26,83 +26,30 @@ def example(setup_config, tmp_path: Path):
     ps_dir.mkdir()
     ps_config = ps_dir / "config.ini"
     ps_config.write_text("some config")
-    ps = ParameterSet(
+    ps = ParameterSet(  # TODO CHECK WITH PETER/STEFAN
         name="firstexample",
-        config_url="https://github.com/mymodelorg/mymodelrepo/raw/master/mymodelexample/config.ini",  # noqa: E501
-        datafiles_url="https://github.com/mymodelorg/mymodelrepo/trunk/mymodelexample",
-        directory="mymodelexample",
-        config="mymodelexample/config.ini",
+        # config_url="https://github.com/mymodelorg/mymodelrepo/raw/master/mymodelexample/config.ini",  # noqa: E501
+        # datafiles_url="https://github.com/mymodelorg/mymodelrepo/trunk/mymodelexample",
+        directory=Path("mymodelexample"),
+        config=Path("config.ini"),
         supported_model_versions={"0.4.2"},
     )
     ps.make_absolute(tmp_path)
     return ps
 
 
-def test_to_config(example, tmp_path):
-    example.to_config()
-
-    assert "firstexample" in CFG.parameter_sets
-    expected = dict(
-        doi="N/A",
-        target_model="generic",
-        directory="mymodelexample",
-        config="mymodelexample/config.ini",
-        supported_model_versions={"0.4.2"},
-    )
-    assert CFG.parameter_sets["firstexample"] == expected
-
-
-@patch("urllib.request.urlopen")
-@patch("subprocess.check_call")
-def test_download(
-    mock_check_call, mock_urlopen, example: ExampleParameterSet, tmp_path
-):
-    example.config.unlink()
-    example.directory.rmdir()
-    ps_dir = tmp_path / "mymodelexample"
-    r = Mock()
-    r.read.return_value = b"somecontent"
-    mock_urlopen.return_value = r
-    mock_check_call.side_effect = lambda _: ps_dir.mkdir()
-
-    example.download()
-
-    mock_urlopen.assert_called_once_with(
-        "https://github.com/mymodelorg/mymodelrepo/raw/master/mymodelexample/config.ini"
-    )
-    mock_check_call.assert_called_once_with(
-        [
-            "svn",
-            "export",
-            "https://github.com/mymodelorg/mymodelrepo/trunk/mymodelexample",
-            ps_dir,
-        ]
-    )
-    assert (ps_dir / "config.ini").read_text() == "somecontent"
-
-
-def test_download_already_exists(example, tmp_path: Path):
+def test_download_already_exists_but_skipped(example, tmp_path: Path, caplog):
     ps_dir = tmp_path / "mymodelexample"
     ps_dir.mkdir(exist_ok=True)
 
-    with pytest.raises(ValueError) as excinfo:
-        example.download()
+    # Make a mock downloader to assert it is not called
+    #  mocking the property is not possible, as the object has to be initiated first
+    def mock_downloader(_):
+        assert False, ".downloader should not be called."
 
-    assert "already exists, will not overwrite." in str(excinfo.value)
-
-
-@patch("urllib.request.urlopen")
-@patch("subprocess.check_call")
-def test_download_already_exists_but_skipped(
-    mock_check_call, mock_urlopen, example, tmp_path: Path, caplog
-):
-    ps_dir = tmp_path / "mymodelexample"
-    ps_dir.mkdir(exist_ok=True)
+    example.downloader = mock_downloader
 
     with caplog.at_level(logging.INFO):
-        example.download(skip_existing=True)
+        example.download(download_dir=ps_dir, force=False)
 
-    mock_urlopen.assert_not_called()
-    mock_check_call.assert_not_called()
-
-    assert "already exists, skipping download." in caplog.text
+    assert "already exists and download is not forced, skipping download" in caplog.text

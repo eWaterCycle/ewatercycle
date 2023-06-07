@@ -5,9 +5,10 @@ import pytest
 from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import OutputFile
 
-from ewatercycle.forcing import generate, load
-from ewatercycle.forcing._default import FORCING_YAML
-from ewatercycle.plugins.hype.forcing import HypeForcing
+from ewatercycle.base.forcing import FORCING_YAML
+from ewatercycle.forcing import sources
+
+HypeForcing = sources["HypeForcing"]
 
 
 def test_plot():
@@ -63,8 +64,7 @@ class TestGenerate:
     def forcing(self, mock_recipe_run, sample_shape):
         # The recipe needs a compose shapefile, but the sample shape is not composed.
         # That is OK because we mock the recipe run
-        return generate(
-            target_model="hype",
+        return HypeForcing.generate(
             dataset="ERA5",
             start_time="1989-01-02T00:00:00Z",
             end_time="1999-01-02T00:00:00Z",
@@ -196,7 +196,7 @@ class TestGenerate:
         assert saved_forcing == expected
 
     def test_saved_yaml_by_loading(self, forcing, tmp_path):
-        saved_forcing = load(tmp_path)
+        saved_forcing = HypeForcing.load(tmp_path)
         # shape should is not included in the yaml file
         forcing.shape = None
 
@@ -205,8 +205,7 @@ class TestGenerate:
 
 def test_with_directory(mock_recipe_run, sample_shape, tmp_path):
     forcing_dir = tmp_path / "myforcing"
-    generate(
-        target_model="hype",
+    HypeForcing.generate(
         dataset="ERA5",
         start_time="1989-01-02T00:00:00Z",
         end_time="1999-01-02T00:00:00Z",
@@ -236,6 +235,6 @@ def test_load_legacy_forcing(tmp_path):
         directory=tmp_path,
     )
 
-    result = load(tmp_path)
+    result = HypeForcing.load(tmp_path)
 
     assert result == expected

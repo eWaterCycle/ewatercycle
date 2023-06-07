@@ -11,9 +11,9 @@ from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 
 from ewatercycle import CFG
 from ewatercycle.base.parameter_set import ParameterSet
-from ewatercycle.parametersetdb.config import CaseConfigParser
 from ewatercycle.plugins.wflow.model import Wflow
 from ewatercycle.testing.fake_models import FailingModel
+from ewatercycle.util import CaseConfigParser
 
 
 class MockedBmi(FailingModel):
@@ -133,7 +133,8 @@ def test_str(model, tmp_path):
             "ParameterSet(name='wflow_testcase', ",
             f"directory={repr(tmp_path / 'wflow_testcase')}, ",
             f"config={repr(tmp_path / 'wflow_testcase' / 'wflow_sbm_nc.ini')}, ",
-            "doi='N/A', target_model='wflow', supported_model_versions=set())",
+            "doi='N/A', target_model='wflow', supported_model_versions=set(), ",
+            "downloader=None)",
         ]
     )
     expected = f"version='2020.1.1' parameter_set={expected_ps} forcing=None"

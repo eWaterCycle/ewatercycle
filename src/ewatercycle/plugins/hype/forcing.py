@@ -6,8 +6,7 @@ from typing import Literal, Optional
 import pandas as pd
 from esmvalcore.experimental import get_recipe
 
-from ewatercycle.forcing._default import DefaultForcing, _session
-from ewatercycle.forcing.datasets import DATASETS
+from ewatercycle.base.forcing import DATASETS, DefaultForcing, _session
 from ewatercycle.util import get_time, to_absolute_path
 
 
@@ -15,10 +14,18 @@ class HypeForcing(DefaultForcing):
     """Container for hype forcing data.
 
     Args:
-        Pobs (str): Input file for precipitation data.
-        TMAXobs (str): Input file for maximum temperature data.
-        TMINobs (str): Input file for minimum temperature data.
-        Tobs (str): Input file for temperature data.
+        directory: Directory where forcing data files are stored.
+        start_time: Start time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        end_time: End time of forcing in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        shape: Path to a shape file. Used for spatial selection.
+        Pobs (optional): Input file for precipitation data. Defaults to 'Pobs.txt'
+        TMAXobs (optional): Input file for maximum temperature data. Defaults to
+            'TMAXobs.txt'
+        TMINobs (optional): Input file for minimum temperature data. Defaults to
+            'TMINobs.txt'
+        Tobs (optional): Input file for temperature data. Defaults to 'Tobs.txt'
     """
 
     # type ignored because pydantic wants literal in base class while mypy does not
@@ -89,7 +96,7 @@ class HypeForcing(DefaultForcing):
             ds.to_csv(p, sep=" ", index_label="DATE", float_format="%.3f")
 
         # instantiate forcing object based on generated data
-        return HypeForcing(
+        generated_forcing = HypeForcing(
             directory=directory,
             start_time=start_time,
             end_time=end_time,
@@ -99,3 +106,5 @@ class HypeForcing(DefaultForcing):
             TMINobs=forcing_files["TMINobs"].name,
             Tobs=forcing_files["Tobs"].name,
         )
+        generated_forcing.save()
+        return generated_forcing

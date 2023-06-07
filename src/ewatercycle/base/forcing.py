@@ -1,17 +1,15 @@
-"""Forcing related functionality for default models."""
 import logging
 from pathlib import Path
 from typing import Literal, Optional, Union
 
+from esmvalcore.config import Session
 from esmvalcore.experimental import CFG
-from esmvalcore.experimental.config import Session
 from pydantic import BaseModel, validator
 from ruamel.yaml import YAML
 
 from ewatercycle.util import to_absolute_path
 
 logger = logging.getLogger(__name__)
-
 FORCING_YAML = "ewatercycle_forcing.yaml"
 
 
@@ -81,7 +79,38 @@ class DefaultForcing(BaseModel):
             yaml.dump(fdict, f)
         return target
 
-    def plot(self):
+    @classmethod
+    def load(cls, directory: str | Path):
+        """Load previously generated or imported forcing data.
+
+        Args:
+            directory: forcing data directory; must contain
+                `ewatercycle_forcing.yaml` file
+
+        Returns: Forcing object
+        """
+        data_source = to_absolute_path(directory)
+        meta = data_source / FORCING_YAML
+        yaml = YAML(typ="safe")
+
+        if not meta.exists():
+            raise FileNotFoundError(
+                f"Forcing file {meta} not found. "
+                f"Perhaps you want to use {cls.__name__}(...)?"
+            )
+        metadata = meta.read_text()
+        # Workaround for legacy forcing files having !PythonClass tag.
+        #     Get model name of non-initialized BaseModel with Pydantic class property:
+        modelname = cls.__fields__["model"].default
+        metadata = metadata.replace(f"!{cls.__name__}", f"model: {modelname}")
+
+        fdict = yaml.load(metadata)
+        fdict["directory"] = data_source
+
+        return cls(**fdict)
+
+    @classmethod
+    def plot(cls):
         raise NotImplementedError("No generic plotting method available.")
 
     def __eq__(self, other):
@@ -103,3 +132,21 @@ def _session(directory: Optional[str] = None) -> Optional[Session]:
             return self.output_dir
 
     return TimeLessSession(Path(directory).absolute())
+
+
+DATASETS = {
+    "ERA5": {
+        "dataset": "ERA5",
+        "project": "OBS6",
+        "tier": 3,
+        "type": "reanaly",
+        "version": 1,
+    },
+    "ERA-Interim": {
+        "dataset": "ERA-Interim",
+        "project": "OBS6",
+        "tier": 3,
+        "type": "reanaly",
+        "version": 1,
+    },
+}

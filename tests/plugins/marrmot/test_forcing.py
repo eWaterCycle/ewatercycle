@@ -5,9 +5,10 @@ import pytest
 from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import OutputFile
 
-from ewatercycle.forcing import generate, load, load_foreign
-from ewatercycle.forcing._default import FORCING_YAML
-from ewatercycle.plugins.marrmot.forcing import MarrmotForcing
+from ewatercycle.base.forcing import FORCING_YAML
+from ewatercycle.forcing import sources
+
+MarrmotForcing = sources["MarrmotForcing"]
 
 
 def test_plot():
@@ -44,8 +45,7 @@ def mock_recipe_run(monkeypatch, tmp_path):
 class TestGenerate:
     @pytest.fixture
     def forcing(self, mock_recipe_run, sample_shape):
-        return generate(
-            target_model="marrmot",
+        return MarrmotForcing.generate(
             dataset="ERA5",
             start_time="1989-01-02T00:00:00Z",
             end_time="1999-01-02T00:00:00Z",
@@ -162,7 +162,7 @@ class TestGenerate:
         assert saved_forcing == expected
 
     def test_saved_yaml(self, forcing, tmp_path):
-        saved_forcing = load(tmp_path)
+        saved_forcing = MarrmotForcing.load(tmp_path)
         # shape should is not included in the yaml file
         forcing.shape = None
 
@@ -171,13 +171,12 @@ class TestGenerate:
 
 def test_load_foreign(sample_shape, sample_marrmot_forcing_file):
     forcing_file = Path(sample_marrmot_forcing_file)
-    actual = load_foreign(
-        target_model="marrmot",
+    actual = MarrmotForcing(
         start_time="1989-01-02T00:00:00Z",
         end_time="1999-01-02T00:00:00Z",
         shape=sample_shape,
         directory=str(forcing_file.parent),
-        forcing_info={"forcing_file": str(forcing_file.name)},
+        forcing_file=str(forcing_file.name),
     )
 
     expected = MarrmotForcing(
@@ -191,8 +190,7 @@ def test_load_foreign(sample_shape, sample_marrmot_forcing_file):
 
 
 def test_load_foreign_without_forcing_info(sample_shape):
-    actual = load_foreign(
-        target_model="marrmot",
+    actual = MarrmotForcing(
         start_time="1989-01-02T00:00:00Z",
         end_time="1999-01-02T00:00:00Z",
         shape=sample_shape,
@@ -211,8 +209,7 @@ def test_load_foreign_without_forcing_info(sample_shape):
 
 def test_generate_with_directory(mock_recipe_run, sample_shape, tmp_path):
     forcing_dir = tmp_path / "myforcing"
-    generate(
-        target_model="marrmot",
+    MarrmotForcing.generate(
         dataset="ERA5",
         start_time="1989-01-02T00:00:00Z",
         end_time="1999-01-02T00:00:00Z",
@@ -235,8 +232,7 @@ def test_generate_no_output_raises(monkeypatch, sample_shape):
     monkeypatch.setattr(Recipe, "run", failing_recipe_run)
 
     with pytest.raises(FileNotFoundError):
-        generate(
-            target_model="marrmot",
+        MarrmotForcing.generate(
             dataset="ERA5",
             start_time="1989-01-02T00:00:00Z",
             end_time="1999-01-02T00:00:00Z",
@@ -261,8 +257,7 @@ def test_generate_wrong_output_raises(monkeypatch, sample_shape, tmp_path):
     monkeypatch.setattr(Recipe, "run", failing_recipe_run)
 
     with pytest.raises(FileNotFoundError):
-        generate(
-            target_model="marrmot",
+        MarrmotForcing.generate(
             dataset="ERA5",
             start_time="1989-01-02T00:00:00Z",
             end_time="1999-01-02T00:00:00Z",
@@ -286,6 +281,6 @@ def test_load_legacy_forcing(tmp_path):
         directory=tmp_path,
     )
 
-    result = load(tmp_path)
+    result = MarrmotForcing.load(tmp_path)
 
     assert result == expected

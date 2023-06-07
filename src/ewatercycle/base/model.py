@@ -1,4 +1,3 @@
-"""Abstract class of a eWaterCycle model."""
 import logging
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
@@ -12,12 +11,15 @@ from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 from grpc4bmi.reserve import reserve_values, reserve_values_at_indices
 
 from ewatercycle._repr import Representation
-from ewatercycle.forcing import DefaultForcing
+from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.base.parameter_set import ParameterSet
 
 logger = logging.getLogger(__name__)
 
 ForcingT = TypeVar("ForcingT", bound=DefaultForcing)
+
+
+ISO_TIMEFMT = r"%Y-%m-%dT%H:%M:%SZ"
 
 
 class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
@@ -57,24 +59,19 @@ class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
     @abstractmethod
     def setup(self, *args, **kwargs) -> Tuple[str, str]:
         """Performs model setup.
-
         1. Creates config file and config directory
         2. Start bmi container and store as self.bmi
-
         Args:
             *args: Positional arguments. Sub class should specify each arg.
             **kwargs: Named arguments. Sub class should specify each arg.
-
         Returns:
             Path to config file and path to config directory
         """
 
     def initialize(self, config_file: str) -> None:
         """Initialize the model.
-
         Args:
             config_file: Name of initialization file.
-
         """
         self.bmi.initialize(config_file)
 
@@ -89,10 +86,8 @@ class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
 
     def get_value(self, name: str) -> np.ndarray:
         """Get a copy of values of the given variable.
-
         Args:
             name: Name of variable
-
         """
         if isinstance(self.bmi, OptionalDestBmi):
             return self.bmi.get_value(name)
@@ -103,12 +98,10 @@ class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
         self, name, lat: Iterable[float], lon: Iterable[float]
     ) -> np.ndarray:
         """Get a copy of values of the given variable at lat/lon coordinates.
-
         Args:
             name: Name of variable
             lat: Latitudinal value
             lon: Longitudinal value
-
         """
         indices = self._coords_to_indices(name, lat, lon)
         indices = np.array(indices)
@@ -119,11 +112,9 @@ class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
 
     def set_value(self, name: str, value: np.ndarray) -> None:
         """Specify a new value for a model variable.
-
         Args:
             name: Name of variable
             value: The new value for the specified variable.
-
         """
         self.bmi.set_value(name, value)
 
@@ -131,13 +122,11 @@ class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
         self, name: str, lat: Iterable[float], lon: Iterable[float], values: np.ndarray
     ) -> None:
         """Specify a new value for a model variable at at lat/lon coordinates.
-
         Args:
             name: Name of variable
             lat: Latitudinal value
             lon: Longitudinal value
             values: The new value for the specified variable.
-
         """
         indices = self._coords_to_indices(name, lat, lon)
         indices = np.array(indices)
@@ -147,11 +136,9 @@ class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
         self, name: str, lat: Iterable[float], lon: Iterable[float]
     ) -> Iterable[int]:
         """Converts lat/lon values to index.
-
         Args:
             lat: Latitudinal value
             lon: Longitudinal value
-
         """
         raise NotImplementedError(
             "Method to convert from coordinates to model indices "
@@ -161,12 +148,9 @@ class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
     @abstractmethod
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Get a copy values of the given variable as xarray DataArray.
-
         The xarray object also contains coordinate information and additional
         attributes such as the units.
-
         Args: name: Name of the variable
-
         """
 
     @property
@@ -207,26 +191,23 @@ class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
     @property
     def start_time_as_isostr(self) -> str:
         """Start time of the model.
-
         In UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         """
-        return self.start_time_as_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
+        return self.start_time_as_datetime.strftime(ISO_TIMEFMT)
 
     @property
     def end_time_as_isostr(self) -> str:
         """End time of the model.
-
         In UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         """
-        return self.end_time_as_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
+        return self.end_time_as_datetime.strftime(ISO_TIMEFMT)
 
     @property
     def time_as_isostr(self) -> str:
         """Current time of the model.
-
         In UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         """
-        return self.time_as_datetime.strftime("%Y-%m-%dT%H:%M:%SZ")
+        return self.time_as_datetime.strftime(ISO_TIMEFMT)
 
     @property
     def start_time_as_datetime(self) -> datetime:
