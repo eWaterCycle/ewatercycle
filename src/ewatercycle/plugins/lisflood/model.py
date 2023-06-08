@@ -1,0 +1,348 @@
+"""eWaterCycle wrapper around Lisflood BMI."""
+
+import datetime
+import logging
+from pathlib import Path
+from typing import Any, Iterable, Optional, Tuple, cast
+
+import numpy as np
+import xarray as xr
+from cftime import num2date
+
+from ewatercycle import CFG
+from ewatercycle.base.model import ISO_TIMEFMT, AbstractModel
+from ewatercycle.base.parameter_set import ParameterSet
+from ewatercycle.container import start_container
+from ewatercycle.plugins.lisflood._lisflood_versions import version_images
+from ewatercycle.plugins.lisflood.config import XmlConfig
+from ewatercycle.plugins.lisflood.forcing import LisfloodForcing
+from ewatercycle.util import find_closest_point, get_time, to_absolute_path
+
+logger = logging.getLogger(__name__)
+
+
+class Lisflood(AbstractModel[LisfloodForcing]):
+    """eWaterCycle implementation of Lisflood hydrological model.
+
+    Args:
+      version: pick a version for which an grpc4bmi docker image is available.
+      parameter_set: LISFLOOD input files. Any included forcing data will be ignored.
+      forcing: a LisfloodForcing object.
+
+    Example:
+        See examples/lisflood.ipynb in
+        `ewatercycle repository <https://github.com/eWaterCycle/ewatercycle>`_
+    """
+
+    available_versions = tuple(version_images.keys())
+    """Versions for which ewatercycle grpc4bmi docker images are available."""
+
+    def __init__(  # noqa: D107
+        self,
+        version: str,
+        parameter_set: ParameterSet,
+        forcing: LisfloodForcing,
+    ):
+        super().__init__(version, parameter_set, forcing)
+        self._check_forcing(forcing)
+        self.cfg = XmlConfig(parameter_set.config)
+
+    def _get_textvar_value(self, name: str):
+        for textvar in self.cfg.config.iter("textvar"):
+            textvar_name = textvar.attrib["name"]
+            if name == textvar_name:
+                return textvar.get("value")
+        raise KeyError(f"Name {name} not found in the config file.")
+
+    # unable to subclass with more specialized arguments so ignore type
+    def setup(  # type: ignore
+        self,
+        IrrigationEfficiency: Optional[str] = None,  # noqa: N803
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+        MaskMap: Optional[str] = None,
+        cfg_dir: Optional[str] = None,
+    ) -> Tuple[str, str]:
+        """Configure model run.
+
+        1. Creates config file and config directory
+           based on the forcing variables and time range.
+        2. Start bmi container and store as :py:attr:`bmi`
+
+        Args:
+            IrrigationEfficiency: Field application irrigation efficiency.
+                max 1, ~0.90 drip irrigation, ~0.75 sprinkling
+            start_time: Start time of model in UTC and ISO format string
+                e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+                If not given then forcing start time is used.
+            end_time: End time of model in  UTC and ISO format string
+                e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+                If not given then forcing end time is used.
+            MaskMap: Mask map to use instead of one supplied in parameter set.
+                Path to a NetCDF or pcraster file with
+                same dimensions as parameter set map files and a boolean variable.
+            cfg_dir: a run directory given by user or created for user.
+
+        Returns:
+            Path to config file and path to config directory
+        """
+        # TODO forcing can be a part of parameter_set
+        cfg_dir_as_path = None
+        if cfg_dir:
+            cfg_dir_as_path = to_absolute_path(cfg_dir)
+
+        cfg_dir_as_path = _generate_workdir(cfg_dir_as_path)
+        config_file = self._create_lisflood_config(
+            cfg_dir_as_path,
+            start_time,
+            end_time,
+            IrrigationEfficiency,
+            MaskMap,
+        )
+
+        assert self.parameter_set is not None
+        input_dirs = [str(self.parameter_set.directory), str(self.forcing_dir)]
+        if MaskMap is not None:
+            mask_map = to_absolute_path(MaskMap)
+            try:
+                mask_map.relative_to(self.parameter_set.directory)
+            except ValueError:
+                # If not relative add dir
+                input_dirs.append(str(mask_map.parent))
+
+        self.bmi = start_container(
+            image_engine=version_images[self.version],
+            work_dir=cfg_dir_as_path,
+            input_dirs=input_dirs,
+            timeout=300,
+        )
+
+        return str(config_file), str(cfg_dir_as_path)
+
+    def _check_forcing(self, forcing):
+        """Check forcing argument and get path, start/end time of forcing data."""
+        # TODO check if mask has same grid as forcing files,
+        # if not warn users to run reindex_forcings
+        if isinstance(forcing, LisfloodForcing):
+            self.forcing = forcing
+            self.forcing_dir = to_absolute_path(forcing.directory)
+            # convert date_strings to datetime objects
+            self._start = get_time(forcing.start_time)
+            self._end = get_time(forcing.end_time)
+        else:
+            raise TypeError(
+                f"Unknown forcing type: {forcing}. "
+                "Please supply a LisfloodForcing object."
+            )
+
+    def _create_lisflood_config(
+        self,
+        cfg_dir: Path,
+        start_time_iso: Optional[str] = None,
+        end_time_iso: Optional[str] = None,
+        IrrigationEfficiency: Optional[str] = None,  # noqa: N803
+        MaskMap: Optional[str] = None,
+    ) -> Path:
+        """Create lisflood config file."""
+        assert self.parameter_set is not None
+        assert self.forcing is not None
+        # overwrite dates if given
+        if start_time_iso is not None:
+            start_time = get_time(start_time_iso)
+            if self._start <= start_time <= self._end:
+                self._start = start_time
+            else:
+                raise ValueError("start_time outside forcing time range")
+        if end_time_iso is not None:
+            end_time = get_time(end_time_iso)
+            if self._start <= end_time <= self._end:
+                self._end = end_time
+            else:
+                raise ValueError("end_time outside forcing time range")
+
+        settings = {
+            "CalendarDayStart": self._start.strftime("%d/%m/%Y 00:00"),
+            "StepStart": "1",
+            "StepEnd": str((self._end - self._start).days),
+            "PathRoot": str(self.parameter_set.directory),
+            "PathMeteo": str(self.forcing_dir),
+            "PathOut": str(cfg_dir),
+        }
+
+        if IrrigationEfficiency is not None:
+            settings["IrrigationEfficiency"] = IrrigationEfficiency
+        if MaskMap is not None:
+            mask_map = to_absolute_path(MaskMap)
+            settings["MaskMap"] = str(mask_map.with_suffix(""))
+
+        for textvar in self.cfg.config.iter("textvar"):
+            textvar_name = textvar.attrib["name"]
+
+            # general settings
+            for key, value in settings.items():
+                if key in textvar_name:
+                    textvar.set("value", value)
+
+            # input for lisflood
+            if "PrefixPrecipitation" in textvar_name:
+                textvar.set("value", Path(self.forcing.PrefixPrecipitation).stem)
+            if "PrefixTavg" in textvar_name:
+                textvar.set("value", Path(self.forcing.PrefixTavg).stem)
+
+            # maps_prefixes dictionary contains lisvap filenames in lisflood config
+            maps_prefixes = {
+                "E0Maps": {
+                    "name": "PrefixE0",
+                    "value": Path(self.forcing.PrefixE0).stem,
+                },
+                "ES0Maps": {
+                    "name": "PrefixES0",
+                    "value": Path(self.forcing.PrefixES0).stem,
+                },
+                "ET0Maps": {
+                    "name": "PrefixET0",
+                    "value": Path(self.forcing.PrefixET0).stem,
+                },
+            }
+            # output of lisvap
+            for map_var, prefix in maps_prefixes.items():
+                if prefix["name"] in textvar_name:
+                    textvar.set("value", prefix["value"])
+                if map_var in textvar_name:
+                    textvar.set("value", f"$(PathMeteo)/$({prefix['name']})")
+
+        # Write to new setting file
+        lisflood_file = cfg_dir / "lisflood_setting.xml"
+        self.cfg.save(str(lisflood_file))
+        return lisflood_file
+
+    def get_value_as_xarray(self, name: str) -> xr.DataArray:
+        """Return the value as xarray object."""
+        # Get time information
+        time_units = self.bmi.get_time_units()
+        grid = self.bmi.get_var_grid(name)
+        shape = self.bmi.get_grid_shape(grid)
+
+        # Extract the data and store it in an xarray DataArray
+        return xr.DataArray(
+            data=np.reshape(self.bmi.get_value(name), shape),
+            coords={
+                "longitude": self.bmi.get_grid_x(grid),
+                "latitude": self.bmi.get_grid_y(grid),
+                "time": num2date(self.bmi.get_current_time(), time_units),
+            },
+            dims=["latitude", "longitude"],
+            name=name,
+            attrs={"units": self.bmi.get_var_units(name)},
+        )
+
+    def _coords_to_indices(
+        self, name: str, lat: Iterable[float], lon: Iterable[float]
+    ) -> Iterable[int]:
+        """Convert lat/lon values to index.
+
+        Args:
+            lat: Latitudinal value
+            lon: Longitudinal value
+
+        """
+        grid_id = self.bmi.get_var_grid(name)
+        shape = self.bmi.get_grid_shape(grid_id)  # (len(y), len(x))
+        grid_lon = self.bmi.get_grid_x(grid_id)  # x is longitude
+        grid_lat = self.bmi.get_grid_y(grid_id)  # y is latitude
+
+        indices = []
+        for point_lon, point_lat in zip(lon, lat):
+            idx_lon, idx_lat = find_closest_point(
+                grid_lon, grid_lat, point_lon, point_lat
+            )
+            idx_flat = cast(int, np.ravel_multi_index((idx_lat, idx_lon), shape))
+            indices.append(idx_flat)
+
+            logger.debug(
+                f"Requested point was lon: {point_lon}, lat: {point_lat}; "
+                "closest grid point is "
+                f"{grid_lon[idx_lon]:.2f}, {grid_lat[idx_lat]:.2f}."
+            )
+
+        return indices
+
+    @property
+    def parameters(self) -> Iterable[Tuple[str, Any]]:
+        """List the parameters for this model."""
+        assert self.parameter_set is not None
+        assert self.forcing is not None
+        # TODO fix issue #60
+        return [
+            (
+                "IrrigationEfficiency",
+                self._get_textvar_value("IrrigationEfficiency"),
+            ),
+            ("MaskMap", self._get_textvar_value("MaskMap")),
+            ("start_time", self._start.strftime(ISO_TIMEFMT)),
+            ("end_time", self._end.strftime(ISO_TIMEFMT)),
+        ]
+
+    def finalize(self) -> None:
+        """Perform tear-down tasks for the model."""
+        # Finalize function of bmi class of lisflood is kaput, so not calling it
+        del self.bmi
+
+
+# TODO it needs fix regarding forcing
+# def reindex_forcings(
+#     mask_map: Path, forcing: LisfloodForcing, output_dir: Path = None
+# ) -> Path:
+#     """Reindex forcing files to match mask map grid
+
+#     Args:
+#         mask_map: Path to NetCDF file used a boolean map that defines model
+#             boundaries.
+#         forcing: Forcing data from ESMValTool
+#         output_dir: Directory where to write the re-indexed files, given by user
+#             or created for user
+
+#     Returns:
+#         Output dir with re-indexed files.
+#     """
+#     output_dir = _generate_workdir(output_dir)
+#     mask = xr.open_dataarray(mask_map).load()
+#     data_files = list(forcing.recipe_output.values())[0].data_files
+#     for data_file in data_files:
+#         dataset = data_file.load_xarray()
+#         out_fn = output_dir / data_file.filename.name
+#         var_name = list(dataset.data_vars.keys())[0]
+#         encoding = {
+#             var_name: {
+#                 "zlib": True,
+#                 "complevel": 4,
+#                 "chunksizes": (1,) + dataset[var_name].shape[1:],
+#             }
+#         }
+#         dataset.reindex(
+#             {"lat": mask["lat"], "lon": mask["lon"]},
+#             method="nearest",
+#             tolerance=1e-2,
+#         ).to_netcdf(out_fn, encoding=encoding)
+#     return output_dir
+
+
+def _generate_workdir(cfg_dir: Optional[Path] = None) -> Path:
+    """Create or make sure workdir exists.
+
+    Args:
+        cfg_dir: If cfg dir is None then create sub-directory in CFG.output_dir
+
+    Returns:
+        absolute path of workdir
+
+    """
+    if cfg_dir is None:
+        scratch_dir = CFG.output_dir
+        # TODO this timestamp isnot safe for parallel processing
+        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
+            "%Y%m%d_%H%M%S"
+        )
+        cfg_dir = to_absolute_path(f"lisflood_{timestamp}", parent=Path(scratch_dir))
+    cfg_dir.mkdir(parents=True, exist_ok=True)
+    return cfg_dir

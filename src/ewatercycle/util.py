@@ -1,3 +1,4 @@
+from configparser import ConfigParser
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, Optional, Tuple, Union
@@ -244,3 +245,12 @@ def reindex(source_file: str, var_name: str, mask_file: str, target_file: str):
             }
         },
     )
+
+
+class CaseConfigParser(ConfigParser):
+    """Case sensitive config parser
+    See https://stackoverflow.com/questions/1611799/preserve-case-in-configparser
+    """
+
+    def optionxform(self, optionstr):
+        return optionstr

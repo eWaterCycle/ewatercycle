@@ -16,10 +16,15 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
     - Model container images using BMI v0.2 are supported see [grpc4bmi docs](https://grpc4bmi.readthedocs.io/en/latest/server/python.html#legacy-version).
 - ewatercycle config, forcings and parameter sets now use Pydantic for validation instead of Matplotlib inspired validation. ([#332](https://github.com/eWaterCycle/ewatercycle/issues/332), [#334](https://github.com/eWaterCycle/ewatercycle/pull/334), [#346](https://github.com/eWaterCycle/ewatercycle/pull/346))
 - Functions of a model inside a container that return the same result each call are cached with [MemoizedBmi](https://grpc4bmi.readthedocs.io/en/latest/api/grpc4bmi.bmi_memoized.html#grpc4bmi.bmi_memoized.MemoizedBmi) ([#339](https://github.com/eWaterCycle/ewatercycle/pull/339))
+- Moved CaseConfig to src/utils.py
+- forcing.load_foreign has been superceded by using sources.model(...)
 
 ### Deprecated
 
 - Singularity support ([#290](https://github.com/eWaterCycle/ewatercycle/issues/290))
+
+## Removed
+- Removed parametersetdb module. XmlConfig moved to lisflood plugin. YamlConfig & IniConfig have been removed.
 
 ## [1.4.1] (2022-12-20)
 
