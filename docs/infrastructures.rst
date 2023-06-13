@@ -1,5 +1,5 @@
-Infrastructe specific instructions
-----------------------------------
+Infrastructure specific instructions
+------------------------------------
 
 Migrate from HPC to Cluster (Snellius) guide
 =============================================
