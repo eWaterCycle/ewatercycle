@@ -46,13 +46,26 @@ class WflowForcing(DefaultForcing):
         directory: Optional[str] = None,
         extract_region: Optional[Dict[str, float]] = None,
     ) -> "WflowForcing":
+        """Generate forcings for a model.
+
+        The forcing is generated with help of
+        `ESMValTool <https://esmvaltool.org/>`_.
+
+        Args:
+            dataset: Name of the source dataset. See :py:const:`~ewatercycle.base.forcing.DATASETS`.
+            start_time: Start time of forcing in UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'.
+            end_time: nd time of forcing in UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'.
+            shape: Path to a shape file. Used for spatial selection.
+            directory:  Directory in which forcing should be written.
+                If not given will create timestamped directory.
+            dem_file: Name of the dem_file to use. Also defines the basin
+                param.
+            extract_region: Region specification, dictionary must
+                contain `start_longitude`, `end_longitude`, `start_latitude`,
+                `end_latitude`
         """
-        dem_file (str): Name of the dem_file to use. Also defines the basin
-            param.
-        extract_region (dict): Region specification, dictionary must
-            contain `start_longitude`, `end_longitude`, `start_latitude`,
-            `end_latitude`
-        """  # noqa docstrings are combined with forcing.generate()
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_wflow.yml"
         recipe = get_recipe(recipe_name)

@@ -49,9 +49,6 @@ class MarrmotForcing(DefaultForcing):
         shape: str,
         directory: Optional[str] = None,
     ) -> "MarrmotForcing":
-        """
-        None: Marrmot does not have model-specific generate options.
-        """  # noqa: D200,D205,D400
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_marrmot.yml"
         recipe = get_recipe(recipe_name)
