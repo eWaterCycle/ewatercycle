@@ -118,7 +118,18 @@ class ArchiveDownloader(BaseModel):
 
 
 class ParameterSet(BaseModel):
-    """Container object for parameter set options."""
+    """Container object for parameter set options.
+
+    Is directory containing data that does not change over time.
+    Should be passed to a models constructor like :py:class:`~ewatercycle.base.model.AbstractModel`.
+
+    Example:
+
+        >>> from ewatercycle.base import ParameterSet
+        >>> parameter_set = ParameterSet(name='test', directory='test_dir', config='test_dir/config.yaml')
+        >>> from ewatercycle.models import Wflow
+        >>> model = Wflow(parameter_set=parameter_set)
+    """
 
     name: str = ""
     """Name of parameter set"""
@@ -139,6 +150,7 @@ class ParameterSet(BaseModel):
     supported by this parameter set. If not set then parameter set will be
     supported by all versions of model"""
     downloader: GitHubDownloader | ZenodoDownloader | ArchiveDownloader | None = None
+    """Method to download parameter set from somewhere."""
 
     class Config:
         extra = "forbid"
@@ -154,6 +166,15 @@ class ParameterSet(BaseModel):
         )
 
     def download(self, download_dir: Path, force: bool = False) -> None:
+        """Download parameter set to directory.
+
+        Args:
+            download_dir: Directory where parameter set should be downloaded to.
+            force: If True then download even if directory already exists.
+
+        Raises:
+            ValueError: If no downloader is defined.
+        """
         self.make_absolute(download_dir)  # makes self.directory & self.config absolute
         if self.config.exists() and not force:
             logger.info(
@@ -173,11 +194,21 @@ class ParameterSet(BaseModel):
         return None
 
     @classmethod
-    def from_github(cls, org: str, repo: str, branch: str, subfolder: str, **kwargs):
+    def from_github(
+        cls, org: str, repo: str, branch: str, subfolder: Optional[str] = None, **kwargs
+    ):
         """Create a parameter set from a GitHub repository.
+
         Args:
-            repo: URL of directory in GitHub repository.
+            org: GitHub organization (e.g., 'UU-Hydro')
+            repo: Repository name (e.g, 'PCR-GLOBWB_input_example')
+            branch: Branch name (e.g., 'master')
+            subfolder: Subfolder within the github repo to extract. E.g. 'pcrglobwb_rhinemeuse_30min'.
+                If not given then downloads the entire repository.
             **kwargs: See :py:class:`ParameterSet` for other arguments.
+
+        The example Github arguments would download all files from
+        https://github.com/UU-Hydro/PCR-GLOBWB_input_example/tree/master/RhineMeuse30min
         """
         kwargs.pop("downloader", None)
         downloader = GitHubDownloader(
@@ -189,13 +220,31 @@ class ParameterSet(BaseModel):
         return ParameterSet(downloader=downloader, **kwargs)
 
     @classmethod
-    def from_zenodo(cls, doi: str, **kwargs):
+    def from_zenodo(cls, doi: str, **kwargs) -> "ParameterSet":
+        """Download a parameter set from Zenodo.
+
+        Args:
+            doi: DOI of Zenodo record. E.g. '10.5281/zenodo.1045339'.
+            **kwargs: See :py:class:`ParameterSet` for other arguments.
+        """
         kwargs.pop("downloader", None)
         downloader = ZenodoDownloader(doi=doi)
         return ParameterSet(doi=doi, downloader=downloader, **kwargs)
 
     @classmethod
-    def from_archive_url(cls, url: str, **kwargs):
+    def from_archive_url(cls, url: str, **kwargs) -> "ParameterSet":
+        """Download a parameter set from an archive file on the Internet.
+
+        Args:
+            url: Link to archive file.
+            **kwargs: See :py:class:`ParameterSet` for other arguments.
+
+        Example:
+
+            >>> from ewatercycle.base import ParameterSet
+            >>> url = ''
+            >>> parameter_set = ParameterSet.from_archive_url(url)
+        """
         kwargs.pop("downloader", None)
         downloader = ArchiveDownloader(url=url)  # pyright: ignore
         return ParameterSet(downloader=downloader, **kwargs)
