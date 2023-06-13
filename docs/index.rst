@@ -66,5 +66,5 @@ that are commonly used throughout this documentation.
   system_setup
   adding_models
   examples
-  hpc_to_cluster
+  infrastructures
   observations

@@ -1,3 +1,6 @@
+Infrastructe specific instructions
+----------------------------------
+
 Migrate from HPC to Cluster (Snellius) guide
 =============================================
 The HPC node jupyter.ewatercycle.org can be used for small test experiments, to do actual work you will need to run your notebook/script on the cluster (Snellius). On Snellius the forcing data is already present and many users can run jobs at the same time without interfering each other.
