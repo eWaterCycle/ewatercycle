@@ -3,16 +3,15 @@
 import datetime
 import logging
 from os import PathLike
-from typing import Any, Iterable, Optional, Tuple, cast
+from typing import Any, Iterable, Optional, cast
 
 import numpy as np
 import xarray as xr
 from cftime import num2date
 
 from ewatercycle import CFG
-from ewatercycle.base.model import AbstractModel
-from ewatercycle.base.parameter_set import ParameterSet
-from ewatercycle.container import VersionImages, start_container
+from ewatercycle.base.model import ContainerizedModel
+from ewatercycle.container import ContainerImage
 from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing
 from ewatercycle.util import (
     CaseConfigParser,
@@ -23,19 +22,11 @@ from ewatercycle.util import (
 
 logger = logging.getLogger(__name__)
 
-_version_images: VersionImages = {
-    "setters": {
-        "docker": "ewatercycle/pcrg-grpc4bmi:setters",
-        "apptainer": "ewatercycle-pcrg-grpc4bmi_setters.sif",
-    }
-}
 
-
-class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
+class PCRGlobWB(ContainerizedModel):
     """eWaterCycle implementation of PCRGlobWB hydrological model.
 
     Args:
-        version: pick a version from :py:attr:`~available_versions`
         parameter_set: instance of
             :py:class:`~ewatercycle.parameter_sets.default.ParameterSet`.
         forcing: ewatercycle forcing container;
@@ -43,15 +34,22 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
     """
 
-    available_versions = tuple(_version_images.keys())
+    forcing: Optional[PCRGlobWBForcing] = None
+    bmi_image: ContainerImage("ewatercycle/pcrg-grpc4bmi:setters")
 
-    def __init__(  # noqa: D107
-        self,
-        version: str,
-        parameter_set: ParameterSet,
-        forcing: Optional[PCRGlobWBForcing] = None,
-    ):
-        super().__init__(version, parameter_set, forcing)
+    @property
+    def parameters(self) -> dict[str, Any]:
+        """The configurable parameters for this model."""
+        cfg = self.config
+        return {
+            "start_time": f"{cfg.get('globalOptions', 'startTime')}T00:00:00Z",
+            "end_time": f"{cfg.get('globalOptions', 'endTime')}T00:00:00Z",
+            "routing_method": cfg.get("routingOptions", "routingMethod"),
+            "max_spinups_in_years": cfg.get("globalOptions", "maxSpinUpsInYears"),
+        }
+
+    def __post_init_post_parse__(self):
+        super().__post_init_post_parse__()
         self._setup_default_config()
 
     def _setup_work_dir(self, cfg_dir: Optional[str] = None):
@@ -89,7 +87,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
                 "meteoOptions",
                 "temperatureNC",
                 str(
-                    to_absolute_path(
+                    to_absolute_path(  # TODO fix type error
                         self.forcing.temperatureNC,
                         parent=self.forcing.directory,
                     )
@@ -99,7 +97,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
                 "meteoOptions",
                 "precipitationNC",
                 str(
-                    to_absolute_path(
+                    to_absolute_path(  # TODO fix type error
                         self.forcing.precipitationNC,
                         parent=self.forcing.directory,
                     )
@@ -108,36 +106,9 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
         self.config = cfg
 
-    def setup(self, cfg_dir: Optional[str] = None, **kwargs) -> Tuple[str, str]:  # type: ignore
-        """Start model inside container and return config file and work dir.
-
-        Args:
-            cfg_dir: a run directory given by user or created for user.
-            **kwargs: Use :py:meth:`parameters` to see the current values
-                configurable options for this model,
-
-        Returns: Path to config file and work dir
-        """
-        self._setup_work_dir(cfg_dir)
-
+    def _make_cfg_file(self, **kwargs):
         self._update_config(**kwargs)
-
-        cfg_file = self._export_config()
-        work_dir = self.work_dir
-
-        additional_input_dirs = []
-        if self.parameter_set:
-            additional_input_dirs.append(str(self.parameter_set.directory))
-        if self.forcing:
-            additional_input_dirs.append(str(self.forcing.directory))
-        self.bmi = start_container(
-            image_engine=_version_images[self.version],
-            work_dir=self.work_dir,
-            input_dirs=additional_input_dirs,
-            timeout=300,
-        )
-
-        return str(cfg_file), str(work_dir)
+        return self._export_config()
 
     def _update_config(self, **kwargs):
         cfg = self.config
@@ -181,8 +152,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
         with new_cfg_file.open("w") as filename:
             self.config.write(filename)
 
-        self.cfg_file = new_cfg_file
-        return self.cfg_file
+        return new_cfg_file
 
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]
@@ -194,6 +164,7 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
             lon: Longitudinal value
 
         """
+        # TODO fix errors about dest argument
         grid_id = self.bmi.get_var_grid(name)
         shape = self.bmi.get_grid_shape(grid_id)  # (len(x), len(y))
         grid_lat = self.bmi.get_grid_x(grid_id)  # x is latitude
@@ -237,20 +208,4 @@ class PCRGlobWB(AbstractModel[PCRGlobWBForcing]):
 
         return da.where(da != -999)
 
-    @property
-    def parameters(self) -> Iterable[Tuple[str, Any]]:
-        """List the configurable parameters for this model."""
-        # An opiniated list of configurable parameters.
-        cfg = self.config
-        return [
-            (
-                "start_time",
-                f"{cfg.get('globalOptions', 'startTime')}T00:00:00Z",
-            ),
-            ("end_time", f"{cfg.get('globalOptions', 'endTime')}T00:00:00Z"),
-            ("routing_method", cfg.get("routingOptions", "routingMethod")),
-            (
-                "max_spinups_in_years",
-                cfg.get("globalOptions", "maxSpinUpsInYears"),
-            ),
-        ]
+    # TODO: move coordinate and xarray methods to default implementation
