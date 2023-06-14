@@ -17,7 +17,7 @@ from grpc4bmi.reserve import reserve_values, reserve_values_at_indices
 from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.config import CFG
-from ewatercycle.container import start_container
+from ewatercycle.container import ContainerImage, start_container
 from ewatercycle.util import to_absolute_path
 
 logger = logging.getLogger(__name__)
@@ -36,6 +36,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
     forcing: DefaultForcing
     parameter_set: ParameterSet
     parameters: dict[str, Any]
+
     _bmi: bmipy.Bmi = pydantic.PrivateAttr()
 
     @abc.abstractmethod
@@ -287,6 +288,9 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
                 f"expected {model_name} got {self.parameter_set.target_model}"
             )
 
+        # TODO: check version as well. Was present before, and can now make use
+        # of new ContainerImage class.
+
 
 class LocalModel(BaseModel):
     """eWaterCycle model running in a local Python environment.
@@ -306,7 +310,7 @@ class ContainerizedModel(BaseModel):
     This is the recommended method for sharing eWaterCycle models.
     """
 
-    bmi_image: str = "ghcr.io/ewatercycle/leakybucket-grpc4bmi:latest"
+    bmi_image: ContainerImage
 
     def _make_bmi_instance(self) -> bmipy.Bmi:
         self.additional_input_dirs = []
@@ -316,7 +320,7 @@ class ContainerizedModel(BaseModel):
             self.additional_input_dirs.append(str(self.forcing.directory))
 
         grpc4bmi = start_container(
-            image_engine=self.bmi_image,  # TODO: find way to infer image name based on CFG['container_engine']
+            image=self.bmi_image,
             work_dir=self.cfg_dir,
             input_dirs=self.additional_input_dirs,
             timeout=300,
