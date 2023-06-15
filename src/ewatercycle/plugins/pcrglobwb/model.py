@@ -40,6 +40,7 @@ class PCRGlobWB(ContainerizedModel):
         }
 
     def __post_init_post_parse__(self):
+        """Perform additional initalization steps."""
         super().__post_init_post_parse__()
         self._setup_default_config()
 

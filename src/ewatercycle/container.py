@@ -61,17 +61,19 @@ class ContainerImage(str):
 
     @classmethod
     def __get_validators__(cls):
-        """Hook into pydantic validation flow."""
+        """Enter pydantic validation flow."""
         yield cls.validate
 
     @classmethod
-    def validate(cls, v):
-        if not v.endswith(".sif"):
-            _parse_docker_url(v)
-        return cls(v)
+    def validate(cls, value):
+        """Verify image ends with .sif or can parse as docker url."""
+        if not value.endswith(".sif"):
+            _parse_docker_url(value)
+        return cls(value)
 
     @property
     def apptainer_filename(self) -> str:
+        """Return self as apptainer filename."""
         if self.endswith(".sif"):
             return self
 
@@ -105,8 +107,7 @@ class ContainerImage(str):
             organisation, _, name = name.partition("-")
             organisation += "/"
 
-        docker_url = organisation + name + tag
-        return docker_url
+        return organisation + name + tag
 
 
 def start_container(
@@ -174,7 +175,7 @@ def start_container(
 def start_apptainer_container(
     work_dir: Union[str, Path],
     image: ContainerImage,
-    input_dirs: Optional[Iterable[str]] = None,
+    input_dirs: Iterable[str] = (),
     timeout: Optional[int] = None,
     delay: int = 0,
 ) -> Bmi:
@@ -205,7 +206,7 @@ def start_apptainer_container(
         return BmiClientApptainer(
             image=image_fn,
             work_dir=str(work_dir),
-            input_dirs=tuple() if input_dirs is None else input_dirs,
+            input_dirs=input_dirs,
             timeout=timeout,
             delay=delay,
         )
@@ -221,7 +222,7 @@ def start_apptainer_container(
 def start_docker_container(
     work_dir: Union[str, Path],
     image: ContainerImage,
-    input_dirs: Optional[Iterable[str]],
+    input_dirs: Iterable[str] = (),
     image_port=55555,
     timeout=None,
     delay=0,
@@ -247,7 +248,7 @@ def start_docker_container(
             image=image.docker_url,
             image_port=image_port,
             work_dir=str(work_dir),
-            input_dirs=tuple() if input_dirs is None else input_dirs,
+            input_dirs=input_dirs,
             timeout=timeout,
             delay=delay,
         )
