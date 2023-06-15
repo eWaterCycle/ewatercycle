@@ -1,6 +1,5 @@
 import abc
 import logging
-from abc import abstractmethod
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Type, cast
@@ -33,14 +32,14 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
     local python environment.
     """
 
-    forcing: DefaultForcing
-    parameter_set: ParameterSet
-    parameters: dict[str, Any]
+    forcing: DefaultForcing | None
+    parameter_set: ParameterSet | None
+    parameters: dict[str, Any] = {}
 
-    _bmi: bmipy.Bmi = pydantic.PrivateAttr()
+    _bmi: OptionalDestBmi = pydantic.PrivateAttr()
 
     @abc.abstractmethod
-    def _make_bmi_instance(self) -> bmipy.Bmi:
+    def _make_bmi_instance(self) -> OptionalDestBmi:
         """Attach a BMI instance to self._bmi"""
 
     def __post_init_post_parse__(self):
@@ -182,7 +181,6 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
             lat: Latitudinal value
             lon: Longitudinal value
         """
-        # TODO fix errors about dest argument
         grid_lat, grid_lon, shape = self.get_latlon_grid(name)
 
         indices = []
@@ -353,7 +351,7 @@ class LocalModel(BaseModel):
     bmi_class: Type[bmipy.Bmi]
 
     def _make_bmi_instance(self):
-        return self.bmi_class()
+        return OptionalDestBmi(self.bmi_class())
 
 
 class ContainerizedModel(BaseModel):
