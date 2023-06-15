@@ -3,7 +3,7 @@ import logging
 from abc import abstractmethod
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable, Type
+from typing import Any, Iterable, Type, cast
 
 import bmipy
 import numpy as np
@@ -18,7 +18,7 @@ from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.config import CFG
 from ewatercycle.container import ContainerImage, start_container
-from ewatercycle.util import to_absolute_path
+from ewatercycle.util import find_closest_point, to_absolute_path
 
 logger = logging.getLogger(__name__)
 
@@ -177,22 +177,56 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         self, name: str, lat: Iterable[float], lon: Iterable[float]
     ) -> Iterable[int]:
         """Converts lat/lon values to index.
+
         Args:
             lat: Latitudinal value
             lon: Longitudinal value
         """
-        raise NotImplementedError(
-            "Method to convert from coordinates to model indices "
-            "not implemented for this model."
-        )
+        # TODO fix errors about dest argument
+        grid_lat, grid_lon, shape = self.get_latlon_grid(name)
 
-    @abstractmethod  # TODO: provide default implementation
+        indices = []
+        for point_lon, point_lat in zip(lon, lat):
+            idx_lon, idx_lat = find_closest_point(
+                grid_lon, grid_lat, point_lon, point_lat
+            )
+            idx_flat = cast(int, np.ravel_multi_index((idx_lat, idx_lon), shape))
+            indices.append(idx_flat)
+
+            logger.debug(
+                f"Requested point was lon: {point_lon}, lat: {point_lat}; "
+                "closest grid point is "
+                f"{grid_lon[idx_lon]:.2f}, {grid_lat[idx_lat]:.2f}."
+            )
+
+        return indices
+
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Get a copy values of the given variable as xarray DataArray.
+
         The xarray object also contains coordinate information and additional
         attributes such as the units.
-        Args: name: Name of the variable
+
+        Args:
+            name: Name of the variable
         """
+        time_units = self.bmi.get_time_units()
+        lat, lon, shape = self.get_latlon_grid(name)
+
+        # Extract the data and store it in an xarray DataArray
+        da = xr.DataArray(
+            data=np.reshape(self.get_value(name), shape),
+            coords={
+                "longitude": lon,
+                "latitude": lat,
+                "time": num2date(self.bmi.get_current_time(), time_units),
+            },
+            dims=["latitude", "longitude"],
+            name=name,
+            attrs={"units": self.bmi.get_var_units(name)},
+        )
+
+        return da.where(da != -999)
 
     @property
     def bmi(self) -> bmipy.Bmi:
@@ -290,6 +324,24 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
 
         # TODO: check version as well. Was present before, and can now make use
         # of new ContainerImage class.
+
+    def get_latlon_grid(self, name):
+        """Grid latitude, longitude and shape for variable.
+
+        The default implementation takes Bmi's x as longitude and y as latitude.
+        See bmi.readthedocs.io/en/stable/model_grids.html#structured-grids.
+
+        Some models may deviate from this default. They can provide their own
+        implementation.
+
+        Args:
+            name: Name of the variable
+        """
+        grid_id = self._bmi.get_var_grid(name)
+        shape = self._bmi.get_grid_shape(name)
+        grid_lon = self._bmi.get_grid_x(grid_id)
+        grid_lat = self._bmi.get_grid_y(grid_id)
+        return grid_lat, grid_lon, shape
 
 
 class LocalModel(BaseModel):

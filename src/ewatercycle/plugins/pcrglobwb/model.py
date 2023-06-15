@@ -3,22 +3,13 @@
 import datetime
 import logging
 from os import PathLike
-from typing import Any, Iterable, Optional, cast
-
-import numpy as np
-import xarray as xr
-from cftime import num2date
+from typing import Any, Optional
 
 from ewatercycle import CFG
 from ewatercycle.base.model import ContainerizedModel
 from ewatercycle.container import ContainerImage
 from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing
-from ewatercycle.util import (
-    CaseConfigParser,
-    find_closest_point,
-    get_time,
-    to_absolute_path,
-)
+from ewatercycle.util import CaseConfigParser, get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 
@@ -154,58 +145,13 @@ class PCRGlobWB(ContainerizedModel):
 
         return new_cfg_file
 
-    def _coords_to_indices(
-        self, name: str, lat: Iterable[float], lon: Iterable[float]
-    ) -> Iterable[int]:
-        """Convert lat/lon values to index.
+    def get_latlon_grid(self, name):
+        """Grid latitude, longitude and shape for variable.
 
-        Args:
-            lat: Latitudinal value
-            lon: Longitudinal value
-
+        Note: deviates from default implementation.
         """
-        # TODO fix errors about dest argument
-        grid_id = self.bmi.get_var_grid(name)
-        shape = self.bmi.get_grid_shape(grid_id)  # (len(x), len(y))
-        grid_lat = self.bmi.get_grid_x(grid_id)  # x is latitude
-        grid_lon = self.bmi.get_grid_y(grid_id)  # y is longitude
-
-        indices = []
-        for point_lon, point_lat in zip(lon, lat):
-            idx_lon, idx_lat = find_closest_point(
-                grid_lon, grid_lat, point_lon, point_lat
-            )
-            idx_flat = cast(int, np.ravel_multi_index((idx_lat, idx_lon), shape))
-            indices.append(idx_flat)
-
-            logger.debug(
-                f"Requested point was lon: {point_lon}, lat: {point_lat}; "
-                "closest grid point is "
-                f"{grid_lon[idx_lon]:.2f}, {grid_lat[idx_lat]:.2f}."
-            )
-
-        return indices
-
-    def get_value_as_xarray(self, name: str) -> xr.DataArray:
-        """Return the value as xarray object."""
-        # Get time information
-        time_units = self.bmi.get_time_units()
-        grid = self.bmi.get_var_grid(name)
-        shape = self.bmi.get_grid_shape(grid)
-
-        # Extract the data and store it in an xarray DataArray
-        da = xr.DataArray(
-            data=np.reshape(self.bmi.get_value(name), shape),
-            coords={
-                "longitude": self.bmi.get_grid_y(grid),
-                "latitude": self.bmi.get_grid_x(grid),
-                "time": num2date(self.bmi.get_current_time(), time_units),
-            },
-            dims=["latitude", "longitude"],
-            name=name,
-            attrs={"units": self.bmi.get_var_units(name)},
-        )
-
-        return da.where(da != -999)
-
-    # TODO: move coordinate and xarray methods to default implementation
+        grid_id = self._bmi.get_var_grid(name)
+        shape = self._bmi.get_grid_shape(name)
+        grid_lon = self._bmi.get_grid_y(grid_id)
+        grid_lat = self._bmi.get_grid_x(grid_id)
+        return grid_lat, grid_lon, shape
