@@ -13,8 +13,33 @@ from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 from ewatercycle.config import CFG, ContainerEngine
 
 
-class ContainerImage:
-    """Utility for storing container images regardless of the container engine.
+def _parse_docker_url(docker_url):
+    """Extract repository, image name and tag from docker url.
+
+    Regex source: https://regex101.com/library/a98UqN
+    """
+    pattern = re.compile(
+        r"^(?P<repository>[\w.\-_]+((?::\d+|)"
+        r"(?=/[a-z0-9._-]+/[a-z0-9._-]+))|)"
+        r"(?:/|)"
+        r"(?P<image>[a-z0-9.\-_]+(?:/[a-z0-9.\-_]+|))"
+        r"(:(?P<tag>[\w.\-_]{1,127})|)$"
+    )
+
+    match = pattern.search(docker_url)
+
+    if not match:
+        raise ValueError(f"Unable to parse docker url: {docker_url}")
+
+    repository = match.group("repository")
+    image = match.group("image")
+    tag = match.group("tag")
+
+    return repository, image, tag
+
+
+class ContainerImage(str):
+    """Custom type for parsing and utilizing container images.
 
     Given a docker url with the following structure
 
@@ -34,57 +59,41 @@ class ContainerImage:
     eWatercycle containers typically don't have these issues.
     """
 
-    def __init__(self, image):
-        self.image: str = image
+    @classmethod
+    def __get_validators__(cls):
+        """Hook into pydantic validation flow."""
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v):
+        if not v.endswith(".sif"):
+            _parse_docker_url(v)
+        return cls(v)
 
     @property
     def apptainer_filename(self) -> str:
-        if self.image.endswith(".sif"):
-            return self.image
-        else:
-            return self._as_apptainer_filename(self.image)
+        if self.endswith(".sif"):
+            return self
 
-    @property
-    def docker_url(self) -> str:
-        if self.image.endswith(".sif"):
-            return self._as_docker_url(self.image)
-        else:
-            return self.image
-
-    def _parse_docker_url(self, docker_url):
-        """Extract repository, image name and tag from docker url.
-
-        Regex source: https://regex101.com/library/a98UqN
-        """
-        pattern = "^(?P<repository>[\w.\-_]+((?::\d+|)(?=/[a-z0-9._-]+/[a-z0-9._-]+))|)(?:/|)(?P<image>[a-z0-9.\-_]+(?:/[a-z0-9.\-_]+|))(:(?P<tag>[\w.\-_]{1,127})|)$"
-
-        match = re.search(pattern, docker_url)
-
-        if not match:
-            raise ValueError(f"Unable to parse docker url: {docker_url}")
-
-        repository = match.group("repository")
-        image = match.group("image")
-        tag = match.group("tag")
-
-        return repository, image, tag
-
-    def _as_apptainer_filename(self, docker_url):
-        """Derive apptainer image filename from docker url."""
-        _, image, tag = self._parse_docker_url(docker_url)
+        # Derive apptainer image filename from docker url."""
+        _, image, tag = _parse_docker_url(self)
 
         apptainer_name = image.replace("/", "-")
 
         if tag:
             apptainer_name += f"_{tag}"
-
         apptainer_name += ".sif"
 
         return apptainer_name
 
-    def _as_docker_url(self, apptainer_name):
-        """Attempt to reconstruct docker url from singularity filename."""
-        name = apptainer_name.replace(".sif", "")
+    @property
+    def docker_url(self) -> str:
+        """Return self as docker url."""
+        if not self.endswith(".sif"):
+            return self
+
+        # Attempt to reconstruct docker url from singularity filename.
+        name = self.replace(".sif", "")
 
         tag = ""
         if "_" in name:

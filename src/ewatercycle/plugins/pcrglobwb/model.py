@@ -26,7 +26,7 @@ class PCRGlobWB(ContainerizedModel):
     """
 
     forcing: Optional[PCRGlobWBForcing] = None
-    bmi_image: ContainerImage("ewatercycle/pcrg-grpc4bmi:setters")
+    bmi_image = ContainerImage("ewatercycle/pcrg-grpc4bmi:setters")
 
     @property
     def parameters(self) -> dict[str, Any]:
