@@ -1,3 +1,5 @@
+"""Base classes for eWaterCycle models."""
+
 import abc
 import logging
 from datetime import datetime, timezone
@@ -40,14 +42,14 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
 
     @abc.abstractmethod
     def _make_bmi_instance(self) -> OptionalDestBmi:
-        """Attach a BMI instance to self._bmi"""
+        """Attach a BMI instance to self._bmi."""
 
     def __post_init_post_parse__(self):
         """Check model compatibility."""
         self._check_parameter_set()
 
     def setup(self, *, cfg_dir: str | None = None, **kwargs) -> tuple[str, str]:
-        """Performs model setup.
+        """Perform model setup.
 
         1. Creates config file and config directory
         2. Start bmi instance and store as self._bmi
@@ -67,7 +69,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
             Path to config file and path to config directory
         """
         self.cfg_dir: Path = self._make_cfg_dir(cfg_dir)
-        self.cfg_file = self._make_cfg_file(**kwargs)
+        self.cfg_file: Path = self._make_cfg_file(**kwargs)
         self._bmi = self._make_bmi_instance()
 
         return str(self.cfg_file), str(self.cfg_dir)
@@ -87,20 +89,23 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         return cfg_dir
 
     def _make_cfg_file(self, **kwargs):
+        """Create new config file and return its path."""
         cfg_file = self.cfg_dir / "config.yaml"
         self.parameters.update(**kwargs)
-        with open(cfg_file, "w") as file:
+        with cfg_file.open(mode="w") as file:
             yaml.dump({k: v for k, v in self.parameters}, file)
 
         return cfg_file
 
     def __del__(self):
+        """Shutdown bmi before removing self."""
         try:
             del self._bmi
         except AttributeError:
             pass
 
     def __repr_args__(self):
+        """Pass arguments to repr."""
         # Ignore bmi and internal state from subclasses
         return [
             ("parameter_set", self.parameter_set),
@@ -110,6 +115,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
     # BMI methods
     def initialize(self, config_file: str) -> None:
         """Initialize the model.
+
         Args:
             config_file: Name of initialization file.
         """
@@ -126,6 +132,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
 
     def get_value(self, name: str) -> np.ndarray:
         """Get a copy of values of the given variable.
+
         Args:
             name: Name of variable
         """
@@ -138,6 +145,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         self, name, lat: Iterable[float], lon: Iterable[float]
     ) -> np.ndarray:
         """Get a copy of values of the given variable at lat/lon coordinates.
+
         Args:
             name: Name of variable
             lat: Latitudinal value
@@ -152,6 +160,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
 
     def set_value(self, name: str, value: np.ndarray) -> None:
         """Specify a new value for a model variable.
+
         Args:
             name: Name of variable
             value: The new value for the specified variable.
@@ -162,6 +171,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         self, name: str, lat: Iterable[float], lon: Iterable[float], values: np.ndarray
     ) -> None:
         """Specify a new value for a model variable at at lat/lon coordinates.
+
         Args:
             name: Name of variable
             lat: Latitudinal value
@@ -175,7 +185,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]
     ) -> Iterable[int]:
-        """Converts lat/lon values to index.
+        """Convert lat/lon values to index.
 
         Args:
             lat: Latitudinal value
@@ -191,11 +201,12 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
             idx_flat = cast(int, np.ravel_multi_index((idx_lat, idx_lon), shape))
             indices.append(idx_flat)
 
-            logger.debug(
-                f"Requested point was lon: {point_lon}, lat: {point_lat}; "
-                "closest grid point is "
-                f"{grid_lon[idx_lon]:.2f}, {grid_lat[idx_lat]:.2f}."
-            )
+            message = f"""
+                Requested point was lon: {point_lon}, lat: {point_lat};
+                closest grid point is
+                {grid_lon[idx_lon]:.2f}, {grid_lat[idx_lat]:.2f}."""
+
+            logger.debug(message)
 
         return indices
 
@@ -248,7 +259,10 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
 
     @property
     def time_units(self) -> str:
-        """Time units of the model. Formatted using UDUNITS standard from Unidata."""
+        """Time units of the model.
+
+        Formatted using UDUNITS standard from Unidata.
+        """
         return str(self._bmi.get_time_units())
 
     @property
@@ -264,6 +278,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
     @property
     def start_time_as_isostr(self) -> str:
         """Start time of the model.
+
         In UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         """
         return self.start_time_as_datetime.strftime(ISO_TIMEFMT)
@@ -271,6 +286,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
     @property
     def end_time_as_isostr(self) -> str:
         """End time of the model.
+
         In UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         """
         return self.end_time_as_datetime.strftime(ISO_TIMEFMT)
@@ -278,6 +294,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
     @property
     def time_as_isostr(self) -> str:
         """Current time of the model.
+
         In UTC and ISO format string e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
         """
         return self.time_as_datetime.strftime(ISO_TIMEFMT)
@@ -323,7 +340,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         # TODO: check version as well. Was present before, and can now make use
         # of new ContainerImage class.
 
-    def get_latlon_grid(self, name):
+    def get_latlon_grid(self, name) -> tuple[Any, Any, Any]:
         """Grid latitude, longitude and shape for variable.
 
         The default implementation takes Bmi's x as longitude and y as latitude.
@@ -369,10 +386,9 @@ class ContainerizedModel(BaseModel):
         if self.forcing:
             self.additional_input_dirs.append(str(self.forcing.directory))
 
-        grpc4bmi = start_container(
+        return start_container(
             image=self.bmi_image,
             work_dir=self.cfg_dir,
             input_dirs=self.additional_input_dirs,
             timeout=300,
         )
-        return grpc4bmi
