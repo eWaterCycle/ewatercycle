@@ -3,10 +3,13 @@
 import datetime
 import logging
 from os import PathLike
-from typing import Any, Optional
+from typing import Optional
+
+from pydantic import PrivateAttr, root_validator
 
 from ewatercycle import CFG
 from ewatercycle.base.model import ContainerizedModel
+from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.container import ContainerImage
 from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing
 from ewatercycle.util import CaseConfigParser, get_time, to_absolute_path
@@ -26,23 +29,67 @@ class PCRGlobWB(ContainerizedModel):
     """
 
     forcing: Optional[PCRGlobWBForcing] = None
+    parameter_set: ParameterSet  # not optional for this model
     bmi_image = ContainerImage("ewatercycle/pcrg-grpc4bmi:setters")
+    _config: CaseConfigParser = PrivateAttr()
 
-    @property
-    def parameters(self) -> dict[str, Any]:
-        """The configurable parameters for this model."""
-        cfg = self.config
-        return {
-            "start_time": f"{cfg.get('globalOptions', 'startTime')}T00:00:00Z",
-            "end_time": f"{cfg.get('globalOptions', 'endTime')}T00:00:00Z",
-            "routing_method": cfg.get("routingOptions", "routingMethod"),
-            "max_spinups_in_years": cfg.get("globalOptions", "maxSpinUpsInYears"),
-        }
+    @root_validator
+    def _parse_config(cls, values):
+        """Load config from parameter set and update with forcing info."""
+        ps = values.get("parameter_set")
 
-    def __post_init_post_parse__(self):
-        """Perform additional initalization steps."""
-        super().__post_init_post_parse__()
-        self._setup_default_config()
+        cfg = CaseConfigParser()
+        cfg.read(ps.config)
+        cfg.set("globalOptions", "inputDir", str(ps.directory))
+
+        forcing = values.get("forcing")
+        if forcing:
+            cfg.set(
+                "globalOptions",
+                "startTime",
+                get_time(forcing.start_time).strftime("%Y-%m-%d"),
+            )
+            cfg.set(
+                "globalOptions",
+                "endTime",
+                get_time(forcing.start_time).strftime("%Y-%m-%d"),
+            )
+            cfg.set(
+                "meteoOptions",
+                "temperatureNC",
+                str(
+                    to_absolute_path(  # TODO fix type error
+                        forcing.temperatureNC,
+                        parent=forcing.directory,
+                    )
+                ),
+            )
+            cfg.set(
+                "meteoOptions",
+                "precipitationNC",
+                str(
+                    to_absolute_path(  # TODO fix type error
+                        forcing.precipitationNC,
+                        parent=forcing.directory,
+                    )
+                ),
+            )
+
+        values.update(_config=cfg)
+        return values
+
+    @root_validator
+    def _update_parameters(cls, values):
+        cfg = values.get("_config")
+        values.get("parameters").update(
+            {
+                "start_time": f"{cfg.get('globalOptions', 'startTime')}T00:00:00Z",
+                "end_time": f"{cfg.get('globalOptions', 'endTime')}T00:00:00Z",
+                "routing_method": cfg.get("routingOptions", "routingMethod"),
+                "max_spinups_in_years": cfg.get("globalOptions", "maxSpinUpsInYears"),
+            }
+        )
+        return values
 
     def _setup_work_dir(self, cfg_dir: Optional[str] = None):
         if cfg_dir:
@@ -57,53 +104,12 @@ class PCRGlobWB(ContainerizedModel):
             )
         self.work_dir.mkdir(parents=True, exist_ok=True)
 
-    def _setup_default_config(self):
-        config_file = self.parameter_set.config
-        input_dir = self.parameter_set.directory
-
-        cfg = CaseConfigParser()
-        cfg.read(config_file)
-        cfg.set("globalOptions", "inputDir", str(input_dir))
-        if self.forcing:
-            cfg.set(
-                "globalOptions",
-                "startTime",
-                get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
-            )
-            cfg.set(
-                "globalOptions",
-                "endTime",
-                get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
-            )
-            cfg.set(
-                "meteoOptions",
-                "temperatureNC",
-                str(
-                    to_absolute_path(  # TODO fix type error
-                        self.forcing.temperatureNC,
-                        parent=self.forcing.directory,
-                    )
-                ),
-            )
-            cfg.set(
-                "meteoOptions",
-                "precipitationNC",
-                str(
-                    to_absolute_path(  # TODO fix type error
-                        self.forcing.precipitationNC,
-                        parent=self.forcing.directory,
-                    )
-                ),
-            )
-
-        self.config = cfg
-
     def _make_cfg_file(self, **kwargs):
         self._update_config(**kwargs)
         return self._export_config()
 
     def _update_config(self, **kwargs):
-        cfg = self.config
+        cfg = self._config
 
         if "start_time" in kwargs:
             cfg.set(
@@ -137,12 +143,12 @@ class PCRGlobWB(ContainerizedModel):
             )
 
     def _export_config(self) -> PathLike:
-        self.config.set("globalOptions", "outputDir", str(self.work_dir))
+        self._config.set("globalOptions", "outputDir", str(self.work_dir))
         new_cfg_file = to_absolute_path(
             "pcrglobwb_ewatercycle.ini", parent=self.work_dir
         )
         with new_cfg_file.open("w") as filename:
-            self.config.write(filename)
+            self._config.write(filename)
 
         return new_cfg_file
 

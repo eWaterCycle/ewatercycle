@@ -44,9 +44,18 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
     def _make_bmi_instance(self) -> OptionalDestBmi:
         """Attach a BMI instance to self._bmi."""
 
-    def __post_init_post_parse__(self):
-        """Check model compatibility."""
-        self._check_parameter_set()
+    @pydantic.validator("parameter_set")
+    def _check_parameter_set(cls, parameter_set):
+        model_name = cls.__name__.lower()
+        if model_name != parameter_set.target_model:
+            raise ValueError(
+                f"Parameter set has wrong target model, "
+                f"expected {model_name} got {parameter_set.target_model}"
+            )
+
+        # TODO: check version as well. Was present before, and can now make use
+        # of new ContainerImage class.
+        return parameter_set
 
     def setup(self, *, cfg_dir: str | None = None, **kwargs) -> tuple[str, str]:
         """Perform model setup.
@@ -325,20 +334,6 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
             self._bmi.get_time_units(),
             only_use_cftime_datetimes=False,
         )
-
-    def _check_parameter_set(self):
-        if not self.parameter_set:
-            # Nothing to check
-            return
-        model_name = self.__class__.__name__.lower()
-        if model_name != self.parameter_set.target_model:
-            raise ValueError(
-                f"Parameter set has wrong target model, "
-                f"expected {model_name} got {self.parameter_set.target_model}"
-            )
-
-        # TODO: check version as well. Was present before, and can now make use
-        # of new ContainerImage class.
 
     def get_latlon_grid(self, name) -> tuple[Any, Any, Any]:
         """Grid latitude, longitude and shape for variable.
