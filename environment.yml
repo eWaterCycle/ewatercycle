@@ -3,10 +3,10 @@ name: ewatercycle
 channels:
   - conda-forge
 dependencies:
-  - python>=3.10,<3.12
+  - python==3.10
   - esmvaltool-python>=2.3.0
   - subversion
   # Pin esmpy so we dont get forced to run all parallel tasks on single cpu
   # Can be removed once
   # https://github.com/ESMValGroup/ESMValCore/issues/1208 is resolved.
-  - esmpy!=8.1.0
+  - esmpy!=8.1.0,<8.4
