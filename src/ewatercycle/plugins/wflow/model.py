@@ -9,11 +9,13 @@ from typing import Any, Iterable, Optional, Tuple, cast
 import numpy as np
 import xarray as xr
 from cftime import num2date
+from grpc4bmi.bmi_memoized import MemoizedBmi
+from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 
 from ewatercycle import CFG
 from ewatercycle.base.model import ISO_TIMEFMT, AbstractModel
 from ewatercycle.base.parameter_set import ParameterSet
-from ewatercycle.container import VersionImages, start_container
+from ewatercycle.container import BmiProxy, VersionImages, start_container
 from ewatercycle.plugins.wflow.forcing import WflowForcing
 from ewatercycle.util import (
     CaseConfigParser,
@@ -43,6 +45,21 @@ _version_images: VersionImages = {
     },
 }
 
+class _SwapXY(BmiProxy):
+    """Corrective glasses for Wflow model in container images.
+    
+    The models in the images defined in :pt:const:`_version_images` have swapped x and y coordinates.
+
+    At https://bmi.readthedocs.io/en/stable/model_grids.html#model-grids it says that
+    that x are columns or longitude and y are rows or latitude.
+    While in the image the get_grid_x method returned latitude and get_grid_y method returned longitude.
+    """
+
+    def get_grid_x(self, grid: int, x: np.ndarray) -> np.ndarray:
+        return self.origin.get_grid_y(grid, x)
+
+    def get_grid_y(self, grid: int, y: np.ndarray) -> np.ndarray:
+        return self.origin.get_grid_x(grid, y)
 
 class Wflow(AbstractModel[WflowForcing]):
     """Create an instance of the Wflow model class.
@@ -130,6 +147,7 @@ class Wflow(AbstractModel[WflowForcing]):
             image_engine=_version_images[self.version],
             work_dir=self.work_dir,
             timeout=300,
+            wrappers=(_SwapXY, MemoizedBmi, OptionalDestBmi),
         )
 
         return (

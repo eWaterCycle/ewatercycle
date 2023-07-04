@@ -1,7 +1,8 @@
 """Container utilities."""
 from pathlib import Path
-from typing import Dict, Iterable, Mapping, Optional, Union
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Union, Tuple
 
+import numpy as np
 from bmipy import Bmi
 from grpc import FutureTimeoutError
 from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
@@ -20,6 +21,139 @@ VersionImages = Mapping[str, ImageForContainerEngines]
 Each version has the image name for each container engine.
 """
 
+from typing import Protocol
+
+class BmiFromOrigin(Protocol):
+    """Protocol for a BMI that can be used as a BMI itself."""
+    def __init__(self, origin: Bmi):
+        pass
+
+class BmiProxy(Bmi):
+    """Proxy for a BMI that can be used as a BMI itself.
+
+    Args:
+        origin: the BMI object to proxy
+
+    Example:
+
+    To overwrite the `get_value` method of a BMI class, you can use the following
+
+    >>> class MyBmi(BmiProxy):
+    ...     def get_value(self, name: str, dest: np.ndarray) -> np.ndarray:
+    ...         dest[:] = 1
+    ...         return dest
+    >>> bmi = MyBmi(BmiImplementation())
+    >>> bmi.get_value("my_var", np.empty((2,3), dtype=np.float64))
+    array([[1., 1., 1.], [1., 1., 1.]])
+
+    All other methods are forwarded to the origin.
+
+    """
+    def __init__(self, origin: Bmi):
+        self.origin = origin
+
+    def initialize(self, filename: str) -> None:
+        self.origin.initialize(filename)
+
+    def update(self) -> None:
+        self.origin.update()
+
+    def update_until(self, time: float) -> None:
+        self.origin.update_until(time)
+
+    def finalize(self) -> None:
+        self.origin.finalize()
+
+    def get_component_name(self) -> str:
+        return self.origin.get_component_name()
+
+    def get_input_var_names(self) -> Tuple[str, ...]:
+        return self.origin.get_input_var_names()
+
+    def get_output_var_names(self) -> Tuple[str, ...]:
+        return self.origin.get_output_var_names()
+
+    def get_start_time(self) -> float:
+        return self.origin.get_start_time()
+
+    def get_end_time(self) -> float:
+        return self.origin.get_end_time()
+
+    def get_current_time(self) -> float:
+        return self.origin.get_current_time()
+
+    def get_time_step(self) -> float:
+        return self.origin.get_time_step()
+
+    def get_time_units(self) -> str:
+        return self.origin.get_time_units()
+
+    def get_var_type(self, name: str) -> str:
+        return self.origin.get_var_type(name)
+
+    def get_var_units(self, name: str) -> str:
+        return self.origin.get_var_units(name)
+
+    def get_var_nbytes(self, name: str) -> int:
+        return self.origin.get_var_nbytes(name)
+
+    def get_var_itemsize(self, name: str) -> int:
+        return self.origin.get_var_itemsize(name)
+
+    def get_var_grid(self, name: str) -> int:
+        return self.origin.get_var_grid(name)
+
+    def get_value(self, name: str, dest: np.ndarray) -> np.ndarray:
+        return self.origin.get_value(name, dest)
+
+    def get_value_ptr(self, name: str) -> np.ndarray:
+        return self.origin.get_value_ptr(name)
+
+    def set_value(self, name: str, src: np.ndarray) -> None:
+        self.origin.set_value(name, src)
+
+    def get_grid_shape(self, grid: int, shape: np.ndarray) -> np.ndarray:
+        return self.origin.get_grid_shape(grid, shape)
+
+    def get_grid_spacing(self, grid: int, shape: np.ndarray) -> np.ndarray:
+        return self.origin.get_grid_spacing(grid, shape)
+
+    def get_grid_origin(self, grid: int, shape: np.ndarray) -> np.ndarray:
+        return self.origin.get_grid_origin(grid, shape)
+
+    def get_grid_node_count(self, grid: int) -> int:
+        return self.origin.get_grid_node_count(grid)
+
+    def get_grid_edge_count(self, grid: int) -> int:
+        return self.origin.get_grid_edge_count(grid)
+
+    def get_grid_face_count(self, grid: int) -> int:
+        return self.origin.get_grid_face_count(grid)
+
+    def get_grid_edge_nodes(self, grid: int, edge_nodes: np.ndarray) -> np.ndarray:
+        return self.origin.get_grid_edge_nodes(grid, edge_nodes)
+
+    def get_grid_face_edges(self, grid: int, face_edges: np.ndarray) -> np.ndarray:
+        return self.origin.get_grid_face_edges(grid, face_edges)
+
+    def get_grid_face_nodes(self, grid: int, face_nodes: np.ndarray) -> np.ndarray:
+        return self.origin.get_grid_face_nodes(grid, face_nodes)
+
+    def get_grid_x(self, grid: int, x: np.ndarray) -> np.ndarray:
+        return self.origin.get_grid_x(grid, x)
+
+    def get_grid_y(self, grid: int, y: np.ndarray) -> np.ndarray:
+        return self.origin.get_grid_y(grid, y)
+
+    def get_grid_z(self, grid: int, z: np.ndarray) -> np.ndarray:
+        return self.origin.get_grid_z(grid, z)
+
+    def get_value_at_indices(self, name: str, dest: np.ndarray, inds: np.ndarray) -> np.ndarray:
+        return self.origin.get_value_at_indices(name, dest, inds)
+
+    def set_value_at_indices(self, name: str, inds: np.ndarray, src: np.ndarray) -> None:
+        self.origin.set_value_at_indices(name, inds, src)
+
 
 def start_container(
     work_dir: Union[str, Path],
@@ -28,6 +162,8 @@ def start_container(
     image_port=55555,
     timeout=None,
     delay=0,
+    # TODO replace Any type with Bmi + BmiFromOrigin
+    wrappers: Sequence[type[Any]] = (MemoizedBmi, OptionalDestBmi),
 ) -> Bmi:
     """Start container with model inside.
 
@@ -42,6 +178,8 @@ def start_container(
         image_port: Docker port inside container where grpc4bmi server is running.
         timeout: Number of seconds to wait for grpc connection.
         delay: Number of seconds to wait before connecting.
+        wrappers: List of classes to wrap around the grcp4bmi object from container.
+            Order is important. The first wrapper is the most inner wrapper.
 
     Raises:
         ValueError: When unknown container technology is requested.
@@ -84,7 +222,10 @@ def start_container(
         )
     else:
         raise ValueError(f"Unknown container technology: {CFG.container_engine}")
-    return OptionalDestBmi(MemoizedBmi(bmi))
+
+    for wrapper in wrappers:
+        bmi = wrapper(bmi)
+    return bmi
 
 
 def start_apptainer_container(
