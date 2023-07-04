@@ -52,92 +52,56 @@ class BmiProxy(Bmi):
     def __init__(self, origin: Bmi):
         self.origin = origin
 
-    def initialize(self, filename: str) -> None:
-        self.origin.initialize(filename)
-
-    def update(self) -> None:
-        self.origin.update()
-
-    def update_until(self, time: float) -> None:
-        self.origin.update_until(time)
-
     def finalize(self) -> None:
-        self.origin.finalize()
+        return self.origin.finalize()
 
     def get_component_name(self) -> str:
         return self.origin.get_component_name()
 
-    def get_input_var_names(self) -> Tuple[str, ...]:
-        return self.origin.get_input_var_names()
-
-    def get_output_var_names(self) -> Tuple[str, ...]:
-        return self.origin.get_output_var_names()
-
-    def get_start_time(self) -> float:
-        return self.origin.get_start_time()
+    def get_current_time(self) -> float:
+        return self.origin.get_current_time()
 
     def get_end_time(self) -> float:
         return self.origin.get_end_time()
 
-    def get_current_time(self) -> float:
-        return self.origin.get_current_time()
-
-    def get_time_step(self) -> float:
-        return self.origin.get_time_step()
-
-    def get_time_units(self) -> str:
-        return self.origin.get_time_units()
-
-    def get_var_type(self, name: str) -> str:
-        return self.origin.get_var_type(name)
-
-    def get_var_units(self, name: str) -> str:
-        return self.origin.get_var_units(name)
-
-    def get_var_nbytes(self, name: str) -> int:
-        return self.origin.get_var_nbytes(name)
-
-    def get_var_itemsize(self, name: str) -> int:
-        return self.origin.get_var_itemsize(name)
-
-    def get_var_grid(self, name: str) -> int:
-        return self.origin.get_var_grid(name)
-
-    def get_value(self, name: str, dest: np.ndarray) -> np.ndarray:
-        return self.origin.get_value(name, dest)
-
-    def get_value_ptr(self, name: str) -> np.ndarray:
-        return self.origin.get_value_ptr(name)
-
-    def set_value(self, name: str, src: np.ndarray) -> None:
-        self.origin.set_value(name, src)
-
-    def get_grid_shape(self, grid: int, shape: np.ndarray) -> np.ndarray:
-        return self.origin.get_grid_shape(grid, shape)
-
-    def get_grid_spacing(self, grid: int, shape: np.ndarray) -> np.ndarray:
-        return self.origin.get_grid_spacing(grid, shape)
-
-    def get_grid_origin(self, grid: int, shape: np.ndarray) -> np.ndarray:
-        return self.origin.get_grid_origin(grid, shape)
-
-    def get_grid_node_count(self, grid: int) -> int:
-        return self.origin.get_grid_node_count(grid)
-
     def get_grid_edge_count(self, grid: int) -> int:
         return self.origin.get_grid_edge_count(grid)
 
-    def get_grid_face_count(self, grid: int) -> int:
-        return self.origin.get_grid_face_count(grid)
-
     def get_grid_edge_nodes(self, grid: int, edge_nodes: np.ndarray) -> np.ndarray:
         return self.origin.get_grid_edge_nodes(grid, edge_nodes)
+
+    def get_grid_face_count(self, grid: int) -> int:
+        return self.origin.get_grid_face_count(grid)
 
     def get_grid_face_edges(self, grid: int, face_edges: np.ndarray) -> np.ndarray:
         return self.origin.get_grid_face_edges(grid, face_edges)
 
     def get_grid_face_nodes(self, grid: int, face_nodes: np.ndarray) -> np.ndarray:
         return self.origin.get_grid_face_nodes(grid, face_nodes)
+
+    def get_grid_node_count(self, grid: int) -> int:
+        return self.origin.get_grid_node_count(grid)
+
+    def get_grid_nodes_per_face(self, grid: int, nodes_per_face: np.ndarray) -> np.ndarray:
+        return self.origin.get_grid_nodes_per_face(grid, nodes_per_face)
+
+    def get_grid_origin(self, grid: int, shape: np.ndarray) -> np.ndarray:
+        return self.origin.get_grid_origin(grid, shape)
+
+    def get_grid_rank(self, grid: int) -> int:
+        return self.origin.get_grid_rank(grid)
+
+    def get_grid_shape(self, grid: int, shape: np.ndarray) -> np.ndarray:
+        return self.origin.get_grid_shape(grid, shape)
+
+    def get_grid_size(self, grid: int) -> int:
+        return self.origin.get_grid_size(grid)
+
+    def get_grid_spacing(self, grid: int, shape: np.ndarray) -> np.ndarray:
+        return self.origin.get_grid_spacing(grid, shape)
+
+    def get_grid_type(self, grid: int) -> str:
+        return self.origin.get_grid_type(grid)
 
     def get_grid_x(self, grid: int, x: np.ndarray) -> np.ndarray:
         return self.origin.get_grid_x(grid, x)
@@ -148,12 +112,68 @@ class BmiProxy(Bmi):
     def get_grid_z(self, grid: int, z: np.ndarray) -> np.ndarray:
         return self.origin.get_grid_z(grid, z)
 
+    def get_input_item_count(self) -> int:
+        return self.origin.get_input_item_count()
+
+    def get_input_var_names(self) -> Tuple[str, ...]:
+        return self.origin.get_input_var_names()
+
+    def get_output_item_count(self) -> int:
+        return self.origin.get_output_item_count()
+
+    def get_output_var_names(self) -> Tuple[str, ...]:
+        return self.origin.get_output_var_names()
+
+    def get_start_time(self) -> float:
+        return self.origin.get_start_time()
+
+    def get_time_step(self) -> float:
+        return self.origin.get_time_step()
+
+    def get_time_units(self) -> str:
+        return self.origin.get_time_units()
+
+    def get_value(self, name: str, dest: np.ndarray) -> np.ndarray:
+        return self.origin.get_value(name, dest)
+
     def get_value_at_indices(self, name: str, dest: np.ndarray, inds: np.ndarray) -> np.ndarray:
         return self.origin.get_value_at_indices(name, dest, inds)
 
-    def set_value_at_indices(self, name: str, inds: np.ndarray, src: np.ndarray) -> None:
-        self.origin.set_value_at_indices(name, inds, src)
+    def get_value_ptr(self, name: str) -> np.ndarray:
+        return self.origin.get_value_ptr(name)
 
+    def get_var_itemsize(self, name: str) -> int:
+        return self.origin.get_var_itemsize(name)
+
+    def get_var_grid(self, name: str) -> int:
+        return self.origin.get_var_grid(name)
+
+    def get_var_location(self, name: str) -> str:
+        return self.origin.get_var_location(name)
+
+    def get_var_nbytes(self, name: str) -> int:
+        return self.origin.get_var_nbytes(name)
+
+    def get_var_type(self, name: str) -> str:
+        return self.origin.get_var_type(name)
+
+    def get_var_units(self, name: str) -> str:
+        return self.origin.get_var_units(name)
+
+    def initialize(self, filename: str) -> None:
+        return self.origin.initialize(filename)
+
+    def set_value(self, name: str, src: np.ndarray) -> None:
+        return self.origin.set_value(name, src)
+
+    def set_value_at_indices(self, name: str, inds: np.ndarray, src: np.ndarray) -> None:
+        return self.origin.set_value_at_indices(name, inds, src)
+
+    def update(self) -> None:
+        return self.origin.update()
+
+    def update_until(self, time: float) -> None:
+        return self.origin.update_until(time)
 
 def start_container(
     work_dir: Union[str, Path],
