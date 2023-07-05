@@ -2,21 +2,23 @@ from pathlib import Path
 from unittest import mock
 
 import numpy as np
-from numpy.testing import assert_array_almost_equal
 import pytest
 from grpc4bmi.bmi_memoized import MemoizedBmi
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
+from numpy.testing import assert_array_almost_equal
 
-from ewatercycle.container import BmiProxy, start_container
 from ewatercycle.config import CFG
-
+from ewatercycle.container import BmiProxy, start_container
 from tests.src.fake_models import Rect3DGridModel
+
 
 def npeq(a, b):
     assert_array_almost_equal(a, b)
 
+
 def eq(a, b):
     assert a == b
+
 
 @pytest.mark.parametrize(
     "orig_model, method_name, method_args, assert_func",

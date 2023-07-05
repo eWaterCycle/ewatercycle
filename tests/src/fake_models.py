@@ -5,7 +5,6 @@ from typing import Tuple
 import numpy
 import numpy as np
 from bmipy import Bmi
-
 from grpc4bmi.constants import GRPC_MAX_MESSAGE_LENGTH
 
 
@@ -134,7 +133,9 @@ class FailingModel(Bmi):
     def get_grid_face_nodes(self, grid: int, face_nodes: np.ndarray) -> np.ndarray:
         raise self.exc
 
-    def get_grid_nodes_per_face(self, grid: int, nodes_per_face: np.ndarray) -> np.ndarray:
+    def get_grid_nodes_per_face(
+        self, grid: int, nodes_per_face: np.ndarray
+    ) -> np.ndarray:
         raise self.exc
 
     def get_grid_face_edges(self, grid: int, face_edges: np.ndarray) -> np.ndarray:
@@ -143,13 +144,13 @@ class FailingModel(Bmi):
 
 class GridModel(FailingModel):
     def __init__(self):
-        super(GridModel, self).__init__(SomeException('not used'))
+        super(GridModel, self).__init__(SomeException("not used"))
 
     def initialize(self, filename):
         pass
 
     def get_output_var_names(self) -> Tuple[str]:
-        return 'plate_surface__temperature',
+        return ("plate_surface__temperature",)
 
     def get_var_grid(self, name):
         return 0
@@ -157,7 +158,7 @@ class GridModel(FailingModel):
 
 class UniRectGridModel(GridModel):
     def get_grid_type(self, grid):
-        return 'uniform_rectilinear'
+        return "uniform_rectilinear"
 
     def get_grid_rank(self, grid):
         return 3
@@ -180,7 +181,7 @@ class UniRectGridModel(GridModel):
 
 class Rect3DGridModel(GridModel):
     def get_grid_type(self, grid):
-        return 'rectilinear'
+        return "rectilinear"
 
     def get_grid_size(self, grid):
         return 24
@@ -217,7 +218,7 @@ class Rect2DGridModel(Rect3DGridModel):
         return shape
 
     def get_grid_z(self, grid: int, z: np.ndarray) -> np.ndarray:
-        raise NotImplementedError('Do not know what z is')
+        raise NotImplementedError("Do not know what z is")
 
 
 class Structured3DQuadrilateralsGridModel(GridModel):
@@ -231,7 +232,7 @@ class Structured3DQuadrilateralsGridModel(GridModel):
     #    2
     #
     def get_grid_type(self, grid):
-        return 'structured_quadrilateral'
+        return "structured_quadrilateral"
 
     def get_grid_rank(self, grid: int) -> int:
         return 3
@@ -267,7 +268,7 @@ class Structured2DQuadrilateralsGridModel(GridModel):
     #    2
     #
     def get_grid_type(self, grid):
-        return 'structured_quadrilateral'
+        return "structured_quadrilateral"
 
     def get_grid_rank(self, grid: int) -> int:
         return 2
@@ -288,7 +289,7 @@ class Structured2DQuadrilateralsGridModel(GridModel):
         return y
 
     def get_grid_z(self, grid: int, z: np.ndarray) -> np.ndarray:
-        raise NotImplementedError('Do not know what z is')
+        raise NotImplementedError("Do not know what z is")
 
 
 class UnstructuredGridBmiModel(GridModel):
@@ -303,10 +304,10 @@ class UnstructuredGridBmiModel(GridModel):
     #    1---\  /
     #         4
     def get_grid_type(self, grid):
-        return 'unstructured'
+        return "unstructured"
 
     def get_grid_shape(self, grid, dest):
-        raise NotImplementedError('Do not know what shape is')
+        raise NotImplementedError("Do not know what shape is")
 
     def get_grid_size(self, grid):
         return 6
@@ -324,7 +325,9 @@ class UnstructuredGridBmiModel(GridModel):
         return 3
 
     def get_grid_edge_nodes(self, grid: int, edge_nodes: np.ndarray) -> np.ndarray:
-        numpy.copyto(src=(0, 1, 1, 2, 2, 3, 3, 0, 1, 4, 4, 5, 5, 2, 5, 3), dst=edge_nodes)
+        numpy.copyto(
+            src=(0, 1, 1, 2, 2, 3, 3, 0, 1, 4, 4, 5, 5, 2, 5, 3), dst=edge_nodes
+        )
         return edge_nodes
 
     def get_grid_face_nodes(self, grid: int, face_nodes: np.ndarray) -> np.ndarray:
@@ -335,26 +338,28 @@ class UnstructuredGridBmiModel(GridModel):
         numpy.copyto(src=(0, 1, 2, 3, 4, 5, 6, 1, 6, 7, 2), dst=face_edges)
         return face_edges
 
-    def get_grid_nodes_per_face(self, grid: int, nodes_per_face: np.ndarray) -> np.ndarray:
+    def get_grid_nodes_per_face(
+        self, grid: int, nodes_per_face: np.ndarray
+    ) -> np.ndarray:
         numpy.copyto(src=(4, 4, 3), dst=nodes_per_face)
         return nodes_per_face
 
     def get_grid_x(self, grid: int, x: np.ndarray) -> np.ndarray:
-        numpy.copyto(src=[0., 1., 2., 1., 3., 4.], dst=x)
+        numpy.copyto(src=[0.0, 1.0, 2.0, 1.0, 3.0, 4.0], dst=x)
         return x
 
     def get_grid_y(self, grid: int, y: np.ndarray) -> np.ndarray:
-        numpy.copyto(src=[3., 1., 2., 4., 0., 3.], dst=y)
+        numpy.copyto(src=[3.0, 1.0, 2.0, 4.0, 0.0, 3.0], dst=y)
         return y
 
     def get_grid_z(self, grid: int, z: np.ndarray) -> np.ndarray:
-        raise NotImplementedError('Do not know what z is')
+        raise NotImplementedError("Do not know what z is")
 
 
 class DTypeModel(GridModel):
     def __init__(self):
         super().__init__()
-        self.dtype = numpy.dtype('float32')
+        self.dtype = numpy.dtype("float32")
         self.value = numpy.array((1.1, 2.2, 3.3), dtype=self.dtype)
 
     def get_var_type(self, name):
@@ -388,14 +393,14 @@ class Float32Model(DTypeModel):
 class Int32Model(DTypeModel):
     def __init__(self):
         super().__init__()
-        self.dtype = numpy.dtype('int32')
+        self.dtype = numpy.dtype("int32")
         self.value = numpy.array((12, 24, 36), dtype=self.dtype)
 
 
 class BooleanModel(DTypeModel):
     def __init__(self):
         super().__init__()
-        self.dtype = numpy.dtype('bool')
+        self.dtype = numpy.dtype("bool")
         self.value = numpy.array((True, False, True), dtype=self.dtype)
 
 
@@ -408,17 +413,20 @@ class HugeModel(DTypeModel):
 
         run-bmi-server --path $PWD/test --name fake_models.HugeModel --port 55555 --debug
     """
+
     def __init__(self):
         super().__init__()
-        self.dtype = numpy.dtype('float64')
+        self.dtype = numpy.dtype("float64")
         # Create value which is bigger than 4Mb
         dimension = (3 * GRPC_MAX_MESSAGE_LENGTH) // self.dtype.itemsize + 1000
         self.value = numpy.ones((dimension,), dtype=self.dtype)
+
 
 class WithItemSizeZeroAndVarTypeFloat32Model(Float32Model):
     def get_var_itemsize(self, name):
         return 0
 
+
 class WithItemSizeZeroAndUnknownVarType(WithItemSizeZeroAndVarTypeFloat32Model):
     def get_var_type(self, name):
-        return 'real'
+        return "real"
