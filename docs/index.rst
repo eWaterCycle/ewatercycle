@@ -65,6 +65,6 @@ that are commonly used throughout this documentation.
   user_guide
   system_setup
   adding_models
-  examples
+  plugins
   infrastructures
   observations
