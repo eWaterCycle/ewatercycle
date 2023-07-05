@@ -85,7 +85,7 @@ todo_include_todos = False
 # -- Use autoapi.extension to run sphinx-apidoc -------
 autoapi_dirs = ["../src"]
 autoapi_python_class_content = "both"
-autoapi_options = ["members", "undoc-members", "imported-members"]
+autoapi_options = ["members", "undoc-members", "imported-members", "show-inheritance"]
 
 # -- Options for HTML output ----------------------------------------------
 
