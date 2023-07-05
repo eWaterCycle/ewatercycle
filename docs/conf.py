@@ -93,6 +93,7 @@ autoapi_options = ["members", "undoc-members", "imported-members"]
 # a list of builtin themes.
 #
 html_theme = "sphinx_rtd_theme"
+# TODO move logo to root of docs folder, also some notebooks will need to be updated
 html_logo = "examples/logo.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,

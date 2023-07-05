@@ -8,3 +8,4 @@ Examples
 
     MarrmotM01 <MarrmotM01.ipynb>
     MarrmotM14 <MarrmotM14.ipynb>
+    Generate forcing <generate_forcing.ipynb>

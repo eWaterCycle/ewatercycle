@@ -7,3 +7,4 @@ Examples
 .. toctree::
 
     Model <model.ipynb>
+    Generate forcing <generate_forcing.ipynb>

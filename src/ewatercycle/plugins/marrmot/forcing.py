@@ -108,3 +108,7 @@ class MarrmotForcing(DefaultForcing):
         )
         generated_forcing.save()
         return generated_forcing
+
+
+# TODO could be nice to have plot function
+# that loads the mat file into a xarray dataset and plots it
