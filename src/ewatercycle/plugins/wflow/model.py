@@ -45,9 +45,10 @@ _version_images: VersionImages = {
     },
 }
 
+
 class _SwapXY(BmiProxy):
     """Corrective glasses for Wflow model in container images.
-    
+
     The models in the images defined in :pt:const:`_version_images` have swapped x and y coordinates.
 
     At https://bmi.readthedocs.io/en/stable/model_grids.html#model-grids it says that
@@ -60,6 +61,7 @@ class _SwapXY(BmiProxy):
 
     def get_grid_y(self, grid: int, y: np.ndarray) -> np.ndarray:
         return self.origin.get_grid_x(grid, y)
+
 
 class Wflow(AbstractModel[WflowForcing]):
     """Create an instance of the Wflow model class.
@@ -187,9 +189,9 @@ class Wflow(AbstractModel[WflowForcing]):
 
         """
         grid_id = self.bmi.get_var_grid(name)
-        shape = self.bmi.get_grid_shape(grid_id)  # (len(x), len(y))
-        grid_lat = self.bmi.get_grid_x(grid_id)  # x is latitude
-        grid_lon = self.bmi.get_grid_y(grid_id)  # y is longitude
+        shape = self.bmi.get_grid_shape(grid_id)  # (len(y), len(x))
+        grid_lat = self.bmi.get_grid_y(grid_id)  # x is longitude
+        grid_lon = self.bmi.get_grid_x(grid_id)  # y is latitude
 
         indices = []
         for point_lon, point_lat in zip(lon, lat):
@@ -212,14 +214,14 @@ class Wflow(AbstractModel[WflowForcing]):
         # Get time information
         time_units = self.bmi.get_time_units()
         grid = self.bmi.get_var_grid(name)
-        shape = self.bmi.get_grid_shape(grid)
+        shape = self.bmi.get_grid_shape(grid).flip()
 
         # Extract the data and store it in an xarray DataArray
         da = xr.DataArray(
             data=np.reshape(self.bmi.get_value(name), shape),
             coords={
-                "longitude": self.bmi.get_grid_y(grid),
-                "latitude": self.bmi.get_grid_x(grid),
+                "longitude": self.bmi.get_grid_x(grid),
+                "latitude": self.bmi.get_grid_y(grid),
                 "time": num2date(self.bmi.get_current_time(), time_units),
             },
             dims=["latitude", "longitude"],
