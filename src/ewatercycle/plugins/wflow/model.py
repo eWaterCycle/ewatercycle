@@ -8,7 +8,6 @@ from typing import Any, Iterable, Optional, Tuple, cast
 
 import numpy as np
 import xarray as xr
-from cftime import num2date
 from grpc4bmi.bmi_memoized import MemoizedBmi
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 
@@ -189,7 +188,7 @@ class Wflow(AbstractModel[WflowForcing]):
 
         """
         grid_id = self.bmi.get_var_grid(name)
-        shape = self.bmi.get_grid_shape(grid_id)  # (len(y), len(x))
+        shape = list(self.bmi.get_grid_shape(grid_id))  # (len(y), len(x))
         grid_lat = self.bmi.get_grid_y(grid_id)  # x is longitude
         grid_lon = self.bmi.get_grid_x(grid_id)  # y is latitude
 
@@ -211,20 +210,24 @@ class Wflow(AbstractModel[WflowForcing]):
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Return the value as xarray object."""
-        # Get time information
-        time_units = self.bmi.get_time_units()
         grid = self.bmi.get_var_grid(name)
-        shape = np.flip(self.bmi.get_grid_shape(grid))
+        # shape = (nr lat, nr lon) and
+        # get_value returns 1d array where major is lat and minor is lon
+        # I expected the get_value to return major lon and minor lat, but it doesn't
+        # TODO get_value return should be reshaped into major lon and minor lat
+        # and shape should be flipped
+        # should also be done in pcrglobwb
+        shape = self.bmi.get_grid_shape(grid)
 
         # Extract the data and store it in an xarray DataArray
         da = xr.DataArray(
-            data=np.reshape(self.bmi.get_value(name), shape),
+            data=[np.reshape(self.bmi.get_value(name), shape)],
             coords={
                 "longitude": self.bmi.get_grid_x(grid),
                 "latitude": self.bmi.get_grid_y(grid),
-                "time": num2date(self.bmi.get_current_time(), time_units),
+                "time": [self.time_as_datetime],
             },
-            dims=["latitude", "longitude"],
+            dims=["time", "latitude", "longitude"],
             name=name,
             attrs={"units": self.bmi.get_var_units(name)},
         )

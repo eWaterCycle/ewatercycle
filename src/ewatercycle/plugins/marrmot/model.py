@@ -9,7 +9,6 @@ from typing import Any, Iterable, List, Optional, Tuple
 import numpy as np
 import scipy.io as sio
 import xarray as xr
-from cftime import num2date
 
 from ewatercycle import CFG
 from ewatercycle.base.model import ISO_TIMEFMT, AbstractModel
@@ -247,20 +246,18 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
                 "Please choose one of {}.".format(name, marrmot_vars)
             )
 
-        # Get time information
-        time_units = self.bmi.get_time_units()
         grid = self.bmi.get_var_grid(name)
         shape = self.bmi.get_grid_shape(grid)
 
         # Extract the data and store it in an xarray DataArray
         return xr.DataArray(
-            data=np.reshape(self.bmi.get_value(name), shape),
+            data=[np.reshape(self.bmi.get_value(name), shape)],
             coords={
                 "longitude": self.bmi.get_grid_x(grid),
                 "latitude": self.bmi.get_grid_y(grid),
-                "time": num2date(self.bmi.get_current_time(), time_units),
+                "time": [self.time_as_datetime],
             },
-            dims=["latitude", "longitude"],
+            dims=["time", "latitude", "longitude"],
             name=name,
             attrs={"units": self.bmi.get_var_units(name)},
         )
@@ -520,13 +517,13 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
 
         # Extract the data and store it in an xarray DataArray
         return xr.DataArray(
-            data=np.reshape(self.bmi.get_value(name), shape),
+            data=[np.reshape(self.bmi.get_value(name), shape)],
             coords={
                 "longitude": self.bmi.get_grid_x(grid),
                 "latitude": self.bmi.get_grid_y(grid),
-                "time": num2date(self.bmi.get_current_time(), time_units),
+                "time": [self.end_time_as_datetime],
             },
-            dims=["latitude", "longitude"],
+            dims=["time", "latitude", "longitude"],
             name=name,
             attrs={"units": self.bmi.get_var_units(name)},
         )

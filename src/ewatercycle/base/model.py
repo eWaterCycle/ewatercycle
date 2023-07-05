@@ -5,8 +5,7 @@ from typing import Any, ClassVar, Generic, Iterable, Optional, Tuple, TypeVar
 
 import numpy as np
 import xarray as xr
-from bmipy import Bmi
-from cftime import num2date
+from cftime import num2pydate
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 from grpc4bmi.reserve import reserve_values, reserve_values_at_indices
 
@@ -39,7 +38,9 @@ class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
         self.forcing: Optional[ForcingT] = forcing
         self._check_version()
         self._check_parameter_set()
-        self.bmi: Bmi = None  # bmi should set in setup() before calling its methods
+        self.bmi: OptionalDestBmi = (
+            None  # bmi should set in setup() before calling its methods
+        )
         """Basic Modeling Interface object"""
 
     def __del__(self):
@@ -212,28 +213,25 @@ class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
     @property
     def start_time_as_datetime(self) -> datetime:
         """Start time of the model as a datetime object."""
-        return num2date(
+        return num2pydate(
             self.bmi.get_start_time(),
             self.bmi.get_time_units(),
-            only_use_cftime_datetimes=False,
         )
 
     @property
     def end_time_as_datetime(self) -> datetime:
         """End time of the model as a datetime object'."""
-        return num2date(
+        return num2pydate(
             self.bmi.get_end_time(),
             self.bmi.get_time_units(),
-            only_use_cftime_datetimes=False,
         )
 
     @property
     def time_as_datetime(self) -> datetime:
         """Current time of the model as a datetime object'."""
-        return num2date(
+        return num2pydate(
             self.bmi.get_current_time(),
             self.bmi.get_time_units(),
-            only_use_cftime_datetimes=False,
         )
 
     def _check_parameter_set(self):

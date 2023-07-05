@@ -1,6 +1,6 @@
 """Container utilities."""
 from pathlib import Path
-from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Union, Tuple
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from bmipy import Bmi
@@ -23,10 +23,13 @@ Each version has the image name for each container engine.
 
 from typing import Protocol
 
+
 class BmiFromOrigin(Protocol):
     """Protocol for a BMI that can be used as a BMI itself."""
+
     def __init__(self, origin: Bmi):
         pass
+
 
 class BmiProxy(Bmi):
     """Proxy for a BMI that can be used as a BMI itself.
@@ -49,6 +52,7 @@ class BmiProxy(Bmi):
     All other methods are forwarded to the origin.
 
     """
+
     def __init__(self, origin: Bmi):
         self.origin = origin
 
@@ -82,7 +86,9 @@ class BmiProxy(Bmi):
     def get_grid_node_count(self, grid: int) -> int:
         return self.origin.get_grid_node_count(grid)
 
-    def get_grid_nodes_per_face(self, grid: int, nodes_per_face: np.ndarray) -> np.ndarray:
+    def get_grid_nodes_per_face(
+        self, grid: int, nodes_per_face: np.ndarray
+    ) -> np.ndarray:
         return self.origin.get_grid_nodes_per_face(grid, nodes_per_face)
 
     def get_grid_origin(self, grid: int, shape: np.ndarray) -> np.ndarray:
@@ -136,7 +142,9 @@ class BmiProxy(Bmi):
     def get_value(self, name: str, dest: np.ndarray) -> np.ndarray:
         return self.origin.get_value(name, dest)
 
-    def get_value_at_indices(self, name: str, dest: np.ndarray, inds: np.ndarray) -> np.ndarray:
+    def get_value_at_indices(
+        self, name: str, dest: np.ndarray, inds: np.ndarray
+    ) -> np.ndarray:
         return self.origin.get_value_at_indices(name, dest, inds)
 
     def get_value_ptr(self, name: str) -> np.ndarray:
@@ -166,7 +174,9 @@ class BmiProxy(Bmi):
     def set_value(self, name: str, src: np.ndarray) -> None:
         return self.origin.set_value(name, src)
 
-    def set_value_at_indices(self, name: str, inds: np.ndarray, src: np.ndarray) -> None:
+    def set_value_at_indices(
+        self, name: str, inds: np.ndarray, src: np.ndarray
+    ) -> None:
         return self.origin.set_value_at_indices(name, inds, src)
 
     def update(self) -> None:
@@ -174,6 +184,7 @@ class BmiProxy(Bmi):
 
     def update_until(self, time: float) -> None:
         return self.origin.update_until(time)
+
 
 def start_container(
     work_dir: Union[str, Path],
@@ -184,7 +195,7 @@ def start_container(
     delay=0,
     # TODO replace Any type with Bmi + BmiFromOrigin
     wrappers: Sequence[type[Any]] = (MemoizedBmi, OptionalDestBmi),
-) -> Bmi:
+) -> OptionalDestBmi:
     """Start container with model inside.
 
     The
