@@ -118,7 +118,7 @@ class TestWithDefaultsAndExampleData:
             coords={
                 "longitude": [87.49],
                 "latitude": [35.29],
-                "time": pd.to_datetime([datetime(1989, 1, 2, tzinfo=timezone.utc)]),
+                "time": pd.to_datetime([datetime(1992, 12, 31, tzinfo=timezone.utc)]),
             },
             dims=["time", "latitude", "longitude"],
             name="flux_out_Q",
