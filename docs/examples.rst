@@ -10,13 +10,6 @@ Each model plugin has its own examples see their respective documentation:
 * :doc:`PCRGlobWB <plugins/pcrglobwb/index>`
 * :doc:`Wflow <plugins/wflow/index>`
 
-Example notebooks using different models:
-
-.. toctree::
-  :maxdepth: 1
-
-  Irrigation experiment <examples/Irrigation.ipynb>
-
 .. note::
 
   To run these notebooks you need to install the used model plugins.

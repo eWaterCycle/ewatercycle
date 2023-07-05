@@ -8,3 +8,4 @@ Examples
 
     Model <model.ipynb>
     Generate forcing <generate_forcing.ipynb>
+    Irrigation experiment <Irrigation.ipynb>
