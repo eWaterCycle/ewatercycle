@@ -149,9 +149,14 @@ class AbstractModel(Generic[ForcingT], Representation, metaclass=ABCMeta):
     @abstractmethod
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Get a copy values of the given variable as xarray DataArray.
-        The xarray object also contains coordinate information and additional
+        The xarray object also contains time, coordinate information and additional
         attributes such as the units.
-        Args: name: Name of the variable
+
+        Args:
+            name: Name of the variable
+
+        Returns:
+           Dataarray of the variable.
         """
 
     @property

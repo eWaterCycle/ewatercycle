@@ -238,7 +238,6 @@ class MarrmotM01(AbstractModel[MarrmotForcing]):
         return config_file
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
-        """Return the value as xarray object."""
         marrmot_vars = {"S(t)", "flux_out_Q", "flux_out_Ea", "wb"}
         if name not in marrmot_vars:
             raise NotImplementedError(
@@ -502,7 +501,6 @@ class MarrmotM14(AbstractModel[MarrmotForcing]):
         return config_file
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
-        """Return the value as xarray object."""
         marrmot_vars = {"S(t)", "flux_out_Q", "flux_out_Ea", "wb"}
         if name not in marrmot_vars:
             raise NotImplementedError(

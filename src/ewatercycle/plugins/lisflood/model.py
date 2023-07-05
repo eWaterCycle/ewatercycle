@@ -217,7 +217,6 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         return lisflood_file
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
-        """Return the value as xarray object."""
         grid = self.bmi.get_var_grid(name)
         shape = self.bmi.get_grid_shape(grid)
 
