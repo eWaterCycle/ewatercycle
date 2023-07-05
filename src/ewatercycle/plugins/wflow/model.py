@@ -214,7 +214,7 @@ class Wflow(AbstractModel[WflowForcing]):
         # Get time information
         time_units = self.bmi.get_time_units()
         grid = self.bmi.get_var_grid(name)
-        shape = self.bmi.get_grid_shape(grid).flip()
+        shape = np.flip(self.bmi.get_grid_shape(grid))
 
         # Extract the data and store it in an xarray DataArray
         da = xr.DataArray(
