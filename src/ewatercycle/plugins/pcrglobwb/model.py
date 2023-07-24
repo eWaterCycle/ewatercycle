@@ -30,7 +30,7 @@ class PCRGlobWB(ContainerizedModel):
 
     forcing: Optional[PCRGlobWBForcing] = None
     parameter_set: ParameterSet  # not optional for this model
-    bmi_image = ContainerImage("ewatercycle/pcrg-grpc4bmi:setters")
+    bmi_image: ContainerImage = ContainerImage("ewatercycle/pcrg-grpc4bmi:setters")
     _config: CaseConfigParser = PrivateAttr()
 
     @root_validator

@@ -4,11 +4,8 @@ import datetime
 import logging
 import shutil
 from pathlib import Path
-from typing import Any, Iterable, Optional, Tuple, cast
+from typing import Optional
 
-import numpy as np
-import xarray as xr
-from cftime import num2date
 from pydantic import PrivateAttr, root_validator
 
 from ewatercycle import CFG
@@ -18,7 +15,6 @@ from ewatercycle.container import ContainerImage
 from ewatercycle.plugins.wflow.forcing import WflowForcing
 from ewatercycle.util import (
     CaseConfigParser,
-    find_closest_point,
     get_time,
     to_absolute_path,
 )
@@ -38,8 +34,9 @@ class Wflow(ContainerizedModel):
 
     forcing: Optional[WflowForcing] = None
     parameter_set: ParameterSet  # not optional for this model
-    bmi_image: ContainerImage("ewatercycle/wflow-grpc4bmi:2020.1.3")
+    bmi_image: ContainerImage = ContainerImage("ewatercycle/wflow-grpc4bmi:2020.1.3")
     _config: CaseConfigParser = PrivateAttr()
+    _work_dir: Path = PrivateAttr()
 
     @root_validator
     def _parse_config(cls, values):
@@ -94,39 +91,39 @@ class Wflow(ContainerizedModel):
     def _make_cfg_file(self, **kwargs) -> str:
         """Create a new wflow config file and return its path."""
         if "start_time" in kwargs:
-            self.config.set("run", "starttime", _iso_to_wflow(kwargs["start_time"]))
+            self._config.set("run", "starttime", _iso_to_wflow(kwargs["start_time"]))
         if "end_time" in kwargs:
-            self.config.set("run", "endtime", _iso_to_wflow(kwargs["end_time"]))
+            self._config.set("run", "endtime", _iso_to_wflow(kwargs["end_time"]))
 
-        cfg_file = to_absolute_path("wflow_ewatercycle.ini", parent=self.work_dir)
+        cfg_file = to_absolute_path("wflow_ewatercycle.ini", parent=self._work_dir)
         with cfg_file.open("w") as filename:
-            self.config.write(filename)
+            self._config.write(filename)
 
         return str(cfg_file)
 
     def _make_cfg_dir(self, cfg_dir: Optional[str | Path] = None) -> str:
         """Create working directory for parameter sets, forcing and wflow config."""
         if cfg_dir:
-            self.work_dir = to_absolute_path(cfg_dir)
+            self._work_dir = to_absolute_path(cfg_dir)
         else:
             timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
                 "%Y%m%d_%H%M%S"
             )
-            self.work_dir = to_absolute_path(
+            self._work_dir = to_absolute_path(
                 f"wflow_{timestamp}", parent=CFG.output_dir
             )
         # Make sure parents exist
-        self.work_dir.parent.mkdir(parents=True, exist_ok=True)
+        self._work_dir.parent.mkdir(parents=True, exist_ok=True)
 
         assert self.parameter_set
-        shutil.copytree(src=self.parameter_set.directory, dst=self.work_dir)
+        shutil.copytree(src=self.parameter_set.directory, dst=self._work_dir)
         if self.forcing:
             forcing_path = to_absolute_path(
                 self.forcing.netcdfinput, parent=self.forcing.directory
             )
-            shutil.copy(src=forcing_path, dst=self.work_dir)
+            shutil.copy(src=forcing_path, dst=self._work_dir)
 
-        return cfg_dir
+        return str(self._work_dir)
 
     def get_latlon_grid(self, name):
         """Grid latitude, longitude and shape for variable.
