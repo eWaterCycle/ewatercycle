@@ -374,16 +374,18 @@ class ContainerizedModel(BaseModel):
 
     bmi_image: ContainerImage
 
+    _additional_input_dirs: list[str] = pydantic.PrivateAttr()
+
     def _make_bmi_instance(self) -> bmipy.Bmi:
-        self.additional_input_dirs = []
+        self._additional_input_dirs = []
         if self.parameter_set:
-            self.additional_input_dirs.append(str(self.parameter_set.directory))
+            self._additional_input_dirs.append(str(self.parameter_set.directory))
         if self.forcing:
-            self.additional_input_dirs.append(str(self.forcing.directory))
+            self._additional_input_dirs.append(str(self.forcing.directory))
 
         return start_container(
             image=self.bmi_image,
             work_dir=self.cfg_dir,
-            input_dirs=self.additional_input_dirs,
+            input_dirs=self._additional_input_dirs,
             timeout=300,
         )

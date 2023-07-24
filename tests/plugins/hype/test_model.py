@@ -79,7 +79,7 @@ def parameter_set(mocked_config):
 class TestWithOnlyParameterSetAndDefaults:
     @pytest.fixture
     def model(self, parameter_set):
-        return Hype("feb2021", parameter_set)
+        return Hype(parameter_set=parameter_set)
 
     @pytest.fixture
     def model_with_setup(self, mocked_config, model: Hype):
@@ -95,8 +95,8 @@ class TestWithOnlyParameterSetAndDefaults:
         mocked_constructor.assert_called_once_with(
             image="ewatercycle-hype-grpc4bmi_feb2021.sif",
             work_dir=f"{tmp_path}/hype_20210102_030405",
-            input_dirs=[],
-            timeout=None,
+            input_dirs=[f"{tmp_path}/hype_testcase"],
+            timeout=300,
             delay=0,
         )
 
@@ -139,7 +139,7 @@ class TestWithOnlyParameterSetAndDefaults:
             ("end_time", "1963-12-31T00:00:00Z"),
             ("crit_time", "1962-01-01T00:00:00Z"),
         ]
-        assert model.parameters == expected
+        assert model.get_parameters() == expected
 
     def test_get_value_as_xarray(self, model):
         with pytest.raises(NotImplementedError):
@@ -175,17 +175,17 @@ class TestWithOnlyParameterSetAndDefaults:
             def get_var_nbytes(self, name):
                 return np.float64().size * 3 * 3
 
-        model.bmi = MockedBmi()
+        model._bmi = MockedBmi()
 
         actual = model.get_value_at_coords("comp outflow olake", lon=[5], lat=[50])
         assert actual == np.array([13.0])
-        assert model.bmi.indices == [1]
+        assert model._bmi.indices == [1]
 
 
 class TestWithOnlyParameterSetAndFullSetup:
     @pytest.fixture
     def model(self, parameter_set):
-        return Hype("feb2021", parameter_set)
+        return Hype(parameter_set=parameter_set)
 
     @pytest.fixture
     def model_with_setup(self, mocked_config, model: Hype, tmp_path):
@@ -206,8 +206,8 @@ class TestWithOnlyParameterSetAndFullSetup:
         mocked_constructor.assert_called_once_with(
             image="ewatercycle-hype-grpc4bmi_feb2021.sif",
             work_dir=f"{tmp_path}/myworkdir",
-            input_dirs=[],
-            timeout=None,
+            input_dirs=[f"{tmp_path}/hype_testcase"],
+            timeout=300,
             delay=0,
         )
 
@@ -250,7 +250,7 @@ class TestWithOnlyParameterSetAndFullSetup:
             ("end_time", "2010-12-31T00:00:00Z"),
             ("crit_time", "2002-01-01T00:00:00Z"),
         ]
-        assert model.parameters == expected
+        assert model.get_parameters() == expected
 
 
 def test_set_code_in_cfg():
@@ -330,7 +330,7 @@ class TestWithForcingAndDefaults:
 
     @pytest.fixture
     def model(self, parameter_set, forcing):
-        return Hype("feb2021", parameter_set, forcing)
+        return Hype(parameter_set=parameter_set, forcing=forcing)
 
     @pytest.fixture
     def model_with_setup(self, mocked_config, model: Hype):
@@ -346,8 +346,8 @@ class TestWithForcingAndDefaults:
         mocked_constructor.assert_called_once_with(
             image="ewatercycle-hype-grpc4bmi_feb2021.sif",
             work_dir=f"{tmp_path}/hype_20210102_030405",
-            input_dirs=[],
-            timeout=None,
+            input_dirs=[f"{tmp_path}/hype_testcase", f"{tmp_path}/forcing"],
+            timeout=300,
             delay=0,
         )
 
@@ -395,4 +395,4 @@ class TestWithForcingAndDefaults:
             ("end_time", "2018-01-02T00:00:00Z"),
             ("crit_time", "1986-01-02T00:00:00Z"),
         ]
-        assert model.parameters == expected
+        assert model.get_parameters() == expected
