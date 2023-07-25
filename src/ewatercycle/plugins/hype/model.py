@@ -49,9 +49,10 @@ class Hype(ContainerizedModel):
     _crit: datetime.datetime = PrivateAttr()
 
     @root_validator
-    def _parse_config(cls, values: dict) -> None:
+    def _parse_config(cls, values: dict) -> dict:
         """Load config from parameter set and update with forcing info."""
         ps: ParameterSet = values.get("parameter_set")
+        assert isinstance(ps, ParameterSet)  # pydantic doesn't do its job reliably
         forcing = values.get("forcing")
 
         cfg = ps.config.read_text(encoding="cp437")
