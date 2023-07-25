@@ -12,12 +12,11 @@ from dateutil.parser import parse
 from dateutil.tz import UTC
 from pydantic import PrivateAttr, root_validator
 
-from ewatercycle import CFG
 from ewatercycle.base.model import ISO_TIMEFMT, ContainerizedModel
 from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.container import ContainerImage
 from ewatercycle.plugins.hype.forcing import HypeForcing
-from ewatercycle.util import geographical_distances, get_time, to_absolute_path
+from ewatercycle.util import geographical_distances, get_time
 
 logger = logging.getLogger(__name__)
 
@@ -137,29 +136,33 @@ class Hype(ContainerizedModel):
 
         return cfg_file
 
-    def _make_cfg_dir(self, cfg_dir: Optional[Path] = None) -> Path:
-        if cfg_dir:
-            cfg_dir = to_absolute_path(cfg_dir)
-        else:
-            # Must exist before setting up default config
-            timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
-                "%Y%m%d_%H%M%S"
-            )
-            cfg_dir = to_absolute_path(f"hype_{timestamp}", parent=CFG.output_dir)
-        cfg_dir.mkdir(parents=True, exist_ok=True)
+    def _make_cfg_dir(
+        self,
+        cfg_dir: Optional[str] = None,
+        **kwargs,
+    ) -> Path:
+        """Make sure there is a working directory.
+
+        Args:
+            cfg_dir: If cfg dir is None or does not exist then create sub-directory
+                in CFG.output_dir
+        """
+        cfg_path = super()._make_cfg_dir(
+            cfg_dir=cfg_dir, folder_prefix="hype", **kwargs
+        )
 
         # copy parameter set files to cfg_dir
         assert self.parameter_set
         shutil.copytree(
-            src=self.parameter_set.directory, dst=cfg_dir, dirs_exist_ok=True
+            src=self.parameter_set.directory, dst=cfg_path, dirs_exist_ok=True
         )
 
         # copy forcing files to cfg_dir
         if self.forcing is not None and self.forcing.directory is not None:
             forcing_dir = self.forcing.directory
-            shutil.copytree(src=forcing_dir, dst=cfg_dir, dirs_exist_ok=True)
+            shutil.copytree(src=forcing_dir, dst=cfg_path, dirs_exist_ok=True)
 
-        return cfg_dir
+        return cfg_path
 
     def _make_bmi_instance(self) -> bmipy.Bmi:
         """Make the bmi instance and overwrite 'get_time_units' method."""

@@ -2,9 +2,10 @@
 
 import abc
 import logging
-from datetime import datetime, timezone
+import datetime
+from datetime import timezone
 from pathlib import Path
-from typing import Any, Iterable, Type, cast
+from typing import Any, Iterable, Optional, Type, cast
 
 import bmipy
 import numpy as np
@@ -86,19 +87,20 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
 
         return str(self._cfg_file), str(self._cfg_dir)
 
-    def _make_cfg_dir(self, cfg_dir):
+    def _make_cfg_dir(self, cfg_dir: Optional[str] = None, **kwargs) -> Path:
         if cfg_dir is not None:
-            cfg_dir = to_absolute_path(cfg_dir)
+            cfg_path = to_absolute_path(cfg_dir)
         else:
             tz = timezone.utc
-            timestamp = datetime.now(tz).strftime("%Y%m%d_%H%M%S")
-            cfg_dir = to_absolute_path(
-                f"ewatercycle_{timestamp}", parent=CFG.output_dir
+            timestamp = datetime.datetime.now(tz).strftime("%Y%m%d_%H%M%S")
+            folder_prefix = kwargs.get("folder_prefix", "ewatercycle")
+            cfg_path = to_absolute_path(
+                f"{folder_prefix}_{timestamp}", parent=CFG.output_dir
             )
 
-        cfg_dir.mkdir(parents=True, exist_ok=True)
+        cfg_path.mkdir(parents=True, exist_ok=True)
 
-        return cfg_dir
+        return cfg_path
 
     def _make_cfg_file(self, **kwargs):
         """Create new config file and return its path."""
@@ -312,7 +314,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         return self.time_as_datetime.strftime(ISO_TIMEFMT)
 
     @property
-    def start_time_as_datetime(self) -> datetime:
+    def start_time_as_datetime(self) -> datetime.datetime:
         """Start time of the model as a datetime object."""
         return num2date(
             self._bmi.get_start_time(),
@@ -321,7 +323,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         )
 
     @property
-    def end_time_as_datetime(self) -> datetime:
+    def end_time_as_datetime(self) -> datetime.datetime:
         """End time of the model as a datetime object'."""
         return num2date(
             self._bmi.get_end_time(),
@@ -330,7 +332,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         )
 
     @property
-    def time_as_datetime(self) -> datetime:
+    def time_as_datetime(self) -> datetime.datetime:
         """Current time of the model as a datetime object'."""
         return num2date(
             self._bmi.get_current_time(),

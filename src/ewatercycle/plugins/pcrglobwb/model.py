@@ -1,13 +1,12 @@
 """eWaterCycle wrapper around PCRGlobWB BMI."""
 
-import datetime
 import logging
 from os import PathLike
+from pathlib import Path
 from typing import Optional
 
 from pydantic import PrivateAttr, root_validator
 
-from ewatercycle import CFG
 from ewatercycle.base.model import ContainerizedModel
 from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.container import ContainerImage
@@ -91,18 +90,20 @@ class PCRGlobWB(ContainerizedModel):
         )
         return values
 
-    def _setup_work_dir(self, cfg_dir: Optional[str] = None):
-        if cfg_dir:
-            self.work_dir = to_absolute_path(cfg_dir)
-        else:
-            # Must exist before setting up default config
-            timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
-                "%Y%m%d_%H%M%S"
-            )
-            self.work_dir = to_absolute_path(
-                f"pcrglobwb_{timestamp}", parent=CFG.output_dir
-            )
-        self.work_dir.mkdir(parents=True, exist_ok=True)
+    def _make_cfg_dir(
+        self,
+        cfg_dir: Optional[str] = None,
+        **kwargs,
+    ) -> Path:
+        """Make sure there is a working directory.
+
+        Args:
+            cfg_dir: If cfg dir is None or does not exist then create sub-directory
+                in CFG.output_dir
+        """
+        return super()._make_cfg_dir(
+            cfg_dir=cfg_dir, folder_prefix="pcrglobwb", **kwargs
+        )
 
     def _make_cfg_file(self, **kwargs):
         self._update_config(**kwargs)
@@ -143,9 +144,9 @@ class PCRGlobWB(ContainerizedModel):
             )
 
     def _export_config(self) -> PathLike:
-        self._config.set("globalOptions", "outputDir", str(self.work_dir))
+        self._config.set("globalOptions", "outputDir", str(self._cfg_dir))
         new_cfg_file = to_absolute_path(
-            "pcrglobwb_ewatercycle.ini", parent=self.work_dir
+            "pcrglobwb_ewatercycle.ini", parent=self._cfg_dir
         )
         with new_cfg_file.open("w") as filename:
             self._config.write(filename)

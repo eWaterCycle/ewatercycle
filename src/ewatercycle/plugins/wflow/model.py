@@ -94,7 +94,7 @@ class Wflow(ContainerizedModel):
 
         return cfg_file
 
-    def _make_cfg_dir(self, cfg_dir: Optional[str | Path] = None) -> Path:
+    def _make_cfg_dir(self, cfg_dir: Optional[str] = None, **kwargs) -> Path:
         """Create working directory for parameter sets, forcing and wflow config."""
         if cfg_dir:
             self._work_dir = to_absolute_path(cfg_dir)
