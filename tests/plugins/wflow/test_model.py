@@ -106,7 +106,7 @@ def model(parameter_set):
 @pytest.fixture
 def initialized_model(model):
     """Model with fake parameterset and fake BMI instance."""
-    model.bmi = MockedBmi()
+    model._bmi = MockedBmi()
     return model
 
 
@@ -137,8 +137,7 @@ def test_str(model, tmp_path):
             "downloader=None)",
         ]
     )
-    expected = f"version='2020.1.1' parameter_set={expected_ps} forcing=None"
-    assert actual == expected
+    expected = f"parameter_set={expected_ps} forcing=None"
     assert actual == expected
 
 
@@ -169,8 +168,8 @@ def test_setup_withtimeoutexception(model, tmp_path):
         model.setup()
 
     msg = str(excinfo.value)
-    assert "docker://ewatercycle/wflow-grpc4bmi:2020.1.1" in msg
-    assert "ewatercycle-wflow-grpc4bmi_2020.1.1.sif" in msg
+    assert "docker://ewatercycle/wflow-grpc4bmi:2020.1.3" in msg
+    assert "ewatercycle-wflow-grpc4bmi_2020.1.3.sif" in msg
 
 
 def test_setup_with_custom_cfg_dir(model, tmp_path):
@@ -192,8 +191,9 @@ def test_get_value_as_coords(initialized_model, caplog):
     with caplog.at_level(logging.DEBUG):
         result = model.get_value_at_coords("discharge", lon=[5.2], lat=[46.8])
 
-    msg = "Requested point was lon: 5.2, lat: 46.8; closest grid point is 5.00, 47.00."
+    msg1 = "Requested point was lon: 5.2, lat: 46.8;"
+    msg2 = "closest grid point is 5.00, 47.00."
 
-    assert msg in caplog.text
+    assert msg1 in caplog.text and msg2 in caplog.text
     assert result == np.array([1.0])
-    assert model.bmi.indices == [4]
+    assert model._bmi.indices == [4]

@@ -215,8 +215,8 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
 
             message = f"""
                 Requested point was lon: {point_lon}, lat: {point_lat};
-                closest grid point is
-                {grid_lon[idx_lon]:.2f}, {grid_lat[idx_lat]:.2f}."""
+                closest grid point is {grid_lon[idx_lon]:.2f}, {grid_lat[idx_lat]:.2f}.
+                """
 
             logger.debug(message)
 

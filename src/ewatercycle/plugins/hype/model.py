@@ -17,11 +17,7 @@ from ewatercycle.base.model import ISO_TIMEFMT, ContainerizedModel
 from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.container import ContainerImage
 from ewatercycle.plugins.hype.forcing import HypeForcing
-from ewatercycle.util import (
-    geographical_distances,
-    get_time,
-    to_absolute_path,
-)
+from ewatercycle.util import geographical_distances, get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +47,7 @@ class Hype(ContainerizedModel):
     @root_validator
     def _parse_config(cls, values: dict) -> dict:
         """Load config from parameter set and update with forcing info."""
-        ps: ParameterSet = values.get("parameter_set")
+        ps = values.get("parameter_set")
         assert isinstance(ps, ParameterSet)  # pydantic doesn't do its job reliably
         forcing = values.get("forcing")
 
@@ -149,9 +145,7 @@ class Hype(ContainerizedModel):
             timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
                 "%Y%m%d_%H%M%S"
             )
-            cfg_dir = to_absolute_path(
-                f"hype_{timestamp}", parent=CFG.output_dir
-            )
+            cfg_dir = to_absolute_path(f"hype_{timestamp}", parent=CFG.output_dir)
         cfg_dir.mkdir(parents=True, exist_ok=True)
 
         # copy parameter set files to cfg_dir

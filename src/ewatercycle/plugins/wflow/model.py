@@ -13,11 +13,7 @@ from ewatercycle.base.model import ISO_TIMEFMT, ContainerizedModel
 from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.container import ContainerImage
 from ewatercycle.plugins.wflow.forcing import WflowForcing
-from ewatercycle.util import (
-    CaseConfigParser,
-    get_time,
-    to_absolute_path,
-)
+from ewatercycle.util import CaseConfigParser, get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +38,7 @@ class Wflow(ContainerizedModel):
     def _parse_config(cls, values):
         """Load config from parameter set and update with forcing info."""
         ps = values.get("parameter_set")
+        assert isinstance(ps, ParameterSet)  # pydantic doesn't do its job reliably
 
         cfg = CaseConfigParser()
         cfg.read(ps.config)
@@ -71,24 +68,20 @@ class Wflow(ContainerizedModel):
             )
             cfg.set("API", "RiverRunoff", "2, m/s")
 
-        values.update(_config=cfg)
-        return values
-
-    @root_validator
-    def _update_parameters(cls, values):
-        cfg = values.get("_config")
         values.get("parameters").update(
             {
                 "start_time": _wflow_to_iso(cfg.get("run", "starttime")),
                 "end_time": _wflow_to_iso(cfg.get("run", "endtime")),
             }
         )
+
+        cls._config = cfg
         return values
 
     # TODO: create setup with custom docstring to explain extra kwargs
     # (start_time, end_time)
 
-    def _make_cfg_file(self, **kwargs) -> str:
+    def _make_cfg_file(self, **kwargs) -> Path:
         """Create a new wflow config file and return its path."""
         if "start_time" in kwargs:
             self._config.set("run", "starttime", _iso_to_wflow(kwargs["start_time"]))
@@ -99,9 +92,9 @@ class Wflow(ContainerizedModel):
         with cfg_file.open("w") as filename:
             self._config.write(filename)
 
-        return str(cfg_file)
+        return cfg_file
 
-    def _make_cfg_dir(self, cfg_dir: Optional[str | Path] = None) -> str:
+    def _make_cfg_dir(self, cfg_dir: Optional[str | Path] = None) -> Path:
         """Create working directory for parameter sets, forcing and wflow config."""
         if cfg_dir:
             self._work_dir = to_absolute_path(cfg_dir)
@@ -123,7 +116,7 @@ class Wflow(ContainerizedModel):
             )
             shutil.copy(src=forcing_path, dst=self._work_dir)
 
-        return str(self._work_dir)
+        return self._work_dir
 
     def get_latlon_grid(self, name):
         """Grid latitude, longitude and shape for variable.
