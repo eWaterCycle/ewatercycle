@@ -1,8 +1,8 @@
 """Base classes for eWaterCycle models."""
 
 import abc
-import logging
 import datetime
+import logging
 from datetime import timezone
 from pathlib import Path
 from typing import Any, Iterable, Optional, Type, cast
@@ -353,7 +353,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
             name: Name of the variable
         """
         grid_id = self._bmi.get_var_grid(name)
-        shape = self._bmi.get_grid_shape(name)
+        shape = self._bmi.get_grid_shape(grid_id)
         grid_lon = self._bmi.get_grid_x(grid_id)
         grid_lat = self._bmi.get_grid_y(grid_id)
         return grid_lat, grid_lon, shape

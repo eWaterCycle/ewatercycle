@@ -85,9 +85,9 @@ class TestWithOnlyParameterSetAndDefaults:
     def model_with_setup(self, mocked_config, model: Hype):
         with (
             patch.object(
-            BmiClientApptainer, "__init__", return_value=None
-            ) as mocked_constructor, 
-            patch("datetime.datetime") as mocked_datetime
+                BmiClientApptainer, "__init__", return_value=None
+            ) as mocked_constructor,
+            patch("datetime.datetime") as mocked_datetime,
         ):
             mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
             config_file, config_dir = model.setup()
