@@ -40,6 +40,9 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
 
     _bmi: OptionalDestBmi = pydantic.PrivateAttr()
 
+    _cfg_dir: Path = pydantic.PrivateAttr()
+    _cfg_file: Path = pydantic.PrivateAttr()
+
     @abc.abstractmethod
     def _make_bmi_instance(self) -> OptionalDestBmi:
         """Attach a BMI instance to self._bmi."""
@@ -77,11 +80,11 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         Returns:
             Path to config file and path to config directory
         """
-        self.cfg_dir: Path = self._make_cfg_dir(cfg_dir)
-        self.cfg_file: Path = self._make_cfg_file(**kwargs)
+        self._cfg_dir: Path = self._make_cfg_dir(cfg_dir)
+        self._cfg_file: Path = self._make_cfg_file(**kwargs)
         self._bmi = self._make_bmi_instance()
 
-        return str(self.cfg_file), str(self.cfg_dir)
+        return str(self._cfg_file), str(self._cfg_dir)
 
     def _make_cfg_dir(self, cfg_dir):
         if cfg_dir is not None:
@@ -99,7 +102,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
 
     def _make_cfg_file(self, **kwargs):
         """Create new config file and return its path."""
-        cfg_file = self.cfg_dir / "config.yaml"
+        cfg_file = self._cfg_dir / "config.yaml"
         self.parameters.update(**kwargs)
         with cfg_file.open(mode="w") as file:
             yaml.dump({k: v for k, v in self.parameters}, file)
@@ -385,7 +388,7 @@ class ContainerizedModel(BaseModel):
 
         return start_container(
             image=self.bmi_image,
-            work_dir=self.cfg_dir,
+            work_dir=self._cfg_dir,
             input_dirs=self._additional_input_dirs,
             timeout=300,
         )

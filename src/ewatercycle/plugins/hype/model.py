@@ -42,9 +42,6 @@ class Hype(ContainerizedModel):
     forcing: Optional[HypeForcing] = None
     parameter_set: ParameterSet  # not optional for this model
     bmi_image: ContainerImage = ContainerImage("ewatercycle/hype-grpc4bmi:feb2021")
-    
-    cfg_dir: Optional[Path] = None # TODO: move to base class
-    cfg_file: Optional[Path] = None 
 
     _config: str = PrivateAttr()
     _start: datetime.datetime = PrivateAttr()
@@ -138,7 +135,7 @@ class Hype(ContainerizedModel):
 
     def _export_config(self) -> Path:
         # write info.txt
-        cfg_file = self.cfg_dir / "info.txt"
+        cfg_file = self._cfg_dir / "info.txt"
         cfg_file.write_text(self._config, encoding="cp437")
 
         return cfg_file
