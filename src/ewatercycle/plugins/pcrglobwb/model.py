@@ -2,10 +2,9 @@
 
 import logging
 from os import PathLike
-from pathlib import Path
 from typing import Optional
 
-from pydantic import PrivateAttr, root_validator
+from pydantic import PrivateAttr
 
 from ewatercycle.base.model import ContainerizedModel
 from ewatercycle.base.parameter_set import ParameterSet

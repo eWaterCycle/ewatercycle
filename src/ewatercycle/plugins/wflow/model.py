@@ -31,9 +31,12 @@ class Wflow(ContainerizedModel):
     forcing: Optional[WflowForcing] = None
     parameter_set: ParameterSet  # not optional for this model
     bmi_image: ContainerImage = ContainerImage("ewatercycle/wflow-grpc4bmi:2020.1.3")
+    version: str = "2020.1.3"
+
     _config: CaseConfigParser = PrivateAttr()
     _work_dir: Path = PrivateAttr()
 
+    # TODO: move to post_init in pydantic v2.
     @root_validator
     def _parse_config(cls, values):
         """Load config from parameter set and update with forcing info."""
@@ -67,13 +70,6 @@ class Wflow(ContainerizedModel):
                 "option in API section, added it with value '2, m/s option'"
             )
             cfg.set("API", "RiverRunoff", "2, m/s")
-
-        values.get("parameters").update(
-            {
-                "start_time": _wflow_to_iso(cfg.get("run", "starttime")),
-                "end_time": _wflow_to_iso(cfg.get("run", "endtime")),
-            }
-        )
 
         cls._config = cfg
         return values
@@ -117,6 +113,13 @@ class Wflow(ContainerizedModel):
             shutil.copy(src=forcing_path, dst=self._work_dir)
 
         return self._work_dir
+
+    def get_parameters(self):
+        self._post_init()
+        return {
+            "start_time": _wflow_to_iso(self._config.get("run", "starttime")),
+            "end_time": _wflow_to_iso(self._config.get("run", "endtime")),
+        }
 
     def get_latlon_grid(self, name):
         """Grid latitude, longitude and shape for variable.

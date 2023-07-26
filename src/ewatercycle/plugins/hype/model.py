@@ -44,34 +44,33 @@ class Hype(ContainerizedModel):
     _end: datetime.datetime = PrivateAttr()
     _crit: datetime.datetime = PrivateAttr()
 
-    @root_validator
-    def _parse_config(cls, values: dict) -> dict:
+    # TODO: move to post_init in pydantic v2
+    def _post_init(self):
         """Load config from parameter set and update with forcing info."""
-        ps = values.get("parameter_set")
-        assert isinstance(ps, ParameterSet)  # pydantic doesn't do its job reliably
-        forcing = values.get("forcing")
-
-        cfg = ps.config.read_text(encoding="cp437")
-        start = _get_hype_time(_get_code_in_cfg(cfg, "bdate"))
-        end = _get_hype_time(_get_code_in_cfg(cfg, "edate"))
-        crit = _get_hype_time(_get_code_in_cfg(cfg, "cdate"))
-        if crit is None:
-            crit = start
-            cfg = _set_code_in_cfg(cfg, "cdate", crit.strftime("%Y-%m-%d %H:%M:%S"))
-        if forcing is not None:
-            start = get_time(forcing.start_time)
-            cfg = _set_code_in_cfg(cfg, "bdate", start.strftime("%Y-%m-%d %H:%M:%S"))
-            end = get_time(forcing.end_time)
-            cfg = _set_code_in_cfg(cfg, "edate", end.strftime("%Y-%m-%d %H:%M:%S"))
-            # Also set crit time to start time, it can be overwritten in setup()
-            crit = start
-            cfg = _set_code_in_cfg(cfg, "cdate", crit.strftime("%Y-%m-%d %H:%M:%S"))
-
-        cls._config = cfg
-        cls._start = start
-        cls._end = end
-        cls._crit = crit
-        return values
+        if not hasattr(self, "_config"):
+            self._config = self.parameter_set.config.read_text(encoding="cp437")
+            self._start = _get_hype_time(_get_code_in_cfg(self._config, "bdate"))
+            self._end = _get_hype_time(_get_code_in_cfg(self._config, "edate"))
+            self._crit = _get_hype_time(_get_code_in_cfg(self._config, "cdate"))
+            if self._crit is None:
+                self._crit = self._start
+                self._config = _set_code_in_cfg(
+                    self._config, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
+                )
+            if self.forcing is not None:
+                self._start = get_time(self.forcing.start_time)
+                self._config = _set_code_in_cfg(
+                    self._config, "bdate", self._start.strftime("%Y-%m-%d %H:%M:%S")
+                )
+                self._end = get_time(self.forcing.end_time)
+                self._config = _set_code_in_cfg(
+                    self._config, "edate", self._end.strftime("%Y-%m-%d %H:%M:%S")
+                )
+                # Also set crit time to start time, it can be overwritten in setup()
+                self._crit = self._start
+                self._config = _set_code_in_cfg(
+                    self._config, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
+                )
 
     def setup(self, **kwargs) -> Tuple[str, str]:
         """Configure model run.
@@ -95,6 +94,7 @@ class Hype(ContainerizedModel):
         Returns:
             Path to config file and path to config directory
         """
+        self._post_init()
         return super().setup(**kwargs)
 
     def _make_cfg_file(self, **kwargs) -> Path:
@@ -171,6 +171,8 @@ class Hype(ContainerizedModel):
 
     def get_parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the parameters for this model."""
+        self._post_init()
+
         assert self.parameter_set is not None
         return [
             ("start_time", self._start.strftime(ISO_TIMEFMT)),

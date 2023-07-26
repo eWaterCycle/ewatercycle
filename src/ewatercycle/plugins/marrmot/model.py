@@ -50,6 +50,7 @@ class MarrmotM01(ContainerizedModel):
 
     forcing: MarrmotForcing
     bmi_image = ContainerImage("ewatercycle/marrmot-grpc4bmi:2020.11")
+    version: str = "2020.11"
 
     _model_name: str = PrivateAttr("m_01_collie1_1p_1s")
     _parameters: List[float] = PrivateAttr([1000.0])
@@ -61,6 +62,36 @@ class MarrmotM01(ContainerizedModel):
     _forcing_filepath: str = PrivateAttr()
     _forcing_start_time: datetime.datetime = PrivateAttr()
     _forcing_end_time: datetime.datetime = PrivateAttr()
+
+    # TODO: move to proper post_init in pydantic v2
+    def _post_init(self):
+        """Check forcing argument and get path, start and end time of forcing data."""
+        if not hasattr(self, "_forcing_start_time"):
+            if isinstance(self.forcing, MarrmotForcing):
+                forcing_dir = to_absolute_path(self.forcing.directory)
+                self._forcing_filepath = str(forcing_dir / self.forcing.forcing_file)
+                # convert date_strings to datetime objects
+                self._forcing_start_time = get_time(self.forcing.start_time)
+                self._forcing_end_time = get_time(self.forcing.end_time)
+            else:
+                raise TypeError(
+                    f"Unknown forcing type: {self.forcing}. Please supply a "
+                    " MarrmotForcing object."
+                )
+            # parse start/end time
+            forcing_data = sio.loadmat(self._forcing_filepath, mat_dtype=True)
+            if "parameters" in forcing_data:
+                print(forcing_data["parameters"][0])
+                self._parameters = forcing_data["parameters"][0]
+            if "store_ini" in forcing_data:
+                self._store_ini = forcing_data["store_ini"][0]
+            if "solver" in forcing_data:
+                forcing_solver = forcing_data["solver"]
+                self._solver = Solver(
+                    name=forcing_solver["name"][0][0][0],
+                    resnorm_tolerance=forcing_solver["resnorm_tolerance"][0][0][0],
+                    resnorm_maxiter=forcing_solver["resnorm_maxiter"][0][0][0],
+                )
 
     def setup(
         self,
@@ -92,8 +123,7 @@ class MarrmotM01(ContainerizedModel):
         Returns:
             Path to config file and path to config directory
         """
-        if not hasattr(self, "_forcing_start_time"):
-            self._check_forcing(self.forcing)  # TODO: move to post_init in pydantic v2
+        self._post_init()
 
         if maximum_soil_moisture_storage is not None:
             self._parameters = [maximum_soil_moisture_storage]
@@ -105,34 +135,6 @@ class MarrmotM01(ContainerizedModel):
         self._model_end_time = end_time
 
         return super().setup(**kwargs)
-
-    def _check_forcing(self, forcing):
-        """Check forcing argument and get path, start and end time of forcing data."""
-        if isinstance(forcing, MarrmotForcing):
-            forcing_dir = to_absolute_path(forcing.directory)
-            self._forcing_filepath = str(forcing_dir / forcing.forcing_file)
-            # convert date_strings to datetime objects
-            self._forcing_start_time = get_time(forcing.start_time)
-            self._forcing_end_time = get_time(forcing.end_time)
-        else:
-            raise TypeError(
-                f"Unknown forcing type: {forcing}. Please supply a "
-                " MarrmotForcing object."
-            )
-        # parse start/end time
-        forcing_data = sio.loadmat(self._forcing_filepath, mat_dtype=True)
-        if "parameters" in forcing_data:
-            print(forcing_data["parameters"][0])
-            self._parameters = forcing_data["parameters"][0]
-        if "store_ini" in forcing_data:
-            self._store_ini = forcing_data["store_ini"][0]
-        if "solver" in forcing_data:
-            forcing_solver = forcing_data["solver"]
-            self._solver = Solver(
-                name=forcing_solver["name"][0][0][0],
-                resnorm_tolerance=forcing_solver["resnorm_tolerance"][0][0][0],
-                resnorm_maxiter=forcing_solver["resnorm_maxiter"][0][0][0],
-            )
 
     def _make_cfg_file(self, **kwargs) -> Path:
         """Write model configuration file.
@@ -192,8 +194,7 @@ class MarrmotM01(ContainerizedModel):
 
     def get_parameters(self) -> Iterable[tuple[str, Any]]:
         """List the parameters for this model."""
-        if not hasattr(self, "_forcing_start_time"):
-            self._check_forcing(self.forcing)  # TODO: move to post_init in pydantic v2
+        self._post_init()
 
         return [
             ("maximum_soil_moisture_storage", self._parameters[0]),
@@ -236,6 +237,7 @@ class MarrmotM14(ContainerizedModel):
 
     forcing: MarrmotForcing
     bmi_image = ContainerImage("ewatercycle/marrmot-grpc4bmi:2020.11")
+    version: str = "2020.11"
 
     _model_name: str = PrivateAttr("m_14_topmodel_7p_2s")
     _parameters: List[float] = PrivateAttr([1000.0, 0.5, 0.5, 100.0, 0.5, 4.25, 2.5])
@@ -247,6 +249,53 @@ class MarrmotM14(ContainerizedModel):
     _forcing_filepath: str = PrivateAttr()
     _forcing_start_time: datetime.datetime = PrivateAttr()
     _forcing_end_time: datetime.datetime = PrivateAttr()
+
+    # TODO: move to post_init in pydantic v2
+    def _post_init(self):
+        """Check forcing argument and get path, start and end time of forcing data."""
+        if not hasattr(self, "_forcing_start_time"):
+            if isinstance(self.forcing, MarrmotForcing):
+                forcing_dir = to_absolute_path(self.forcing.directory)
+                self._forcing_filepath = str(forcing_dir / self.forcing.forcing_file)
+                # convert date_strings to datetime objects
+                self._forcing_start_time = get_time(self.forcing.start_time)
+                self._forcing_end_time = get_time(self.forcing.end_time)
+            else:
+                raise TypeError(
+                    f"Unknown forcing type: {self.forcing}. "
+                    "Please supply a MarrmotForcing object."
+                )
+            # parse start/end time
+            forcing_data = sio.loadmat(self._forcing_filepath, mat_dtype=True)
+            if "parameters" in forcing_data:
+                if len(forcing_data["parameters"]) == len(self._parameters):
+                    self._parameters = forcing_data["parameters"]
+                else:
+                    message = (
+                        "The length of parameters in forcing "
+                        f"{self._forcing_filepath} does not match "
+                        "the length of M14 parameters that is seven."
+                    )
+                    logger.warning("%s", message)
+            if "store_ini" in forcing_data:
+                if len(forcing_data["store_ini"]) == len(self._store_ini):
+                    self._store_ini = forcing_data["store_ini"]
+                else:
+                    message = (
+                        "The length of initial stores in forcing "
+                        f"{self._forcing_filepath} does not match "
+                        "the length of M14 iniatial stores that is two."
+                    )
+                    logger.warning("%s", message)
+            if "solver" in forcing_data:
+                forcing_solver = forcing_data["solver"]
+                self._solver.name = forcing_solver["name"][0][0][0]
+                self._solver.resnorm_tolerance = forcing_solver["resnorm_tolerance"][0][
+                    0
+                ][0]
+                self._solver.resnorm_maxiter = forcing_solver["resnorm_maxiter"][0][0][
+                    0
+                ]
 
     def setup(
         self,
@@ -292,8 +341,7 @@ class MarrmotM14(ContainerizedModel):
         Returns:
             Path to config file and path to config directory
         """
-        if not hasattr(self, "_forcing_start_time"):
-            self._check_forcing(self.forcing)  # TODO: move to post_init in pydantic v2
+        self._post_init()
 
         arguments = vars()
         arguments_subset = {key: arguments[key] for key in M14_PARAMS}
@@ -310,49 +358,6 @@ class MarrmotM14(ContainerizedModel):
         self._model_end_time = end_time
 
         return super().setup(**kwargs)
-
-    def _check_forcing(self, forcing):
-        """Check forcing argument and get path, start and end time of forcing data."""
-        if isinstance(forcing, MarrmotForcing):
-            forcing_dir = to_absolute_path(forcing.directory)
-            self._forcing_filepath = str(forcing_dir / forcing.forcing_file)
-            # convert date_strings to datetime objects
-            self._forcing_start_time = get_time(forcing.start_time)
-            self._forcing_end_time = get_time(forcing.end_time)
-        else:
-            raise TypeError(
-                f"Unknown forcing type: {forcing}. "
-                "Please supply a MarrmotForcing object."
-            )
-        # parse start/end time
-        forcing_data = sio.loadmat(self._forcing_filepath, mat_dtype=True)
-        if "parameters" in forcing_data:
-            if len(forcing_data["parameters"]) == len(self._parameters):
-                self._parameters = forcing_data["parameters"]
-            else:
-                message = (
-                    "The length of parameters in forcing "
-                    f"{self._forcing_filepath} does not match "
-                    "the length of M14 parameters that is seven."
-                )
-                logger.warning("%s", message)
-        if "store_ini" in forcing_data:
-            if len(forcing_data["store_ini"]) == len(self._store_ini):
-                self._store_ini = forcing_data["store_ini"]
-            else:
-                message = (
-                    "The length of initial stores in forcing "
-                    f"{self._forcing_filepath} does not match "
-                    "the length of M14 iniatial stores that is two."
-                )
-                logger.warning("%s", message)
-        if "solver" in forcing_data:
-            forcing_solver = forcing_data["solver"]
-            self._solver.name = forcing_solver["name"][0][0][0]
-            self._solver.resnorm_tolerance = forcing_solver["resnorm_tolerance"][0][0][
-                0
-            ]
-            self._solver.resnorm_maxiter = forcing_solver["resnorm_maxiter"][0][0][0]
 
     def _make_cfg_file(self, **kwargs) -> Path:
         """Write model configuration file.
@@ -409,8 +414,7 @@ class MarrmotM14(ContainerizedModel):
 
     def get_parameters(self) -> Iterable[tuple[str, Any]]:
         """List the parameters for this model."""
-        if not hasattr(self, "_forcing_start_time"):
-            self._check_forcing(self.forcing)  # TODO: move to post_init in pydantic v2
+        self._post_init()
 
         pars: List[tuple[str, Any]] = list(zip(M14_PARAMS, self._parameters))
         pars += [
