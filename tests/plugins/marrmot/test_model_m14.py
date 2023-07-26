@@ -74,7 +74,7 @@ class TestWithDefaultsAndExampleData:
         )
         expected_forcing = loadmat(forcing_file)
 
-        expected_cfg_dir = CFG.output_dir / "marrmot_20210102_030405"
+        expected_cfg_dir = CFG.output_dir / "marrmotm14_20210102_030405"
         assert cfg_dir == str(expected_cfg_dir)
         assert cfg_file == str(expected_cfg_dir / "marrmot-m14_config.mat")
         assert actual["model_name"] == "m_14_topmodel_7p_2s"
@@ -170,7 +170,7 @@ class TestWithCustomSetupAndExampleData:
 
         actual = loadmat(str(cfg_file))
 
-        expected_cfg_dir = CFG.output_dir / "marrmot_20210102_030405"
+        expected_cfg_dir = CFG.output_dir / "marrmotm14_20210102_030405"
         assert cfg_dir == str(expected_cfg_dir)
         assert cfg_file == str(expected_cfg_dir / "marrmot-m14_config.mat")
         assert actual["model_name"] == "m_14_topmodel_7p_2s"

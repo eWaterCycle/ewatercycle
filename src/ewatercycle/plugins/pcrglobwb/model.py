@@ -32,78 +32,62 @@ class PCRGlobWB(ContainerizedModel):
     bmi_image: ContainerImage = ContainerImage("ewatercycle/pcrg-grpc4bmi:setters")
     _config: CaseConfigParser = PrivateAttr()
 
-    @root_validator
-    def _parse_config(cls, values):
+    # TODO: move to real post_init in pydantic v2.
+    def _post_init(self):
         """Load config from parameter set and update with forcing info."""
-        ps = values.get("parameter_set")
+        if not hasattr(self, "_config"):
+            cfg = CaseConfigParser()
+            cfg.read(self.parameter_set.config)
+            cfg.set("globalOptions", "inputDir", str(self.parameter_set.directory))
 
-        cfg = CaseConfigParser()
-        cfg.read(ps.config)
-        cfg.set("globalOptions", "inputDir", str(ps.directory))
+            if self.forcing:
+                cfg.set(
+                    "globalOptions",
+                    "startTime",
+                    get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
+                )
+                cfg.set(
+                    "globalOptions",
+                    "endTime",
+                    get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
+                )
+                cfg.set(
+                    "meteoOptions",
+                    "temperatureNC",
+                    str(
+                        to_absolute_path(  # TODO fix type error
+                            self.forcing.temperatureNC,
+                            parent=self.forcing.directory,
+                        )
+                    ),
+                )
+                cfg.set(
+                    "meteoOptions",
+                    "precipitationNC",
+                    str(
+                        to_absolute_path(  # TODO fix type error
+                            self.forcing.precipitationNC,
+                            parent=self.forcing.directory,
+                        )
+                    ),
+                )
 
-        forcing = values.get("forcing")
-        if forcing:
-            cfg.set(
-                "globalOptions",
-                "startTime",
-                get_time(forcing.start_time).strftime("%Y-%m-%d"),
-            )
-            cfg.set(
-                "globalOptions",
-                "endTime",
-                get_time(forcing.start_time).strftime("%Y-%m-%d"),
-            )
-            cfg.set(
-                "meteoOptions",
-                "temperatureNC",
-                str(
-                    to_absolute_path(  # TODO fix type error
-                        forcing.temperatureNC,
-                        parent=forcing.directory,
-                    )
-                ),
-            )
-            cfg.set(
-                "meteoOptions",
-                "precipitationNC",
-                str(
-                    to_absolute_path(  # TODO fix type error
-                        forcing.precipitationNC,
-                        parent=forcing.directory,
-                    )
-                ),
-            )
+            self._config = cfg
 
-        values.update(_config=cfg)
-        return values
+    def setup(self, *, cfg_dir: str | None = None, **kwargs) -> tuple[str, str]:
+        self._post_init()
+        return super().setup(cfg_dir=cfg_dir, **kwargs)
 
-    @root_validator
-    def _update_parameters(cls, values):
-        cfg = values.get("_config")
-        values.get("parameters").update(
-            {
-                "start_time": f"{cfg.get('globalOptions', 'startTime')}T00:00:00Z",
-                "end_time": f"{cfg.get('globalOptions', 'endTime')}T00:00:00Z",
-                "routing_method": cfg.get("routingOptions", "routingMethod"),
-                "max_spinups_in_years": cfg.get("globalOptions", "maxSpinUpsInYears"),
-            }
-        )
-        return values
-
-    def _make_cfg_dir(
-        self,
-        cfg_dir: Optional[str] = None,
-        **kwargs,
-    ) -> Path:
-        """Make sure there is a working directory.
-
-        Args:
-            cfg_dir: If cfg dir is None or does not exist then create sub-directory
-                in CFG.output_dir
-        """
-        return super()._make_cfg_dir(
-            cfg_dir=cfg_dir, folder_prefix="pcrglobwb", **kwargs
-        )
+    def get_parameters(self) -> dict:
+        self._post_init()
+        return {
+            "start_time": f"{self._config.get('globalOptions', 'startTime')}T00:00:00Z",
+            "end_time": f"{self._config.get('globalOptions', 'endTime')}T00:00:00Z",
+            "routing_method": self._config.get("routingOptions", "routingMethod"),
+            "max_spinups_in_years": self._config.get(
+                "globalOptions", "maxSpinUpsInYears"
+            ),
+        }
 
     def _make_cfg_file(self, **kwargs):
         self._update_config(**kwargs)

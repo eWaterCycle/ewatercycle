@@ -37,6 +37,7 @@ class Hype(ContainerizedModel):
     forcing: Optional[HypeForcing] = None
     parameter_set: ParameterSet  # not optional for this model
     bmi_image: ContainerImage = ContainerImage("ewatercycle/hype-grpc4bmi:feb2021")
+    version: str = "feb2021"
 
     _config: str = PrivateAttr()
     _start: datetime.datetime = PrivateAttr()
@@ -136,42 +137,16 @@ class Hype(ContainerizedModel):
 
         return cfg_file
 
-    def _make_cfg_dir(
-        self,
-        cfg_dir: Optional[str] = None,
-        **kwargs,
-    ) -> Path:
-        """Make sure there is a working directory.
-
-        Args:
-            cfg_dir: If cfg dir is None or does not exist then create sub-directory
-                in CFG.output_dir
-        """
-        cfg_path = super()._make_cfg_dir(
-            cfg_dir=cfg_dir, folder_prefix="hype", **kwargs
-        )
-
-        # copy parameter set files to cfg_dir
-        assert self.parameter_set
-        shutil.copytree(
-            src=self.parameter_set.directory, dst=cfg_path, dirs_exist_ok=True
-        )
-
-        # copy forcing files to cfg_dir
-        if self.forcing is not None and self.forcing.directory is not None:
-            forcing_dir = self.forcing.directory
-            shutil.copytree(src=forcing_dir, dst=cfg_path, dirs_exist_ok=True)
-
-        return cfg_path
-
     def _make_bmi_instance(self) -> bmipy.Bmi:
         """Make the bmi instance and overwrite 'get_time_units' method."""
         bmi = super()._make_bmi_instance()
 
         since = self._start.strftime(ISO_TIMEFMT)
 
-        # The Hype get_time_units() returns `hours since start of simulation` and get_start_time() returns 0
-        # A relative datetime is not very useful, so here we overwrite the get_time_units to return the absolute datetime.
+        # The Hype get_time_units() returns `hours since start of simulation` and
+        #   get_start_time() returns 0.
+        # A relative datetime is not very useful, so here we overwrite the
+        #   get_time_units to return the absolute datetime.
         def get_time_units(_self):
             return f"hours since {since}"
 

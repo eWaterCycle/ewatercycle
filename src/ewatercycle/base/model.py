@@ -93,7 +93,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         else:
             tz = timezone.utc
             timestamp = datetime.datetime.now(tz).strftime("%Y%m%d_%H%M%S")
-            folder_prefix = kwargs.get("folder_prefix", "ewatercycle")
+            folder_prefix = self.__class__.__name__.lower()
             cfg_path = to_absolute_path(
                 f"{folder_prefix}_{timestamp}", parent=CFG.output_dir
             )
@@ -379,10 +379,10 @@ class ContainerizedModel(BaseModel):
 
     bmi_image: ContainerImage
 
-    _additional_input_dirs: list[str] = pydantic.PrivateAttr()
+    # Create as empty list to allow models to append before bmi is made:
+    _additional_input_dirs: list[str] = pydantic.PrivateAttr([])
 
     def _make_bmi_instance(self) -> bmipy.Bmi:
-        self._additional_input_dirs = []
         if self.parameter_set:
             self._additional_input_dirs.append(str(self.parameter_set.directory))
         if self.forcing:

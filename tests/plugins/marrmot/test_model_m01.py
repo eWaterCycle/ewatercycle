@@ -77,7 +77,7 @@ class TestWithDefaultsAndExampleData:
     def test_setup(self, model_with_setup, forcing_file):
         model, cfg_file, cfg_dir = model_with_setup
 
-        expected_cfg_dir = CFG.output_dir / "marrmot_20210102_030405"
+        expected_cfg_dir = CFG.output_dir / "marrmotm01_20210102_030405"
         assert cfg_dir == str(expected_cfg_dir)
         assert cfg_file == str(expected_cfg_dir / "marrmot-m01_config.mat")
         assert model._bmi
@@ -171,7 +171,7 @@ class TestWithCustomSetupAndExampleData:
     def test_setup(self, model_with_setup):
         model, cfg_file, cfg_dir = model_with_setup
 
-        expected_cfg_dir = CFG.output_dir / "marrmot_20210102_030405"
+        expected_cfg_dir = CFG.output_dir / "marrmotm01_20210102_030405"
         assert cfg_dir == str(expected_cfg_dir)
         assert cfg_file == str(expected_cfg_dir / "marrmot-m01_config.mat")
         assert model._bmi

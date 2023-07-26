@@ -134,15 +134,6 @@ class MarrmotM01(ContainerizedModel):
                 resnorm_maxiter=forcing_solver["resnorm_maxiter"][0][0][0],
             )
 
-    def _make_cfg_dir(self, cfg_dir: Optional[str] = None, **kwargs) -> Path:
-        """Make sure there is a working directory.
-
-        Args:
-            cfg_dir: If cfg dir is None or does not exist then create sub-directory
-                in CFG.output_dir
-        """
-        return super()._make_cfg_dir(cfg_dir=cfg_dir, folder_prefix="marrmot", **kwargs)
-
     def _make_cfg_file(self, **kwargs) -> Path:
         """Write model configuration file.
 
@@ -362,19 +353,6 @@ class MarrmotM14(ContainerizedModel):
                 0
             ]
             self._solver.resnorm_maxiter = forcing_solver["resnorm_maxiter"][0][0][0]
-
-    def _make_cfg_dir(
-        self,
-        cfg_dir: Optional[str] = None,
-        **kwargs,
-    ) -> Path:
-        """Make sure there is a working directory.
-
-        Args:
-            cfg_dir: If cfg dir is None or does not exist then create sub-directory
-                in CFG.output_dir
-        """
-        return super()._make_cfg_dir(cfg_dir=cfg_dir, folder_prefix="marrmot", **kwargs)
 
     def _make_cfg_file(self, **kwargs) -> Path:
         """Write model configuration file.

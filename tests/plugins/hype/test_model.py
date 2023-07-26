@@ -91,7 +91,7 @@ class TestWithOnlyParameterSetAndDefaults:
         ):
             mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
             config_file, config_dir = model.setup()
-        return config_file, config_dir, mocked_constructor
+        return config_file, config_dir, mocked_constructor, model
 
     def test_setup_container(self, model_with_setup, tmp_path):
         mocked_constructor = model_with_setup[2]
@@ -104,8 +104,7 @@ class TestWithOnlyParameterSetAndDefaults:
         )
 
     def test_setup_parameter_set_files(self, model_with_setup):
-        config_dir = model_with_setup[1]
-        geodata = Path(config_dir) / "GeoData.txt"
+        geodata = model_with_setup[3].parameter_set.directory / "GeoData.txt"
         assert "subareaname" in geodata.read_text()
 
     def test_setup_config_file(self, model_with_setup):
@@ -202,7 +201,7 @@ class TestWithOnlyParameterSetAndFullSetup:
                 crit_time="2002-01-01T00:00:00Z",
                 cfg_dir=str(tmp_path / "myworkdir"),
             )
-        return config_file, config_dir, mocked_constructor
+        return config_file, config_dir, mocked_constructor, model
 
     def test_setup_container(self, model_with_setup, tmp_path):
         mocked_constructor = model_with_setup[2]
@@ -215,8 +214,7 @@ class TestWithOnlyParameterSetAndFullSetup:
         )
 
     def test_setup_parameter_set_files(self, model_with_setup):
-        config_dir = model_with_setup[1]
-        geodata = Path(config_dir) / "GeoData.txt"
+        geodata = model_with_setup[3].parameter_set.directory / "GeoData.txt"
         assert "subareaname" in geodata.read_text()
 
     def test_setup_config_file(self, model_with_setup):
@@ -342,7 +340,7 @@ class TestWithForcingAndDefaults:
         ) as mocked_constructor, patch("datetime.datetime") as mocked_datetime:
             mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
             config_file, config_dir = model.setup()
-        return config_file, config_dir, mocked_constructor
+        return config_file, config_dir, mocked_constructor, model
 
     def test_setup_container(self, model_with_setup, tmp_path):
         mocked_constructor = model_with_setup[2]
@@ -355,13 +353,11 @@ class TestWithForcingAndDefaults:
         )
 
     def test_setup_forcing_files(self, model_with_setup):
-        config_dir = model_with_setup[1]
-        pobs = Path(config_dir) / "Pobs.txt"
+        pobs = model_with_setup[3].forcing.directory / "Pobs.txt"
         assert "DATE" in pobs.read_text()
 
     def test_setup_parameter_set_files(self, model_with_setup):
-        config_dir = model_with_setup[1]
-        geodata = Path(config_dir) / "GeoData.txt"
+        geodata = model_with_setup[3].parameter_set.directory / "GeoData.txt"
         assert "subareaname" in geodata.read_text()
 
     def test_setup_config_file(self, model_with_setup):

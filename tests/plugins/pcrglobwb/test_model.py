@@ -90,20 +90,21 @@ def forcing(parameter_set: ParameterSet):
 
 @pytest.fixture
 def model(parameter_set, forcing):
-    return PCRGlobWB("setters", parameter_set, forcing)
+    return PCRGlobWB(forcing=forcing, parameter_set=parameter_set)
 
 
 @pytest.fixture
 def initialized_model(model):
     """Model with fake parameterset and fake BMI instance."""
-    model.bmi = MockedBmi()
+    model._bmi = MockedBmi()
     return model
 
 
 def test_setup(model):
-    with patch.object(BmiClientApptainer, "__init__", return_value=None), patch(
-        "datetime.datetime"
-    ) as mocked_datetime:
+    with (
+        patch.object(BmiClientApptainer, "__init__", return_value=None),
+        patch("datetime.datetime") as mocked_datetime,
+    ):
         mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
 
         cfg_file, cfg_dir = model.setup()
@@ -147,9 +148,11 @@ def test_get_value_as_coords(initialized_model, caplog):
         result = model.get_value_at_coords("discharge", lon=[5.2], lat=[46.8])
 
     msg = (
-        "Requested point was lon: 5.2, lat: 46.8;" " closest grid point is 5.00, 47.00."
+        "Requested point was lon: 5.2, lat: 46.8;",
+        " closest grid point is 5.00, 47.00.",
     )
 
-    assert msg in caplog.text
+    assert msg[0] in caplog.text
+    assert msg[1] in caplog.text
     assert result == np.array([1.0])
     assert model.bmi.indices == [4]
