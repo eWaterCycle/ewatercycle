@@ -88,6 +88,21 @@ def test_with_repo():
     assert ContainerImage(apptainer_filename).docker_url == bare_docker_url
 
 
+@pytest.mark.parametrize(
+    "image,expected_version",
+    [
+        ["ghcr.io/ewatercycle/wflow:latest", "latest"],
+        ["ewatercycle-wflow_latest.sif", "latest"],
+        ["ghcr.io/ewatercycle/wflow:2020.1.4", "2020.1.4"],
+        ["ewatercycle-wflow_2020.1.4.sif", "2020.1.4"],
+        ["ghcr.io/ewatercycle/wflow", "unknown"],
+        ["ewatercycle-wflow.sif", "unknown"],
+    ],
+)
+def test_containerimage_version(image, expected_version):
+    assert ContainerImage(image).version == expected_version
+
+
 def npeq(a, b):
     assert_array_almost_equal(a, b)
 

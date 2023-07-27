@@ -8,7 +8,7 @@ import bmipy
 import numpy as np
 from grpc4bmi.bmi_memoized import MemoizedBmi
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, computed_field
 
 from ewatercycle.base.model import ContainerizedModel
 from ewatercycle.base.parameter_set import ParameterSet
@@ -50,7 +50,11 @@ class PCRGlobWB(ContainerizedModel):
     forcing: Optional[PCRGlobWBForcing] = None
     parameter_set: ParameterSet  # not optional for this model
     bmi_image: ContainerImage = ContainerImage("ewatercycle/pcrg-grpc4bmi:setters")
-    version: str = "setters"
+
+    @computed_field  # TODO: check that this is passed on to the parameterset version check during valiation
+    @property
+    def version(self):
+        return self.bmi_image.version
 
     _config: CaseConfigParser = PrivateAttr()
 

@@ -110,6 +110,21 @@ class ContainerImage(str):
 
         return organisation + name + tag
 
+    @property
+    def version(self) -> str:
+        if self.endswith(".sif"):
+            name = self.replace(".sif", "")
+            if "_" in name:
+                name, _, tag = name.rpartition("_")
+                return tag
+            return "unknown"
+
+        # Get version tag from docker url
+        _, _, tag = _parse_docker_url(self)
+        if tag is not None:
+            return tag
+        return "unknown"
+
 
 def start_container(
     work_dir: Union[str, Path],

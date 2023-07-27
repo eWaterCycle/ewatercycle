@@ -5,7 +5,7 @@ import datetime
 import logging
 from datetime import timezone
 from pathlib import Path
-from typing import Any, Iterable, Optional, Type, cast
+from typing import Annotated, Any, Iterable, Optional, Type, cast
 
 import bmipy
 import numpy as np
@@ -28,6 +28,32 @@ logger = logging.getLogger(__name__)
 ISO_TIMEFMT = r"%Y-%m-%dT%H:%M:%SZ"
 
 
+def _check_parameter_set(v, info):
+    parameter_set = v
+    model_name = info.config["title"]
+    if model_name != parameter_set.target_model:
+        raise ValueError(
+            f"Parameter set has wrong target model, "
+            f"expected {parameter_set.target_model} got {model_name}"
+        )
+
+    version = info.data.get("version", None)
+    if len(parameter_set.supported_model_versions) > 0 and version is not None:
+        if version not in parameter_set.supported_model_versions:
+            raise ValueError(
+                f"Parameter set '{parameter_set.__class__.__name__}' is not compabitble"
+                " with this model version.\n"
+                f"Model version: {version}. "
+                "Compatible versions: {parameter_set.supported_model_versions}"
+            )
+    return parameter_set
+
+
+ValidatedParameterset = Annotated[
+    ParameterSet, pydantic.AfterValidator(_check_parameter_set)
+]
+
+
 class BaseModel(pydantic.BaseModel, abc.ABC):
     """Base functionality for eWaterCycle models.
 
@@ -36,8 +62,9 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
     """
 
     forcing: DefaultForcing | None = None
-    parameter_set: ParameterSet | None = None
+    parameter_set: ValidatedParameterset | None = None
     parameters: dict[str, Any] = {}
+    version: str = ""
 
     _bmi: OptionalDestBmi = pydantic.PrivateAttr()
 
@@ -47,27 +74,6 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
     @abc.abstractmethod
     def _make_bmi_instance(self) -> OptionalDestBmi:
         """Attach a BMI instance to self._bmi."""
-
-    @pydantic.validator("parameter_set")
-    def _check_parameter_set(cls, parameter_set: ParameterSet):
-        model_name = cls.__name__.lower()
-        if model_name != parameter_set.target_model:
-            raise ValueError(
-                f"Parameter set has wrong target model, "
-                f"expected {parameter_set.target_model} got {model_name}"
-            )
-
-        # TODO: Update check to make use of new ContainerImage class.
-        #  (replace cls.version with e.g.: cls.bmi_image.get_version() )
-        if len(parameter_set.supported_model_versions) > 0 and hasattr(cls, "version"):
-            if cls.version not in parameter_set.supported_model_versions:
-                raise ValueError(
-                    f"Parameter set '{parameter_set.__class__.__name__}' does not "
-                    "support this model version:\n"
-                    f"Model version: {cls.version}. "
-                    "Supported versions: {parameter_set.supported_model_versions}"
-                )
-        return parameter_set
 
     def setup(self, *, cfg_dir: str | None = None, **kwargs) -> tuple[str, str]:
         """Perform model setup.
@@ -247,7 +253,14 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         lat, lon, shape = self.get_latlon_grid(name)
         # Extract the data and store it in an xarray DataArray
         da = xr.DataArray(
-            data=np.reshape(self.get_value(name), (shape[0], shape[1], 1,)),
+            data=np.reshape(
+                self.get_value(name),
+                (
+                    shape[0],
+                    shape[1],
+                    1,
+                ),
+            ),
             coords={
                 "longitude": lon,
                 "latitude": lat,
