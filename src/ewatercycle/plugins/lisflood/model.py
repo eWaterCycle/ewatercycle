@@ -7,7 +7,7 @@ from typing import Any, Iterable, Optional, Tuple, cast
 
 import numpy as np
 import xarray as xr
-from cftime import num2date
+from cftime import num2pydate
 
 from ewatercycle import CFG
 from ewatercycle.base.model import ISO_TIMEFMT, AbstractModel
@@ -217,21 +217,18 @@ class Lisflood(AbstractModel[LisfloodForcing]):
         return lisflood_file
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
-        """Return the value as xarray object."""
-        # Get time information
-        time_units = self.bmi.get_time_units()
         grid = self.bmi.get_var_grid(name)
         shape = self.bmi.get_grid_shape(grid)
 
         # Extract the data and store it in an xarray DataArray
         return xr.DataArray(
-            data=np.reshape(self.bmi.get_value(name), shape),
+            data=[np.reshape(self.bmi.get_value(name), shape)],
             coords={
                 "longitude": self.bmi.get_grid_x(grid),
                 "latitude": self.bmi.get_grid_y(grid),
-                "time": num2date(self.bmi.get_current_time(), time_units),
+                "time": [self.time_as_datetime],
             },
-            dims=["latitude", "longitude"],
+            dims=["time", "latitude", "longitude"],
             name=name,
             attrs={"units": self.bmi.get_var_units(name)},
         )
@@ -247,7 +244,7 @@ class Lisflood(AbstractModel[LisfloodForcing]):
 
         """
         grid_id = self.bmi.get_var_grid(name)
-        shape = self.bmi.get_grid_shape(grid_id)  # (len(y), len(x))
+        shape = list(self.bmi.get_grid_shape(grid_id))  # (len(y), len(x))
         grid_lon = self.bmi.get_grid_x(grid_id)  # x is longitude
         grid_lat = self.bmi.get_grid_y(grid_id)  # y is latitude
 

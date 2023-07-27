@@ -49,9 +49,6 @@ class MarrmotForcing(DefaultForcing):
         shape: str,
         directory: Optional[str] = None,
     ) -> "MarrmotForcing":
-        """
-        None: Marrmot does not have model-specific generate options.
-        """  # noqa: D200,D205,D400
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_marrmot.yml"
         recipe = get_recipe(recipe_name)
@@ -111,3 +108,7 @@ class MarrmotForcing(DefaultForcing):
         )
         generated_forcing.save()
         return generated_forcing
+
+
+# TODO could be nice to have plot function
+# that loads the mat file into a xarray dataset and plots it

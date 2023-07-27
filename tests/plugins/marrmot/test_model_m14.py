@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
+import pandas as pd
 import pytest
 import xarray as xr
 from numpy.testing import assert_almost_equal, assert_array_equal
@@ -9,10 +10,8 @@ from scipy.io import loadmat
 from xarray.testing import assert_allclose
 
 from ewatercycle import CFG
-from ewatercycle.forcing import sources
+from ewatercycle.plugins.marrmot.forcing import MarrmotForcing
 from ewatercycle.plugins.marrmot.model import MarrmotM14, Solver
-
-MarrmotForcing = sources["MarrmotForcing"]
 
 
 @pytest.fixture
@@ -27,7 +26,7 @@ class TestWithDefaultsAndExampleData:
         # Downloaded from
         # https://github.com/wknoben/MARRMoT/blob/master/BMI/Config/BMI_testcase_m01_BuffaloRiver_TN_USA.mat
         forcing = MarrmotForcing(
-            directory=f"{Path(__file__).parent}/data",
+            directory=Path(__file__).parent / "data",
             start_time="1989-01-01T00:00:00Z",
             end_time="1992-12-31T00:00:00Z",
             forcing_file="BMI_testcase_m01_BuffaloRiver_TN_USA.mat",
@@ -115,13 +114,13 @@ class TestWithDefaultsAndExampleData:
         actual = model.get_value_as_xarray("flux_out_Q")
 
         expected = xr.DataArray(
-            data=[[0.529399]],
+            data=[[[0.529399]]],
             coords={
                 "longitude": [87.49],
                 "latitude": [35.29],
-                "time": datetime(1989, 1, 2, tzinfo=timezone.utc),
+                "time": pd.to_datetime([datetime(1992, 12, 31, tzinfo=timezone.utc)]),
             },
-            dims=["latitude", "longitude"],
+            dims=["time", "latitude", "longitude"],
             name="flux_out_Q",
             attrs={"units": "mm day"},
         )

@@ -85,7 +85,7 @@ todo_include_todos = False
 # -- Use autoapi.extension to run sphinx-apidoc -------
 autoapi_dirs = ["../src"]
 autoapi_python_class_content = "both"
-autoapi_options = ["members", "undoc-members", "imported-members"]
+autoapi_options = ["members", "undoc-members", "imported-members", "show-inheritance"]
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -93,6 +93,7 @@ autoapi_options = ["members", "undoc-members", "imported-members"]
 # a list of builtin themes.
 #
 html_theme = "sphinx_rtd_theme"
+# TODO move logo to root of docs folder, also some notebooks will need to be updated
 html_logo = "examples/logo.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,

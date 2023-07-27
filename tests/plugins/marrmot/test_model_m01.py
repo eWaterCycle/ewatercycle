@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
+import pandas as pd
 import pytest
 import xarray as xr
 from numpy.testing import assert_almost_equal
@@ -9,10 +10,8 @@ from scipy.io import loadmat
 from xarray.testing import assert_allclose
 
 from ewatercycle import CFG
-from ewatercycle.forcing import sources
+from ewatercycle.plugins.marrmot.forcing import MarrmotForcing
 from ewatercycle.plugins.marrmot.model import MarrmotM01, Solver
-
-MarrmotForcing = sources["MarrmotForcing"]
 
 
 @pytest.fixture
@@ -29,7 +28,7 @@ class TestWithDefaultsAndExampleData:
     @pytest.fixture
     def generate_forcing(self, forcing_file):
         forcing = MarrmotForcing(
-            directory=str(Path(forcing_file).parent),
+            directory=Path(forcing_file).parent,
             start_time="1989-01-01T00:00:00Z",
             end_time="1992-12-31T00:00:00Z",
             forcing_file=str(Path(forcing_file).name),
@@ -110,13 +109,13 @@ class TestWithDefaultsAndExampleData:
         actual = model.get_value_as_xarray("flux_out_Q")
 
         expected = xr.DataArray(
-            data=[[11.91879913]],
+            data=[[[11.91879913]]],
             coords={
                 "longitude": [87.49],
                 "latitude": [35.29],
-                "time": datetime(1989, 1, 2, tzinfo=timezone.utc),
+                "time": pd.to_datetime([datetime(1989, 1, 2, tzinfo=timezone.utc)]),
             },
-            dims=["latitude", "longitude"],
+            dims=["time", "latitude", "longitude"],
             name="flux_out_Q",
             attrs={"units": "mm day"},
         )

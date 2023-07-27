@@ -46,12 +46,25 @@ class PCRGlobWBForcing(DefaultForcing):
         extract_region: Optional[dict] = None,
         directory: Optional[str] = None,
     ) -> "PCRGlobWBForcing":
-        """
-        start_time_climatology (str): Start time for the climatology data
-        end_time_climatology (str): End time for the climatology data
-        extract_region (dict): Region specification, dictionary must
-            contain `start_longitude`, `end_longitude`, `start_latitude`,
-            `end_latitude`
+        """Generate forcings for a model.
+
+        The forcing is generated with help of
+        `ESMValTool <https://esmvaltool.org/>`_.
+
+        Args:
+            dataset: Name of the source dataset. See :py:const:`~ewatercycle.base.forcing.DATASETS`.
+            start_time: Start time of forcing in UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'.
+            end_time: nd time of forcing in UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'.
+            shape: Path to a shape file. Used for spatial selection.
+            directory:  Directory in which forcing should be written.
+                If not given will create timestamped directory.
+            start_time_climatology: Start time for the climatology data
+            end_time_climatology: End time for the climatology data
+            extract_region: Region specification, dictionary must
+                contain `start_longitude`, `end_longitude`, `start_latitude`,
+                `end_latitude`
         """
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_pcrglobwb.yml"

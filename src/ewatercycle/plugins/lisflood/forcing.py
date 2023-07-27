@@ -77,33 +77,45 @@ class LisfloodForcing(DefaultForcing):
         target_grid: Optional[dict] = None,
         run_lisvap: Optional[dict] = None,
     ) -> "LisfloodForcing":
-        """
-        target_grid (dict): the ``target_grid`` should be a ``dict`` with the
-            following keys:
+        """Generate forcings for a model.
 
-            - ``start_longitude``: longitude at the center of the first grid cell.
-            - ``end_longitude``: longitude at the center of the last grid cell.
-            - ``step_longitude``: constant longitude distance between grid cell \
-                centers.
-            - ``start_latitude``: latitude at the center of the first grid cell.
-            - ``end_latitude``: longitude at the center of the last grid cell.
-            - ``step_latitude``: constant latitude distance between grid cell centers.
+        The forcing is generated with help of
+        `ESMValTool <https://esmvaltool.org/>`_.
 
-            Make sure the target grid matches up with the grid in the mask_map and files in parameterset_dir.
-            Also the `shape` should be within the target grid.
+        Args:
+            dataset: Name of the source dataset. See :py:const:`~ewatercycle.base.forcing.DATASETS`.
+            start_time: Start time of forcing in UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'.
+            end_time: nd time of forcing in UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'.
+            shape: Path to a shape file. Used for spatial selection.
+            directory:  Directory in which forcing should be written.
+                If not given will create timestamped directory.
+            target_grid: the ``target_grid`` should be a ``dict`` with the
+                following keys:
 
-            If not given will guestimate target grid from `shape` using a 0.1x0.1 grid with 0.05 offset.
-        run_lisvap (dict): Lisvap specification. Default is None. If lisvap should be run then
-            give a dictionary with following key/value pairs:
+                - ``start_longitude``: longitude at the center of the first grid cell.
+                - ``end_longitude``: longitude at the center of the last grid cell.
+                - ``step_longitude``: constant longitude distance between grid cell \
+                    centers.
+                - ``start_latitude``: latitude at the center of the first grid cell.
+                - ``end_latitude``: longitude at the center of the last grid cell.
+                - ``step_latitude``: constant latitude distance between grid cell centers.
 
-                - lisvap_config: Name of Lisvap configuration file.
-                - mask_map: A mask for the spatial selection.
-                    This file should have same extent and resolution as parameter-set.
-                - version: LISVAP/LISFLOOD model version supported by ewatercycle.
-                    Pick from :py:obj:`~ewatercycle.models.lisflood.Lisflood.available_versions`.
-                - parameterset_dir: Directory of the parameter set.
-                    Directory should contains the Lisvap config file and files the config points to.
+                Make sure the target grid matches up with the grid in the mask_map and files in parameterset_dir.
+                Also the `shape` should be within the target grid.
 
+                If not given will guestimate target grid from `shape` using a 0.1x0.1 grid with 0.05 offset.
+            run_lisvap: Lisvap specification. Default is None. If lisvap should be run then
+                give a dictionary with following key/value pairs:
+
+                    - lisvap_config: Name of Lisvap configuration file.
+                    - mask_map: A mask for the spatial selection.
+                        This file should have same extent and resolution as parameter-set.
+                    - version: LISVAP/LISFLOOD model version supported by ewatercycle.
+                        Pick from :py:obj:`~ewatercycle.models.lisflood.Lisflood.available_versions`.
+                    - parameterset_dir: Directory of the parameter set.
+                        Directory should contains the Lisvap config file and files the config points to.
         """
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_lisflood.yml"
