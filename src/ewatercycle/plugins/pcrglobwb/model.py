@@ -113,6 +113,7 @@ class PCRGlobWB(ContainerizedModel):
 
     def _make_cfg_file(self, **kwargs):
         self._update_config(**kwargs)
+        return self._export_config()
 
     def _make_bmi_instance(self) -> bmipy.Bmi:
         # Override because need to add _SwapXY wrapper
