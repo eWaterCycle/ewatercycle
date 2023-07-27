@@ -29,12 +29,12 @@ class MockedBmi(FailingModel):
         return 1
 
     def get_grid_shape(self, grid_id):
-        return 3, 2  # shape returns (len(x), len(y))
+        return 3, 2
+
+    def get_grid_y(self, grid_id):
+        return np.array([45.0, 46.0, 47.0])
 
     def get_grid_x(self, grid_id):
-        return np.array([45.0, 46.0, 47.0])  # x are lats in wflow
-
-    def get_grid_y(self, grid_id):  # y are lons in wflow
         return np.array([5.0, 6.0])
 
     def get_grid_spacing(self, grid_id):
@@ -91,8 +91,8 @@ def parameter_set(tmp_path, mocked_config):
     config.write_text(config_body)
     return ParameterSet(
         name="wflow_testcase",
-        directory=str(directory),
-        config=str(config),
+        directory=directory,
+        config=config,
         target_model="wflow",
     )
 

@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Iterable, List, Optional
 
 import scipy.io as sio
-from pydantic import PrivateAttr, root_validator
+from pydantic import PrivateAttr
 
 from ewatercycle.base.model import ISO_TIMEFMT, ContainerizedModel
 from ewatercycle.container import ContainerImage

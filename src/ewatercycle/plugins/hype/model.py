@@ -154,15 +154,6 @@ class Hype(ContainerizedModel):
         return bmi
 
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
-        """Get value as xarray
-
-        Args:
-            name: Name of value to retrieve.
-
-        Returns:
-            Xarray with values for each sub catchment
-
-        """
         raise NotImplementedError("Hype coordinates cannot be mapped to grid")
 
     def get_latlon_grid(self, name: str) -> tuple[Any, Any, Any]:

@@ -53,12 +53,28 @@ class DefaultForcing(BaseModel):
         directory: Optional[str] = None,
         **model_specific_options,
     ) -> "DefaultForcing":
-        """Generate forcing data with ESMValTool."""
+        """Generate forcings for a model.
+
+        The forcing is generated with help of
+        `ESMValTool <https://esmvaltool.org/>`_.
+
+        Args:
+            dataset: Name of the source dataset. See :py:const:`~ewatercycle.base.forcing.DATASETS`.
+            start_time: Start time of forcing in UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'.
+            end_time: nd time of forcing in UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'.
+            shape: Path to a shape file. Used for spatial selection.
+            directory:  Directory in which forcing should be written.
+                If not given will create timestamped directory.
+        """
         raise NotImplementedError("No default forcing generator available.")
 
     def save(self):
         """Export forcing data for later use."""
         yaml = YAML()
+        if self.directory is None:
+            raise ValueError("Cannot save forcing without directory.")
         target = self.directory / FORCING_YAML
         # We want to make the yaml and its parent movable,
         # so the directory and shape should not be included in the yaml file
@@ -150,3 +166,8 @@ DATASETS = {
         "version": 1,
     },
 }
+"""Dictionary of allowed forcing datasets.
+
+Where key is the name of the dataset and
+value is an `ESMValTool dataset section <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipe/overview.html#datasets>`_.
+"""

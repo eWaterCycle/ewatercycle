@@ -1,7 +1,10 @@
 """Forcing related functionality for wflow."""
+from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Dict, Literal, Optional
 
 from esmvalcore.experimental import get_recipe
+from ruamel.yaml import YAML
 
 from ewatercycle.base.forcing import DATASETS, DefaultForcing, _session
 from ewatercycle.util import get_extents, get_time, to_absolute_path
@@ -46,13 +49,26 @@ class WflowForcing(DefaultForcing):
         directory: Optional[str] = None,
         extract_region: Optional[Dict[str, float]] = None,
     ) -> "WflowForcing":
+        """Generate forcings for a model.
+
+        The forcing is generated with help of
+        `ESMValTool <https://esmvaltool.org/>`_.
+
+        Args:
+            dataset: Name of the source dataset. See :py:const:`~ewatercycle.base.forcing.DATASETS`.
+            start_time: Start time of forcing in UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'.
+            end_time: nd time of forcing in UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'.
+            shape: Path to a shape file. Used for spatial selection.
+            directory:  Directory in which forcing should be written.
+                If not given will create timestamped directory.
+            dem_file: Name of the dem_file to use. Also defines the basin
+                param.
+            extract_region: Region specification, dictionary must
+                contain `start_longitude`, `end_longitude`, `start_latitude`,
+                `end_latitude`
         """
-        dem_file (str): Name of the dem_file to use. Also defines the basin
-            param.
-        extract_region (dict): Region specification, dictionary must
-            contain `start_longitude`, `end_longitude`, `start_latitude`,
-            `end_latitude`
-        """  # noqa docstrings are combined with forcing.generate()
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_wflow.yml"
         recipe = get_recipe(recipe_name)
@@ -83,9 +99,22 @@ class WflowForcing(DefaultForcing):
         for var_name in var_names:
             variables[var_name]["end_year"] = endyear
 
-        # generate forcing data and retreive useful information
+        # ESMVALCore 2.8.1 always runs original recipe,
+        # write updated recipe to disk and use
+        updated_recipe_file = NamedTemporaryFile(
+            suffix=recipe.path.name, mode="w", delete=False
+        )
+        yaml = YAML(typ="safe")
+        yaml.dump(recipe.data, updated_recipe_file)
+        updated_recipe_file.close()
+        recipe.path = Path(updated_recipe_file.name)
+
+        # generate forcing data and retrieve useful information
         recipe_output = recipe.run(session=_session(directory))
         forcing_data = recipe_output["wflow_daily/script"].data_files[0]
+
+        # remove updated recipe file
+        recipe.path.unlink()
 
         forcing_file = forcing_data.path
         directory = str(forcing_file.parent)

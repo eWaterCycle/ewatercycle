@@ -11,7 +11,11 @@ logger = getLogger(__name__)
 
 
 def add_to_config(parameter_set: ParameterSet):
-    """Add a parameter set to the ewatercycle.CFG object."""
+    """Add a parameter set to the e:py:data:`ewatercycle.config.CFG` object.
+
+    Args:
+        parameter_set: Parameter set to add to the config.
+    """
     logger.info(f"Adding parameterset {parameter_set.name} to ewatercycle.CFG... ")
 
     if not CFG.parameter_sets:
@@ -36,6 +40,7 @@ def available_parameter_sets(
 
     Args:
         target_model: Filter parameter sets on a model name
+
     Returns:
         Dictionary available parameter sets on current machine.
     """
@@ -66,7 +71,13 @@ def available_parameter_sets(
 
 def example_parameter_sets() -> Dict[str, ParameterSet]:
     """Lists the available example parameter sets.
-    They can be downloaded with :py:func:`~download_example_parameter_sets`."""
+
+    They can be downloaded with :py:func:`~download_example_parameter_sets`.
+
+    To get your own example parameter set to be listed here it needs to be
+    registered in the :py:data:`ewatercycle.parameter_sets`
+    `entry point group <https://packaging.python.org/en/latest/specifications/entry-points/>`_.
+    """
     # TODO how to add a new model docs should be updated with this part
     return {
         entry_point.name: entry_point.load()
@@ -76,8 +87,10 @@ def example_parameter_sets() -> Dict[str, ParameterSet]:
 
 def download_example_parameter_sets(skip_existing=True):
     """Downloads all of the example parameter sets and adds them to the config_file.
+
     Downloads to `parameterset_dir` directory defined in
     :py:data:`ewatercycle.config.CFG`.
+
     Args:
         skip_existing: When true will not download any parameter set which
             already has a local directory. When false will raise ValueError

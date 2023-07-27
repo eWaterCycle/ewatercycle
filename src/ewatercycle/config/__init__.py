@@ -170,14 +170,15 @@ class Configuration(BaseModel):
 
     @root_validator
     def prepend_root_to_parameterset_paths(cls, values):
-        parameterset_dir = values["parameterset_dir"]
+        parameterset_dir = values.get("parameterset_dir")
         parameter_sets = values.get("parameter_sets", {})
         for ps_name, ps in parameter_sets.items():
             if isinstance(ps, dict):
                 ps = ParameterSet(**ps)
-            if isinstance(ps, ParameterSet):
+            if isinstance(ps, ParameterSet) and parameterset_dir:
                 ps.name = ps_name
                 ps.make_absolute(parameterset_dir)
+                # TODO to use download_example_parameter_sets these asserts must be disabled
                 assert ps.directory.exists(), f"{ps.directory} must exist"
                 assert ps.config.exists(), f"{ps.config} must exist"
         return values

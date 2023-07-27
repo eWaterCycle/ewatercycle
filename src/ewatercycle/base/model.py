@@ -12,7 +12,7 @@ import numpy as np
 import pydantic
 import xarray as xr
 import yaml
-from cftime import num2date
+from cftime import num2pydate
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 from grpc4bmi.reserve import reserve_values, reserve_values_at_indices
 
@@ -235,13 +235,15 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
     def get_value_as_xarray(self, name: str) -> xr.DataArray:
         """Get a copy values of the given variable as xarray DataArray.
 
-        The xarray object also contains coordinate information and additional
+        The xarray object also contains time, coordinate information and additional
         attributes such as the units.
 
         Args:
             name: Name of the variable
+
+        Returns:
+            Dataarray of the variable.
         """
-        time_units = self.bmi.get_time_units()
         lat, lon, shape = self.get_latlon_grid(name)
 
         # Extract the data and store it in an xarray DataArray
@@ -250,9 +252,9 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
             coords={
                 "longitude": lon,
                 "latitude": lat,
-                "time": num2date(self.bmi.get_current_time(), time_units),
+                "time": [self.time_as_datetime],
             },
-            dims=["latitude", "longitude"],
+            dims=["time", "latitude", "longitude"],
             name=name,
             attrs={"units": self.bmi.get_var_units(name)},
         )
@@ -324,28 +326,25 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
     @property
     def start_time_as_datetime(self) -> datetime.datetime:
         """Start time of the model as a datetime object."""
-        return num2date(
+        return num2pydate(
             self._bmi.get_start_time(),
             self._bmi.get_time_units(),
-            only_use_cftime_datetimes=False,
         )
 
     @property
     def end_time_as_datetime(self) -> datetime.datetime:
         """End time of the model as a datetime object'."""
-        return num2date(
+        return num2pydate(
             self._bmi.get_end_time(),
             self._bmi.get_time_units(),
-            only_use_cftime_datetimes=False,
         )
 
     @property
     def time_as_datetime(self) -> datetime.datetime:
         """Current time of the model as a datetime object'."""
-        return num2date(
+        return num2pydate(
             self._bmi.get_current_time(),
             self._bmi.get_time_units(),
-            only_use_cftime_datetimes=False,
         )
 
     def get_latlon_grid(self, name) -> tuple[Any, Any, Any]:
@@ -355,7 +354,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         See bmi.readthedocs.io/en/stable/model_grids.html#structured-grids.
 
         Some models may deviate from this default. They can provide their own
-        implementation.
+        implementation or use a BMI wrapper as in the wflow and pcrglob examples.
 
         Args:
             name: Name of the variable

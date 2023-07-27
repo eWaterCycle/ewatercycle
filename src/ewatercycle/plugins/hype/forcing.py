@@ -44,9 +44,6 @@ class HypeForcing(DefaultForcing):
         shape: str,
         directory: Optional[str] = None,
     ) -> "HypeForcing":
-        """
-        None: Hype does not have model-specific generate options.
-        """
         # load the ESMValTool recipe
         recipe_name = "hydrology/recipe_hype.yml"
         recipe = get_recipe(recipe_name)
