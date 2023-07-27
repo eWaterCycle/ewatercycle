@@ -1,16 +1,25 @@
 import logging
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import Annotated, Literal, Optional
 
 from esmvalcore.config import Session
 from esmvalcore.experimental import CFG
-from pydantic import field_validator, BaseModel, validator
+from pydantic import BaseModel
+from pydantic.functional_validators import AfterValidator
 from ruamel.yaml import YAML
 
 from ewatercycle.util import to_absolute_path
 
 logger = logging.getLogger(__name__)
 FORCING_YAML = "ewatercycle_forcing.yaml"
+
+
+def _to_absolute_path(v):
+    return to_absolute_path(v)
+
+
+def _absolute_shape(v, info):
+    return to_absolute_path(v, parent=info.data["directory"], must_be_in_parent=False)
 
 
 class DefaultForcing(BaseModel):
@@ -28,23 +37,8 @@ class DefaultForcing(BaseModel):
     model: Literal["default"] = "default"
     start_time: str
     end_time: str
-    directory: Optional[Path] = None
-    shape: Optional[Path] = None
-
-    @field_validator("directory")
-    @classmethod
-    def _absolute_directory(cls, v: Union[str, Path, None]):
-        return to_absolute_path(v) if v is not None else v
-
-    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
-    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
-    @validator("shape")
-    def _absolute_shape(cls, v: Union[str, Path, None], values: dict):
-        return (
-            to_absolute_path(v, parent=values["directory"], must_be_in_parent=False)
-            if v is not None
-            else v
-        )
+    directory: Optional[Annotated[Path, AfterValidator(_to_absolute_path)]] = None
+    shape: Optional[Annotated[Path, AfterValidator(_absolute_shape)]] = None
 
     @classmethod
     def generate(
@@ -120,7 +114,7 @@ class DefaultForcing(BaseModel):
         metadata = meta.read_text()
         # Workaround for legacy forcing files having !PythonClass tag.
         #     Get model name of non-initialized BaseModel with Pydantic class property:
-        modelname = cls.__fields__["model"].default
+        modelname = cls.model_fields["model"].default  # type: ignore
         metadata = metadata.replace(f"!{cls.__name__}", f"model: {modelname}")
 
         fdict = yaml.load(metadata)
