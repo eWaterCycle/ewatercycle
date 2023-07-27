@@ -49,16 +49,27 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         """Attach a BMI instance to self._bmi."""
 
     @pydantic.validator("parameter_set")
-    def _check_parameter_set(cls, parameter_set):
-        model_name = cls.__name__.lower()
+    def _check_parameter_set(cls, parameter_set: ParameterSet):
+        model_name = cls.__class__.__name__.lower()
         if model_name != parameter_set.target_model:
             raise ValueError(
                 f"Parameter set has wrong target model, "
                 f"expected {model_name} got {parameter_set.target_model}"
             )
 
-        # TODO: check version as well. Was present before, and can now make use
-        # of new ContainerImage class.
+        # TODO: Update check to make use of new ContainerImage class.
+        #  (replace cls.version with e.g.: cls.bmi_image.get_version() )
+        if(
+            len(parameter_set.supported_model_versions) > 0 and
+            hasattr(cls, "version")
+        ):
+            if cls.version not in parameter_set.supported_model_versions:
+                raise ValueError(
+                    f"Parameter set '{parameter_set.__class__.__name__}' does not "
+                    "support this model version:\n"
+                    f"Model version: {cls.version}. "
+                    "Supported versions: {parameter_set.supported_model_versions}"
+                )
         return parameter_set
 
     def setup(self, *, cfg_dir: str | None = None, **kwargs) -> tuple[str, str]:

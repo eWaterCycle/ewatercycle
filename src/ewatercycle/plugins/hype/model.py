@@ -1,7 +1,6 @@
 """eWaterCycle wrapper around Hype BMI."""
 import datetime
 import logging
-import shutil
 import types
 from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple
@@ -10,7 +9,7 @@ import bmipy
 import xarray as xr
 from dateutil.parser import parse
 from dateutil.tz import UTC
-from pydantic import PrivateAttr, root_validator
+from pydantic import PrivateAttr
 
 from ewatercycle.base.model import ISO_TIMEFMT, ContainerizedModel
 from ewatercycle.base.parameter_set import ParameterSet
