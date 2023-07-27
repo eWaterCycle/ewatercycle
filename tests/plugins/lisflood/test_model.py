@@ -106,7 +106,7 @@ class TestLFlatlonUseCase:
             image="ewatercycle-lisflood-grpc4bmi_20.10.sif",
             work_dir=f"{CFG.output_dir}/lisflood_20210102_030405",
             input_dirs=[
-                f"{CFG.parameterset_dir}/psr/lisflood_fraser",
+                f"{CFG.parameterset_dir}/lisflood_fraser",
                 f"{tmp_path}/forcing",
             ],
             timeout=300,
@@ -205,7 +205,7 @@ class TestLFlatlonUseCase:
                 work_dir=f"{CFG.output_dir}/lisflood_20210102_030405",
                 input_dirs=[
                     f"{tmp_path}/custommask",
-                    f"{CFG.parameterset_dir}/psr/lisflood_fraser",
+                    f"{CFG.parameterset_dir}/lisflood_fraser",
                     f"{tmp_path}/forcing",
                 ],
                 timeout=300,

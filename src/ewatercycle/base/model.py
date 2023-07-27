@@ -254,7 +254,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
                 "latitude": lat,
                 "time": [self.time_as_datetime],
             },
-            dims=["time", "latitude", "longitude"],
+            dims=["time", "latitude", "longitude"],  # TODO make data-dependent?
             name=name,
             attrs={"units": self.bmi.get_var_units(name)},
         )
