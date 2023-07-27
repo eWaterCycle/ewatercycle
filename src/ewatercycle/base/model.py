@@ -245,16 +245,15 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
             Dataarray of the variable.
         """
         lat, lon, shape = self.get_latlon_grid(name)
-
         # Extract the data and store it in an xarray DataArray
         da = xr.DataArray(
-            data=np.reshape(self.get_value(name), shape),
+            data=np.reshape(self.get_value(name), (shape[0], shape[1], 1,)),
             coords={
                 "longitude": lon,
                 "latitude": lat,
                 "time": [self.time_as_datetime],
             },
-            dims=["time", "latitude", "longitude"],  # TODO make data-dependent?
+            dims=["time", "latitude", "longitude"],
             name=name,
             attrs={"units": self.bmi.get_var_units(name)},
         )

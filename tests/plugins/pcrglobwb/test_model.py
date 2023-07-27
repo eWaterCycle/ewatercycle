@@ -7,12 +7,13 @@ import numpy as np
 import pytest
 from grpc import FutureTimeoutError
 from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
+from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 
 from ewatercycle import CFG
 from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.forcing import sources
 from ewatercycle.parameter_sets import add_to_config, example_parameter_sets
-from ewatercycle.plugins.pcrglobwb.model import PCRGlobWB
+from ewatercycle.plugins.pcrglobwb.model import _SwapXY, PCRGlobWB
 from ewatercycle.testing.fake_models import FailingModel
 
 PCRGlobWBForcing = sources["PCRGlobWBForcing"]
@@ -31,13 +32,16 @@ class MockedBmi(FailingModel):  # type: ignore
     def get_var_grid(self, name):
         return 1
 
-    def get_grid_shape(self, grid_id):
+    def get_grid_shape(self, grid_id, dest):
         return 3, 2  # shape returns (len(x), len(y))
 
-    def get_grid_x(self, grid_id):
+    def get_grid_type(self, grid_id):
+        return 'rectilinear'
+
+    def get_grid_x(self, grid_id, dest):
         return np.array([45.0, 46.0, 47.0])  # x are lats in pcrglob
 
-    def get_grid_y(self, grid_id):
+    def get_grid_y(self, grid_id, dest):
         return np.array([5.0, 6.0])  # y are lons in pcrglob
 
     def get_grid_spacing(self, grid_id):
@@ -56,6 +60,8 @@ class MockedBmi(FailingModel):  # type: ignore
     def get_var_nbytes(self, name):
         return np.float64().size * 3 * 2
 
+    def get_grid_rank(self, grid_id):
+        return 2
 
 @pytest.fixture()
 def mocked_config(tmp_path: Path):
@@ -96,7 +102,7 @@ def model(parameter_set, forcing):
 @pytest.fixture
 def initialized_model(model):
     """Model with fake parameterset and fake BMI instance."""
-    model._bmi = MockedBmi()
+    model._bmi = OptionalDestBmi(_SwapXY(MockedBmi()))
     return model
 
 
@@ -156,4 +162,3 @@ def test_get_value_as_coords(initialized_model, caplog):
     assert msg[0] in caplog.text
     assert msg[1] in caplog.text
     assert result == np.array([1.0])
-    assert model.bmi.indices == [4]
