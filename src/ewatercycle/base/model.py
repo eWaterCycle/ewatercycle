@@ -50,19 +50,16 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
 
     @pydantic.validator("parameter_set")
     def _check_parameter_set(cls, parameter_set: ParameterSet):
-        model_name = cls.__class__.__name__.lower()
+        model_name = cls.__name__.lower()
         if model_name != parameter_set.target_model:
             raise ValueError(
                 f"Parameter set has wrong target model, "
-                f"expected {model_name} got {parameter_set.target_model}"
+                f"expected {parameter_set.target_model} got {model_name}"
             )
 
         # TODO: Update check to make use of new ContainerImage class.
         #  (replace cls.version with e.g.: cls.bmi_image.get_version() )
-        if(
-            len(parameter_set.supported_model_versions) > 0 and
-            hasattr(cls, "version")
-        ):
+        if len(parameter_set.supported_model_versions) > 0 and hasattr(cls, "version"):
             if cls.version not in parameter_set.supported_model_versions:
                 raise ValueError(
                     f"Parameter set '{parameter_set.__class__.__name__}' does not "
