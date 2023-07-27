@@ -8,8 +8,84 @@ from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 from numpy.testing import assert_array_almost_equal
 
 from ewatercycle.config import CFG
-from ewatercycle.container import BmiProxy, start_container
+from ewatercycle.container import (
+    BmiProxy,
+    ContainerImage,
+    _parse_docker_url,
+    start_container,
+)
 from tests.src.fake_models import Rect3DGridModel
+
+images = [
+    (
+        "ewatercycle-pcrg-grpc4bmi_setters.sif",
+        "ewatercycle/pcrg-grpc4bmi:setters",
+    ),
+    (
+        "ewatercycle-wflow-grpc4bmi_2019.1.sif",
+        "ewatercycle/wflow-grpc4bmi:2019.1",
+    ),
+    (
+        "ewatercycle-wflow-grpc4bmi_2020.1.1.sif",
+        "ewatercycle/wflow-grpc4bmi:2020.1.1",
+    ),
+    (
+        "ewatercycle-wflow-grpc4bmi_2020.1.2.sif",
+        "ewatercycle/wflow-grpc4bmi:2020.1.2",
+    ),
+    (
+        "ewatercycle-wflow-grpc4bmi_2020.1.3.sif",
+        "ewatercycle/wflow-grpc4bmi:2020.1.3",
+    ),
+    (
+        "ewatercycle-lisflood-grpc4bmi_20.10.sif",
+        "ewatercycle/lisflood-grpc4bmi:20.10",
+    ),
+    (
+        "ewatercycle-marrmot-grpc4bmi_2020.11.sif",
+        "ewatercycle/marrmot-grpc4bmi:2020.11",
+    ),
+    (
+        "ewatercycle-hype-grpc4bmi_feb2021.sif",
+        "ewatercycle/hype-grpc4bmi:feb2021",
+    ),
+    (
+        "ewatercycle-hype-grpc4bmi.sif",
+        "ewatercycle/hype-grpc4bmi",
+    ),
+]
+
+
+@pytest.mark.parametrize("apptainer_filename,docker_url", images)
+def test_docker_to_apptainer(apptainer_filename, docker_url):
+    assert ContainerImage(docker_url).apptainer_filename == apptainer_filename
+
+
+@pytest.mark.parametrize("apptainer_filename,docker_url", images)
+def test_apptainer_to_docker(apptainer_filename, docker_url):
+    assert ContainerImage(apptainer_filename).docker_url == docker_url
+
+
+@pytest.mark.parametrize("apptainer_filename,docker_url", images)
+def test_return_self(apptainer_filename, docker_url):
+    assert ContainerImage(apptainer_filename).apptainer_filename == apptainer_filename
+    assert ContainerImage(docker_url).docker_url == docker_url
+
+
+def test_apptainer_to_docker_invalid():
+    with pytest.raises(ValueError):
+        _parse_docker_url("not:url///nor::sif")
+
+
+def test_with_repo():
+    docker_url = "ghcr.io/ewatercycle/hype-grpc4bmi:feb2021"
+    apptainer_filename = "ewatercycle-hype-grpc4bmi_feb2021.sif"
+    result = ContainerImage(docker_url).apptainer_filename
+    assert result == apptainer_filename
+
+    # Can't infer repository in this case
+    bare_docker_url = "ewatercycle/hype-grpc4bmi:feb2021"
+    assert ContainerImage(apptainer_filename).docker_url == bare_docker_url
 
 
 def npeq(a, b):
@@ -83,7 +159,7 @@ def force_apptainer(tmp_path: Path):
     old_dir = CFG.apptainer_dir
     CFG.container_engine = "apptainer"
     CFG.apptainer_dir = tmp_path
-    yield {"docker": "dummyimage:latest", "apptainer": "dummyimage.sif"}
+    yield ContainerImage("dummyimage:latest")
     CFG.container_engine = old_engine
     CFG.apptainer_dir = old_dir
 
@@ -99,13 +175,13 @@ def mock_bmi_client_apptainer():
 def test_start_container(
     tmp_path: Path, force_apptainer, mock_bmi_client_apptainer: mock.MagicMock
 ):
-    container = start_container(work_dir=tmp_path, image_engine=force_apptainer)
+    container = start_container(work_dir=tmp_path, image=force_apptainer)
 
     assert isinstance(container, OptionalDestBmi)
     assert isinstance(container.origin, MemoizedBmi)
     assert isinstance(container.origin.origin, Rect3DGridModel)
     mock_bmi_client_apptainer.assert_called_once_with(
-        image=force_apptainer["apptainer"],
+        image=force_apptainer.apptainer_filename,
         work_dir=str(tmp_path),
         timeout=None,
         delay=0,
@@ -116,9 +192,7 @@ def test_start_container(
 def test_start_container_without_wrapper(
     tmp_path: Path, force_apptainer, mock_bmi_client_apptainer: mock.MagicMock
 ):
-    container = start_container(
-        work_dir=tmp_path, image_engine=force_apptainer, wrappers=[]
-    )
+    container = start_container(work_dir=tmp_path, image=force_apptainer, wrappers=[])
     assert isinstance(container, Rect3DGridModel)
 
 
@@ -129,7 +203,7 @@ def test_start_container_with_own_wrapper(
         pass
 
     container = start_container(
-        work_dir=tmp_path, image_engine=force_apptainer, wrappers=(MyWrapper,)
+        work_dir=tmp_path, image=force_apptainer, wrappers=(MyWrapper,)
     )
 
     assert isinstance(container, MyWrapper)

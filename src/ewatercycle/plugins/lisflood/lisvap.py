@@ -26,10 +26,15 @@ import subprocess
 from typing import Dict, Tuple
 
 from ewatercycle import CFG
-from ewatercycle.container import ContainerEngine
-from ewatercycle.plugins.lisflood._lisflood_versions import version_images
+from ewatercycle.container import ContainerEngine, ContainerImage
 from ewatercycle.plugins.lisflood.config import XmlConfig
 from ewatercycle.util import get_time
+
+# TODO: get rid of this part.
+images = {
+    "docker": ContainerImage("ewatercycle/lisflood-grpc4bmi:20.10"),
+    "apptainer": ContainerImage("ewatercycle-lisflood-grpc4bmi_20.10.sif"),
+}
 
 
 def lisvap(
@@ -50,7 +55,7 @@ def lisvap(
         forcing_dir,
     )
     engine: ContainerEngine = CFG.container_engine
-    image = version_images[version][engine]
+    image = images[engine]
     if CFG.container_engine.lower() == "apptainer":
         image = str(CFG.apptainer_dir / image)
         args = [

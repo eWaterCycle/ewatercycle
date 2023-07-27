@@ -1,16 +1,7 @@
 """Container utilities."""
+import re
 from pathlib import Path
-from typing import (
-    Any,
-    Dict,
-    Iterable,
-    Mapping,
-    Optional,
-    Protocol,
-    Sequence,
-    Tuple,
-    Union,
-)
+from typing import Any, Iterable, Optional, Protocol, Sequence, Tuple, Union
 
 import numpy as np
 from bmipy import Bmi
@@ -22,19 +13,107 @@ from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 
 from ewatercycle.config import CFG, ContainerEngine
 
-ImageForContainerEngines = Dict[ContainerEngine, str]
-"""Container image name for each container engine."""
 
-VersionImages = Mapping[str, ImageForContainerEngines]
-"""Dictionary of versions of a model.
+def _parse_docker_url(docker_url):
+    """Extract repository, image name and tag from docker url.
 
-Each version has the image name for each container engine.
-"""
+    Regex source: https://regex101.com/library/a98UqN
+    """
+    pattern = re.compile(
+        r"^(?P<repository>[\w.\-_]+((?::\d+|)"
+        r"(?=/[a-z0-9._-]+/[a-z0-9._-]+))|)"
+        r"(?:/|)"
+        r"(?P<image>[a-z0-9.\-_]+(?:/[a-z0-9.\-_]+|))"
+        r"(:(?P<tag>[\w.\-_]{1,127})|)$"
+    )
+
+    match = pattern.search(docker_url)
+
+    if not match:
+        raise ValueError(f"Unable to parse docker url: {docker_url}")
+
+    repository = match.group("repository")
+    image = match.group("image")
+    tag = match.group("tag")
+
+    return repository, image, tag
+
+
+class ContainerImage(str):
+    """Custom type for parsing and utilizing container images.
+
+    Given a docker url with the following structure
+
+        <repository>/<organisation>/<image_name>:<version>
+
+    The corresponding apptainer filename is assumed to be
+
+        <organisation>-<image_name>_<version>.sif
+
+    The repository in the docker url is optional.
+
+    Conversion from docker to apptainer is always possible
+    Conversion from apptainer can lead to unexpected behaviour in some cases:
+        - when image name contains '_' but no version tag
+        - when image name contains '-' but no organisation
+
+    eWatercycle containers typically don't have these issues.
+    """
+
+    @classmethod
+    def __get_validators__(cls):
+        """Enter pydantic validation flow."""
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, value):
+        """Verify image ends with .sif or can parse as docker url."""
+        if not value.endswith(".sif"):
+            _parse_docker_url(value)
+        return cls(value)
+
+    @property
+    def apptainer_filename(self) -> str:
+        """Return self as apptainer filename."""
+        if self.endswith(".sif"):
+            return self
+
+        # Derive apptainer image filename from docker url."""
+        _, image, tag = _parse_docker_url(self)
+
+        apptainer_name = image.replace("/", "-")
+
+        if tag:
+            apptainer_name += f"_{tag}"
+        apptainer_name += ".sif"
+
+        return apptainer_name
+
+    @property
+    def docker_url(self) -> str:
+        """Return self as docker url."""
+        if not self.endswith(".sif"):
+            return self
+
+        # Attempt to reconstruct docker url from singularity filename.
+        name = self.replace(".sif", "")
+
+        tag = ""
+        if "_" in name:
+            name, _, tag = name.rpartition("_")
+            name += ":"
+
+        organisation = ""
+        if "-" in name:
+            organisation, _, name = name.partition("-")
+            organisation += "/"
+
+        return organisation + name + tag
 
 
 def start_container(
     work_dir: Union[str, Path],
-    image_engine: ImageForContainerEngines,
+    image: ContainerImage,
     input_dirs: Optional[Iterable[str]] = None,
     image_port=55555,
     timeout=None,
@@ -50,7 +129,7 @@ def start_container(
 
     Args:
         work_dir: Work directory
-        image_engine: Image name for each container engine.
+        image: Image name for container.
         input_dirs: Additional directories to mount inside container.
         image_port: Docker port inside container where grpc4bmi server is running.
         timeout: Number of seconds to wait for grpc connection.
@@ -79,25 +158,21 @@ def start_container(
 
             model = start_container(
                 work_dir='.',
-                image_engine={
-                    "docker": "ewatercycle/marrmot-grpc4bmi",
-                }
+                image="ewatercycle/marrmot-grpc4bmi",
             )
     """
     engine: ContainerEngine = CFG.container_engine
-    image = image_engine[engine]
     if input_dirs is None:
         input_dirs = []
+
     if engine == "docker":
         bmi = start_docker_container(
             work_dir, image, input_dirs, image_port, timeout, delay
         )
     elif engine == "apptainer":
-        docker_image = image_engine["docker"]
         bmi = start_apptainer_container(
             work_dir,
             image,
-            docker_image,
             input_dirs,
             timeout,
             delay,
@@ -112,9 +187,8 @@ def start_container(
 
 def start_apptainer_container(
     work_dir: Union[str, Path],
-    image: str,
-    docker_image: str,
-    input_dirs: Optional[Iterable[str]] = None,
+    image: ContainerImage,
+    input_dirs: Iterable[str] = (),
     timeout: Optional[int] = None,
     delay: int = 0,
 ) -> Bmi:
@@ -122,11 +196,9 @@ def start_apptainer_container(
 
     Args:
         work_dir: Work directory
-        image: Name of apptainer image.
-            See `apptainer manual`_ for format.
-        docker_image: Name of Docker image.
-            Used in potential error message to instruct how to
-            build an Apptainer image from a Docker image.
+        image: Name of apptainer (sif file) or docker image (url).
+            If a docker url is passed, will try to derive the apptainer filename
+            following the format specified in `apptainer manual`_.
         input_dirs: Additional directories to mount inside container.
         timeout: Number of seconds to wait for grpc connection.
         delay: Number of seconds to wait before connecting.
@@ -139,13 +211,15 @@ def start_apptainer_container(
     Returns:
         Bmi object which wraps the container.
     """
-    if (CFG.apptainer_dir / image).exists():
-        image = str(CFG.apptainer_dir / image)
+    image_fn = image.apptainer_filename
+    if (CFG.apptainer_dir / image_fn).exists():
+        image_fn = str(CFG.apptainer_dir / image_fn)
+
     try:
         return BmiClientApptainer(
-            image=image,
+            image=image_fn,
             work_dir=str(work_dir),
-            input_dirs=tuple() if input_dirs is None else input_dirs,
+            input_dirs=input_dirs,
             timeout=timeout,
             delay=delay,
         )
@@ -153,15 +227,15 @@ def start_apptainer_container(
         raise TimeoutError(
             "Couldn't spawn container within allocated time limit "
             f"({timeout} seconds). You may try pulling the docker image with"
-            f" `apptainer build {image} "
-            f"docker://{docker_image}` and then try again."
+            f" `apptainer build {image_fn} "
+            f"docker://{image.docker_url}` and then try again."
         ) from exc
 
 
 def start_docker_container(
     work_dir: Union[str, Path],
-    image: str,
-    input_dirs: Optional[Iterable[str]],
+    image: ContainerImage,
+    input_dirs: Iterable[str] = (),
     image_port=55555,
     timeout=None,
     delay=0,
@@ -184,10 +258,10 @@ def start_docker_container(
     """
     try:
         return BmiClientDocker(
-            image=image,
+            image=image.docker_url,
             image_port=image_port,
             work_dir=str(work_dir),
-            input_dirs=tuple() if input_dirs is None else input_dirs,
+            input_dirs=input_dirs,
             timeout=timeout,
             delay=delay,
         )

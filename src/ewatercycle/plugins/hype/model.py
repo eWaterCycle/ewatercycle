@@ -1,38 +1,31 @@
 """eWaterCycle wrapper around Hype BMI."""
 import datetime
 import logging
-import shutil
 import types
+from pathlib import Path
 from typing import Any, Iterable, Optional, Tuple
 
+import bmipy
 import xarray as xr
 from dateutil.parser import parse
 from dateutil.tz import UTC
+from pydantic import PrivateAttr
 
-from ewatercycle import CFG
-from ewatercycle.base.model import ISO_TIMEFMT, AbstractModel
+from ewatercycle.base.model import ISO_TIMEFMT, ContainerizedModel
 from ewatercycle.base.parameter_set import ParameterSet
-from ewatercycle.container import VersionImages, start_container
+from ewatercycle.container import ContainerImage
 from ewatercycle.plugins.hype.forcing import HypeForcing
-from ewatercycle.util import geographical_distances, get_time, to_absolute_path
+from ewatercycle.util import geographical_distances, get_time
 
 logger = logging.getLogger(__name__)
 
-_version_images: VersionImages = {
-    "feb2021": {
-        "docker": "ewatercycle/hype-grpc4bmi:feb2021",
-        "apptainer": "ewatercycle-hype-grpc4bmi_feb2021.sif",
-    }
-}
 
-
-class Hype(AbstractModel[HypeForcing]):
+class Hype(ContainerizedModel):
     """eWaterCycle implementation of Hype hydrological model.
 
     Model documentation at http://www.smhi.net/hype/wiki/doku.php .
 
     Args:
-        version: pick a version from :py:attr:`~available_versions`
         parameter_set: instance of
             :py:class:`~ewatercycle.parameter_sets.default.ParameterSet`.
         forcing: ewatercycle forcing container;
@@ -40,53 +33,45 @@ class Hype(AbstractModel[HypeForcing]):
 
     """
 
-    available_versions = tuple(_version_images.keys())
-    """Show supported Hype versions in eWaterCycle"""
+    forcing: Optional[HypeForcing] = None
+    parameter_set: ParameterSet  # not optional for this model
+    bmi_image: ContainerImage = ContainerImage("ewatercycle/hype-grpc4bmi:feb2021")
+    version: str = "feb2021"
 
-    def __init__(
-        self,
-        version: str,
-        parameter_set: ParameterSet,
-        forcing: Optional[HypeForcing] = None,
-    ):
-        super().__init__(version, parameter_set, forcing)
-        self._setup_default_config()
+    _config: str = PrivateAttr()
+    _start: datetime.datetime = PrivateAttr()
+    _end: datetime.datetime = PrivateAttr()
+    _crit: datetime.datetime = PrivateAttr()
 
-    def _setup_default_config(self):
-        assert self.parameter_set
-        # read config file from parameter_set
-        self._cfg = self.parameter_set.config.read_text(encoding="cp437")
-        self._start = _get_hype_time(_get_code_in_cfg(self._cfg, "bdate"))
-        self._end = _get_hype_time(_get_code_in_cfg(self._cfg, "edate"))
-        self._crit = _get_hype_time(_get_code_in_cfg(self._cfg, "cdate"))
-        if self._crit is None:
-            self._crit = self._start
-            self._cfg = _set_code_in_cfg(
-                self._cfg, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
-            )
-        if self.forcing is not None:
-            self._start = get_time(self.forcing.start_time)
-            self._cfg = _set_code_in_cfg(
-                self._cfg, "bdate", self._start.strftime("%Y-%m-%d %H:%M:%S")
-            )
-            self._end = get_time(self.forcing.end_time)
-            self._cfg = _set_code_in_cfg(
-                self._cfg, "edate", self._end.strftime("%Y-%m-%d %H:%M:%S")
-            )
-            # Also set crit time to start time, it can be overwritten in setup()
-            self._crit = self._start
-            self._cfg = _set_code_in_cfg(
-                self._cfg, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
-            )
+    # TODO: move to post_init in pydantic v2
+    def _post_init(self):
+        """Load config from parameter set and update with forcing info."""
+        if not hasattr(self, "_config"):
+            self._config = self.parameter_set.config.read_text(encoding="cp437")
+            self._start = _get_hype_time(_get_code_in_cfg(self._config, "bdate"))
+            self._end = _get_hype_time(_get_code_in_cfg(self._config, "edate"))
+            self._crit = _get_hype_time(_get_code_in_cfg(self._config, "cdate"))
+            if self._crit is None:
+                self._crit = self._start
+                self._config = _set_code_in_cfg(
+                    self._config, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
+                )
+            if self.forcing is not None:
+                self._start = get_time(self.forcing.start_time)
+                self._config = _set_code_in_cfg(
+                    self._config, "bdate", self._start.strftime("%Y-%m-%d %H:%M:%S")
+                )
+                self._end = get_time(self.forcing.end_time)
+                self._config = _set_code_in_cfg(
+                    self._config, "edate", self._end.strftime("%Y-%m-%d %H:%M:%S")
+                )
+                # Also set crit time to start time, it can be overwritten in setup()
+                self._crit = self._start
+                self._config = _set_code_in_cfg(
+                    self._config, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
+                )
 
-    # unable to subclass with more specialized arguments so ignore type
-    def setup(  # type: ignore
-        self,
-        start_time: Optional[str] = None,
-        end_time: Optional[str] = None,
-        crit_time: Optional[str] = None,
-        cfg_dir: Optional[str] = None,
-    ) -> Tuple[str, str]:
+    def setup(self, **kwargs) -> Tuple[str, str]:
         """Configure model run.
 
         1. Creates config file and config directory
@@ -94,6 +79,7 @@ class Hype(AbstractModel[HypeForcing]):
         2. Start bmi container and store as :py:attr:`bmi`
 
         Args:
+            cfg_dir: a run directory given by user or created for user.
             start_time: Start time of model in UTC and ISO format string
                 e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
                 If not given then forcing start time is used.
@@ -103,83 +89,86 @@ class Hype(AbstractModel[HypeForcing]):
             crit_time: Start date for the output of results and calculations of criteria.
                 e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
                 If not given then start_time is used.
-            cfg_dir: a run directory given by user or created for user.
 
         Returns:
             Path to config file and path to config directory
         """
-        cfg_dir_as_path = _setup_cfg_dir(cfg_dir)
+        self._post_init()
+        return super().setup(**kwargs)
 
-        # copy parameter set files to cfg_dir
-        assert self.parameter_set
-        shutil.copytree(
-            src=self.parameter_set.directory, dst=cfg_dir_as_path, dirs_exist_ok=True
-        )
+    def _make_cfg_file(self, **kwargs) -> Path:
+        """Create a Hype config file and return its path."""
+        self._update_config(**kwargs)
+        return self._export_config()
 
-        # copy forcing files to cfg_dir
-        if self.forcing is not None and self.forcing.directory is not None:
-            forcing_dir = self.forcing.directory
-            shutil.copytree(src=forcing_dir, dst=cfg_dir_as_path, dirs_exist_ok=True)
-
-        # merge args into config object
-        if start_time is not None:
-            self._start = get_time(start_time)
-            self._cfg = _set_code_in_cfg(
-                self._cfg, "bdate", self._start.strftime("%Y-%m-%d %H:%M:%S")
+    def _update_config(self, **kwargs) -> None:
+        cfg = self._config
+        if "start_time" in kwargs:
+            self._start = get_time(kwargs["start_time"])
+            cfg = _set_code_in_cfg(
+                cfg, "bdate", self._start.strftime("%Y-%m-%d %H:%M:%S")
             )
-        if end_time is not None:
-            self._end = get_time(end_time)
-            self._cfg = _set_code_in_cfg(
-                self._cfg, "edate", self._end.strftime("%Y-%m-%d %H:%M:%S")
+        if "end_time" in kwargs:
+            self._end = get_time(kwargs["end_time"])
+            cfg = _set_code_in_cfg(
+                cfg, "edate", self._end.strftime("%Y-%m-%d %H:%M:%S")
             )
-        if start_time is not None and crit_time is None:
+        if "start_time" in kwargs and "crit_time" not in kwargs:
             # Overwrite cdate to start when no crit is given
             self._crit = self._start
-            self._cfg = _set_code_in_cfg(
-                self._cfg, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
+            cfg = _set_code_in_cfg(
+                cfg, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
             )
-        elif crit_time is not None:
-            self._crit = get_time(crit_time)
-            self._cfg = _set_code_in_cfg(
-                self._cfg, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
+        elif "crit_time" in kwargs:
+            self._crit = get_time(kwargs["crit_time"])
+            cfg = _set_code_in_cfg(
+                cfg, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
             )
 
         # Set resultdir to . so no sub dirs are needed
-        self._cfg = _set_code_in_cfg(self._cfg, "resultdir", "./")
+        cfg = _set_code_in_cfg(cfg, "resultdir", "./")
+        self._config = cfg
 
+    def _export_config(self) -> Path:
         # write info.txt
-        cfg_file = cfg_dir_as_path / "info.txt"
-        cfg_file.write_text(self._cfg, encoding="cp437")
+        cfg_file = self._cfg_dir / "info.txt"
+        cfg_file.write_text(self._config, encoding="cp437")
 
-        # start container
-        self.bmi = start_container(
-            image_engine=_version_images[self.version],
-            work_dir=cfg_dir_as_path,
-        )
+        return cfg_file
+
+    def _make_bmi_instance(self) -> bmipy.Bmi:
+        """Make the bmi instance and overwrite 'get_time_units' method."""
+        bmi = super()._make_bmi_instance()
 
         since = self._start.strftime(ISO_TIMEFMT)
 
-        # The Hype get_time_units() returns `hours since start of simulation` and get_start_time() returns 0
-        # A relative datetime is not very useful, so here we overwrite the get_time_units to return the absolute datetime.
+        # The Hype get_time_units() returns `hours since start of simulation` and
+        #   get_start_time() returns 0.
+        # A relative datetime is not very useful, so here we overwrite the
+        #   get_time_units to return the absolute datetime.
         def get_time_units(_self):
             return f"hours since {since}"
 
-        self.bmi.get_time_units = types.MethodType(get_time_units, self.bmi)
+        bmi.get_time_units = types.MethodType(get_time_units, bmi)
 
-        return str(cfg_file), str(cfg_dir_as_path)
+        return bmi
 
-    @property
-    def parameters(self) -> Iterable[Tuple[str, Any]]:
+    def get_value_as_xarray(self, name: str) -> xr.DataArray:
+        raise NotImplementedError("Hype coordinates cannot be mapped to grid")
+
+    def get_latlon_grid(self, name: str) -> tuple[Any, Any, Any]:
+        raise NotImplementedError("Hype coordinates cannot be mapped to grid")
+
+    def get_parameters(self) -> Iterable[Tuple[str, Any]]:
         """List the parameters for this model."""
+        self._post_init()
+
         assert self.parameter_set is not None
         return [
             ("start_time", self._start.strftime(ISO_TIMEFMT)),
             ("end_time", self._end.strftime(ISO_TIMEFMT)),
             ("crit_time", self._crit.strftime(ISO_TIMEFMT)),
         ]
-
-    def get_value_as_xarray(self, name: str) -> xr.DataArray:
-        raise NotImplementedError("Hype coordinates cannot be mapped to grid")
 
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]
@@ -195,19 +184,6 @@ class Hype(AbstractModel[HypeForcing]):
             indices.append(int(index))
 
         return indices
-
-
-def _setup_cfg_dir(cfg_dir: Optional[str] = None):
-    if cfg_dir:
-        work_dir = to_absolute_path(cfg_dir)
-    else:
-        # Must exist before setting up default config
-        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
-            "%Y%m%d_%H%M%S"
-        )
-        work_dir = to_absolute_path(f"hype_{timestamp}", parent=CFG.output_dir)
-    work_dir.mkdir(parents=True, exist_ok=True)
-    return work_dir
 
 
 def _get_code_in_cfg(content: str, code: str):

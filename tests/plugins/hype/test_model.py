@@ -79,30 +79,32 @@ def parameter_set(mocked_config):
 class TestWithOnlyParameterSetAndDefaults:
     @pytest.fixture
     def model(self, parameter_set):
-        return Hype("feb2021", parameter_set)
+        return Hype(parameter_set=parameter_set)
 
     @pytest.fixture
     def model_with_setup(self, mocked_config, model: Hype):
-        with patch.object(
-            BmiClientApptainer, "__init__", return_value=None
-        ) as mocked_constructor, patch("datetime.datetime") as mocked_datetime:
+        with (
+            patch.object(
+                BmiClientApptainer, "__init__", return_value=None
+            ) as mocked_constructor,
+            patch("datetime.datetime") as mocked_datetime,
+        ):
             mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
             config_file, config_dir = model.setup()
-        return config_file, config_dir, mocked_constructor
+        return config_file, config_dir, mocked_constructor, model
 
     def test_setup_container(self, model_with_setup, tmp_path):
         mocked_constructor = model_with_setup[2]
         mocked_constructor.assert_called_once_with(
             image="ewatercycle-hype-grpc4bmi_feb2021.sif",
             work_dir=f"{tmp_path}/hype_20210102_030405",
-            input_dirs=[],
-            timeout=None,
+            input_dirs=[f"{tmp_path}/hype_testcase"],
+            timeout=300,
             delay=0,
         )
 
     def test_setup_parameter_set_files(self, model_with_setup):
-        config_dir = model_with_setup[1]
-        geodata = Path(config_dir) / "GeoData.txt"
+        geodata = model_with_setup[3].parameter_set.directory / "GeoData.txt"
         assert "subareaname" in geodata.read_text()
 
     def test_setup_config_file(self, model_with_setup):
@@ -139,7 +141,7 @@ class TestWithOnlyParameterSetAndDefaults:
             ("end_time", "1963-12-31T00:00:00Z"),
             ("crit_time", "1962-01-01T00:00:00Z"),
         ]
-        assert model.parameters == expected
+        assert model.get_parameters() == expected
 
     def test_get_value_as_xarray(self, model):
         with pytest.raises(NotImplementedError):
@@ -175,17 +177,17 @@ class TestWithOnlyParameterSetAndDefaults:
             def get_var_nbytes(self, name):
                 return np.float64().size * 3 * 3
 
-        model.bmi = MockedBmi()
+        model._bmi = MockedBmi()
 
         actual = model.get_value_at_coords("comp outflow olake", lon=[5], lat=[50])
         assert actual == np.array([13.0])
-        assert model.bmi.indices == [1]
+        assert model._bmi.indices == [1]
 
 
 class TestWithOnlyParameterSetAndFullSetup:
     @pytest.fixture
     def model(self, parameter_set):
-        return Hype("feb2021", parameter_set)
+        return Hype(parameter_set=parameter_set)
 
     @pytest.fixture
     def model_with_setup(self, mocked_config, model: Hype, tmp_path):
@@ -199,21 +201,20 @@ class TestWithOnlyParameterSetAndFullSetup:
                 crit_time="2002-01-01T00:00:00Z",
                 cfg_dir=str(tmp_path / "myworkdir"),
             )
-        return config_file, config_dir, mocked_constructor
+        return config_file, config_dir, mocked_constructor, model
 
     def test_setup_container(self, model_with_setup, tmp_path):
         mocked_constructor = model_with_setup[2]
         mocked_constructor.assert_called_once_with(
             image="ewatercycle-hype-grpc4bmi_feb2021.sif",
             work_dir=f"{tmp_path}/myworkdir",
-            input_dirs=[],
-            timeout=None,
+            input_dirs=[f"{tmp_path}/hype_testcase"],
+            timeout=300,
             delay=0,
         )
 
     def test_setup_parameter_set_files(self, model_with_setup):
-        config_dir = model_with_setup[1]
-        geodata = Path(config_dir) / "GeoData.txt"
+        geodata = model_with_setup[3].parameter_set.directory / "GeoData.txt"
         assert "subareaname" in geodata.read_text()
 
     def test_setup_config_file(self, model_with_setup):
@@ -250,7 +251,7 @@ class TestWithOnlyParameterSetAndFullSetup:
             ("end_time", "2010-12-31T00:00:00Z"),
             ("crit_time", "2002-01-01T00:00:00Z"),
         ]
-        assert model.parameters == expected
+        assert model.get_parameters() == expected
 
 
 def test_set_code_in_cfg():
@@ -330,7 +331,7 @@ class TestWithForcingAndDefaults:
 
     @pytest.fixture
     def model(self, parameter_set, forcing):
-        return Hype("feb2021", parameter_set, forcing)
+        return Hype(parameter_set=parameter_set, forcing=forcing)
 
     @pytest.fixture
     def model_with_setup(self, mocked_config, model: Hype):
@@ -339,26 +340,24 @@ class TestWithForcingAndDefaults:
         ) as mocked_constructor, patch("datetime.datetime") as mocked_datetime:
             mocked_datetime.now.return_value = datetime(2021, 1, 2, 3, 4, 5)
             config_file, config_dir = model.setup()
-        return config_file, config_dir, mocked_constructor
+        return config_file, config_dir, mocked_constructor, model
 
     def test_setup_container(self, model_with_setup, tmp_path):
         mocked_constructor = model_with_setup[2]
         mocked_constructor.assert_called_once_with(
             image="ewatercycle-hype-grpc4bmi_feb2021.sif",
             work_dir=f"{tmp_path}/hype_20210102_030405",
-            input_dirs=[],
-            timeout=None,
+            input_dirs=[f"{tmp_path}/hype_testcase", f"{tmp_path}/forcing"],
+            timeout=300,
             delay=0,
         )
 
     def test_setup_forcing_files(self, model_with_setup):
-        config_dir = model_with_setup[1]
-        pobs = Path(config_dir) / "Pobs.txt"
+        pobs = model_with_setup[3].forcing.directory / "Pobs.txt"
         assert "DATE" in pobs.read_text()
 
     def test_setup_parameter_set_files(self, model_with_setup):
-        config_dir = model_with_setup[1]
-        geodata = Path(config_dir) / "GeoData.txt"
+        geodata = model_with_setup[3].parameter_set.directory / "GeoData.txt"
         assert "subareaname" in geodata.read_text()
 
     def test_setup_config_file(self, model_with_setup):
@@ -395,4 +394,4 @@ class TestWithForcingAndDefaults:
             ("end_time", "2018-01-02T00:00:00Z"),
             ("crit_time", "1986-01-02T00:00:00Z"),
         ]
-        assert model.parameters == expected
+        assert model.get_parameters() == expected

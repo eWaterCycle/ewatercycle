@@ -36,11 +36,8 @@ class TestWithDefaultsAndExampleData:
     @pytest.fixture
     def model(self, generate_forcing, mocked_config):
         forcing = generate_forcing
-        m = MarrmotM14(version="2020.11", forcing=forcing)
+        m = MarrmotM14(forcing=forcing)
         yield m
-        if m.bmi:
-            # Clean up container
-            del m.bmi
 
     @pytest.fixture
     def model_with_setup(self, model: MarrmotM14):
@@ -65,7 +62,7 @@ class TestWithDefaultsAndExampleData:
             ("start time", "1989-01-01T00:00:00Z"),
             ("end time", "1992-12-31T00:00:00Z"),
         ]
-        assert model.parameters == expected
+        assert model.get_parameters() == expected
 
     def test_setup(self, model_with_setup):
         model, cfg_file, cfg_dir = model_with_setup
@@ -76,10 +73,9 @@ class TestWithDefaultsAndExampleData:
         )
         expected_forcing = loadmat(forcing_file)
 
-        expected_cfg_dir = CFG.output_dir / "marrmot_20210102_030405"
+        expected_cfg_dir = CFG.output_dir / "marrmotm14_20210102_030405"
         assert cfg_dir == str(expected_cfg_dir)
         assert cfg_file == str(expected_cfg_dir / "marrmot-m14_config.mat")
-        assert model.bmi
         assert actual["model_name"] == "m_14_topmodel_7p_2s"
         assert_almost_equal(actual["time_start"], expected_forcing["time_start"])
         assert_almost_equal(actual["time_end"], expected_forcing["time_end"])
@@ -104,7 +100,7 @@ class TestWithDefaultsAndExampleData:
             ("start time", "1989-01-01T00:00:00Z"),
             ("end time", "1992-12-31T00:00:00Z"),
         ]
-        assert model.parameters == expected
+        assert model.get_parameters() == expected
 
     def test_get_value_as_xarray(self, model_with_setup):
         model, cfg_file, cfg_dir = model_with_setup
@@ -118,7 +114,7 @@ class TestWithDefaultsAndExampleData:
             coords={
                 "longitude": [87.49],
                 "latitude": [35.29],
-                "time": pd.to_datetime([datetime(1992, 12, 31, tzinfo=timezone.utc)]),
+                "time": [datetime(1989, 1, 2)],
             },
             dims=["time", "latitude", "longitude"],
             name="flux_out_Q",
@@ -152,11 +148,8 @@ class TestWithCustomSetupAndExampleData:
     @pytest.fixture
     def model(self, generate_forcing, mocked_config):
         forcing = generate_forcing
-        m = MarrmotM14(version="2020.11", forcing=forcing)
+        m = MarrmotM14(forcing=forcing)
         yield m
-        if m.bmi:
-            # Clean up container
-            del m.bmi
 
     @pytest.fixture
     def model_with_setup(self, model: MarrmotM14):
@@ -176,10 +169,9 @@ class TestWithCustomSetupAndExampleData:
 
         actual = loadmat(str(cfg_file))
 
-        expected_cfg_dir = CFG.output_dir / "marrmot_20210102_030405"
+        expected_cfg_dir = CFG.output_dir / "marrmotm14_20210102_030405"
         assert cfg_dir == str(expected_cfg_dir)
         assert cfg_file == str(expected_cfg_dir / "marrmot-m14_config.mat")
-        assert model.bmi
         assert actual["model_name"] == "m_14_topmodel_7p_2s"
         assert_array_equal(
             actual["parameters"], [[1234.0, 0.5, 0.5, 100.0, 0.5, 4.25, 2.5]]
@@ -205,11 +197,8 @@ class TestWithDatesOutsideRangeSetupAndExampleData:
     @pytest.fixture
     def model(self, generate_forcing, mocked_config):
         forcing = generate_forcing
-        m = MarrmotM14(version="2020.11", forcing=forcing)
+        m = MarrmotM14(forcing=forcing)
         yield m
-        if m.bmi:
-            # Clean up container
-            del m.bmi
 
     def test_setup_with_earlystart(self, model: MarrmotM14):
         with pytest.raises(ValueError) as excinfo:
