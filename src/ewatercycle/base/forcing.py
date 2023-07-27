@@ -4,7 +4,7 @@ from typing import Literal, Optional, Union
 
 from esmvalcore.config import Session
 from esmvalcore.experimental import CFG
-from pydantic import BaseModel, validator
+from pydantic import field_validator, BaseModel, validator
 from ruamel.yaml import YAML
 
 from ewatercycle.util import to_absolute_path
@@ -31,10 +31,13 @@ class DefaultForcing(BaseModel):
     directory: Optional[Path] = None
     shape: Optional[Path] = None
 
-    @validator("directory")
+    @field_validator("directory")
+    @classmethod
     def _absolute_directory(cls, v: Union[str, Path, None]):
         return to_absolute_path(v) if v is not None else v
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("shape")
     def _absolute_shape(cls, v: Union[str, Path, None], values: dict):
         return (

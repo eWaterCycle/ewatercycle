@@ -9,7 +9,7 @@ from urllib.request import urlopen
 from zipfile import ZipFile
 
 import fsspec
-from pydantic import BaseModel, HttpUrl
+from pydantic import ConfigDict, BaseModel, HttpUrl
 
 from ewatercycle.util import to_absolute_path
 
@@ -151,9 +151,7 @@ class ParameterSet(BaseModel):
     supported by all versions of model"""
     downloader: GitHubDownloader | ZenodoDownloader | ArchiveDownloader | None = None
     """Method to download parameter set from somewhere."""
-
-    class Config:
-        extra = "forbid"
+    model_config = ConfigDict(extra="forbid")
 
     def __str__(self):
         """Nice formatting of parameter set."""

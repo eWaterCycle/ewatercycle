@@ -101,13 +101,11 @@ from pathlib import Path
 from typing import Dict, Literal, Optional, Set, TextIO, Tuple, Union
 
 from pydantic import (
-    BaseModel,
+    field_validator, ConfigDict, BaseModel,
     DirectoryPath,
     FilePath,
     ValidationError,
-    root_validator,
-    validator,
-)
+    root_validator)
 from ruamel.yaml import YAML
 
 from ewatercycle.base.parameter_set import ParameterSet
@@ -145,14 +143,11 @@ class Configuration(BaseModel):
 
     Data source for :py:func:`ewatercycle.parameter_sets.available_parameter_sets` and :py:func:`ewatercycle.parameter_sets.get_parameter_set` methods.
     """
-    ewatercycle_config: Optional[FilePath]
+    ewatercycle_config: Optional[FilePath] = None
     """Where is the configuration saved or loaded from.
 
     If None then the configuration was not loaded from a file."""
-
-    class Config:
-        validate_assignment = True
-        extra = "forbid"
+    model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
     @root_validator
     def singularity_dir_is_deprecated(cls, values):
@@ -183,14 +178,14 @@ class Configuration(BaseModel):
                 assert ps.config.exists(), f"{ps.config} must exist"
         return values
 
-    @validator(
+    @field_validator(
         "grdc_location",
         "apptainer_dir",
         "output_dir",
         "parameterset_dir",
         "ewatercycle_config",
-        pre=True,
-    )
+        mode="before")
+    @classmethod
     def expand_user_in_paths(cls, value):
         if isinstance(value, str):
             return Path(value).expanduser()

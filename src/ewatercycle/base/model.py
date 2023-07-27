@@ -35,8 +35,8 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
     local python environment.
     """
 
-    forcing: DefaultForcing | None
-    parameter_set: ParameterSet | None
+    forcing: DefaultForcing | None = None
+    parameter_set: ParameterSet | None = None
     parameters: dict[str, Any] = {}
 
     _bmi: OptionalDestBmi = pydantic.PrivateAttr()
