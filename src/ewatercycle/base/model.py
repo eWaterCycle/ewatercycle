@@ -14,7 +14,15 @@ import yaml
 from cftime import num2pydate
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 from grpc4bmi.reserve import reserve_values, reserve_values_at_indices
-from pydantic import AfterValidator, BaseModel, PrivateAttr, model_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    PrivateAttr,
+    TypeAdapter,
+    model_validator,
+)
 
 from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.base.parameter_set import ParameterSet
@@ -28,9 +36,6 @@ logger = logging.getLogger(__name__)
 ISO_TIMEFMT = r"%Y-%m-%dT%H:%M:%SZ"
 
 
-ValidatedParameterset = Annotated[ParameterSet, AfterValidator(_check_parameter_set)]
-
-
 class eWaterCycleModel(BaseModel, abc.ABC):
     """Base functionality for eWaterCycle models.
 
@@ -39,7 +44,7 @@ class eWaterCycleModel(BaseModel, abc.ABC):
     """
 
     forcing: DefaultForcing | None = None
-    parameter_set: ValidatedParameterset | None = None
+    parameter_set: ParameterSet | None = None
     parameters: dict[str, Any] = {}
     version: str = ""
 
@@ -392,16 +397,25 @@ class LocalModel(eWaterCycleModel):
         return OptionalDestBmi(self.bmi_class())
 
 
+def _parse_containerimage(v):
+    image = ContainerImage(v)
+    image._validate()
+    return image
+
+
 class ContainerizedModel(eWaterCycleModel):
     """eWaterCycle model running inside a container.
 
     This is the recommended method for sharing eWaterCycle models.
     """
 
-    bmi_image: ContainerImage
+    bmi_image: Annotated[ContainerImage, BeforeValidator(_parse_containerimage)]
 
     # Create as empty list to allow models to append before bmi is made:
     _additional_input_dirs: list[str] = PrivateAttr([])
+
+    # Make pydantic accept ContainerImage type.
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def _make_bmi_instance(self) -> bmipy.Bmi:
         if self.parameter_set:

@@ -10,6 +10,7 @@ from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_memoized import MemoizedBmi
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
+from pydantic import BaseModel, model_validator
 
 from ewatercycle.config import CFG, ContainerEngine
 
@@ -60,17 +61,10 @@ class ContainerImage(str):
     eWatercycle containers typically don't have these issues.
     """
 
-    @classmethod
-    def __get_validators__(cls):
-        """Enter pydantic validation flow."""
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, value):
+    def _validate(self):
         """Verify image ends with .sif or can parse as docker url."""
-        if not value.endswith(".sif"):
-            _parse_docker_url(value)
-        return cls(value)
+        if not self.endswith(".sif"):
+            _parse_docker_url(self)
 
     @property
     def apptainer_filename(self) -> str:
