@@ -9,12 +9,12 @@ from typing import Annotated, Any, Iterable, Optional, Type, cast
 
 import bmipy
 import numpy as np
-import pydantic
 import xarray as xr
 import yaml
 from cftime import num2pydate
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 from grpc4bmi.reserve import reserve_values, reserve_values_at_indices
+from pydantic import AfterValidator, BaseModel, PrivateAttr, model_validator
 
 from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.base.parameter_set import ParameterSet
@@ -28,33 +28,10 @@ logger = logging.getLogger(__name__)
 ISO_TIMEFMT = r"%Y-%m-%dT%H:%M:%SZ"
 
 
-def _check_parameter_set(v, info):
-    parameter_set = v
-    model_name = info.config["title"]
-    if model_name != parameter_set.target_model:
-        raise ValueError(
-            f"Parameter set has wrong target model, "
-            f"expected {parameter_set.target_model} got {model_name}"
-        )
-
-    version = info.data.get("version", None)
-    if len(parameter_set.supported_model_versions) > 0 and version is not None:
-        if version not in parameter_set.supported_model_versions:
-            raise ValueError(
-                f"Parameter set '{parameter_set.__class__.__name__}' is not compabitble"
-                " with this model version.\n"
-                f"Model version: {version}. "
-                "Compatible versions: {parameter_set.supported_model_versions}"
-            )
-    return parameter_set
+ValidatedParameterset = Annotated[ParameterSet, AfterValidator(_check_parameter_set)]
 
 
-ValidatedParameterset = Annotated[
-    ParameterSet, pydantic.AfterValidator(_check_parameter_set)
-]
-
-
-class BaseModel(pydantic.BaseModel, abc.ABC):
+class eWaterCycleModel(BaseModel, abc.ABC):
     """Base functionality for eWaterCycle models.
 
     Children need to specify how to make their BMI instance: in a container or
@@ -66,10 +43,35 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
     parameters: dict[str, Any] = {}
     version: str = ""
 
-    _bmi: OptionalDestBmi = pydantic.PrivateAttr()
+    _bmi: OptionalDestBmi = PrivateAttr()
 
-    _cfg_dir: Path = pydantic.PrivateAttr()
-    _cfg_file: Path = pydantic.PrivateAttr()
+    _cfg_dir: Path = PrivateAttr()
+    _cfg_file: Path = PrivateAttr()
+
+    @model_validator(mode="after")
+    def _check_parameter_set(self):
+        """Check that parameter set is compatible with model."""
+        if not self.parameter_set:
+            return self
+
+        target_model = self.parameter_set.target_model.lower()
+        model_name = self.__class__.__name__.lower()
+        if model_name != target_model:
+            raise ValueError(
+                f"Parameter set has wrong target model, "
+                f"expected {target_model} got {model_name}"
+            )
+
+        version = self.version
+        ps_versions = self.parameter_set.supported_model_versions
+        if version and ps_versions and version not in ps_versions:
+            raise ValueError(
+                f"Parameter set '{self.parameter_set.name}' not compatible"
+                f" with this model version.\nModel version: {version}. "
+                f"Compatible versions: {ps_versions}"
+            )
+
+        return self
 
     @abc.abstractmethod
     def _make_bmi_instance(self) -> OptionalDestBmi:
@@ -378,7 +380,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         return grid_lat, grid_lon, shape
 
 
-class LocalModel(BaseModel):
+class LocalModel(eWaterCycleModel):
     """eWaterCycle model running in a local Python environment.
 
     Mostly intended for development purposes.
@@ -390,7 +392,7 @@ class LocalModel(BaseModel):
         return OptionalDestBmi(self.bmi_class())
 
 
-class ContainerizedModel(BaseModel):
+class ContainerizedModel(eWaterCycleModel):
     """eWaterCycle model running inside a container.
 
     This is the recommended method for sharing eWaterCycle models.
@@ -399,7 +401,7 @@ class ContainerizedModel(BaseModel):
     bmi_image: ContainerImage
 
     # Create as empty list to allow models to append before bmi is made:
-    _additional_input_dirs: list[str] = pydantic.PrivateAttr([])
+    _additional_input_dirs: list[str] = PrivateAttr([])
 
     def _make_bmi_instance(self) -> bmipy.Bmi:
         if self.parameter_set:
