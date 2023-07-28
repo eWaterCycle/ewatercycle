@@ -116,22 +116,6 @@ from ewatercycle.util import to_absolute_path
 logger = getLogger(__name__)
 
 
-def _localize_parametersets(v, info):
-    """Make parameter set directories relative to root."""
-    parameterset_dir = info.data.get("parameterset_dir")
-    for ps_name, ps in v.items():
-        if isinstance(ps, dict):
-            # TODO is this explicit parsing necessary?
-            ps = ParameterSet(**ps)
-        if isinstance(ps, ParameterSet) and parameterset_dir:
-            ps.name = ps_name
-            ps.make_absolute(parameterset_dir)
-            # TODO to use download_example_parameter_sets these asserts must be disabled
-            assert ps.directory.exists(), f"{ps.directory} must exist"
-            assert ps.config.exists(), f"{ps.config} must exist"
-    return v
-
-
 def _expand_path(v):
     if isinstance(v, str):
         return Path(v).expanduser()
@@ -142,10 +126,6 @@ def _expand_path(v):
 
 
 ContainerEngine = Literal["docker", "apptainer", "singularity"]
-ParameterSets = Dict[str, ParameterSet]
-LocalizedParameterSets = Annotated[
-    ParameterSets, AfterValidator(_localize_parametersets)
-]
 ExpandedDirectoryPath = Annotated[DirectoryPath, BeforeValidator(_expand_path)]
 ExpandedFilePath = Annotated[FilePath, BeforeValidator(_expand_path)]
 
@@ -173,7 +153,7 @@ class Configuration(BaseModel):
     Each model run will generate a sub directory inside output_dir"""
     parameterset_dir: ExpandedDirectoryPath = Path(".")
     """Root directory for all parameter sets."""
-    parameter_sets: LocalizedParameterSets = {}
+    parameter_sets: Dict[str, ParameterSet] = {}
     """Dictionary of parameter sets.
 
     Data source for :py:func:`ewatercycle.parameter_sets.available_parameter_sets` and
@@ -186,7 +166,31 @@ class Configuration(BaseModel):
     model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
     @model_validator(mode="after")
-    @classmethod
+    def _localize_parametersets(self):
+        """Make parameter set directories relative to root."""
+        parameter_sets = self.parameter_sets
+        parameterset_dir = self.parameterset_dir
+        for ps_name, ps in parameter_sets.items():
+            if isinstance(ps, dict):
+                # TODO is this explicit parsing necessary?
+                ps = ParameterSet(**ps)
+            if isinstance(ps, ParameterSet) and parameterset_dir:
+                ps.name = ps_name
+                ps.make_absolute(parameterset_dir)
+
+                if not ps.directory.exists():
+                    warnings.warn(
+                        f"Parameter set {ps.name} loaded in config but "
+                        f"{ps.directory} does not seem to exist."
+                    )
+                if not ps.config.exists():
+                    warnings.warn(
+                        f"Parameter set {ps.name} loaded in config but "
+                        f"{ps.config} does not seem to exist."
+                    )
+        return self
+
+    @model_validator(mode="after")
     def singularity_dir_is_deprecated(self):
         if self.singularity_dir is not None:
             file = self.ewatercycle_config
