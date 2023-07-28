@@ -91,21 +91,23 @@ The ``ewatercycle.yaml`` is formatted in YAML and could for example look like:
     # apptainer pull docker://ewatercycle/wflow-grpc4bmi:2020.1.1
 """
 
-"""Importable config object."""
-
 import os
 import warnings
 from io import StringIO
 from logging import getLogger
 from pathlib import Path
-from typing import Dict, Literal, Optional, Set, TextIO, Tuple, Union
+from typing import Annotated, Dict, Literal, Optional, TextIO, Tuple, Union
 
 from pydantic import (
-    field_validator, ConfigDict, BaseModel,
+    AfterValidator,
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
     DirectoryPath,
     FilePath,
     ValidationError,
-    root_validator)
+    model_validator,
+)
 from ruamel.yaml import YAML
 
 from ewatercycle.base.parameter_set import ParameterSet
@@ -114,7 +116,38 @@ from ewatercycle.util import to_absolute_path
 logger = getLogger(__name__)
 
 
+def _localize_parametersets(v, info):
+    """Make parameter set directories relative to root."""
+    parameterset_dir = info.data.get("parameterset_dir")
+    for ps_name, ps in v.items():
+        if isinstance(ps, dict):
+            # TODO is this explicit parsing necessary?
+            ps = ParameterSet(**ps)
+        if isinstance(ps, ParameterSet) and parameterset_dir:
+            ps.name = ps_name
+            ps.make_absolute(parameterset_dir)
+            # TODO to use download_example_parameter_sets these asserts must be disabled
+            assert ps.directory.exists(), f"{ps.directory} must exist"
+            assert ps.config.exists(), f"{ps.config} must exist"
+    return v
+
+
+def _expand_path(v):
+    if isinstance(v, str):
+        return Path(v).expanduser()
+    if isinstance(v, Path):
+        return v.expanduser()
+    # paths in parameter_sets items is already expanded by ps.make_absolute()
+    return v
+
+
 ContainerEngine = Literal["docker", "apptainer", "singularity"]
+ParameterSets = Dict[str, ParameterSet]
+LocalizedParameterSets = Annotated[
+    ParameterSets, AfterValidator(_localize_parametersets)
+]
+ExpandedDirectoryPath = Annotated[DirectoryPath, BeforeValidator(_expand_path)]
+ExpandedFilePath = Annotated[FilePath, BeforeValidator(_expand_path)]
 
 
 class Configuration(BaseModel):
@@ -124,78 +157,50 @@ class Configuration(BaseModel):
     :obj:`ewatercycle.CFG` instead.
     """
 
-    grdc_location: DirectoryPath = Path(".")
+    grdc_location: ExpandedDirectoryPath = Path(".")
     """Where can GRDC observation files (<station identifier>_Q_Day.Cmd.txt) be found."""
     container_engine: ContainerEngine = "docker"
     """Which container engine is used to run the hydrological models."""
-    apptainer_dir: DirectoryPath = Path(".")
+    apptainer_dir: ExpandedDirectoryPath = Path(".")
     """Where the apptainer images files (.sif) be found."""
     singularity_dir: Optional[DirectoryPath] = None
     """Where the singularity images files (.sif) be found. DEPRECATED, use apptainer_dir."""
-    output_dir: DirectoryPath = Path(".")
+    output_dir: ExpandedDirectoryPath = Path(".")
     """Directory in which output of model runs is stored.
 
     Each model run will generate a sub directory inside output_dir"""
-    parameterset_dir: DirectoryPath = Path(".")
+    parameterset_dir: ExpandedDirectoryPath = Path(".")
     """Root directory for all parameter sets."""
-    parameter_sets: Dict[str, ParameterSet] = {}
+    parameter_sets: LocalizedParameterSets = {}
     """Dictionary of parameter sets.
 
-    Data source for :py:func:`ewatercycle.parameter_sets.available_parameter_sets` and :py:func:`ewatercycle.parameter_sets.get_parameter_set` methods.
+    Data source for :py:func:`ewatercycle.parameter_sets.available_parameter_sets` and
+    :py:func:`ewatercycle.parameter_sets.get_parameter_set` methods.
     """
-    ewatercycle_config: Optional[FilePath] = None
+    ewatercycle_config: Optional[ExpandedFilePath] = None
     """Where is the configuration saved or loaded from.
 
     If None then the configuration was not loaded from a file."""
     model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
-    @root_validator
-    def singularity_dir_is_deprecated(cls, values):
-        singularity_dir = values.get("singularity_dir")
-        if singularity_dir is not None:
-            file = values.get("ewatercycle_config", "in-memory object")
+    @model_validator(mode="after")
+    @classmethod
+    def singularity_dir_is_deprecated(self):
+        if self.singularity_dir is not None:
+            file = self.ewatercycle_config
+            file = file if file else "in-memory object"
             warnings.warn(
-                f"singularity_dir field has been deprecated please use apptainer_dir in {file}",
+                "Singularity_dir field has been deprecated. "
+                f"Please use apptainer_dir in ewatercycle config ({file})",
                 DeprecationWarning,
                 stacklevel=2,
             )
-            values["apptainer_dir"] = singularity_dir
-            values["singularity_dir"] = None
-        return values
-
-    @root_validator
-    def prepend_root_to_parameterset_paths(cls, values):
-        parameterset_dir = values.get("parameterset_dir")
-        parameter_sets = values.get("parameter_sets", {})
-        for ps_name, ps in parameter_sets.items():
-            if isinstance(ps, dict):
-                ps = ParameterSet(**ps)
-            if isinstance(ps, ParameterSet) and parameterset_dir:
-                ps.name = ps_name
-                ps.make_absolute(parameterset_dir)
-                # TODO to use download_example_parameter_sets these asserts must be disabled
-                assert ps.directory.exists(), f"{ps.directory} must exist"
-                assert ps.config.exists(), f"{ps.config} must exist"
-        return values
-
-    @field_validator(
-        "grdc_location",
-        "apptainer_dir",
-        "output_dir",
-        "parameterset_dir",
-        "ewatercycle_config",
-        mode="before")
-    @classmethod
-    def expand_user_in_paths(cls, value):
-        if isinstance(value, str):
-            return Path(value).expanduser()
-        if isinstance(value, Path):
-            return value.expanduser()
-        # paths in parameter_sets items is already expanded by ps.make_absolute()
-        return value
+            self.apptainer_dir = self.singularity_dir
+            self.singularity_dir = None
+        return self
 
     @classmethod
-    def _load_user_config(cls, filename: Union[os.PathLike, str]) -> "Configuration":
+    def _load_user_config(cls, filename: os.PathLike[str] | str) -> "Configuration":
         """Load user configuration from the given file.
 
         Parameters
@@ -216,7 +221,7 @@ class Configuration(BaseModel):
                 error["loc"] = tuple(locs)
             raise
 
-    def load_from_file(self, filename: Union[os.PathLike, str]) -> None:
+    def load_from_file(self, filename: os.PathLike[str] | str) -> None:
         """Load user configuration from the given file.
 
         The config is cleared and updated in-place.
@@ -256,9 +261,7 @@ class Configuration(BaseModel):
         yaml_object = yaml.load(json_string)
         yaml.dump(yaml_object, stream)
 
-    def save_to_file(
-        self, config_file: Optional[Union[os.PathLike, str]] = None
-    ) -> None:
+    def save_to_file(self, config_file: os.PathLike[str] | str | None = None) -> None:
         """Write conf object to a file.
 
         Args:
