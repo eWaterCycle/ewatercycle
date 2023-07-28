@@ -164,7 +164,9 @@ class Configuration(BaseModel):
     apptainer_dir: ExpandedDirectoryPath = Path(".")
     """Where the apptainer images files (.sif) be found."""
     singularity_dir: Optional[DirectoryPath] = None
-    """Where the singularity images files (.sif) be found. DEPRECATED, use apptainer_dir."""
+    """Where the singularity images files (.sif) be found.
+
+    DEPRECATED, use apptainer_dir."""
     output_dir: ExpandedDirectoryPath = Path(".")
     """Directory in which output of model runs is stored.
 
