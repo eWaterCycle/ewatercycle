@@ -9,7 +9,7 @@ import bmipy
 import xarray as xr
 from dateutil.parser import parse
 from dateutil.tz import UTC
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, computed_field, model_validator
 
 from ewatercycle.base.model import ISO_TIMEFMT, ContainerizedModel
 from ewatercycle.base.parameter_set import ParameterSet
@@ -36,65 +36,38 @@ class Hype(ContainerizedModel):
     forcing: Optional[HypeForcing] = None
     parameter_set: ParameterSet  # not optional for this model
     bmi_image: ContainerImage = ContainerImage("ewatercycle/hype-grpc4bmi:feb2021")
-    version: str = "feb2021"
 
     _config: str = PrivateAttr()
     _start: datetime.datetime = PrivateAttr()
     _end: datetime.datetime = PrivateAttr()
     _crit: datetime.datetime = PrivateAttr()
 
-    # TODO: move to post_init in pydantic v2
-    def _post_init(self):
+    @model_validator(mode="after")
+    def _initialize_config(self):
         """Load config from parameter set and update with forcing info."""
-        if not hasattr(self, "_config"):
-            self._config = self.parameter_set.config.read_text(encoding="cp437")
-            self._start = _get_hype_time(_get_code_in_cfg(self._config, "bdate"))
-            self._end = _get_hype_time(_get_code_in_cfg(self._config, "edate"))
-            self._crit = _get_hype_time(_get_code_in_cfg(self._config, "cdate"))
-            if self._crit is None:
-                self._crit = self._start
-                self._config = _set_code_in_cfg(
-                    self._config, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
-                )
-            if self.forcing is not None:
-                self._start = get_time(self.forcing.start_time)
-                self._config = _set_code_in_cfg(
-                    self._config, "bdate", self._start.strftime("%Y-%m-%d %H:%M:%S")
-                )
-                self._end = get_time(self.forcing.end_time)
-                self._config = _set_code_in_cfg(
-                    self._config, "edate", self._end.strftime("%Y-%m-%d %H:%M:%S")
-                )
-                # Also set crit time to start time, it can be overwritten in setup()
-                self._crit = self._start
-                self._config = _set_code_in_cfg(
-                    self._config, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
-                )
-
-    def setup(self, **kwargs) -> Tuple[str, str]:
-        """Configure model run.
-
-        1. Creates config file and config directory
-           based on the forcing variables and time range.
-        2. Start bmi container and store as :py:attr:`bmi`
-
-        Args:
-            cfg_dir: a run directory given by user or created for user.
-            start_time: Start time of model in UTC and ISO format string
-                e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-                If not given then forcing start time is used.
-            end_time: End time of model in  UTC and ISO format string
-                e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-                If not given then forcing end time is used.
-            crit_time: Start date for the output of results and calculations of criteria.
-                e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-                If not given then start_time is used.
-
-        Returns:
-            Path to config file and path to config directory
-        """
-        self._post_init()
-        return super().setup(**kwargs)
+        self._config = self.parameter_set.config.read_text(encoding="cp437")
+        self._start = _get_hype_time(_get_code_in_cfg(self._config, "bdate"))
+        self._end = _get_hype_time(_get_code_in_cfg(self._config, "edate"))
+        self._crit = _get_hype_time(_get_code_in_cfg(self._config, "cdate"))
+        if self._crit is None:
+            self._crit = self._start
+            self._config = _set_code_in_cfg(
+                self._config, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
+            )
+        if self.forcing is not None:
+            self._start = get_time(self.forcing.start_time)
+            self._config = _set_code_in_cfg(
+                self._config, "bdate", self._start.strftime("%Y-%m-%d %H:%M:%S")
+            )
+            self._end = get_time(self.forcing.end_time)
+            self._config = _set_code_in_cfg(
+                self._config, "edate", self._end.strftime("%Y-%m-%d %H:%M:%S")
+            )
+            # Also set crit time to start time, it can be overwritten in setup()
+            self._crit = self._start
+            self._config = _set_code_in_cfg(
+                self._config, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
+            )
 
     def _make_cfg_file(self, **kwargs) -> Path:
         """Create a Hype config file and return its path."""
@@ -159,16 +132,26 @@ class Hype(ContainerizedModel):
     def get_latlon_grid(self, name: str) -> tuple[Any, Any, Any]:
         raise NotImplementedError("Hype coordinates cannot be mapped to grid")
 
-    def get_parameters(self) -> Iterable[Tuple[str, Any]]:
-        """List the parameters for this model."""
-        self._post_init()
+    @property
+    def parameters(self) -> dict[str, Any]:
+        """List the parameters for this model.
 
-        assert self.parameter_set is not None
-        return [
-            ("start_time", self._start.strftime(ISO_TIMEFMT)),
-            ("end_time", self._end.strftime(ISO_TIMEFMT)),
-            ("crit_time", self._crit.strftime(ISO_TIMEFMT)),
-        ]
+        Exposed Lisflood parameters:
+            start_time: Start time of model in UTC and ISO format string
+                e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+                If not given then forcing start time is used.
+            end_time: End time of model in  UTC and ISO format string
+                e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+                If not given then forcing end time is used.
+            crit_time: Start date for the output of results and calculations of criteria.
+                e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+                If not given then start_time is used.
+        """
+        return {
+            "start_time": self._start.strftime(ISO_TIMEFMT),
+            "end_time": self._end.strftime(ISO_TIMEFMT),
+            "crit_time": self._crit.strftime(ISO_TIMEFMT),
+        }
 
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]

@@ -33,7 +33,6 @@ class Lisflood(ContainerizedModel):
     forcing: LisfloodForcing  # not optional for this model
     parameter_set: ParameterSet  # not optional for this model
     bmi_image: ContainerImage = ContainerImage("ewatercycle/lisflood-grpc4bmi:20.10")
-    version: str = "20.10"
 
     # TODO: consider combining all settings in a single _config attribute
     _config: XmlConfig = PrivateAttr()
@@ -102,6 +101,7 @@ class Lisflood(ContainerizedModel):
         Returns:
             Path to config file and path to config directory
         """
+        # TODO: move parsing these kwargs to an "_update_config" method.
         if IrrigationEfficiency is not None:
             self._irrigation_efficiency = IrrigationEfficiency
 
@@ -189,17 +189,15 @@ class Lisflood(ContainerizedModel):
         self._config.save(str(lisflood_file))
         return lisflood_file
 
-    def get_parameters(self) -> Iterable[Tuple[str, Any]]:
+    @property
+    def parameters(self) -> dict[str, Any]:
         """List the parameters for this model."""
-        return [
-            (
-                "IrrigationEfficiency",
-                self._get_textvar_value("IrrigationEfficiency"),
-            ),
-            ("MaskMap", self._get_textvar_value("MaskMap")),
-            ("start_time", self._model_start_time.strftime(ISO_TIMEFMT)),
-            ("end_time", self._model_end_time.strftime(ISO_TIMEFMT)),
-        ]
+        return {
+            "IrrigationEfficiency": self._get_textvar_value("IrrigationEfficiency"),
+            "MaskMap": self._get_textvar_value("MaskMap"),
+            "start_time": self._model_start_time.strftime(ISO_TIMEFMT),
+            "end_time": self._model_end_time.strftime(ISO_TIMEFMT),
+        }
 
     def finalize(self) -> None:
         """Perform tear-down tasks for the model."""

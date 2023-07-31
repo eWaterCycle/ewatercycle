@@ -2,6 +2,7 @@
 
 import abc
 import datetime
+import inspect
 import logging
 from datetime import timezone
 from pathlib import Path
@@ -21,6 +22,7 @@ from pydantic import (
     ConfigDict,
     PrivateAttr,
     TypeAdapter,
+    computed_field,
     model_validator,
 )
 
@@ -45,13 +47,15 @@ class eWaterCycleModel(BaseModel, abc.ABC):
 
     forcing: DefaultForcing | None = None
     parameter_set: ParameterSet | None = None
-    parameters: dict[str, Any] = {}
-    version: str = ""
 
     _bmi: OptionalDestBmi = PrivateAttr()
 
     _cfg_dir: Path = PrivateAttr()
     _cfg_file: Path = PrivateAttr()
+
+    @property
+    def version(self) -> str:
+        return ""
 
     @model_validator(mode="after")
     def _check_parameter_set(self):
@@ -81,6 +85,11 @@ class eWaterCycleModel(BaseModel, abc.ABC):
     @abc.abstractmethod
     def _make_bmi_instance(self) -> OptionalDestBmi:
         """Attach a BMI instance to self._bmi."""
+
+    @property
+    def parameters(self) -> dict[str, Any]:
+        """Display the model's parameters and their values."""
+        return {}
 
     def setup(self, *, cfg_dir: str | None = None, **kwargs) -> tuple[str, str]:
         """Perform model setup.
@@ -393,6 +402,10 @@ class LocalModel(eWaterCycleModel):
 
     bmi_class: Type[bmipy.Bmi]
 
+    @property
+    def version(self) -> str:
+        return getattr(inspect.getmodule(self), "__version__", "")
+
     def _make_bmi_instance(self):
         return OptionalDestBmi(self.bmi_class())
 
@@ -416,6 +429,10 @@ class ContainerizedModel(eWaterCycleModel):
 
     # Make pydantic accept ContainerImage type.
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    @property
+    def version(self) -> str:
+        return self.bmi_image.version
 
     def _make_bmi_instance(self) -> bmipy.Bmi:
         if self.parameter_set:
