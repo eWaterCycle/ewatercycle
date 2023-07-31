@@ -1,3 +1,4 @@
+from datetime import datetime
 import logging
 from pathlib import Path
 from typing import Literal, Optional, Union
@@ -8,6 +9,8 @@ from pydantic import BaseModel, validator
 from ruamel.yaml import YAML
 
 from ewatercycle.util import to_absolute_path
+
+from ewatercycle.base.esmvaltool_wrapper import Dataset, Recipe
 
 logger = logging.getLogger(__name__)
 FORCING_YAML = "ewatercycle_forcing.yaml"
@@ -46,7 +49,7 @@ class DefaultForcing(BaseModel):
     @classmethod
     def generate(
         cls,
-        dataset: str,
+        dataset: str | Dataset,
         start_time: str,
         end_time: str,
         shape: str,
@@ -68,7 +71,50 @@ class DefaultForcing(BaseModel):
             directory:  Directory in which forcing should be written.
                 If not given will create timestamped directory.
         """
-        raise NotImplementedError("No default forcing generator available.")
+        # TODO make data set build function
+        recipe = cls._build_recipe(
+            dataset=dataset,
+            start_time=start_time,
+            end_time=end_time,
+            shape=shape,
+            **model_specific_options,
+        )
+        return cls._run_recipe(recipe, directory=directory)
+
+
+    @classmethod
+    def _build_recipe(cls,
+        start_time: datetime,
+        end_time: datetime,
+        shape: Path,
+        dataset: Dataset | str = Dataset("ERA5", project="OBS6", tier=3, type="reanaly", version=1),
+        **model_specific_options,):
+        yaml = YAML(typ="safe")
+        fn = Path(__file__).parent / "recipe_generic_distributed.yml"
+        data = yaml.load(fn)
+
+        if isinstance(dataset, str):
+            dataset = Dataset(**DATASETS[dataset])
+        data['datasets'] = [dataset]
+
+        for preprocessor in data["preprocessors"].values():
+            if 'extract_shape' in preprocessor:
+                preprocessor["extract_shape"]["shapefile"] = str(shape)
+
+        variables = data["diagnostics"]["diagnostic"]["variables"]
+        for variable in variables.values():
+            variable['start_year'] = start_time.year
+            variable['end_year'] = end_time.year
+        return Recipe(**data)
+
+    
+    @classmethod
+    def _run_recipe(cls, recipe: Recipe, directory: Optional[str] = None,):
+        # TODO see 
+        # https://github.com/eWaterCycle/ewatercycle/blob/8f1caf11a13c4761c07b7aa4fb9310865d999d41/src/ewatercycle/base/forcing.py#L155
+        # in https://github.com/eWaterCycle/ewatercycle/pull/362
+        # or use CLI with `esmvaltool run <written recipe>`, will need to find output files ourselves
+        return run_esmvaltool_recipe(recipe, directory=directory)
 
     def save(self):
         """Export forcing data for later use."""
@@ -171,3 +217,4 @@ DATASETS = {
 Where key is the name of the dataset and
 value is an `ESMValTool dataset section <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipe/overview.html#datasets>`_.
 """
+
