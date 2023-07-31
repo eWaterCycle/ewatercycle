@@ -1,9 +1,12 @@
 """Forcing related functionality for marrmot."""
 
+from datetime import datetime
 from pathlib import Path
 from typing import Literal, Optional
 
+import pandas as pd
 from esmvalcore.experimental import get_recipe
+from scipy.io import loadmat
 
 from ewatercycle.base.forcing import (
     DATASETS,
@@ -117,3 +120,30 @@ class MarrmotForcing(DefaultForcing):
 
 # TODO could be nice to have plot function
 # that loads the mat file into a xarray dataset and plots it
+
+
+def load_forcing_file(fn: Path) -> pd.DataFrame:
+    """Load forcing data from a matlab file.
+
+    Args:
+        fn: Path to matlab file.
+
+    Returns:
+        Dataframe with forcing data.
+
+    Example:
+
+        >>> ds = load_forcing_file(forcing.directory / forcing.forcing_file)
+        >>> ds
+
+    """
+    dataset = loadmat(fn, mat_dtype=True)
+    precip = dataset["forcing"]["precip"][0][0][0]
+    temp = dataset["forcing"]["temp"][0][0][0]
+    pet = dataset["forcing"]["pet"][0][0][0]
+    forcing_start = datetime(*map(int, dataset["time_start"][0][:3]))
+    forcing_end = datetime(*map(int, dataset["time_end"][0][:3]))
+    # store data as a pandas Series (deliberately keep default time: 00:00)
+    index = pd.date_range(forcing_start, forcing_end, name="time")
+    # TODO store `'data_origin': array([[49.25,  8.  ]])` as xarray coords
+    return pd.DataFrame({"precip": precip, "temp": temp, "pet": pet}, index=index)
