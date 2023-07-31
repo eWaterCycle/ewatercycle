@@ -4,7 +4,7 @@ import datetime
 import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Iterable, List, Optional
+from typing import Any, Literal
 
 import scipy.io as sio
 from pydantic import PrivateAttr, model_validator
@@ -12,7 +12,7 @@ from pydantic import PrivateAttr, model_validator
 from ewatercycle.base.model import ISO_TIMEFMT, ContainerizedModel
 from ewatercycle.container import ContainerImage
 from ewatercycle.plugins.marrmot.forcing import MarrmotForcing
-from ewatercycle.util import get_time, to_absolute_path
+from ewatercycle.util import get_time
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,42 @@ class Solver:
     name: str = "createOdeApprox_IE"
     resnorm_tolerance: float = 0.1
     resnorm_maxiter: float = 6.0
+
+
+def get_marrmot_time(config: dict, which: Literal["start", "end"]) -> str:
+    """Get the start/end timestamps from the Marrmott config."""
+    yr, mn, dy, hr, mi, sc = (int(el) for el in config[f"time_{which}"][0][0:6])
+    dt = datetime.datetime(yr, mn, dy, hr, mi, sc)
+    return dt.strftime(ISO_TIMEFMT)
+
+
+def get_solver(config: dict) -> Solver:
+    """Return a Solver object, generated from the configuration info."""
+    return Solver(
+        name=config["solver"]["name"][0][0][0],
+        resnorm_tolerance=config["solver"]["resnorm_tolerance"][0][0][0],
+        resnorm_maxiter=config["solver"]["resnorm_maxiter"][0][0][0],
+    )
+
+
+def _update_model_time(
+    model: "MarrmotM01 | MarrmotM14",
+    time: datetime.datetime,
+    which: Literal["start", "end"],
+) -> None:
+    """Update the model start or end time (in-place)."""
+    if time < get_time(model.forcing.start_time) or time > get_time(
+        model.forcing.end_time
+    ):
+        raise ValueError(f"{which}_time outside forcing time range")
+    model._config[f"time_{which}"][0][0:6] = [
+        time.year,
+        time.month,
+        time.day,
+        time.hour,
+        time.minute,
+        time.second,
+    ]
 
 
 class MarrmotM01(ContainerizedModel):
@@ -52,82 +88,18 @@ class MarrmotM01(ContainerizedModel):
     bmi_image: ContainerImage = ContainerImage("ewatercycle/marrmot-grpc4bmi:2020.11")
 
     _model_name: str = PrivateAttr("m_01_collie1_1p_1s")
-
-    # TODO: consider combining all settings in a single _config attribute
-    _parameters: List[float] = PrivateAttr([1000.0])
-    _store_ini: List[float] = PrivateAttr([900.0])
-    _solver: Solver = PrivateAttr(Solver())
-    _model_start_time: str | None = PrivateAttr()
-    _model_end_time: str | None = PrivateAttr()
-
-    _forcing_filepath: str = PrivateAttr()
-    _forcing_start_time: datetime.datetime = PrivateAttr()
-    _forcing_end_time: datetime.datetime = PrivateAttr()
+    _config: dict = PrivateAttr()
 
     @model_validator(mode="after")
-    def _check_forcing(self):
-        """Check forcing argument and get path, start and end time of forcing data."""
-        forcing_dir = to_absolute_path(self.forcing.directory)
-        self._forcing_filepath = str(forcing_dir / self.forcing.forcing_file)
-        # convert date_strings to datetime objects
-        self._forcing_start_time = get_time(self.forcing.start_time)
-        self._forcing_end_time = get_time(self.forcing.end_time)
+    def _initialize_config(self) -> "MarrmotM01":
+        # TODO: remove assertions after refactoring Forcing
+        assert self.forcing.directory is not None
+        assert self.forcing.forcing_file is not None
 
-        # parse start/end time
-        forcing_data = sio.loadmat(self._forcing_filepath, mat_dtype=True)
-        if "parameters" in forcing_data:
-            self._parameters = forcing_data["parameters"][0]
-        if "store_ini" in forcing_data:
-            self._store_ini = forcing_data["store_ini"][0]
-        if "solver" in forcing_data:
-            forcing_solver = forcing_data["solver"]
-            self._solver = Solver(
-                name=forcing_solver["name"][0][0][0],
-                resnorm_tolerance=forcing_solver["resnorm_tolerance"][0][0][0],
-                resnorm_maxiter=forcing_solver["resnorm_maxiter"][0][0][0],
-            )
-
-    def setup(
-        self,
-        maximum_soil_moisture_storage: Optional[float] = None,
-        initial_soil_moisture_storage: Optional[float] = None,
-        start_time: Optional[str] = None,
-        end_time: Optional[str] = None,
-        solver: Optional[Solver] = None,
-        **kwargs,
-    ) -> tuple[str, str]:
-        """Configure model run.
-
-        1. Creates config file and config directory based on the forcing
-           variables and time range
-        2. Start bmi container and store as :py:attr:`bmi`
-
-        Args:
-            maximum_soil_moisture_storage: in mm. Range is specfied in `model
-                parameter range file
-                <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
-            initial_soil_moisture_storage: in mm.
-            start_time: Start time of model in UTC and ISO format string e.g.
-                'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is
-                used.
-            end_time: End time of model in  UTC and ISO format string e.g.
-                'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
-            solver: Solver settings
-
-        Returns:
-            Path to config file and path to config directory
-        """
-        # TODO: move parsing these kwargs to an "_update_config" method.
-        if maximum_soil_moisture_storage is not None:
-            self._parameters = [maximum_soil_moisture_storage]
-        if initial_soil_moisture_storage is not None:
-            self._store_ini = [initial_soil_moisture_storage]
-        if solver is not None:
-            self._solver = solver
-        self._model_start_time = start_time
-        self._model_end_time = end_time
-
-        return super().setup(**kwargs)
+        self._config = sio.loadmat(
+            str(self.forcing.directory / self.forcing.forcing_file), mat_dtype=True
+        )
+        return self
 
     def _make_cfg_file(self, **kwargs) -> Path:
         """Write model configuration file.
@@ -141,59 +113,50 @@ class MarrmotM01(ContainerizedModel):
         Returns:
             Path for Marrmot config file
         """
-        forcing_data = sio.loadmat(self._forcing_filepath, mat_dtype=True)
+        if "start_time" in kwargs:
+            _update_model_time(self, get_time(kwargs["start_time"]), which="start")
+        else:
+            _update_model_time(self, get_time(self.forcing.start_time), which="start")
 
-        # overwrite dates if given
-        if self._model_start_time is not None:
-            start_time = get_time(self._model_start_time)
-            if self._forcing_start_time <= start_time <= self._forcing_end_time:
-                forcing_data["time_start"][0][0:6] = [
-                    start_time.year,
-                    start_time.month,
-                    start_time.day,
-                    start_time.hour,
-                    start_time.minute,
-                    start_time.second,
-                ]
-                self._forcing_start_time = start_time
-            else:
-                raise ValueError("start_time outside forcing time range")
-        if self._model_end_time is not None:
-            end_time = get_time(self._model_end_time)
-            if self._forcing_start_time <= end_time <= self._forcing_end_time:
-                forcing_data["time_end"][0][0:6] = [
-                    end_time.year,
-                    end_time.month,
-                    end_time.day,
-                    end_time.hour,
-                    end_time.minute,
-                    end_time.second,
-                ]
-                self._forcing_end_time = end_time
-            else:
-                raise ValueError("end_time outside forcing time range")
+        if "end_time" in kwargs:
+            _update_model_time(self, get_time(kwargs["end_time"]), which="end")
+        else:
+            _update_model_time(self, get_time(self.forcing.end_time), which="end")
 
-        # combine forcing and model parameters
-        forcing_data.update(
-            model_name=self._model_name,
-            parameters=self._parameters,
-            solver=asdict(self._solver),
-            store_ini=self._store_ini,
-        )
+        self._config.update(model_name=self._model_name)
+        if "maximum_soil_moisture_storage" in kwargs:
+            self._config.update(parameters=[kwargs["maximum_soil_moisture_storage"]])
+        if "initial_soil_moisture_storage" in kwargs:
+            self._config.update(store_ini=[kwargs["initial_soil_moisture_storage"]])
+        if "solver" in kwargs:
+            self._config.update(solver=asdict(kwargs["solver"]))
 
         config_file = self._cfg_dir / "marrmot-m01_config.mat"
-        sio.savemat(config_file, forcing_data)
+        sio.savemat(config_file, self._config)
         return config_file
 
     @property
     def parameters(self) -> dict[str, Any]:
-        """List the parameters for this model."""
+        """List MarrmotM01's parameters and their values.
+
+        Model parameters:
+            maximum_soil_moisture_storage: in mm. Range is specfied in `model
+                parameter range file
+                <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
+            initial_soil_moisture_storage: in mm.
+            start_time: Start time of model in UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing start time is
+                used.
+            end_time: End time of model in  UTC and ISO format string e.g.
+                'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
+            solver: Solver settings
+        """
         return {
-            "maximum_soil_moisture_storage": self._parameters[0],
-            "initial_soil_moisture_storage": self._store_ini[0],
-            "solver": self._solver,
-            "start time": self._forcing_start_time.strftime(ISO_TIMEFMT),
-            "end time": self._forcing_end_time.strftime(ISO_TIMEFMT),
+            "maximum_soil_moisture_storage": self._config["parameters"][0],
+            "initial_soil_moisture_storage": self._config["store_ini"][0],
+            "solver": get_solver(self._config),
+            "start time": get_marrmot_time(self._config, "start"),
+            "end time": get_marrmot_time(self._config, "end"),
         }
 
 
@@ -232,81 +195,87 @@ class MarrmotM14(ContainerizedModel):
 
     _model_name: str = PrivateAttr("m_14_topmodel_7p_2s")
 
-    # TODO: consider combining all settings in a single _config attribute
-    _parameters: List[float] = PrivateAttr([1000.0, 0.5, 0.5, 100.0, 0.5, 4.25, 2.5])
-    _store_ini: List[float] = PrivateAttr([900.0, 900.0])
-    _solver: Solver = PrivateAttr(Solver())
-    _model_start_time: str | None = PrivateAttr()
-    _model_end_time: str | None = PrivateAttr()
-
-    _forcing_filepath: str = PrivateAttr()
-    _forcing_start_time: datetime.datetime = PrivateAttr()
-    _forcing_end_time: datetime.datetime = PrivateAttr()
+    _default_parameters: list[float] = [1000.0, 0.5, 0.5, 100.0, 0.5, 4.25, 2.5]
+    _default_store_ini: list[float] = [900.0, 900.0]
 
     @model_validator(mode="after")
-    def _check_forcing(self):
-        """Check forcing argument and get path, start and end time of forcing data."""
-        assert (
-            self.forcing.directory is not None
-        )  # TODO: remove when Forcing has been updated
-        self._forcing_filepath = str(self.forcing.directory / self.forcing.forcing_file)
-        # convert date_strings to datetime objects
-        self._forcing_start_time = get_time(self.forcing.start_time)
-        self._forcing_end_time = get_time(self.forcing.end_time)
+    def _initialize_config(self) -> "MarrmotM14":
+        assert self.forcing.directory is not None
+        assert self.forcing.forcing_file is not None
 
-        # parse start/end time
-        forcing_data = sio.loadmat(self._forcing_filepath, mat_dtype=True)
-        if "parameters" in forcing_data:
-            if len(forcing_data["parameters"]) == len(self._parameters):
-                self._parameters = forcing_data["parameters"]
-            else:
+        forcing_filepath = str(self.forcing.directory / self.forcing.forcing_file)
+        self._config = sio.loadmat(forcing_filepath, mat_dtype=True)
+
+        if "parameters" in self._config:
+            if len(self._config["parameters"] != 7):
+                self._config["parameters"] = self._default_parameters
                 message = (
                     "The length of parameters in forcing "
-                    f"{self._forcing_filepath} does not match "
+                    f"{forcing_filepath} does not match "
                     "the length of M14 parameters that is seven."
                 )
                 logger.warning("%s", message)
-        if "store_ini" in forcing_data:
-            if len(forcing_data["store_ini"]) == len(self._store_ini):
-                self._store_ini = forcing_data["store_ini"]
-            else:
+                self._config["parameters"] = self._default_parameters
+        else:
+            self._config["parameters"] = self._default_parameters
+
+        if "store_ini" in self._config:
+            if len(self._config["store_ini"]) != 2:
                 message = (
                     "The length of initial stores in forcing "
-                    f"{self._forcing_filepath} does not match "
+                    f"{forcing_filepath} does not match "
                     "the length of M14 iniatial stores that is two."
                 )
                 logger.warning("%s", message)
-        if "solver" in forcing_data:
-            forcing_solver = forcing_data["solver"]
-            self._solver.name = forcing_solver["name"][0][0][0]
-            self._solver.resnorm_tolerance = forcing_solver["resnorm_tolerance"][0][0][
-                0
-            ]
-            self._solver.resnorm_maxiter = forcing_solver["resnorm_maxiter"][0][0][0]
+                self._config["store_ini"] = self._default_store_ini
+        else:
+            self._config["store_ini"] = self._default_store_ini
 
-    def setup(
-        self,
-        maximum_soil_moisture_storage: Optional[float] = None,
-        threshold_flow_generation_evap_change: Optional[float] = None,
-        leakage_saturated_zone_flow_coefficient: Optional[float] = None,
-        zero_deficit_base_flow_speed: Optional[float] = None,
-        baseflow_coefficient: Optional[float] = None,
-        gamma_distribution_chi_parameter: Optional[float] = None,
-        gamma_distribution_phi_parameter: Optional[float] = None,
-        initial_upper_zone_storage: Optional[float] = None,
-        initial_saturated_zone_storage: Optional[float] = None,
-        start_time: Optional[str] = None,
-        end_time: Optional[str] = None,
-        solver: Optional[Solver] = None,
-        **kwargs,
-    ) -> tuple[str, str]:
-        """Configure model run.
+        return self
 
-        1. Creates config file and config directory based on the forcing
-           variables and time range
-        2. Start bmi container and store as :py:attr:`bmi`
+    def _make_cfg_file(self, **kwargs) -> Path:
+        """Write model configuration file.
+
+        Adds the model parameters to forcing file for the given period and
+        writes this information to a model configuration file.
 
         Args:
+            cfg_dir: a run directory given by user or created for user.
+
+        Returns:
+            Path for Marrmot config file
+        """
+        if "start_time" in kwargs:
+            _update_model_time(self, get_time(kwargs["start_time"]), which="start")
+        else:
+            _update_model_time(self, get_time(self.forcing.start_time), which="start")
+
+        if "end_time" in kwargs:
+            _update_model_time(self, get_time(kwargs["end_time"]), which="end")
+        else:
+            _update_model_time(self, get_time(self.forcing.end_time), which="end")
+
+        self._config.update(model_name=self._model_name)
+        if "solver" in kwargs:
+            self._config.update(solver=asdict(kwargs["solver"]))
+        if "initial_upper_zone_storage" in kwargs:
+            self._config["store_ini"][0] = kwargs["initial_upper_zone_storage"]
+        if "initial_saturated_zone_storage" in kwargs:
+            self._config["store_ini"][1] = kwargs["initial_saturated_zone_storage"]
+
+        for index, key in enumerate(M14_PARAMS):
+            if key in kwargs:
+                self._config["parameters"][index] = kwargs[key]
+
+        config_file = self._cfg_dir / "marrmot-m14_config.mat"
+        sio.savemat(config_file, self._config)
+        return config_file
+
+    @property
+    def parameters(self) -> dict[str, Any]:
+        """List the parameters for this model.
+
+        Exposed Marrmot M14 parameters:
             maximum_soil_moisture_storage: in mm. Range is specfied in `model
                 parameter range file
                 <https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Parameter%20range%20files/m_01_collie1_1p_1s_parameter_ranges.m>`_.
@@ -324,89 +293,15 @@ class MarrmotM14(ContainerizedModel):
             end_time: End time of model in  UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'. If not given then forcing end time is used.
                 solver: Solver settings
-
-        Returns:
-            Path to config file and path to config directory
         """
-        # TODO: move parsing these kwargs to an "_update_config" method.
-        arguments = vars()
-        arguments_subset = {key: arguments[key] for key in M14_PARAMS}
-        for index, key in enumerate(M14_PARAMS):
-            if arguments_subset[key] is not None:
-                self._parameters[index] = arguments_subset[key]
-        if initial_upper_zone_storage is not None:
-            self._store_ini[0] = initial_upper_zone_storage
-        if initial_saturated_zone_storage is not None:
-            self._store_ini[1] = initial_saturated_zone_storage
-        if solver is not None:
-            self._solver = solver
-        self._model_start_time = start_time
-        self._model_end_time = end_time
-
-        return super().setup(**kwargs)
-
-    def _make_cfg_file(self, **kwargs) -> Path:
-        """Write model configuration file.
-
-        Adds the model parameters to forcing file for the given period
-        and writes this information to a model configuration file.
-
-        Returns:
-            Path for Marrmot config file
-        """
-        forcing_data = sio.loadmat(self._forcing_filepath, mat_dtype=True)
-
-        # overwrite dates if given
-        if self._model_start_time is not None:
-            start_time = get_time(self._model_start_time)
-            if self._forcing_start_time <= start_time <= self._forcing_end_time:
-                forcing_data["time_start"][0][0:6] = [
-                    start_time.year,
-                    start_time.month,
-                    start_time.day,
-                    start_time.hour,
-                    start_time.minute,
-                    start_time.second,
-                ]
-                self._forcing_start_time = start_time
-            else:
-                raise ValueError("start_time outside forcing time range")
-        if self._model_end_time is not None:
-            end_time = get_time(self._model_end_time)
-            if self._forcing_start_time <= end_time <= self._forcing_end_time:
-                forcing_data["time_end"][0][0:6] = [
-                    end_time.year,
-                    end_time.month,
-                    end_time.day,
-                    end_time.hour,
-                    end_time.minute,
-                    end_time.second,
-                ]
-                self._forcing_end_time = end_time
-            else:
-                raise ValueError("end_time outside forcing time range")
-
-        # combine forcing and model parameters
-        forcing_data.update(
-            model_name=self._model_name,
-            parameters=self._parameters,
-            solver=asdict(self._solver),
-            store_ini=self._store_ini,
+        pars: dict[str, Any] = dict(zip(M14_PARAMS, self._config["parameters"]))
+        pars.update(
+            {
+                "initial_upper_zone_storage": self._config["store_ini"][0],
+                "initial_saturated_zone_storage": self._config["store_ini"][1],
+                "solver": get_solver(self._config),
+                "start time": get_marrmot_time(self._config, "start"),
+                "end time": get_marrmot_time(self._config, "end"),
+            }
         )
-
-        config_file = self._cfg_dir / "marrmot-m14_config.mat"
-        sio.savemat(config_file, forcing_data)
-        return config_file
-
-    @property
-    def parameters(self) -> dict[str, Any]:
-        """List the parameters for this model."""
-        pars: List[tuple[str, Any]] = list(zip(M14_PARAMS, self._parameters))
-        pars += [
-            ("initial_upper_zone_storage", self._store_ini[0]),
-            ("initial_saturated_zone_storage", self._store_ini[1]),
-            ("solver", self._solver),
-            ("start time", self._forcing_start_time.strftime(ISO_TIMEFMT)),
-            ("end time", self._forcing_end_time.strftime(ISO_TIMEFMT)),
-        ]
-        return {k: v for (k, v) in pars}
+        return pars
