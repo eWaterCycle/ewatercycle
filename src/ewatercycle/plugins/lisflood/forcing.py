@@ -6,7 +6,12 @@ from typing import Literal, Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ewatercycle.base.forcing import DATASETS, DefaultForcing, _session
+from ewatercycle.base.forcing import (
+    DATASETS,
+    DefaultForcing,
+    _session,
+    run_esmvaltool_recipe,
+)
 from ewatercycle.plugins.lisflood.lisvap import create_lisvap_config, lisvap
 from ewatercycle.util import (
     data_files_from_recipe_output,
@@ -181,7 +186,7 @@ class LisfloodForcing(DefaultForcing):
         # ValueError: The 'longitude' DimCoord points array must be strictly monotonic.
 
         # generate forcing data and retrieve useful information
-        recipe_output = recipe.run(session=_session(directory))
+        recipe_output = run_esmvaltool_recipe(recipe, directory)
         directory, forcing_files = data_files_from_recipe_output(recipe_output)
 
         if run_lisvap:

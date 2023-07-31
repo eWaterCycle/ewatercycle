@@ -5,7 +5,12 @@ from typing import Literal, Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ewatercycle.base.forcing import DATASETS, DefaultForcing, _session
+from ewatercycle.base.forcing import (
+    DATASETS,
+    DefaultForcing,
+    _session,
+    run_esmvaltool_recipe,
+)
 from ewatercycle.util import get_time, to_absolute_path
 
 
@@ -76,7 +81,7 @@ class MarrmotForcing(DefaultForcing):
             variables[var_name]["end_year"] = endyear
 
         # generate forcing data and retrieve useful information
-        recipe_output = recipe.run(session=_session(directory))
+        recipe_output = run_esmvaltool_recipe(recipe, directory)
         task_output = recipe_output["diagnostic_daily/script"]
 
         # check that recipe output contains only one .mat file

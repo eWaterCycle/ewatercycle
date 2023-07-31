@@ -6,7 +6,12 @@ from typing import Literal, Optional
 import pandas as pd
 from esmvalcore.experimental import get_recipe
 
-from ewatercycle.base.forcing import DATASETS, DefaultForcing, _session
+from ewatercycle.base.forcing import (
+    DATASETS,
+    DefaultForcing,
+    _session,
+    run_esmvaltool_recipe,
+)
 from ewatercycle.util import get_time, to_absolute_path
 
 
@@ -70,7 +75,7 @@ class HypeForcing(DefaultForcing):
             variables[var_name]["end_year"] = endyear
 
         # generate forcing data and retreive useful information
-        recipe_output = recipe.run(session=_session(directory))
+        recipe_output = run_esmvaltool_recipe(recipe, directory)
 
         # retrieve forcing files
         recipe_files = list(recipe_output.values())[0].files

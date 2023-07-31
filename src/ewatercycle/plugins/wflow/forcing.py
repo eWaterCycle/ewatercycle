@@ -6,7 +6,12 @@ from typing import Dict, Literal, Optional
 from esmvalcore.experimental import get_recipe
 from ruamel.yaml import YAML
 
-from ewatercycle.base.forcing import DATASETS, DefaultForcing, _session
+from ewatercycle.base.forcing import (
+    DATASETS,
+    DefaultForcing,
+    _session,
+    run_esmvaltool_recipe,
+)
 from ewatercycle.util import get_extents, get_time, to_absolute_path
 
 
@@ -99,22 +104,9 @@ class WflowForcing(DefaultForcing):
         for var_name in var_names:
             variables[var_name]["end_year"] = endyear
 
-        # ESMVALCore 2.8.1 always runs original recipe,
-        # write updated recipe to disk and use
-        updated_recipe_file = NamedTemporaryFile(
-            suffix=recipe.path.name, mode="w", delete=False
-        )
-        yaml = YAML(typ="safe")
-        yaml.dump(recipe.data, updated_recipe_file)
-        updated_recipe_file.close()
-        recipe.path = Path(updated_recipe_file.name)
-
         # generate forcing data and retrieve useful information
-        recipe_output = recipe.run(session=_session(directory))
+        recipe_output = run_esmvaltool_recipe(recipe, directory)
         forcing_data = recipe_output["wflow_daily/script"].data_files[0]
-
-        # remove updated recipe file
-        recipe.path.unlink()
 
         forcing_file = forcing_data.path
         directory = str(forcing_file.parent)
