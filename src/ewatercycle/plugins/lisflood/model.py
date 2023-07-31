@@ -3,9 +3,9 @@
 import datetime
 import logging
 from pathlib import Path
-from typing import Any, Iterable, Optional, Tuple
+from typing import Any, Iterable, Optional, Tuple, Type
 
-from pydantic import PrivateAttr, root_validator
+from pydantic import PrivateAttr, model_validator, root_validator
 
 from ewatercycle.base.model import ISO_TIMEFMT, ContainerizedModel
 from ewatercycle.base.parameter_set import ParameterSet
@@ -35,8 +35,8 @@ class Lisflood(ContainerizedModel):
     bmi_image: ContainerImage = ContainerImage("ewatercycle/lisflood-grpc4bmi:20.10")
     version: str = "20.10"
 
+    # TODO: consider combining all settings in a single _config attribute
     _config: XmlConfig = PrivateAttr()
-    _forcing_dir: Path = PrivateAttr()
     _forcing_start_time: datetime.datetime = PrivateAttr()
     _forcing_end_time: datetime.datetime = PrivateAttr()
     _model_start_time: datetime.datetime = PrivateAttr()
@@ -44,13 +44,25 @@ class Lisflood(ContainerizedModel):
     _irrigation_efficiency: str | None = PrivateAttr(None)
     _mask_map: Path = PrivateAttr()
 
-    @root_validator
-    def _post_init(cls, values: dict) -> dict:
-        assert "forcing" in values
-        cls._check_forcing(cls, forcing=values.get("forcing"))
-        assert "parameter_set" in values
-        cls._config = XmlConfig(values.get("parameter_set").config)
-        return values
+    @model_validator(mode="after")
+    def _check_forcing(self) -> "Lisflood":
+        """Check forcing argument and get path, start/end time of forcing data."""
+        # TODO check if mask has same grid as forcing files,
+        # if not warn users to run reindex_forcings
+
+        # TODO directory should not be optional
+
+        self._forcing_start_time = get_time(self.forcing.start_time)
+        self._model_start_time = self._forcing_start_time
+        self._forcing_end_time = get_time(self.forcing.end_time)
+        self._model_end_time = self._forcing_end_time
+
+        return self
+
+    @model_validator(mode="after")
+    def _update_config(self) -> "Lisflood":
+        self._config = XmlConfig(self.parameter_set.config)
+        return self
 
     def _get_textvar_value(self, name: str):
         for textvar in self._config.config.iter("textvar"):
@@ -107,7 +119,7 @@ class Lisflood(ContainerizedModel):
                 raise ValueError("end_time outside forcing time range")
 
         if MaskMap is not None:
-            self._mask_map = to_absolute_path(MaskMap)
+            self._mask_map = to_absolute_path(input_path=MaskMap)
             try:
                 self._mask_map.relative_to(self.parameter_set.directory)
             except ValueError:
@@ -115,24 +127,6 @@ class Lisflood(ContainerizedModel):
                 self._additional_input_dirs.append(str(self._mask_map.parent))
 
         return super().setup(**kwargs)
-
-    def _check_forcing(self, forcing):
-        """Check forcing argument and get path, start/end time of forcing data."""
-        # TODO check if mask has same grid as forcing files,
-        # if not warn users to run reindex_forcings
-        if isinstance(forcing, LisfloodForcing):
-            self.forcing = forcing
-            self._forcing_dir = to_absolute_path(forcing.directory)
-            # convert date_strings to datetime objects
-            self._forcing_start_time = get_time(forcing.start_time)
-            self._model_start_time = self._forcing_start_time
-            self._forcing_end_time = get_time(forcing.end_time)
-            self._model_end_time = self._forcing_end_time
-        else:
-            raise TypeError(
-                f"Unknown forcing type: {forcing}. "
-                "Please supply a LisfloodForcing object."
-            )
 
     def _make_cfg_file(self, **kwargs) -> Path:
         """Create lisflood config file."""
@@ -144,7 +138,7 @@ class Lisflood(ContainerizedModel):
             "StepStart": "1",
             "StepEnd": str((self._model_end_time - self._model_start_time).days),
             "PathRoot": str(self.parameter_set.directory),
-            "PathMeteo": str(self._forcing_dir),
+            "PathMeteo": str(self.forcing.directory),
             "PathOut": str(self._cfg_dir),
         }
 

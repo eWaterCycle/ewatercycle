@@ -4,7 +4,7 @@ from typing import Annotated, Literal, Optional
 
 from esmvalcore.config import Session
 from esmvalcore.experimental import CFG
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from pydantic.functional_validators import AfterValidator
 from ruamel.yaml import YAML
 
@@ -16,10 +16,6 @@ FORCING_YAML = "ewatercycle_forcing.yaml"
 
 def _to_absolute_path(v):
     return to_absolute_path(v)
-
-
-def _absolute_shape(v, info):
-    return to_absolute_path(v, parent=info.data["directory"], must_be_in_parent=False)
 
 
 class DefaultForcing(BaseModel):
@@ -38,7 +34,15 @@ class DefaultForcing(BaseModel):
     start_time: str
     end_time: str
     directory: Optional[Annotated[Path, AfterValidator(_to_absolute_path)]] = None
-    shape: Optional[Annotated[Path, AfterValidator(_absolute_shape)]] = None
+    shape: Optional[Path] = None
+
+    @field_validator("shape")
+    @classmethod
+    def _absolute_shape(cls, v, info):
+        print(info)
+        return to_absolute_path(
+            v, parent=info.data["directory"], must_be_in_parent=False
+        )
 
     @classmethod
     def generate(
@@ -77,6 +81,8 @@ class DefaultForcing(BaseModel):
         # so the directory and shape should not be included in the yaml file
         clone = self.copy(exclude={"directory"})
 
+        # TODO: directory should not be optional, can we remove the directory
+        # from the fdict instead?
         if clone.shape:
             try:
                 clone.shape = str(clone.shape.relative_to(self.directory))
