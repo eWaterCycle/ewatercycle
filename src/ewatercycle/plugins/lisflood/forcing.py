@@ -117,8 +117,6 @@ class LisfloodForcing(DefaultForcing):
                     - lisvap_config: Name of Lisvap configuration file.
                     - mask_map: A mask for the spatial selection.
                         This file should have same extent and resolution as parameter-set.
-                    - version: LISVAP/LISFLOOD model version supported by ewatercycle.
-                        Pick from :py:obj:`~ewatercycle.models.lisflood.Lisflood.available_versions`.
                     - parameterset_dir: Directory of the parameter set.
                         Directory should contains the Lisvap config file and files the config points to.
         """
@@ -193,7 +191,6 @@ class LisfloodForcing(DefaultForcing):
             # Get lisvap specific options and make paths absolute
             lisvap_config = str(to_absolute_path(run_lisvap["lisvap_config"]))
             mask_map = str(to_absolute_path(run_lisvap["mask_map"]))
-            version = run_lisvap["version"]
             parameterset_dir = str(to_absolute_path(run_lisvap["parameterset_dir"]))
 
             # Reindex data because recipe cropped the data
@@ -225,7 +222,6 @@ class LisfloodForcing(DefaultForcing):
                 forcing_files,
             )
             lisvap(
-                version,
                 parameterset_dir,
                 str(reindexed_forcing_directory),
                 mask_map,

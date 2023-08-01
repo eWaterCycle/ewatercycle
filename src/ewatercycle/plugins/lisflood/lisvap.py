@@ -38,7 +38,6 @@ images = {
 
 
 def lisvap(
-    version: str,
     parameterset_dir: str,
     forcing_dir: str,
     mask_map: str,
@@ -57,7 +56,7 @@ def lisvap(
     engine: ContainerEngine = CFG.container_engine
     image = images[engine]
     if CFG.container_engine.lower() == "apptainer":
-        image = str(CFG.apptainer_dir / image)
+        image_fn = str(CFG.apptainer_dir / image)
         args = [
             "apptainer",
             "exec",
@@ -65,7 +64,7 @@ def lisvap(
             ",".join([f"{mp}:{mp}" for mp in mount_points]),
             "--pwd",
             f"{forcing_dir}",
-            image,
+            image_fn,
         ]
     elif CFG.container_engine.lower() == "docker":
         args = [
