@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Annotated, Literal, Optional
+from typing import Annotated, Literal, Optional, Union
 
 from esmvalcore.config import Session
 from esmvalcore.experimental import CFG
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 FORCING_YAML = "ewatercycle_forcing.yaml"
 
 
-def _to_absolute_path(v):
+def _to_absolute_path(v: Union[str, Path]):
     return to_absolute_path(v)
 
 
@@ -80,13 +80,13 @@ class DefaultForcing(BaseModel):
         target = self.directory / FORCING_YAML
         # We want to make the yaml and its parent movable,
         # so the directory and shape should not be included in the yaml file
-        clone = self.copy(exclude={"directory"})
+        clone = self.model_copy()
 
         # TODO: directory should not be optional, can we remove the directory
         # from the fdict instead?
         if clone.shape:
             try:
-                clone.shape = str(clone.shape.relative_to(self.directory))
+                clone.shape = clone.shape.relative_to(self.directory)
             except ValueError:
                 clone.shape = None
                 logger.info(
@@ -94,7 +94,7 @@ class DefaultForcing(BaseModel):
                     f"{self.directory}. So, it won't be saved in {target}."
                 )
 
-        fdict = clone.dict(exclude_none=True)
+        fdict = clone.model_dump(exclude={"directory"}, exclude_none=True, mode="json")
         with open(target, "w") as f:
             yaml.dump(fdict, f)
         return target
