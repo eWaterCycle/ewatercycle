@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Literal, Optional
 
 import pandas as pd
+import xarray as xr
 from esmvalcore.experimental import get_recipe
 
 from ewatercycle.base.forcing import (
@@ -59,7 +60,7 @@ class HypeForcing(DefaultForcing):
         for preproc_name in preproc_names:
             recipe.data["preprocessors"][preproc_name]["extract_shape"][
                 "shapefile"
-            ] = to_absolute_path(shape)
+            ] = str(to_absolute_path(shape))
 
         recipe.data["datasets"] = [DATASETS[dataset]]
 
@@ -110,3 +111,30 @@ class HypeForcing(DefaultForcing):
         )
         generated_forcing.save()
         return generated_forcing
+
+
+def load_forcing_files(forcing: HypeForcing) -> xr.Dataset:
+    """Load forcing files into a xarray Dataset.
+
+    Args:
+        forcing: HypeForcing object.
+
+    Returns:
+        xarray Dataset containing forcing data.
+    """
+    # load forcing files
+    forcing_file_lookup = {
+        "Pobs": forcing.Pobs,
+        "TMAXobs": forcing.TMAXobs,
+        "TMINobs": forcing.TMINobs,
+        "Tobs": forcing.Tobs,
+    }
+    assert forcing.directory is not None, "Forcing directory is not set"
+    forcing_files = {k: forcing.directory / v for k, v in forcing_file_lookup.items()}
+
+    # TODO add lat/lon to dataset
+    # maybe infer from center of shapefile in ewatercycle_forcing.yaml?
+    ds = xr.Dataset()
+    for var, path in forcing_files.items():
+        ds[var] = pd.read_csv(path, sep=" ", index_col="DATE", parse_dates=True)
+    return ds
