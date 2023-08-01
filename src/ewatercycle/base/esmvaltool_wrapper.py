@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from pydantic import BaseModel
 
 
@@ -19,6 +20,7 @@ class Dataset(BaseModel):
         tier: int(min=1, max=3, required=False)
         type: str(required=False)
     """
+
     dataset: str
     project: str | None = None
     # TODO add min max
@@ -33,25 +35,28 @@ class Dataset(BaseModel):
     tier: int | None = None
     type: str | None = None
 
+
 class Variable(BaseModel):
     """
-        project: str(required=False)
-        start_year: int(required=False, min=0000, max=10000)
-        end_year: int(required=False, min=0000, max=10000)
-        ensemble: any(str(), list(str()), required=False)
-        exp: any(str(), list(str()), required=False)
-        mip: str(required=False)
-        preprocessor: str(required=False)
-        reference_dataset: str(required=False)
-        alternative_dataset: str(required=False)
-        fx_files: list(required=False)
-        additional_datasets: list(include('dataset'), required=False)
+    project: str(required=False)
+    start_year: int(required=False, min=0000, max=10000)
+    end_year: int(required=False, min=0000, max=10000)
+    ensemble: any(str(), list(str()), required=False)
+    exp: any(str(), list(str()), required=False)
+    mip: str(required=False)
+    preprocessor: str(required=False)
+    reference_dataset: str(required=False)
+    alternative_dataset: str(required=False)
+    fx_files: list(required=False)
+    additional_datasets: list(include('dataset'), required=False)
     """
+
     project: str | None = None
     # TODO add min max
     start_year: int | None = None
     end_year: int | None = None
     ensemble: str | list[str] | None = None
+    timerange: str | None = None  # note: not in yamale spec
     exp: str | list[str] | None = None
     mip: str | None = None
     preprocessor: str | None = None
@@ -60,12 +65,15 @@ class Variable(BaseModel):
     fx_files: list[str] | None = None
     additional_datasets: list[Dataset] | None = None
 
+
 class Script(BaseModel):
     """
     script: str()
-    
+
     """
+
     script: str
+
 
 class Diagnostic(BaseModel):
     """
@@ -79,6 +87,7 @@ class Diagnostic(BaseModel):
         realms: list(str(), required=False)
         variables: map(include('variable'), null(), required=False)
     """
+
     scripts: dict[str, Script] | None = None
     additional_datasets: list[Dataset] | None = None
     title: str | None = None
@@ -86,6 +95,7 @@ class Diagnostic(BaseModel):
     themes: list[str] | None = None
     realms: list[str] | None = None
     variables: dict[str, Variable] | None = None
+
 
 class Documentation(BaseModel):
     """
@@ -95,12 +105,14 @@ class Documentation(BaseModel):
     projects: list(str(), required=False)
     references: list(str(), required=False)
     """
+
     title: str
     description: str
     # TODO add min 1
     authors: list[str]
     projects: list[str] | None = None
     references: list[str] | None = None
+
 
 class Recipe(BaseModel):
     """
@@ -109,6 +121,7 @@ class Recipe(BaseModel):
     preprocessors: map(map(), required=False)
     diagnostics: map(include('diagnostic'), required=False)
     """
+
     documentation: Documentation
     datasets: list[Dataset] | None = None
     # value depends on the key which is the name of the preprocessor
