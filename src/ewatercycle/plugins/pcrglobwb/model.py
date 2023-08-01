@@ -8,7 +8,7 @@ import bmipy
 import numpy as np
 from grpc4bmi.bmi_memoized import MemoizedBmi
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
-from pydantic import PrivateAttr, computed_field, model_validator
+from pydantic import PrivateAttr, model_validator
 
 from ewatercycle.base.model import ContainerizedModel
 from ewatercycle.base.parameter_set import ParameterSet
@@ -54,12 +54,14 @@ class PCRGlobWB(ContainerizedModel):
     _config: CaseConfigParser = PrivateAttr()
 
     @model_validator(mode="after")
-    def _initialize_config(self) -> "PCRGlobWB":
+    def _initialize_config(self: "PCRGlobWB") -> "PCRGlobWB":
         cfg = CaseConfigParser()
         cfg.read(self.parameter_set.config)
         cfg.set("globalOptions", "inputDir", str(self.parameter_set.directory))
 
         if self.forcing:
+            assert self.forcing.temperatureNC is not None  # TODO fix forcing class.
+            assert self.forcing.precipitationNC is not None
             cfg.set(
                 "globalOptions",
                 "startTime",
@@ -74,7 +76,7 @@ class PCRGlobWB(ContainerizedModel):
                 "meteoOptions",
                 "temperatureNC",
                 str(
-                    to_absolute_path(  # TODO fix type error
+                    to_absolute_path(
                         self.forcing.temperatureNC,
                         parent=self.forcing.directory,
                     )
@@ -84,7 +86,7 @@ class PCRGlobWB(ContainerizedModel):
                 "meteoOptions",
                 "precipitationNC",
                 str(
-                    to_absolute_path(  # TODO fix type error
+                    to_absolute_path(
                         self.forcing.precipitationNC,
                         parent=self.forcing.directory,
                     )
@@ -126,34 +128,34 @@ class PCRGlobWB(ContainerizedModel):
         )
 
     def _update_config(self, **kwargs):
-        cfg = self._config
-
         if "start_time" in kwargs:
-            cfg.set(
+            self._config.set(
                 "globalOptions",
                 "startTime",
                 get_time(kwargs["start_time"]).strftime("%Y-%m-%d"),
             )
 
         if "end_time" in kwargs:
-            cfg.set(
+            self._config.set(
                 "globalOptions",
                 "endTime",
                 get_time(kwargs["end_time"]).strftime("%Y-%m-%d"),
             )
 
         if "routing_method" in kwargs:
-            cfg.set("routingOptions", "routingMethod", kwargs["routing_method"])
+            self._config.set(
+                "routingOptions", "routingMethod", kwargs["routing_method"]
+            )
 
         if "dynamic_flood_plain" in kwargs:
-            cfg.set(
+            self._config.set(
                 "routingOptions",
                 "dynamicFloodPlain",
                 kwargs["dynamic_flood_plain"],
             )
 
         if "max_spinups_in_years" in kwargs:
-            cfg.set(
+            self._config.set(
                 "globalOptions",
                 "maxSpinUpsInYears",
                 str(kwargs["max_spinups_in_years"]),
