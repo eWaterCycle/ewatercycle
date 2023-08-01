@@ -81,7 +81,6 @@ class MarrmotM01(ContainerizedModel):
             # parse start/end time
             forcing_data = sio.loadmat(self._forcing_filepath, mat_dtype=True)
             if "parameters" in forcing_data:
-                print(forcing_data["parameters"][0])
                 self._parameters = forcing_data["parameters"][0]
             if "store_ini" in forcing_data:
                 self._store_ini = forcing_data["store_ini"][0]

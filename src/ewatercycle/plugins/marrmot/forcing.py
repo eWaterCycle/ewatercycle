@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Literal, Optional
 
 import pandas as pd
+import xarray as xr
 from esmvalcore.experimental import get_recipe
 from scipy.io import loadmat
 
@@ -122,18 +123,21 @@ class MarrmotForcing(DefaultForcing):
 # that loads the mat file into a xarray dataset and plots it
 
 
-def load_forcing_file(fn: Path) -> pd.DataFrame:
-    """Load forcing data from a matlab file.
+# TODO make method of MarrmotForcing class? What to call it?
+# TODO allow MarrmotForcing to be given as argument.
+def load_forcing_file(fn: Path) -> xr.Dataset:
+    """Load forcing data from a matlab file into an xarray dataset.
 
     Args:
         fn: Path to matlab file.
 
     Returns:
-        Dataframe with forcing data.
+        Dataset with forcing data.
 
     Example:
 
-        >>> ds = load_forcing_file(forcing.directory / forcing.forcing_file)
+        >>> fn = forcing.directory / forcing.forcing_file
+        >>> ds = load_forcing_file(fn)
         >>> ds
 
     """
@@ -145,5 +149,34 @@ def load_forcing_file(fn: Path) -> pd.DataFrame:
     forcing_end = datetime(*map(int, dataset["time_end"][0][:3]))
     # store data as a pandas Series (deliberately keep default time: 00:00)
     index = pd.date_range(forcing_start, forcing_end, name="time")
-    # TODO store `'data_origin': array([[49.25,  8.  ]])` as xarray coords
-    return pd.DataFrame({"precip": precip, "temp": temp, "pet": pet}, index=index)
+    lat, lon = dataset["data_origin"][0]
+    # TODO add units as attributes, what are the units actually?
+    # TODO use netcdf-cf conventions
+    return xr.Dataset(
+        {
+            "precipitation": (
+                ["longitude", "latitude", "time"],
+                [[precip]],
+                {"units": "mm/day"},
+            ),
+            "temperature": (
+                ["longitude", "latitude", "time"],
+                [[temp]],
+                {"units": "C"},
+            ),
+            "evspsblpot": (
+                ["longitude", "latitude", "time"],
+                [[pet]],
+                {"units": "mm/day"},
+            ),
+        },
+        coords={
+            "lon": (["longitude", "latitude"], [[lon]]),
+            "lat": (["longitude", "latitude"], [[lat]]),
+            "time": index,
+        },
+        attrs={
+            "title": "MARRMoT forcing data",
+            "history": f"Created by ewatercycle.forcing.sources.load_forcing_file({fn})",
+        },
+    )
