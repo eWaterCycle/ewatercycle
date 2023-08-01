@@ -39,7 +39,8 @@ class DefaultForcing(BaseModel):
     @field_validator("shape")
     @classmethod
     def _absolute_shape(cls, v, info):
-        print(info)
+        if v is None:
+            return v
         return to_absolute_path(
             v, parent=info.data["directory"], must_be_in_parent=False
         )
