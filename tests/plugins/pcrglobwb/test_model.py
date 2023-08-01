@@ -13,7 +13,7 @@ from ewatercycle import CFG
 from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.forcing import sources
 from ewatercycle.parameter_sets import add_to_config, example_parameter_sets
-from ewatercycle.plugins.pcrglobwb.model import _SwapXY, PCRGlobWB
+from ewatercycle.plugins.pcrglobwb.model import PCRGlobWB, _SwapXY
 from ewatercycle.testing.fake_models import FailingModel
 
 PCRGlobWBForcing = sources["PCRGlobWBForcing"]
@@ -36,7 +36,7 @@ class MockedBmi(FailingModel):  # type: ignore
         return 3, 2  # shape returns (len(x), len(y))
 
     def get_grid_type(self, grid_id):
-        return 'rectilinear'
+        return "rectilinear"
 
     def get_grid_x(self, grid_id, dest):
         return np.array([45.0, 46.0, 47.0])  # x are lats in pcrglob
@@ -62,6 +62,7 @@ class MockedBmi(FailingModel):  # type: ignore
 
     def get_grid_rank(self, grid_id):
         return 2
+
 
 @pytest.fixture()
 def mocked_config(tmp_path: Path):

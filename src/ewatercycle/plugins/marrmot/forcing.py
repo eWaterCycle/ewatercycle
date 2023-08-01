@@ -145,8 +145,8 @@ def load_forcing_file(fn: Path) -> xr.Dataset:
     precip = dataset["forcing"]["precip"][0][0][0]
     temp = dataset["forcing"]["temp"][0][0][0]
     pet = dataset["forcing"]["pet"][0][0][0]
-    forcing_start = datetime(*map(int, dataset["time_start"][0][:3]))
-    forcing_end = datetime(*map(int, dataset["time_end"][0][:3]))
+    forcing_start = datetime(*map(int, dataset["time_start"][0][:3]))  # type: ignore
+    forcing_end = datetime(*map(int, dataset["time_end"][0][:3]))  # type: ignore
     # store data as a pandas Series (deliberately keep default time: 00:00)
     index = pd.date_range(forcing_start, forcing_end, name="time")
     lat, lon = dataset["data_origin"][0]

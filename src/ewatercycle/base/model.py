@@ -247,7 +247,14 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         lat, lon, shape = self.get_latlon_grid(name)
         # Extract the data and store it in an xarray DataArray
         da = xr.DataArray(
-            data=np.reshape(self.get_value(name), (shape[0], shape[1], 1,)),
+            data=np.reshape(
+                self.get_value(name),
+                (
+                    shape[0],
+                    shape[1],
+                    1,
+                ),
+            ),
             coords={
                 "longitude": lon,
                 "latitude": lat,
