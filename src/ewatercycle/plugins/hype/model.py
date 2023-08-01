@@ -3,13 +3,13 @@ import datetime
 import logging
 import types
 from pathlib import Path
-from typing import Any, Iterable, Optional, Tuple
+from typing import Any, Iterable, Optional
 
 import bmipy
 import xarray as xr
 from dateutil.parser import parse
 from dateutil.tz import UTC
-from pydantic import PrivateAttr, computed_field, model_validator
+from pydantic import PrivateAttr, model_validator
 
 from ewatercycle.base.model import ISO_TIMEFMT, ContainerizedModel
 from ewatercycle.base.parameter_set import ParameterSet
@@ -38,36 +38,37 @@ class Hype(ContainerizedModel):
     bmi_image: ContainerImage = ContainerImage("ewatercycle/hype-grpc4bmi:feb2021")
 
     _config: str = PrivateAttr()
-    _start: datetime.datetime = PrivateAttr()
-    _end: datetime.datetime = PrivateAttr()
-    _crit: datetime.datetime = PrivateAttr()
 
     @model_validator(mode="after")
-    def _initialize_config(self):
+    def _initialize_config(self: "Hype") -> "Hype":
         """Load config from parameter set and update with forcing info."""
         self._config = self.parameter_set.config.read_text(encoding="cp437")
-        self._start = _get_hype_time(_get_code_in_cfg(self._config, "bdate"))
-        self._end = _get_hype_time(_get_code_in_cfg(self._config, "edate"))
-        self._crit = _get_hype_time(_get_code_in_cfg(self._config, "cdate"))
-        if self._crit is None:
-            self._crit = self._start
+
+        start = _get_hype_time(_get_code_in_cfg(self._config, "bdate"))
+        end = _get_hype_time(_get_code_in_cfg(self._config, "edate"))
+        crit = _get_hype_time(_get_code_in_cfg(self._config, "cdate"))
+
+        if crit is None:
             self._config = _set_code_in_cfg(
-                self._config, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
+                self._config, "cdate", start.strftime("%Y-%m-%d %H:%M:%S")
             )
+
         if self.forcing is not None:
-            self._start = get_time(self.forcing.start_time)
+            start = get_time(self.forcing.start_time)
+            end = get_time(self.forcing.end_time)
+
             self._config = _set_code_in_cfg(
-                self._config, "bdate", self._start.strftime("%Y-%m-%d %H:%M:%S")
+                self._config, "bdate", start.strftime("%Y-%m-%d %H:%M:%S")
             )
-            self._end = get_time(self.forcing.end_time)
             self._config = _set_code_in_cfg(
-                self._config, "edate", self._end.strftime("%Y-%m-%d %H:%M:%S")
+                self._config, "edate", end.strftime("%Y-%m-%d %H:%M:%S")
             )
             # Also set crit time to start time, it can be overwritten in setup()
-            self._crit = self._start
             self._config = _set_code_in_cfg(
-                self._config, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
+                self._config, "cdate", start.strftime("%Y-%m-%d %H:%M:%S")
             )
+
+        return self
 
     def _make_cfg_file(self, **kwargs) -> Path:
         """Create a Hype config file and return its path."""
@@ -75,32 +76,29 @@ class Hype(ContainerizedModel):
         return self._export_config()
 
     def _update_config(self, **kwargs) -> None:
-        cfg = self._config
-        if "start_time" in kwargs:
-            self._start = get_time(kwargs["start_time"])
-            cfg = _set_code_in_cfg(
-                cfg, "bdate", self._start.strftime("%Y-%m-%d %H:%M:%S")
-            )
         if "end_time" in kwargs:
-            self._end = get_time(kwargs["end_time"])
-            cfg = _set_code_in_cfg(
-                cfg, "edate", self._end.strftime("%Y-%m-%d %H:%M:%S")
+            end = get_time(kwargs["end_time"])
+            self._config = _set_code_in_cfg(
+                self._config, "edate", end.strftime("%Y-%m-%d %H:%M:%S")
             )
-        if "start_time" in kwargs and "crit_time" not in kwargs:
-            # Overwrite cdate to start when no crit is given
-            self._crit = self._start
-            cfg = _set_code_in_cfg(
-                cfg, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
+        if "start_time" in kwargs:
+            start = get_time(kwargs["start_time"])
+            self._config = _set_code_in_cfg(
+                self._config, "bdate", start.strftime("%Y-%m-%d %H:%M:%S")
             )
-        elif "crit_time" in kwargs:
-            self._crit = get_time(kwargs["crit_time"])
-            cfg = _set_code_in_cfg(
-                cfg, "cdate", self._crit.strftime("%Y-%m-%d %H:%M:%S")
-            )
+            if "crit_time" in kwargs:
+                crit = get_time(kwargs["crit_time"])
+                self._config = _set_code_in_cfg(
+                    self._config, "cdate", crit.strftime("%Y-%m-%d %H:%M:%S")
+                )
+            else:
+                # Overwrite cdate to start when no crit is given
+                self._config = _set_code_in_cfg(
+                    self._config, "cdate", start.strftime("%Y-%m-%d %H:%M:%S")
+                )
 
         # Set resultdir to . so no sub dirs are needed
-        cfg = _set_code_in_cfg(cfg, "resultdir", "./")
-        self._config = cfg
+        self._config = _set_code_in_cfg(self._config, "resultdir", "./")
 
     def _export_config(self) -> Path:
         # write info.txt
@@ -113,7 +111,9 @@ class Hype(ContainerizedModel):
         """Make the bmi instance and overwrite 'get_time_units' method."""
         bmi = super()._make_bmi_instance()
 
-        since = self._start.strftime(ISO_TIMEFMT)
+        since = _get_hype_time(_get_code_in_cfg(self._config, "bdate")).strftime(
+            ISO_TIMEFMT
+        )
 
         # The Hype get_time_units() returns `hours since start of simulation` and
         #   get_start_time() returns 0.
@@ -148,9 +148,15 @@ class Hype(ContainerizedModel):
                 If not given then start_time is used.
         """
         return {
-            "start_time": self._start.strftime(ISO_TIMEFMT),
-            "end_time": self._end.strftime(ISO_TIMEFMT),
-            "crit_time": self._crit.strftime(ISO_TIMEFMT),
+            "start_time": _get_hype_time(
+                _get_code_in_cfg(self._config, "bdate")
+            ).strftime(ISO_TIMEFMT),
+            "end_time": _get_hype_time(
+                _get_code_in_cfg(self._config, "edate")
+            ).strftime(ISO_TIMEFMT),
+            "crit_time": _get_hype_time(
+                _get_code_in_cfg(self._config, "cdate")
+            ).strftime(ISO_TIMEFMT),
         }
 
     def _coords_to_indices(
@@ -169,13 +175,18 @@ class Hype(ContainerizedModel):
         return indices
 
 
-def _get_code_in_cfg(content: str, code: str):
+def _get_code_in_cfg(content: str, code: str) -> str:
+    """Find the corresponding value of a code in the content.
+
+    Raises ValueError if not found.
+    """
     lines = content.splitlines()
     for line in lines:
         if line.startswith(code):
             chunks = line.split()
             chunks.pop(0)  # Only works with code without spaces
             return " ".join(chunks)
+    raise ValueError(f"Could not find code '{code}' in content.")
 
 
 def _set_code_in_cfg(content: str, code: str, value: str) -> str:
