@@ -96,7 +96,7 @@ import warnings
 from io import StringIO
 from logging import getLogger
 from pathlib import Path
-from typing import Annotated, Dict, Literal, Optional, TextIO, Tuple, Union
+from typing import Annotated, Any, Dict, Literal, Optional, TextIO, Tuple, Union
 
 from pydantic import (
     AfterValidator,
@@ -165,6 +165,21 @@ class Configuration(BaseModel):
     If None then the configuration was not loaded from a file."""
     model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
+    @model_validator(mode="before")
+    @classmethod
+    def singularity_dir_is_deprecated(cls, data: Any) -> Any:
+        if data.get("singularity_dir", None) is not None:
+            file = data.get("ewatercycle_config", "in-memory object")
+            warnings.warn(
+                "singularity_dir field has been deprecated. "
+                f"Please use apptainer_dir in ewatercycle config ({file})",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            data["apptainer_dir"] = data["singularity_dir"]
+            data["singularity_dir"] = None
+        return data
+
     @model_validator(mode="after")
     def _localize_parametersets(self):
         """Make parameter set directories relative to root."""
@@ -188,21 +203,6 @@ class Configuration(BaseModel):
                         f"Parameter set {ps.name} loaded in config but "
                         f"{ps.config} does not seem to exist."
                     )
-        return self
-
-    @model_validator(mode="after")
-    def singularity_dir_is_deprecated(self):
-        if self.singularity_dir is not None:
-            file = self.ewatercycle_config
-            file = file if file else "in-memory object"
-            warnings.warn(
-                "Singularity_dir field has been deprecated. "
-                f"Please use apptainer_dir in ewatercycle config ({file})",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            self.apptainer_dir = self.singularity_dir
-            self.singularity_dir = None
         return self
 
     @classmethod

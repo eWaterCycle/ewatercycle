@@ -10,7 +10,6 @@ from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
 from grpc4bmi.bmi_client_docker import BmiClientDocker
 from grpc4bmi.bmi_memoized import MemoizedBmi
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
-from pydantic import BaseModel, model_validator
 
 from ewatercycle.config import CFG, ContainerEngine
 
