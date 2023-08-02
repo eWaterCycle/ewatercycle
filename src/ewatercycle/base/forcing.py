@@ -15,6 +15,7 @@ FORCING_YAML = "ewatercycle_forcing.yaml"
 
 
 def _to_absolute_path(v: Union[str, Path]):
+    """Wraps to_absolute_path to a single-arg function, to use as Pydantic validator.""" 
     return to_absolute_path(v)
 
 
