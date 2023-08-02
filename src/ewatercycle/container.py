@@ -60,17 +60,10 @@ class ContainerImage(str):
     eWatercycle containers typically don't have these issues.
     """
 
-    @classmethod
-    def __get_validators__(cls):
-        """Enter pydantic validation flow."""
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, value):
+    def _validate(self):
         """Verify image ends with .sif or can parse as docker url."""
-        if not value.endswith(".sif"):
-            _parse_docker_url(value)
-        return cls(value)
+        if not self.endswith(".sif"):
+            _parse_docker_url(self)
 
     @property
     def apptainer_filename(self) -> str:
@@ -109,6 +102,21 @@ class ContainerImage(str):
             organisation += "/"
 
         return organisation + name + tag
+
+    @property
+    def version(self) -> str:
+        if self.endswith(".sif"):
+            name = self.replace(".sif", "")
+            if "_" in name:
+                name, _, tag = name.rpartition("_")
+                return tag
+            return "unknown"
+
+        # Get version tag from docker url
+        _, _, tag = _parse_docker_url(self)
+        if tag is not None:
+            return tag
+        return "unknown"
 
 
 def start_container(

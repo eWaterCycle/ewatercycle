@@ -1,4 +1,4 @@
-from pathlib import Path
+from pathlib import Path, PosixPath
 from textwrap import dedent
 
 import pytest
@@ -79,10 +79,10 @@ def test_load_from_file_bad_path_returns_eror_with_config_file_in_loc(tmp_path):
     errors = exc_info.value.errors()
     expected = [
         {
-            "ctx": {"path": "/a/directory/that/does/not/exist"},
-            "loc": (f"{config_file}:grdc_location",),
-            "msg": 'file or directory at path "/a/directory/that/does/not/exist" does not exist',
-            "type": "value_error.path.not_exists",
+            "type": "path_not_directory",
+            "loc": ("grdc_location",),
+            "msg": "Path does not point to a directory",
+            "input": PosixPath("/a/directory/that/does/not/exist"),
         }
     ]
     assert errors == expected
