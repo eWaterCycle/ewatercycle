@@ -1,3 +1,4 @@
+import datetime
 from pathlib import Path
 from textwrap import dedent
 
@@ -30,8 +31,7 @@ def create_txt(dir: Path, var_name: str) -> OutputFile:
         "1990-01-01 -0.943 -2.442",
         "1990-01-02 -0.308 -0.868",
     ]
-    with open(fn, encoding="ascii", mode="w") as f:
-        f.writelines(lines)
+    fn.write_text("\n".join(lines))
     return OutputFile(fn)
 
 
@@ -206,7 +206,40 @@ class TestGenerate:
     def test_to_xarray(self, forcing):
         ds = forcing.to_xarray()
 
-        expected = xr.Dataset()
+        expected = xr.Dataset(
+            data_vars={
+                "Pobs": (
+                    ("time", "subbasin"),
+                    [[-0.943, -2.442], [-0.308, -0.868]],
+                ),
+                "TMAXobs": (
+                    ("time", "subbasin"),
+                    [[-0.943, -2.442], [-0.308, -0.868]],
+                ),
+                "TMINobs": (
+                    ("time", "subbasin"),
+                    [[-0.943, -2.442], [-0.308, -0.868]],
+                ),
+                "Tobs": (
+                    ("time", "subbasin"),
+                    [[-0.943, -2.442], [-0.308, -0.868]],
+                ),
+            },
+            coords={
+                "time": (
+                    ("time",),
+                    [
+                        datetime.datetime(1990, 1, 1, 0, 0),
+                        datetime.datetime(1990, 1, 2, 0, 0),
+                    ],
+                ),
+                "subbasin": (("subbasin",), [300730, 300822]),
+            },
+            attrs={
+                "title": "Hype forcing data",
+                "history": "Created by ewatercycle.plugins.hype.forcing.HypeForcing.to_xarray()",
+            },
+        )
 
         xr.testing.assert_equal(ds, expected)
 
