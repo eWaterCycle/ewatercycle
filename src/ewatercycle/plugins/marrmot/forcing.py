@@ -9,12 +9,7 @@ import xarray as xr
 from esmvalcore.experimental import get_recipe
 from scipy.io import loadmat
 
-from ewatercycle.base.forcing import (
-    DATASETS,
-    DefaultForcing,
-    _session,
-    run_esmvaltool_recipe,
-)
+from ewatercycle.base.forcing import DATASETS, DefaultForcing, run_esmvaltool_recipe
 from ewatercycle.util import get_time, to_absolute_path
 
 
@@ -118,65 +113,54 @@ class MarrmotForcing(DefaultForcing):
         generated_forcing.save()
         return generated_forcing
 
+    def to_xarray(self) -> xr.Dataset:
+        """Load forcing data from a matlab file into an xarray dataset.
 
-# TODO could be nice to have plot function
-# that loads the mat file into a xarray dataset and plots it
+        Returns:
+            Dataset with forcing data.
 
+        Example:
 
-# TODO make method of MarrmotForcing class? What to call it?
-# TODO allow MarrmotForcing to be given as argument.
-def load_forcing_file(fn: Path) -> xr.Dataset:
-    """Load forcing data from a matlab file into an xarray dataset.
+            >>> fn = forcing.directory / forcing.forcing_file
+            >>> ds = load_forcing_file(fn)
+            >>> ds
 
-    Args:
-        fn: Path to matlab file.
-
-    Returns:
-        Dataset with forcing data.
-
-    Example:
-
-        >>> fn = forcing.directory / forcing.forcing_file
-        >>> ds = load_forcing_file(fn)
-        >>> ds
-
-    """
-    dataset = loadmat(fn, mat_dtype=True)
-    precip = dataset["forcing"]["precip"][0][0][0]
-    temp = dataset["forcing"]["temp"][0][0][0]
-    pet = dataset["forcing"]["pet"][0][0][0]
-    forcing_start = datetime(*map(int, dataset["time_start"][0][:3]))  # type: ignore
-    forcing_end = datetime(*map(int, dataset["time_end"][0][:3]))  # type: ignore
-    # store data as a pandas Series (deliberately keep default time: 00:00)
-    index = pd.date_range(forcing_start, forcing_end, name="time")
-    lat, lon = dataset["data_origin"][0]
-    # TODO add units as attributes, what are the units actually?
-    # TODO use netcdf-cf conventions
-    return xr.Dataset(
-        {
-            "precipitation": (
-                ["longitude", "latitude", "time"],
-                [[precip]],
-                {"units": "mm/day"},
-            ),
-            "temperature": (
-                ["longitude", "latitude", "time"],
-                [[temp]],
-                {"units": "C"},
-            ),
-            "evspsblpot": (
-                ["longitude", "latitude", "time"],
-                [[pet]],
-                {"units": "mm/day"},
-            ),
-        },
-        coords={
-            "lon": (["longitude", "latitude"], [[lon]]),
-            "lat": (["longitude", "latitude"], [[lat]]),
-            "time": index,
-        },
-        attrs={
-            "title": "MARRMoT forcing data",
-            "history": f"Created by ewatercycle.forcing.sources.load_forcing_file({fn})",
-        },
-    )
+        """
+        dataset = loadmat(self.forcing_file, mat_dtype=True)
+        precip = dataset["forcing"]["precip"][0][0][0]
+        temp = dataset["forcing"]["temp"][0][0][0]
+        pet = dataset["forcing"]["pet"][0][0][0]
+        forcing_start = datetime(*map(int, dataset["time_start"][0][:3]))  # type: ignore
+        forcing_end = datetime(*map(int, dataset["time_end"][0][:3]))  # type: ignore
+        # store data as a pandas Series (deliberately keep default time: 00:00)
+        index = pd.date_range(forcing_start, forcing_end, name="time")
+        lat, lon = dataset["data_origin"][0]
+        # TODO use netcdf-cf conventions
+        return xr.Dataset(
+            {
+                "precipitation": (
+                    ["longitude", "latitude", "time"],
+                    [[precip]],
+                    {"units": "mm/day"},
+                ),
+                "temperature": (
+                    ["longitude", "latitude", "time"],
+                    [[temp]],
+                    {"units": "C"},
+                ),
+                "evspsblpot": (
+                    ["longitude", "latitude", "time"],
+                    [[pet]],
+                    {"units": "mm/day"},
+                ),
+            },
+            coords={
+                "lon": (["longitude", "latitude"], [[lon]]),
+                "lat": (["longitude", "latitude"], [[lat]]),
+                "time": index,
+            },
+            attrs={
+                "title": "MARRMoT forcing data",
+                "history": "Created by ewatercycle.plugins.marrmot.forcing.MarrmotForcing.to_xarray()",
+            },
+        )

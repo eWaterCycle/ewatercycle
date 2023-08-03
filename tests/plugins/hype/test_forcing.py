@@ -2,6 +2,7 @@ from pathlib import Path
 from textwrap import dedent
 
 import pytest
+import xarray as xr
 from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import OutputFile
 
@@ -201,6 +202,13 @@ class TestGenerate:
         forcing.shape = None
 
         assert forcing == saved_forcing
+
+    def test_to_xarray(self, forcing):
+        ds = forcing.to_xarray()
+
+        expected = xr.Dataset()
+
+        xr.testing.assert_equal(ds, expected)
 
 
 def test_with_directory(mock_recipe_run, sample_shape, tmp_path):
