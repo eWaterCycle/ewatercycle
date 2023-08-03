@@ -2,13 +2,13 @@
 
 import logging
 from os import PathLike
-from typing import Optional
+from typing import Any, Optional
 
 import bmipy
 import numpy as np
 from grpc4bmi.bmi_memoized import MemoizedBmi
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, model_validator
 
 from ewatercycle.base.model import ContainerizedModel
 from ewatercycle.base.parameter_set import ParameterSet
@@ -50,58 +50,55 @@ class PCRGlobWB(ContainerizedModel):
     forcing: Optional[PCRGlobWBForcing] = None
     parameter_set: ParameterSet  # not optional for this model
     bmi_image: ContainerImage = ContainerImage("ewatercycle/pcrg-grpc4bmi:setters")
-    version: str = "setters"
 
     _config: CaseConfigParser = PrivateAttr()
 
-    # TODO: move to real post_init in pydantic v2.
-    def _post_init(self):
-        """Load config from parameter set and update with forcing info."""
-        if not hasattr(self, "_config"):
-            cfg = CaseConfigParser()
-            cfg.read(self.parameter_set.config)
-            cfg.set("globalOptions", "inputDir", str(self.parameter_set.directory))
+    @model_validator(mode="after")
+    def _initialize_config(self: "PCRGlobWB") -> "PCRGlobWB":
+        cfg = CaseConfigParser()
+        cfg.read(self.parameter_set.config)
+        cfg.set("globalOptions", "inputDir", str(self.parameter_set.directory))
 
-            if self.forcing:
-                cfg.set(
-                    "globalOptions",
-                    "startTime",
-                    get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
-                )
-                cfg.set(
-                    "globalOptions",
-                    "endTime",
-                    get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
-                )
-                cfg.set(
-                    "meteoOptions",
-                    "temperatureNC",
-                    str(
-                        to_absolute_path(  # TODO fix type error
-                            self.forcing.temperatureNC,
-                            parent=self.forcing.directory,
-                        )
-                    ),
-                )
-                cfg.set(
-                    "meteoOptions",
-                    "precipitationNC",
-                    str(
-                        to_absolute_path(  # TODO fix type error
-                            self.forcing.precipitationNC,
-                            parent=self.forcing.directory,
-                        )
-                    ),
-                )
+        if self.forcing:
+            assert self.forcing.temperatureNC is not None  # TODO fix forcing class.
+            assert self.forcing.precipitationNC is not None
+            cfg.set(
+                "globalOptions",
+                "startTime",
+                get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
+            )
+            cfg.set(
+                "globalOptions",
+                "endTime",
+                get_time(self.forcing.start_time).strftime("%Y-%m-%d"),
+            )
+            cfg.set(
+                "meteoOptions",
+                "temperatureNC",
+                str(
+                    to_absolute_path(
+                        self.forcing.temperatureNC,
+                        parent=self.forcing.directory,
+                    )
+                ),
+            )
+            cfg.set(
+                "meteoOptions",
+                "precipitationNC",
+                str(
+                    to_absolute_path(
+                        self.forcing.precipitationNC,
+                        parent=self.forcing.directory,
+                    )
+                ),
+            )
 
-            self._config = cfg
+        self._config = cfg
+        return self
 
-    def setup(self, *, cfg_dir: str | None = None, **kwargs) -> tuple[str, str]:
-        self._post_init()
-        return super().setup(cfg_dir=cfg_dir, **kwargs)
-
-    def get_parameters(self) -> dict:
-        self._post_init()
+    @property
+    def parameters(self) -> dict[str, Any]:
+        """List the parameters for this model."""
         return {
             "start_time": f"{self._config.get('globalOptions', 'startTime')}T00:00:00Z",
             "end_time": f"{self._config.get('globalOptions', 'endTime')}T00:00:00Z",
@@ -131,34 +128,34 @@ class PCRGlobWB(ContainerizedModel):
         )
 
     def _update_config(self, **kwargs):
-        cfg = self._config
-
         if "start_time" in kwargs:
-            cfg.set(
+            self._config.set(
                 "globalOptions",
                 "startTime",
                 get_time(kwargs["start_time"]).strftime("%Y-%m-%d"),
             )
 
         if "end_time" in kwargs:
-            cfg.set(
+            self._config.set(
                 "globalOptions",
                 "endTime",
                 get_time(kwargs["end_time"]).strftime("%Y-%m-%d"),
             )
 
         if "routing_method" in kwargs:
-            cfg.set("routingOptions", "routingMethod", kwargs["routing_method"])
+            self._config.set(
+                "routingOptions", "routingMethod", kwargs["routing_method"]
+            )
 
         if "dynamic_flood_plain" in kwargs:
-            cfg.set(
+            self._config.set(
                 "routingOptions",
                 "dynamicFloodPlain",
                 kwargs["dynamic_flood_plain"],
             )
 
         if "max_spinups_in_years" in kwargs:
-            cfg.set(
+            self._config.set(
                 "globalOptions",
                 "maxSpinUpsInYears",
                 str(kwargs["max_spinups_in_years"]),

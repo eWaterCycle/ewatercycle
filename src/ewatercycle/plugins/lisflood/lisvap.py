@@ -56,7 +56,7 @@ def lisvap(
     engine: ContainerEngine = CFG.container_engine
     image = images[engine]
     if CFG.container_engine.lower() == "apptainer":
-        image_fn = str(CFG.apptainer_dir / image)
+        image_fn = ContainerImage(CFG.apptainer_dir / image)
         args = [
             "apptainer",
             "exec",

@@ -116,7 +116,6 @@ def test_setup(model):
 
         cfg_file, cfg_dir = model.setup()
 
-    # breakpoint()
     expected_cfg_dir = CFG.output_dir / "pcrglobwb_20210102_030405"
     assert cfg_dir == str(expected_cfg_dir)
     assert cfg_file == str(expected_cfg_dir / "pcrglobwb_ewatercycle.ini")

@@ -2,19 +2,26 @@
 
 import abc
 import datetime
+import inspect
 import logging
 from datetime import timezone
 from pathlib import Path
-from typing import Any, Iterable, Optional, Type, cast
+from typing import Annotated, Any, Iterable, Optional, Type, cast
 
 import bmipy
 import numpy as np
-import pydantic
 import xarray as xr
 import yaml
 from cftime import num2pydate
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 from grpc4bmi.reserve import reserve_values, reserve_values_at_indices
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    PrivateAttr,
+    model_validator,
+)
 
 from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.base.parameter_set import ParameterSet
@@ -28,46 +35,58 @@ logger = logging.getLogger(__name__)
 ISO_TIMEFMT = r"%Y-%m-%dT%H:%M:%SZ"
 
 
-class BaseModel(pydantic.BaseModel, abc.ABC):
+class eWaterCycleModel(BaseModel, abc.ABC):
     """Base functionality for eWaterCycle models.
 
     Children need to specify how to make their BMI instance: in a container or
     local python environment.
     """
 
-    forcing: DefaultForcing | None
-    parameter_set: ParameterSet | None
-    parameters: dict[str, Any] = {}
+    forcing: DefaultForcing | None = None
+    parameter_set: ParameterSet | None = None
 
-    _bmi: OptionalDestBmi = pydantic.PrivateAttr()
+    _bmi: OptionalDestBmi = PrivateAttr()
 
-    _cfg_dir: Path = pydantic.PrivateAttr()
-    _cfg_file: Path = pydantic.PrivateAttr()
+    _cfg_dir: Path = PrivateAttr()
+    _cfg_file: Path = PrivateAttr()
+
+    @property
+    def version(self) -> str:
+        return ""
+
+    @model_validator(mode="after")
+    def _check_parameter_set(self):
+        """Check that parameter set is compatible with model."""
+        if not self.parameter_set:
+            return self
+
+        target_model = self.parameter_set.target_model.lower()
+        model_name = self.__class__.__name__.lower()
+        if model_name != target_model:
+            raise ValueError(
+                f"Parameter set has wrong target model, "
+                f"expected {target_model} got {model_name}"
+            )
+
+        version = self.version
+        ps_versions = self.parameter_set.supported_model_versions
+        if version and ps_versions and version not in ps_versions:
+            raise ValueError(
+                f"Parameter set '{self.parameter_set.name}' not compatible"
+                f" with this model version.\nModel version: {version}. "
+                f"Compatible versions: {ps_versions}"
+            )
+
+        return self
 
     @abc.abstractmethod
     def _make_bmi_instance(self) -> OptionalDestBmi:
         """Attach a BMI instance to self._bmi."""
 
-    @pydantic.validator("parameter_set")
-    def _check_parameter_set(cls, parameter_set: ParameterSet):
-        model_name = cls.__name__.lower()
-        if model_name != parameter_set.target_model:
-            raise ValueError(
-                f"Parameter set has wrong target model, "
-                f"expected {parameter_set.target_model} got {model_name}"
-            )
-
-        # TODO: Update check to make use of new ContainerImage class.
-        #  (replace cls.version with e.g.: cls.bmi_image.get_version() )
-        if len(parameter_set.supported_model_versions) > 0 and hasattr(cls, "version"):
-            if cls.version not in parameter_set.supported_model_versions:
-                raise ValueError(
-                    f"Parameter set '{parameter_set.__class__.__name__}' does not "
-                    "support this model version:\n"
-                    f"Model version: {cls.version}. "
-                    "Supported versions: {parameter_set.supported_model_versions}"
-                )
-        return parameter_set
+    @property
+    def parameters(self) -> dict[str, Any]:
+        """Display the model's parameters and their values."""
+        return {}
 
     def setup(self, *, cfg_dir: str | None = None, **kwargs) -> tuple[str, str]:
         """Perform model setup.
@@ -372,7 +391,7 @@ class BaseModel(pydantic.BaseModel, abc.ABC):
         return grid_lat, grid_lon, shape
 
 
-class LocalModel(BaseModel):
+class LocalModel(eWaterCycleModel):
     """eWaterCycle model running in a local Python environment.
 
     Mostly intended for development purposes.
@@ -380,20 +399,37 @@ class LocalModel(BaseModel):
 
     bmi_class: Type[bmipy.Bmi]
 
+    @property
+    def version(self) -> str:
+        return getattr(inspect.getmodule(self), "__version__", "")
+
     def _make_bmi_instance(self):
         return OptionalDestBmi(self.bmi_class())
 
 
-class ContainerizedModel(BaseModel):
+def _parse_containerimage(v):
+    image = ContainerImage(v)
+    image._validate()
+    return image
+
+
+class ContainerizedModel(eWaterCycleModel):
     """eWaterCycle model running inside a container.
 
     This is the recommended method for sharing eWaterCycle models.
     """
 
-    bmi_image: ContainerImage
+    bmi_image: Annotated[ContainerImage, BeforeValidator(_parse_containerimage)]
 
     # Create as empty list to allow models to append before bmi is made:
-    _additional_input_dirs: list[str] = pydantic.PrivateAttr([])
+    _additional_input_dirs: list[str] = PrivateAttr([])
+
+    # Make pydantic accept ContainerImage type.
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    @property
+    def version(self) -> str:
+        return self.bmi_image.version
 
     def _make_bmi_instance(self) -> bmipy.Bmi:
         if self.parameter_set:
