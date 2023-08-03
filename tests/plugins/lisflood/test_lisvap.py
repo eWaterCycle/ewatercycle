@@ -81,7 +81,6 @@ def test_lisvap_apptainer(mocked_popen, tmp_path, mocked_config):
     mocked_popen.return_value.wait.return_value = 0
 
     exit_code, stdout, stderr = lisvap(
-        "20.10",
         str(CFG.parameterset_dir),
         str(forcing_dir),
         str(mask_map),
@@ -116,7 +115,6 @@ def test_lisvap_docker(mocked_popen, tmp_path, mocked_config):
     mocked_popen.return_value.wait.return_value = 0
 
     exit_code, stdout, stderr = lisvap(
-        "20.10",
         str(CFG.parameterset_dir),
         str(forcing_dir),
         str(mask_map),

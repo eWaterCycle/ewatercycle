@@ -1,12 +1,12 @@
 """Forcing related functionality for hype"""
 
-from pathlib import Path
 from typing import Literal, Optional
 
 import pandas as pd
+import xarray as xr
 from esmvalcore.experimental import get_recipe
 
-from ewatercycle.base.forcing import DATASETS, DefaultForcing, _session
+from ewatercycle.base.forcing import DATASETS, DefaultForcing, run_esmvaltool_recipe
 from ewatercycle.util import get_time, to_absolute_path
 
 
@@ -54,7 +54,7 @@ class HypeForcing(DefaultForcing):
         for preproc_name in preproc_names:
             recipe.data["preprocessors"][preproc_name]["extract_shape"][
                 "shapefile"
-            ] = to_absolute_path(shape)
+            ] = str(to_absolute_path(shape))
 
         recipe.data["datasets"] = [DATASETS[dataset]]
 
@@ -70,27 +70,12 @@ class HypeForcing(DefaultForcing):
             variables[var_name]["end_year"] = endyear
 
         # generate forcing data and retreive useful information
-        recipe_output = recipe.run(session=_session(directory))
+        recipe_output = run_esmvaltool_recipe(recipe, directory)
 
         # retrieve forcing files
         recipe_files = list(recipe_output.values())[0].files
         forcing_files = {f.path.stem: f.path for f in recipe_files}
         directory = str(forcing_files["Pobs"].parent)
-
-        # Workaround: change subbasin id from 1234.0 to 1234 in all forcing files
-        # Can removed once https://github.com/ESMValGroup/ESMValTool/issues/2678 is fixed
-        for f in [
-            forcing_files["Pobs"].name,
-            forcing_files["Tobs"].name,
-            forcing_files["TMAXobs"].name,
-            forcing_files["TMINobs"].name,
-        ]:
-            p = Path(directory, f)
-            ds = pd.read_csv(p, sep=" ", index_col="DATE")
-            ds.rename(
-                columns={x: x.replace(".0", "") for x in ds.columns}, inplace=True
-            )
-            ds.to_csv(p, sep=" ", index_label="DATE", float_format="%.3f")
 
         # instantiate forcing object based on generated data
         generated_forcing = HypeForcing(
@@ -105,3 +90,37 @@ class HypeForcing(DefaultForcing):
         )
         generated_forcing.save()
         return generated_forcing
+
+    def to_xarray(self) -> xr.Dataset:
+        """Load forcing files into a xarray Dataset.
+
+        Returns:
+            xarray Dataset containing forcing data.
+        """
+        assert self.directory is not None, "Forcing directory is not set"
+
+        # TODO add lats/lons to dataset
+        # maybe infer from centers of subbasins in shapefile in ewatercycle_forcing.yaml?
+        ds = xr.Dataset()
+        ds["Pobs"] = pd.read_csv(
+            self.directory / self.Pobs, sep=" ", index_col="DATE", parse_dates=True
+        )
+        ds["TMAXobs"] = pd.read_csv(
+            self.directory / self.TMAXobs, sep=" ", index_col="DATE", parse_dates=True
+        )
+        ds["TMINobs"] = pd.read_csv(
+            self.directory / self.TMINobs, sep=" ", index_col="DATE", parse_dates=True
+        )
+        ds["Tobs"] = pd.read_csv(
+            self.directory / self.Tobs, sep=" ", index_col="DATE", parse_dates=True
+        )
+        ds = ds.rename({"DATE": "time", "dim_1": "subbasin"}).assign(
+            subbasin=lambda ds: ds.subbasin.astype(int)
+        )
+        # TODO add units and long names to variables as attributes
+
+        ds.attrs = {
+            "title": "Hype forcing data",
+            "history": "Created by ewatercycle.plugins.hype.forcing.HypeForcing.to_xarray()",
+        }
+        return ds
