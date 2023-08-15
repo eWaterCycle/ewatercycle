@@ -1,6 +1,8 @@
 from pathlib import Path
 from textwrap import dedent
 
+import pytest
+
 from ewatercycle.base.esmvaltool_wrapper import Dataset, Recipe
 from ewatercycle.base.forcing_recipe import (
     RecipeBuilder,
@@ -32,6 +34,7 @@ def test_build_esmvaltool_recipe():
         .build()
     )
     recipe_as_string = recipe_to_string(recipe)
+    print(recipe_as_string)
 
     expected = dedent(
         """\
@@ -56,12 +59,11 @@ preprocessors:
       start_latitude: 25
       end_latitude: 40
   tas:
-    spatial:
-      extract_region:
-        start_longitude: 40
-        end_longitude: 65
-        start_latitude: 25
-        end_latitude: 40
+    extract_region:
+      start_longitude: 40
+      end_longitude: 65
+      start_latitude: 25
+      end_latitude: 40
     convert_units:
       units: degC
 diagnostics:
@@ -108,37 +110,25 @@ preprocessors:
       crop: true
       decomposed: false
   pr:
-    spatial:
-      extract_shape:
-        shapefile: myshape.shp
-        crop: true
-        decomposed: false
-    convert_units:
-      units: kg m-2 d-1
+    extract_shape:
+      shapefile: myshape.shp
+      crop: true
+      decomposed: false
   tas:
-    spatial:
-      extract_shape:
-        shapefile: myshape.shp
-        crop: true
-        decomposed: false
-    convert_units:
-      units: degC
+    extract_shape:
+      shapefile: myshape.shp
+      crop: true
+      decomposed: false
   tasmin:
-    spatial:
-      extract_shape:
-        shapefile: myshape.shp
-        crop: true
-        decomposed: false
-    convert_units:
-      units: degC
+    extract_shape:
+      shapefile: myshape.shp
+      crop: true
+      decomposed: false
   tasmax:
-    spatial:
-      extract_shape:
-        shapefile: myshape.shp
-        crop: true
-        decomposed: false
-    convert_units:
-      units: degC
+    extract_shape:
+      shapefile: myshape.shp
+      crop: true
+      decomposed: false
 diagnostics:
   diagnostic:
     variables:
@@ -158,6 +148,7 @@ diagnostics:
         start_year: 1990
         end_year: 2001
         preprocessor: tasmax
+
         """
     )
     assert recipe_as_string == expected
@@ -176,6 +167,91 @@ def test_build_pcrglobwb_recipe():
 
     expected = dedent(
         """\
+documentation:
+  title: PCRGlobWB forcing recipe
+  description: PCRGlobWB forcing recipe
+  authors:
+  - unmaintained
+  projects:
+  - ewatercycle
+datasets:
+- dataset: ERA5
+  project: OBS6
+  mip: day
+  tier: 3
+  type: reanaly
+preprocessors:
+  spatial:
+    extract_shape:
+      shapefile: myshape.shp
+      crop: true
+      decomposed: false
+  pr:
+    extract_shape:
+      shapefile: myshape.shp
+      crop: true
+      decomposed: false
+    convert_units:
+      units: kg m-2 d-1
+  tas:
+    extract_shape:
+      shapefile: myshape.shp
+      crop: true
+      decomposed: false
+  pr_climatology:
+    extract_shape:
+      shapefile: myshape.shp
+      crop: true
+      decomposed: false
+    convert_units:
+      units: kg m-2 d-1
+    climate_statistics:
+      operator: mean
+      period: day
+  tas_climatology:
+    extract_shape:
+      shapefile: myshape.shp
+      crop: true
+      decomposed: false
+    climate_statistics:
+      operator: mean
+      period: day
+diagnostics:
+  diagnostic:
+    scripts:
+      script:
+        script: hydrology/pcrglobwb.py
+        basin: myshape
+    variables:
+      pr:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: pr
+      tas:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: tas
+      pr_climatology:
+        start_year: 1980
+        end_year: 1990
+        preprocessor: pr_climatology
+        short_name: pr
+      tas_climatology:
+        start_year: 1980
+        end_year: 1990
+        preprocessor: tas_climatology
+        short_name: tas
         """
     )
     assert recipe_as_string == expected
+
+
+@pytest.skip("Only run when ESMValTool is configured")
+def test_run_recipe():
+    recipe = build_generic_distributed_forcing_recipe(
+        start_year=2000,
+        end_year=2001,
+        shape=Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp"),
+    )
+    output = run_recipe(recipe)
+    print(output)

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Sequence
 
 from esmvalcore.experimental.recipe import RecipeOutput
 from ruamel.yaml import YAML
@@ -66,7 +66,7 @@ class RecipeBuilder:
                 projects=["ewatercycle"],
             ),
             preprocessors={},
-            diagnostics={DIAGNOSTIC_NAME: Diagnostic(variables={})},
+            diagnostics={DIAGNOSTIC_NAME: Diagnostic(variables={}, scripts={})},
         )
 
     def build(self) -> Recipe:
@@ -134,6 +134,11 @@ class RecipeBuilder:
         self._recipe.preprocessors[name] = {"convert_units": {"units": units}}
         return self
 
+    def add_variables(self, variables: Sequence[str]) -> "RecipeBuilder":
+        for variable in variables:
+            self.add_variable(variable)
+        return self
+
     def add_variable(
         self,
         variable: str,
@@ -144,6 +149,7 @@ class RecipeBuilder:
         start_year: int | None = None,
         end_year: int | None = None,
     ) -> "RecipeBuilder":
+        # TODO check variable is in dataset
         # Each variable needs its own single preprocessor
         preprocessor_name = self._add_preprocessor(variable, units, stats)
         self._diagnostic.variables[variable] = Variable(
@@ -159,9 +165,7 @@ class RecipeBuilder:
         if preprocessor_name not in self._recipe.preprocessors:
             preprocessor = {}
             if SPATIAL_PREPROCESSOR_NAME in self._recipe.preprocessors:
-                preprocessor["spatial"] = self._recipe.preprocessors[
-                    SPATIAL_PREPROCESSOR_NAME
-                ]
+                preprocessor = {**self._recipe.preprocessors[SPATIAL_PREPROCESSOR_NAME]}
             if units is not None:
                 preprocessor["convert_units"] = {"units": units}
             if stats is not None:
@@ -183,6 +187,7 @@ def build_generic_distributed_forcing_recipe(
     end_year: int,
     shape: Path,
     dataset: Dataset | str = "ERA5",
+    variables: Sequence[str] = ("pr", "tas", "tasmin", "tasmax"),
 ):
     return (
         RecipeBuilder()
@@ -192,10 +197,7 @@ def build_generic_distributed_forcing_recipe(
         .start(start_year)
         .end(end_year)
         .shape(shape)
-        .add_variable("pr", units="kg m-2 d-1")
-        .add_variable("tas", units="degC")
-        .add_variable("tasmin", units="degC")
-        .add_variable("tasmax", units="degC")
+        .add_variables(variables)
         .build()
     )
 
