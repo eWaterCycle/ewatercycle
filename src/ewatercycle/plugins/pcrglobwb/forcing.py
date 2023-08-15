@@ -4,7 +4,12 @@ from typing import Literal, Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ewatercycle.base.forcing import DATASETS, DefaultForcing, _session
+from ewatercycle.base.forcing import (
+    DATASETS,
+    DefaultForcing,
+    _session,
+    run_esmvaltool_recipe,
+)
 from ewatercycle.util import (
     data_files_from_recipe_output,
     get_extents,
@@ -118,7 +123,7 @@ class PCRGlobWBForcing(DefaultForcing):
             variables[var_name]["end_year"] = endyear_climatology
 
         # generate forcing data and retrieve useful information
-        recipe_output = recipe.run(session=_session(directory))
+        recipe_output = run_esmvaltool_recipe(recipe, directory)
         # TODO dont open recipe output, but use standard name from ESMValTool
         directory, forcing_files = data_files_from_recipe_output(recipe_output)
 

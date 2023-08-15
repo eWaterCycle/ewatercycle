@@ -6,7 +6,12 @@ from typing import Literal, Optional
 
 from esmvalcore.experimental import get_recipe
 
-from ewatercycle.base.forcing import DATASETS, DefaultForcing, _session
+from ewatercycle.base.forcing import (
+    DATASETS,
+    DefaultForcing,
+    _session,
+    run_esmvaltool_recipe,
+)
 from ewatercycle.plugins.lisflood.lisvap import create_lisvap_config, lisvap
 from ewatercycle.util import (
     data_files_from_recipe_output,
@@ -112,8 +117,6 @@ class LisfloodForcing(DefaultForcing):
                     - lisvap_config: Name of Lisvap configuration file.
                     - mask_map: A mask for the spatial selection.
                         This file should have same extent and resolution as parameter-set.
-                    - version: LISVAP/LISFLOOD model version supported by ewatercycle.
-                        Pick from :py:obj:`~ewatercycle.models.lisflood.Lisflood.available_versions`.
                     - parameterset_dir: Directory of the parameter set.
                         Directory should contains the Lisvap config file and files the config points to.
         """
@@ -181,14 +184,13 @@ class LisfloodForcing(DefaultForcing):
         # ValueError: The 'longitude' DimCoord points array must be strictly monotonic.
 
         # generate forcing data and retrieve useful information
-        recipe_output = recipe.run(session=_session(directory))
+        recipe_output = run_esmvaltool_recipe(recipe, directory)
         directory, forcing_files = data_files_from_recipe_output(recipe_output)
 
         if run_lisvap:
             # Get lisvap specific options and make paths absolute
             lisvap_config = str(to_absolute_path(run_lisvap["lisvap_config"]))
             mask_map = str(to_absolute_path(run_lisvap["mask_map"]))
-            version = run_lisvap["version"]
             parameterset_dir = str(to_absolute_path(run_lisvap["parameterset_dir"]))
 
             # Reindex data because recipe cropped the data
@@ -220,7 +222,6 @@ class LisfloodForcing(DefaultForcing):
                 forcing_files,
             )
             lisvap(
-                version,
                 parameterset_dir,
                 str(reindexed_forcing_directory),
                 mask_map,

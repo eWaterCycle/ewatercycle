@@ -48,21 +48,21 @@ class TestWithDefaultsAndExampleData:
             return model, cfg_file, cfg_dir
 
     def test_parameters(self, model):
-        expected = [
-            ("maximum_soil_moisture_storage", 1000.0),
-            ("threshold_flow_generation_evap_change", 0.5),
-            ("leakage_saturated_zone_flow_coefficient", 0.5),
-            ("zero_deficit_base_flow_speed", 100.0),
-            ("baseflow_coefficient", 0.5),
-            ("gamma_distribution_chi_parameter", 4.25),
-            ("gamma_distribution_phi_parameter", 2.5),
-            ("initial_upper_zone_storage", 900.0),
-            ("initial_saturated_zone_storage", 900.0),
-            ("solver", Solver()),
-            ("start time", "1989-01-01T00:00:00Z"),
-            ("end time", "1992-12-31T00:00:00Z"),
-        ]
-        assert model.get_parameters() == expected
+        expected = {
+            "maximum_soil_moisture_storage": 1000.0,
+            "threshold_flow_generation_evap_change": 0.5,
+            "leakage_saturated_zone_flow_coefficient": 0.5,
+            "zero_deficit_base_flow_speed": 100.0,
+            "baseflow_coefficient": 0.5,
+            "gamma_distribution_chi_parameter": 4.25,
+            "gamma_distribution_phi_parameter": 2.5,
+            "initial_upper_zone_storage": 900.0,
+            "initial_saturated_zone_storage": 900.0,
+            "solver": Solver(),
+            "start time": "1989-01-01T00:00:00Z",
+            "end time": "1992-12-31T00:00:00Z",
+        }
+        assert model.parameters == expected
 
     def test_setup(self, model_with_setup):
         model, cfg_file, cfg_dir = model_with_setup
@@ -86,21 +86,21 @@ class TestWithDefaultsAndExampleData:
 
     def test_parameters_after_setup(self, model_with_setup):
         model = model_with_setup[0]
-        expected = [
-            ("maximum_soil_moisture_storage", 1000.0),
-            ("threshold_flow_generation_evap_change", 0.5),
-            ("leakage_saturated_zone_flow_coefficient", 0.5),
-            ("zero_deficit_base_flow_speed", 100.0),
-            ("baseflow_coefficient", 0.5),
-            ("gamma_distribution_chi_parameter", 4.25),
-            ("gamma_distribution_phi_parameter", 2.5),
-            ("initial_upper_zone_storage", 900.0),
-            ("initial_saturated_zone_storage", 900.0),
-            ("solver", Solver()),
-            ("start time", "1989-01-01T00:00:00Z"),
-            ("end time", "1992-12-31T00:00:00Z"),
-        ]
-        assert model.get_parameters() == expected
+        expected = {
+            "maximum_soil_moisture_storage": 1000.0,
+            "threshold_flow_generation_evap_change": 0.5,
+            "leakage_saturated_zone_flow_coefficient": 0.5,
+            "zero_deficit_base_flow_speed": 100.0,
+            "baseflow_coefficient": 0.5,
+            "gamma_distribution_chi_parameter": 4.25,
+            "gamma_distribution_phi_parameter": 2.5,
+            "initial_upper_zone_storage": 900.0,
+            "initial_saturated_zone_storage": 900.0,
+            "solver": Solver(),
+            "start time": "1989-01-01T00:00:00Z",
+            "end time": "1992-12-31T00:00:00Z",
+        }
+        assert model.parameters == expected
 
     def test_get_value_as_xarray(self, model_with_setup):
         model, cfg_file, cfg_dir = model_with_setup

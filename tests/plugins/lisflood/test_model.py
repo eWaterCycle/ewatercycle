@@ -74,13 +74,13 @@ class TestLFlatlonUseCase:
         yield m
 
     def test_default_parameters(self, model: Lisflood):
-        expected_parameters = [
-            ("IrrigationEfficiency", "0.75"),
-            ("MaskMap", "$(PathMaps)/masksmall.map"),
-            ("start_time", "1986-01-02T00:00:00Z"),
-            ("end_time", "2018-01-02T00:00:00Z"),
-        ]
-        assert model.get_parameters() == expected_parameters
+        expected_parameters = {
+            "IrrigationEfficiency": "0.75",
+            "MaskMap": "$(PathMaps)/masksmall.map",
+            "start_time": "1986-01-02T00:00:00Z",
+            "end_time": "2018-01-02T00:00:00Z",
+        }
+        assert model.parameters == expected_parameters
 
     @pytest.fixture
     def model_with_setup(self, mocked_config, model: Lisflood):
@@ -238,13 +238,13 @@ class TestLFlatlonUseCase:
 
         @pytest.mark.skip(reason="Doesn't play nicely with new model API.")
         def test_parameters_after_setup(self, model_with_setup, tmp_path):
-            expected_parameters = [
-                ("IrrigationEfficiency", "0.75"),
-                ("MaskMap", f"{tmp_path}/custommask/mask"),
-                ("start_time", "1986-01-02T00:00:00Z"),
-                ("end_time", "2018-01-02T00:00:00Z"),
-            ]
-            assert model_with_setup[3].get_parameters() == expected_parameters
+            expected_parameters = {
+                "IrrigationEfficiency": "0.75",
+                "MaskMap": f"{tmp_path}/custommask/mask",
+                "start_time": "1986-01-02T00:00:00Z",
+                "end_time": "2018-01-02T00:00:00Z",
+            }
+            assert model_with_setup[3].parameters == expected_parameters
 
 
 class MockedBmi(FailingModel):
