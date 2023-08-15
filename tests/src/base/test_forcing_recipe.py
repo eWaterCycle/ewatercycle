@@ -1,10 +1,9 @@
 from pathlib import Path
 from textwrap import dedent
 
-import pytest
-
-from ewatercycle.base.esmvaltool_wrapper import Dataset, Recipe
+from ewatercycle.base.esmvaltool_wrapper import Dataset
 from ewatercycle.base.forcing_recipe import (
+    DEFAULT_DIAGNOSTIC_SCRIPT,
     RecipeBuilder,
     build_generic_distributed_forcing_recipe,
     build_pcrglobwb_recipe,
@@ -36,8 +35,9 @@ def test_build_esmvaltool_recipe():
     recipe_as_string = recipe_to_string(recipe)
     print(recipe_as_string)
 
+
     expected = dedent(
-        """\
+        f"""\
 documentation:
   title: Generic distributed hydrogeological model forcing
   description: Recipe to generate forcing for a generic distributed hydrogeological
@@ -68,6 +68,9 @@ preprocessors:
       units: degC
 diagnostics:
   diagnostic:
+    scripts:
+      script:
+        script: {DEFAULT_DIAGNOSTIC_SCRIPT}
     variables:
       tas:
         start_year: 2020
@@ -89,7 +92,7 @@ def test_build_generic_distributed_forcing_recipe():
     print(recipe_as_string)
 
     expected = dedent(
-        """\
+        f"""\
 documentation:
   title: Generic distributed forcing recipe
   description: Generic distributed forcing recipe
@@ -131,6 +134,9 @@ preprocessors:
       decomposed: false
 diagnostics:
   diagnostic:
+    scripts:
+      script:
+        script: {DEFAULT_DIAGNOSTIC_SCRIPT}
     variables:
       pr:
         start_year: 1990
@@ -148,7 +154,6 @@ diagnostics:
         start_year: 1990
         end_year: 2001
         preprocessor: tasmax
-
         """
     )
     assert recipe_as_string == expected
@@ -244,14 +249,3 @@ diagnostics:
         """
     )
     assert recipe_as_string == expected
-
-
-@pytest.skip("Only run when ESMValTool is configured")
-def test_run_recipe():
-    recipe = build_generic_distributed_forcing_recipe(
-        start_year=2000,
-        end_year=2001,
-        shape=Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp"),
-    )
-    output = run_recipe(recipe)
-    print(output)

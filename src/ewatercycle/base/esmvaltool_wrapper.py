@@ -1,5 +1,4 @@
-from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
@@ -130,3 +129,8 @@ class Recipe(BaseModel):
     # see https://docs.esmvaltool.org/projects/ESMValCore/en/v2.9.0/recipe/preprocessor.html
     preprocessors: dict[str, dict[str, Any]] | None = None
     diagnostics: dict[str, Diagnostic] | None = None
+
+
+class ClimateStatistics(BaseModel):
+    operator: Literal["mean", "std", "min", "max", "median", "sum"] = "mean"
+    period: Literal["hour", "day", "month", "year"] = "day"

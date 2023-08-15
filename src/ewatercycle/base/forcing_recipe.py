@@ -1,30 +1,29 @@
-from dataclasses import dataclass
-from datetime import datetime
+"""Builder and runner for ESMValTool recipes, the recipes can be used to generate forcings."""
 from io import StringIO
 from pathlib import Path
-from typing import Literal, Sequence
+from tempfile import NamedTemporaryFile
+from typing import Sequence
 
+from esmvalcore.config import CFG, Session
+from esmvalcore.experimental import CFG
+from esmvalcore.experimental import Recipe as ESMValToolRecipe
 from esmvalcore.experimental.recipe import RecipeOutput
 from ruamel.yaml import YAML
 
+from ewatercycle.base import esmvaltool_generic_diagnostic
 from ewatercycle.base.esmvaltool_wrapper import (
+    ClimateStatistics,
     Dataset,
     Diagnostic,
     Documentation,
     Recipe,
-    Script,
     Variable,
 )
 
 DIAGNOSTIC_NAME = "diagnostic"
 SPATIAL_PREPROCESSOR_NAME = "spatial"
 SCRIPT_NAME = "script"
-
-
-@dataclass
-class Stats:
-    operator: Literal["mean", "std", "min", "max", "median", "sum"] = "mean"
-    period: Literal["hour", "day", "month", "year"] = "day"
+DEFAULT_DIAGNOSTIC_SCRIPT = esmvaltool_generic_diagnostic.__file__
 
 
 def load_recipe(path: Path) -> Recipe:
@@ -36,9 +35,10 @@ def save_recipe(recipe: Recipe, path: Path):
 
 
 def recipe_to_string(recipe: Recipe) -> str:
+    # use rt to preserve order of preprocessor keys
     yaml = YAML(typ="rt")
     stream = StringIO()
-    yaml.dump(recipe.dict(exclude_none=True), stream)
+    yaml.dump(recipe.model_dump(exclude_none=True), stream)
     return stream.getvalue()
 
 
@@ -48,8 +48,21 @@ def string_to_recipe(recipe_string: str) -> Recipe:
     return Recipe(**raw_recipe)
 
 
-def run_recipe(recipe: Recipe, output_dir: str | None) -> RecipeOutput:
-    pass
+def run_recipe(recipe: Recipe, output_dir: Path | None = None) -> RecipeOutput:
+    recipe_file = NamedTemporaryFile(suffix="ewcrep.yml", mode="w", delete=False)
+    recipe_path = Path(recipe_file.name)
+
+    try:
+        save_recipe(recipe, recipe_path)
+
+        # TODO don't like having to different Recipe classes, should fix upstream
+        esmlvaltool_recipe = ESMValToolRecipe(recipe_path)
+        session = _session(output_dir)
+        output = esmlvaltool_recipe.run(session=session)
+    finally:
+        recipe_path.unlink()
+
+    return output
 
 
 class RecipeBuilder:
@@ -66,7 +79,14 @@ class RecipeBuilder:
                 projects=["ewatercycle"],
             ),
             preprocessors={},
-            diagnostics={DIAGNOSTIC_NAME: Diagnostic(variables={}, scripts={})},
+            diagnostics={
+                DIAGNOSTIC_NAME: Diagnostic(
+                    variables={},
+                    scripts={
+                        SCRIPT_NAME: {"script": DEFAULT_DIAGNOSTIC_SCRIPT, "args": {}}
+                    },
+                )
+            },
         )
 
     def build(self) -> Recipe:
@@ -144,7 +164,7 @@ class RecipeBuilder:
         variable: str,
         mip: str | None = None,
         units: str | None = None,
-        stats: Stats | None = None,
+        stats: ClimateStatistics | None = None,
         short_name: str | None = None,
         start_year: int | None = None,
         end_year: int | None = None,
@@ -156,6 +176,7 @@ class RecipeBuilder:
             mip=mip,
             preprocessor=preprocessor_name,
             start_year=start_year or self._start_year,
+            # TODO check if end_year is exclusive or inclusive
             end_year=end_year or self._end_year,
             short_name=short_name,
         )
@@ -177,7 +198,7 @@ class RecipeBuilder:
         return preprocessor_name
 
     def script(self, script: str, arguments: dict[str, str]) -> "RecipeBuilder":
-        self._diagnostic.scripts = {SCRIPT_NAME: {"script": script, **arguments}}
+        self._diagnostic.scripts[SCRIPT_NAME] = {"script": script, **arguments}
         # If script is not set then should there be `scripts: null` in recipe yaml?
         return self
 
@@ -228,14 +249,14 @@ def build_pcrglobwb_recipe(
         .add_variable(
             "pr_climatology",
             units="kg m-2 d-1",
-            stats=Stats(operator="mean", period="day"),
+            stats=ClimateStatistics(operator="mean", period="day"),
             short_name="pr",
             start_year=start_year_climatology,
             end_year=end_year_climatology,
         )
         .add_variable(
             "tas_climatology",
-            stats=Stats(operator="mean", period="day"),
+            stats=ClimateStatistics(operator="mean", period="day"),
             short_name="tas",
             start_year=start_year_climatology,
             end_year=end_year_climatology,
@@ -243,10 +264,6 @@ def build_pcrglobwb_recipe(
         .script("hydrology/pcrglobwb.py", {"basin": shape.stem})
         .build()
     )
-
-
-def build_wflow_recipe():
-    pass
 
 
 DATASETS = {
@@ -271,8 +288,25 @@ DATASETS = {
         }
     ),
 }
-"""Dictionary of ready to use forcing datasets.
+"""Dictionary of predefined forcing datasets.
 
 Where key is the name of the dataset and
 value is an `ESMValTool dataset section <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipe/overview.html#datasets>`_.
 """
+
+
+def _session(directory: Path | str | None = None) -> Session | None:
+    """When directory is set return a ESMValTool session that will write recipe output to that directory."""
+    if directory is None:
+        return None
+
+    class TimeLessSession(Session):
+        def __init__(self, output_dir: Path):
+            super().__init__(CFG.copy())
+            self.output_dir = output_dir
+
+        @property
+        def session_dir(self):
+            return self.output_dir
+
+    return TimeLessSession(Path(directory).absolute())

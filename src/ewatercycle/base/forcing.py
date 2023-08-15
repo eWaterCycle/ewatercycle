@@ -4,18 +4,20 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Annotated, Literal, Optional, Union
 
-from esmvalcore.config import Session
-from esmvalcore.experimental import CFG, Recipe
+from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import RecipeOutput
 from pydantic import BaseModel, field_validator
 from pydantic.functional_validators import AfterValidator
 from ruamel.yaml import YAML
 
-from ewatercycle.base.esmvaltool_wrapper import Dataset, Recipe
+from ewatercycle.base.esmvaltool_wrapper import Dataset
+from ewatercycle.base.esmvaltool_wrapper import Recipe as WrappedRecipe
 from ewatercycle.base.forcing_recipe import (
+    _session,
     build_generic_distributed_forcing_recipe,
+    run_recipe,
 )
-from ewatercycle.util import to_absolute_path
+from ewatercycle.util import data_files_from_recipe_output, get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 FORCING_YAML = "ewatercycle_forcing.yaml"
@@ -69,7 +71,7 @@ class DefaultForcing(BaseModel):
         `ESMValTool <https://esmvaltool.org/>`_.
 
         Args:
-            dataset: Name of the source dataset. See :py:const:`~ewatercycle.base.forcing.DATASETS`.
+            dataset: Name of the source dataset. See :py:const:`~ewatercycle.base.forcing_recipe.DATASETS`.
             start_time: Start time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: nd time of forcing in UTC and ISO format string e.g.
@@ -77,16 +79,26 @@ class DefaultForcing(BaseModel):
             shape: Path to a shape file. Used for spatial selection.
             directory:  Directory in which forcing should be written.
                 If not given will create timestamped directory.
+
         """
         # TODO make data set build function
         recipe = cls._build_recipe(
             dataset=dataset,
-            start_time=start_time,
-            end_time=end_time,
+            start_time=get_time(start_time),
+            end_time=get_time(end_time),
             shape=shape,
             **model_specific_options,
         )
-        return cls._run_recipe(recipe, directory=directory)
+        recipe_output = cls._run_recipe(recipe, directory=directory)
+        return cls._from_recipe_output(start_time, end_time, shape, recipe_output)
+
+    @classmethod
+    def _from_recipe_output(cls, start_time, end_time, shape, recipe_output):
+        forcing_args = {"start_time": start_time, "end_time": end_time, "shape": shape}
+        forcing_args.update(_parse_recipe_output(recipe_output))
+        forcing = cls(**forcing_args)
+        forcing.save()
+        return forcing
 
     @classmethod
     def _build_recipe(
@@ -97,6 +109,7 @@ class DefaultForcing(BaseModel):
         dataset: Dataset | str = "ERA5",
         **model_specific_options,
     ):
+        # TODO move to GenericDistributedForcing, but what should be here then?
         return build_generic_distributed_forcing_recipe(
             start_year=start_time.year,
             end_year=end_time.year,
@@ -107,14 +120,10 @@ class DefaultForcing(BaseModel):
     @classmethod
     def _run_recipe(
         cls,
-        recipe: Recipe,
+        recipe: WrappedRecipe,
         directory: Optional[str] = None,
-    ):
-        # TODO see
-        # https://github.com/eWaterCycle/ewatercycle/blob/8f1caf11a13c4761c07b7aa4fb9310865d999d41/src/ewatercycle/base/forcing.py#L155
-        # in https://github.com/eWaterCycle/ewatercycle/pull/362
-        # or use CLI with `esmvaltool run <written recipe>`, will need to find output files ourselves
-        return run_esmvaltool_recipe(recipe, directory=directory)
+    ) -> RecipeOutput:
+        return run_recipe(recipe, directory)
 
     def save(self):
         """Export forcing data for later use."""
@@ -181,21 +190,70 @@ class DefaultForcing(BaseModel):
         return self.__dict__ == other.__dict__
 
 
-def _session(directory: Optional[str] = None) -> Optional[Session]:
-    """When directory is set return a ESMValTool session that will write recipe output to that directory."""
-    if directory is None:
-        return None
+class GenericDistributedForcing(DefaultForcing):
+    """Generic forcing data for a distributed model.
 
-    class TimeLessSession(Session):
-        def __init__(self, output_dir: Path):
-            super().__init__(CFG.copy())
-            self.output_dir = output_dir
+    Attributes:
+        pr: Path to NetCDF file with precipitation data.
+        tas: Path to NetCDF file with air temperature data.
+        tasmin: Path to NetCDF file with minimum air temperature data.
+        tasmax: Path to NetCDF file with maximum air temperature data.
 
-        @property
-        def session_dir(self):
-            return self.output_dir
+    Example:
 
-    return TimeLessSession(Path(directory).absolute())
+        To generate forcing from ERA5 for the Rhine catchment for 2000-2001:
+
+        ```pycon
+        from pathlib import Path
+        from rich import print
+        from ewatercycle.base.forcing import GenericDistributedForcing
+
+        shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
+        forcing = GenericDistributedForcing.generate(
+            dataset='ERA5',
+            start_time='2000-01-01T00:00:00Z',
+            end_time='2001-01-01T00:00:00Z',
+            shape=shape.absolute(),
+        )
+        print(forcing)
+        ```
+
+        Gives something like:
+
+        ```pycon
+        GenericDistributedForcing(
+            model='generic_distributed',
+            start_time='2000-01-01T00:00:00Z',
+            end_time='2001-01-01T00:00:00Z',
+            directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/tmp05upitxoewcrep_20230815_154640/work/diagnostic/script'),
+            shape=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
+            pr='OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc',
+            tas='OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc',
+            tasmin='OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc',
+            tasmax='OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc'
+        )
+        ```
+    """
+
+    model: Literal["generic_distributed"] = "generic_distributed"
+    pr: str
+    tas: str
+    tasmin: str
+    tasmax: str
+
+    # TODO add helper method to get forcing data as xarray.Dataset?
+
+
+def _parse_recipe_output(recipe_output):
+    """Parse ESMValTool recipe output into a dictionary.
+
+    Returns:
+        Dictionary with forcing data variables as keys and file names as values
+        and a key called directory with is the parent directory of the file names.
+    """
+    directory, variables = data_files_from_recipe_output(recipe_output)
+    # Mold ESMValTool output into the format needed for GenericDistributedForcing
+    return {"directory": directory, **variables}
 
 
 def run_esmvaltool_recipe(recipe: Recipe, output_dir: str | None) -> RecipeOutput:
