@@ -1,5 +1,5 @@
-from datetime import datetime
 import logging
+from datetime import datetime
 from pathlib import Path
 from typing import Literal, Optional, Union
 
@@ -8,9 +8,12 @@ from esmvalcore.experimental import CFG
 from pydantic import BaseModel, validator
 from ruamel.yaml import YAML
 
-from ewatercycle.util import to_absolute_path
-
 from ewatercycle.base.esmvaltool_wrapper import Dataset, Recipe
+from ewatercycle.base.forcing_recipe import (
+    RecipeBuilder,
+    build_generic_distributed_forcing_recipe,
+)
+from ewatercycle.util import to_absolute_path
 
 logger = logging.getLogger(__name__)
 FORCING_YAML = "ewatercycle_forcing.yaml"
@@ -81,36 +84,29 @@ class DefaultForcing(BaseModel):
         )
         return cls._run_recipe(recipe, directory=directory)
 
-
     @classmethod
-    def _build_recipe(cls,
+    def _build_recipe(
+        cls,
         start_time: datetime,
         end_time: datetime,
         shape: Path,
-        dataset: Dataset | str = Dataset("ERA5", project="OBS6", tier=3, type="reanaly", version=1),
-        **model_specific_options,):
-        yaml = YAML(typ="safe")
-        fn = Path(__file__).parent / "recipe_generic_distributed.yml"
-        data = yaml.load(fn)
+        dataset: Dataset | str = "ERA5",
+        **model_specific_options,
+    ):
+        return build_generic_distributed_forcing_recipe(
+            start_year=start_time.year,
+            end_year=end_time.year,
+            shape=shape,
+            dataset=dataset,
+        )
 
-        if isinstance(dataset, str):
-            dataset = Dataset(**DATASETS[dataset])
-        data['datasets'] = [dataset]
-
-        for preprocessor in data["preprocessors"].values():
-            if 'extract_shape' in preprocessor:
-                preprocessor["extract_shape"]["shapefile"] = str(shape)
-
-        variables = data["diagnostics"]["diagnostic"]["variables"]
-        for variable in variables.values():
-            variable['start_year'] = start_time.year
-            variable['end_year'] = end_time.year
-        return Recipe(**data)
-
-    
     @classmethod
-    def _run_recipe(cls, recipe: Recipe, directory: Optional[str] = None,):
-        # TODO see 
+    def _run_recipe(
+        cls,
+        recipe: Recipe,
+        directory: Optional[str] = None,
+    ):
+        # TODO see
         # https://github.com/eWaterCycle/ewatercycle/blob/8f1caf11a13c4761c07b7aa4fb9310865d999d41/src/ewatercycle/base/forcing.py#L155
         # in https://github.com/eWaterCycle/ewatercycle/pull/362
         # or use CLI with `esmvaltool run <written recipe>`, will need to find output files ourselves
@@ -194,27 +190,3 @@ def _session(directory: Optional[str] = None) -> Optional[Session]:
             return self.output_dir
 
     return TimeLessSession(Path(directory).absolute())
-
-
-DATASETS = {
-    "ERA5": {
-        "dataset": "ERA5",
-        "project": "OBS6",
-        "tier": 3,
-        "type": "reanaly",
-        "version": 1,
-    },
-    "ERA-Interim": {
-        "dataset": "ERA-Interim",
-        "project": "OBS6",
-        "tier": 3,
-        "type": "reanaly",
-        "version": 1,
-    },
-}
-"""Dictionary of allowed forcing datasets.
-
-Where key is the name of the dataset and
-value is an `ESMValTool dataset section <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipe/overview.html#datasets>`_.
-"""
-

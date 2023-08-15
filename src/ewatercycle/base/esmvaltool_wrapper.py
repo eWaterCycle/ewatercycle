@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -64,6 +65,7 @@ class Variable(BaseModel):
     alternative_dataset: str | None = None
     fx_files: list[str] | None = None
     additional_datasets: list[Dataset] | None = None
+    short_name: str | None = None
 
 
 class Script(BaseModel):
@@ -126,5 +128,5 @@ class Recipe(BaseModel):
     datasets: list[Dataset] | None = None
     # value depends on the key which is the name of the preprocessor
     # see https://docs.esmvaltool.org/projects/ESMValCore/en/v2.9.0/recipe/preprocessor.html
-    preprocessors: dict[str, dict[str, any]] | None = None
+    preprocessors: dict[str, dict[str, Any]] | None = None
     diagnostics: dict[str, Diagnostic] | None = None
