@@ -1,3 +1,4 @@
+from pathlib import Path
 from textwrap import dedent
 from unittest.mock import patch
 
@@ -8,6 +9,7 @@ from esmvalcore.experimental.recipe_output import DataFile
 
 from ewatercycle.base.forcing import FORCING_YAML
 from ewatercycle.forcing import sources
+from ewatercycle.plugins.lisflood.forcing import build_recipe
 
 LisfloodForcing = sources["LisfloodForcing"]
 
@@ -464,3 +466,214 @@ def test_load_legacy_forcing(tmp_path):
     result = LisfloodForcing.load(tmp_path)
 
     assert result == expected
+
+
+def test_build_recipe(sample_shape: str):
+    recipe = build_recipe(
+        dataset="ERA5",
+        start_year=1990,
+        end_year=2001,
+        shape=Path(sample_shape),
+    )
+    recipe_as_string = recipe.to_yaml()
+    print(recipe_as_string)
+
+    # Should look similar to
+    # https://github.com/ESMValGroup/ESMValTool/blob/main/esmvaltool/recipes/hydrology/recipe_lisflood.yml
+    expected = dedent(
+        f"""\
+documentation:
+  title: Lisflood forcing recipe
+  description: Lisflood forcing recipe
+  authors:
+  - unmaintained
+  projects:
+  - ewatercycle
+datasets:
+- dataset: ERA5
+  project: OBS6
+  mip: day
+  tier: 3
+  type: reanaly
+preprocessors:
+  spatial:
+    regrid:
+      scheme: linear
+      target_grid:
+        start_longitude: 4.05
+        start_latitude: 46.25
+        end_longitude: 11.95
+        end_latitude: 52.25
+        step_longitude: 0.1
+        step_latitude: 0.1
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+  pr:
+    regrid:
+      scheme: linear
+      target_grid:
+        start_longitude: 4.05
+        start_latitude: 46.25
+        end_longitude: 11.95
+        end_latitude: 52.25
+        step_longitude: 0.1
+        step_latitude: 0.1
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+    convert_units:
+      units: kg m-2 d-1
+  tas:
+    regrid:
+      scheme: linear
+      target_grid:
+        start_longitude: 4.05
+        start_latitude: 46.25
+        end_longitude: 11.95
+        end_latitude: 52.25
+        step_longitude: 0.1
+        step_latitude: 0.1
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+    convert_units:
+      units: degC
+  tasmin:
+    regrid:
+      scheme: linear
+      target_grid:
+        start_longitude: 4.05
+        start_latitude: 46.25
+        end_longitude: 11.95
+        end_latitude: 52.25
+        step_longitude: 0.1
+        step_latitude: 0.1
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+    convert_units:
+      units: degC
+  tasmax:
+    regrid:
+      scheme: linear
+      target_grid:
+        start_longitude: 4.05
+        start_latitude: 46.25
+        end_longitude: 11.95
+        end_latitude: 52.25
+        step_longitude: 0.1
+        step_latitude: 0.1
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+    convert_units:
+      units: degC
+  tdps:
+    regrid:
+      scheme: linear
+      target_grid:
+        start_longitude: 4.05
+        start_latitude: 46.25
+        end_longitude: 11.95
+        end_latitude: 52.25
+        step_longitude: 0.1
+        step_latitude: 0.1
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+    convert_units:
+      units: degC
+  uas:
+    regrid:
+      scheme: linear
+      target_grid:
+        start_longitude: 4.05
+        start_latitude: 46.25
+        end_longitude: 11.95
+        end_latitude: 52.25
+        step_longitude: 0.1
+        step_latitude: 0.1
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+  vas:
+    regrid:
+      scheme: linear
+      target_grid:
+        start_longitude: 4.05
+        start_latitude: 46.25
+        end_longitude: 11.95
+        end_latitude: 52.25
+        step_longitude: 0.1
+        step_latitude: 0.1
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+  rsds:
+    regrid:
+      scheme: linear
+      target_grid:
+        start_longitude: 4.05
+        start_latitude: 46.25
+        end_longitude: 11.95
+        end_latitude: 52.25
+        step_longitude: 0.1
+        step_latitude: 0.1
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+    convert_units:
+      units: J m-2 day-1
+diagnostics:
+  diagnostic:
+    scripts:
+      script:
+        script: hydrology/lisflood.py
+        catchment: Rhine
+    variables:
+      pr:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: pr
+      tas:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: tas
+      tasmin:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: tasmin
+      tasmax:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: tasmax
+      tdps:
+        start_year: 1990
+        end_year: 2001
+        mip: Eday
+        preprocessor: tdps
+      uas:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: uas
+      vas:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: vas
+      rsds:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: rsds
+        """
+    )
+    assert recipe_as_string == expected

@@ -10,7 +10,7 @@ from esmvalcore.experimental.recipe_output import DataFile
 
 from ewatercycle.base.forcing import FORCING_YAML
 from ewatercycle.forcing import sources
-from ewatercycle.plugins.pcrglobwb.forcing import build_pcrglobwb_recipe
+from ewatercycle.plugins.pcrglobwb.forcing import build_recipe
 from ewatercycle.util import get_extents
 
 PCRGlobWBForcing = sources["PCRGlobWBForcing"]
@@ -164,8 +164,8 @@ def test_load_legacy_forcing(tmp_path):
     assert result == expected
 
 
-def test_build_pcrglobwb_recipe(sample_shape: str):
-    recipe = build_pcrglobwb_recipe(
+def test_build_recipe(sample_shape: str):
+    recipe = build_recipe(
         start_year=1990,
         end_year=2001,
         shape=Path(sample_shape),
@@ -264,9 +264,9 @@ diagnostics:
     assert recipe_as_string == expected
 
 
-def test_build_pcrglobwb_recipe_with_region(sample_shape: str):
+def test_build_recipe_with_region(sample_shape: str):
     extents = get_extents(sample_shape, 2)
-    recipe = build_pcrglobwb_recipe(
+    recipe = build_recipe(
         start_year=1990,
         end_year=2001,
         shape=Path(sample_shape),

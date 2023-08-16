@@ -168,3 +168,15 @@ ExtractRegion = dict[
     Literal["start_longitude", "end_longitude", "start_latitude", "end_latitude"], float
 ]
 """Arguments for the `extract_region` preprocessor."""
+
+TargetGrid = dict[
+    Literal[
+        "start_longitude",
+        "end_longitude",
+        "start_latitude",
+        "end_latitude",
+        "step_longitude",
+        "step_latitude",
+    ],
+    float,
+]

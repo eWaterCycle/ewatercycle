@@ -125,7 +125,7 @@ class PCRGlobWBForcing(DefaultForcing):
         start_time_climatology = model_specific_options["start_time_climatology"]
         end_time_climatology = model_specific_options["end_time_climatology"]
         extract_region = model_specific_options["extract_region"]
-        return build_pcrglobwb_recipe(
+        return build_recipe(
             start_year=start_time.year,
             end_year=end_time.year,
             shape=shape,
@@ -144,13 +144,13 @@ class PCRGlobWBForcing(DefaultForcing):
         }
 
 
-def build_pcrglobwb_recipe(
+def build_recipe(
     start_year: int,
     end_year: int,
     shape: Path,
     start_year_climatology: int,
     end_year_climatology: int,
-    dataset: Dataset | str = "ERA5",
+    dataset: Dataset | str,
     extract_region: ExtractRegion | None = None,
 ):
     partial = (

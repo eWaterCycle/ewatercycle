@@ -20,7 +20,6 @@ def test_build_esmvaltool_recipe():
         .dataset(era5)
         .start(2020)
         .end(2021)
-        .shape(Path("myshape.shp"))
         .region(
             start_longitude=40,
             end_longitude=65,

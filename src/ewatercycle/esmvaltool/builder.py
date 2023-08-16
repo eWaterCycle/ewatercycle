@@ -1,6 +1,6 @@
 """Builder and runner for ESMValTool recipes, the recipes can be used to generate forcings."""
 from pathlib import Path
-from typing import Sequence
+from typing import Any, Sequence, cast
 
 from ewatercycle.esmvaltool.datasets import DATASETS
 from ewatercycle.esmvaltool.diagnostic import copy
@@ -11,6 +11,7 @@ from ewatercycle.esmvaltool.models import (
     Documentation,
     Recipe,
     Script,
+    TargetGrid,
     Variable,
 )
 from ewatercycle.util import get_extents
@@ -41,6 +42,11 @@ class RecipeBuilder:
         ... )
         ```
 
+    Order in which methods are called matters in the following cases:
+
+    * temporal selection before adding variables
+    * spatial selection before adding variables
+
     """
 
     _recipe: Recipe
@@ -55,13 +61,13 @@ class RecipeBuilder:
                 authors=["unmaintained"],
                 projects=["ewatercycle"],
             ),
-            preprocessors={},
+            preprocessors={
+                SPATIAL_PREPROCESSOR_NAME: {},
+            },
             diagnostics={
                 DIAGNOSTIC_NAME: Diagnostic(
                     variables={},
-                    scripts={
-                        SCRIPT_NAME: {"script": DEFAULT_DIAGNOSTIC_SCRIPT, "args": {}}
-                    },
+                    scripts={SCRIPT_NAME: {"script": DEFAULT_DIAGNOSTIC_SCRIPT}},
                 )
             },
         )
@@ -100,16 +106,20 @@ class RecipeBuilder:
             raise ValueError("Recipe has no preprocessors")
         return self._recipe.preprocessors
 
+    def regrid(self, scheme: str, target_grid: TargetGrid) -> "RecipeBuilder":
+        self._preprocessors[SPATIAL_PREPROCESSOR_NAME]["regrid"] = {
+            "scheme": scheme,
+            "target_grid": target_grid,
+        }
+        return self
+
     def shape(
         self, file: Path, crop: bool = True, decomposed: bool = False
     ) -> "RecipeBuilder":
-
-        self._preprocessors[SPATIAL_PREPROCESSOR_NAME] = {
-            "extract_shape": {
-                "shapefile": str(file),
-                "crop": crop,
-                "decomposed": decomposed,
-            }
+        self._preprocessors[SPATIAL_PREPROCESSOR_NAME]["extract_shape"] = {
+            "shapefile": str(file),
+            "crop": crop,
+            "decomposed": decomposed,
         }
         return self
 
@@ -120,13 +130,11 @@ class RecipeBuilder:
         start_latitude: float,
         end_latitude: float,
     ) -> "RecipeBuilder":
-        self._preprocessors[SPATIAL_PREPROCESSOR_NAME] = {
-            "extract_region": {
-                "start_longitude": start_longitude,
-                "end_longitude": end_longitude,
-                "start_latitude": start_latitude,
-                "end_latitude": end_latitude,
-            }
+        self._preprocessors[SPATIAL_PREPROCESSOR_NAME]["extract_region"] = {
+            "start_longitude": start_longitude,
+            "end_longitude": end_longitude,
+            "start_latitude": start_latitude,
+            "end_latitude": end_latitude,
         }
         return self
 
