@@ -84,7 +84,7 @@ def test_build_generic_distributed_forcing_recipe():
     recipe = build_generic_distributed_forcing_recipe(
         start_year=1990,
         end_year=2001,
-        shape=Path("myshape.shp"),
+        shape=Path("myshape.shp"),       
     )
     recipe_as_string = recipe.to_yaml()
     print(recipe_as_string)
@@ -164,6 +164,7 @@ def test_build_pcrglobwb_recipe():
         shape=Path("myshape.shp"),
         start_year_climatology=1980,
         end_year_climatology=1990,
+        dataset='ERA5',
     )
     recipe_as_string = recipe.to_yaml()
     print(recipe_as_string)
