@@ -7,6 +7,7 @@ from esmvalcore.experimental.recipe_output import OutputFile
 
 from ewatercycle.base.forcing import FORCING_YAML
 from ewatercycle.forcing import sources
+from ewatercycle.plugins.marrmot.forcing import build_recipe
 
 MarrmotForcing = sources["MarrmotForcing"]
 
@@ -284,3 +285,93 @@ def test_load_legacy_forcing(tmp_path):
     result = MarrmotForcing.load(tmp_path)
 
     assert result == expected
+
+
+def test_build_recipe(sample_shape: str):
+    recipe = build_recipe(
+        dataset="ERA5",
+        start_year=1990,
+        end_year=2001,
+        shape=Path(sample_shape),
+    )
+    recipe_as_string = recipe.to_yaml()
+    print(recipe_as_string)
+
+    expected = dedent(
+        f"""\
+documentation:
+  title: Generate forcing for the Marrmot hydrological model
+  description: Generate forcing for the Marrmot hydrological model
+  authors:
+  - unmaintained
+  projects:
+  - ewatercycle
+datasets:
+- dataset: ERA5
+  project: OBS6
+  mip: day
+  tier: 3
+  type: reanaly
+preprocessors:
+  spatial:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+  tas:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+  pr:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+  psl:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+  rsds:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+  rsdt:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+diagnostics:
+  diagnostic:
+    scripts:
+      script:
+        script: hydrology/marrmot.py
+        basin: Rhine
+    variables:
+      tas:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: tas
+      pr:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: pr
+      psl:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: psl
+      rsds:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: rsds
+      rsdt:
+        start_year: 1990
+        end_year: 2001
+        mip: CFday
+        preprocessor: rsdt
+                      """
+    )
+
+    assert recipe_as_string == expected

@@ -93,11 +93,12 @@ class DefaultForcing(BaseModel):
         recipe_output = cls._run_recipe(
             recipe, directory=Path(directory) if directory else None
         )
+        directory = recipe_output.pop("directory")
         arguments = cls._recipe_output_to_forcing_arguments(
             recipe_output, model_specific_options
         )
         forcing = cls(
-            directory=recipe_output["directory"],
+            directory=directory,
             start_time=start_time,
             end_time=end_time,
             shape=shape,
@@ -305,11 +306,11 @@ class GenericLumpedForcing(GenericDistributedForcing):
         Gives something like:
 
         ```pycon
-        GenericDistributedForcing(
+        GenericLumpedForcing(
             model='generic_distributed',
             start_time='2000-01-01T00:00:00Z',
             end_time='2001-01-01T00:00:00Z',
-            directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/tmp05upitxoewcrep_20230815_154640/work/diagnostic/script'),
+            directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/ewcrep90hmnvat_20230816_124951/work/diagnostic/script'),
             shape=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
             pr='OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc',
             tas='OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc',
@@ -318,6 +319,10 @@ class GenericLumpedForcing(GenericDistributedForcing):
         )
         ```
     """
+
+    # files returned by generate() have only time coordinate and zero lons/lats.
+    # TODO inject centroid of shape as single lon/lat into files?
+    # use diagnostic or overwrite generate()
 
     @classmethod
     def _build_recipe(

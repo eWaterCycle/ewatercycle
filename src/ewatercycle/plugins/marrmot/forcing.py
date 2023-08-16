@@ -6,13 +6,11 @@ from typing import Literal, Optional
 
 import pandas as pd
 import xarray as xr
-from esmvalcore.experimental import get_recipe
 from scipy.io import loadmat
 
 from ewatercycle.base.forcing import DefaultForcing
-from ewatercycle.esmvaltool.datasets import DATASETS
-from ewatercycle.esmvaltool.run import run_esmvaltool_recipe
-from ewatercycle.util import get_time, to_absolute_path
+from ewatercycle.esmvaltool.builder import RecipeBuilder
+from ewatercycle.esmvaltool.models import Dataset, Recipe
 
 
 class MarrmotForcing(DefaultForcing):
@@ -47,73 +45,28 @@ class MarrmotForcing(DefaultForcing):
     forcing_file: Optional[str] = "marrmot.mat"
 
     @classmethod
-    def generate(  # type: ignore
+    def _build_recipe(
         cls,
-        dataset: str,
-        start_time: str,
-        end_time: str,
-        shape: str,
-        directory: Optional[str] = None,
-    ) -> "MarrmotForcing":
-        # load the ESMValTool recipe
-        recipe_name = "hydrology/recipe_marrmot.yml"
-        recipe = get_recipe(recipe_name)
-
-        # model-specific updates to the recipe
-        basin = to_absolute_path(shape).stem
-        recipe.data["preprocessors"]["daily"]["extract_shape"]["shapefile"] = shape
-        recipe.data["diagnostics"]["diagnostic_daily"]["scripts"]["script"][
-            "basin"
-        ] = basin
-
-        recipe.data["diagnostics"]["diagnostic_daily"]["additional_datasets"] = [
-            DATASETS[dataset]
-        ]
-
-        variables = recipe.data["diagnostics"]["diagnostic_daily"]["variables"]
-        var_names = "tas", "pr", "psl", "rsds", "rsdt"
-
-        startyear = get_time(start_time).year
-        for var_name in var_names:
-            variables[var_name]["start_year"] = startyear
-
-        endyear = get_time(end_time).year
-        for var_name in var_names:
-            variables[var_name]["end_year"] = endyear
-
-        # generate forcing data and retrieve useful information
-        recipe_output = run_esmvaltool_recipe(recipe, directory)
-        task_output = recipe_output["diagnostic_daily/script"]
-
-        # check that recipe output contains only one .mat file
-        matlab_files = []
-        for datafile in task_output.files:
-            if datafile.path.suffix == ".mat":
-                matlab_files.append(datafile)
-
-        if len(matlab_files) == 0:
-            raise FileNotFoundError(
-                "No .mat files found in output directory: " + str(directory)
-            )
-        if len(matlab_files) > 1:
-            raise FileNotFoundError(
-                "More than one .mat files found in output directory: " + str(directory)
-            )
-
-        # everything ok so retreive paths
-        forcing_file: Path = matlab_files[0].path
-        directory = str(forcing_file.parent)
-
-        # instantiate forcing object based on generated data
-        generated_forcing = MarrmotForcing(
-            directory=directory,
-            start_time=start_time,
-            end_time=end_time,
+        start_time: datetime,
+        end_time: datetime,
+        shape: Path,
+        dataset: Dataset | str,
+        **model_specific_options,
+    ):
+        return build_recipe(
+            start_year=start_time.year,
+            end_year=end_time.year,
             shape=shape,
-            forcing_file=forcing_file.name,
+            dataset=dataset,
         )
-        generated_forcing.save()
-        return generated_forcing
+
+    @classmethod
+    def _recipe_output_to_forcing_arguments(cls, recipe_output, model_specific_options):
+        print(recipe_output)
+        return {
+            # TODO check key is correct
+            "forcing_file": recipe_output["marrmot"],
+        }
 
     def to_xarray(self) -> xr.Dataset:
         """Load forcing data from a matlab file into an xarray dataset.
@@ -166,3 +119,26 @@ class MarrmotForcing(DefaultForcing):
                 "history": "Created by ewatercycle.plugins.marrmot.forcing.MarrmotForcing.to_xarray()",
             },
         )
+
+
+def build_recipe(
+    start_year: int,
+    end_year: int,
+    shape: Path,
+    dataset: Dataset | str,
+) -> Recipe:
+    return (
+        RecipeBuilder()
+        .title("Generate forcing for the Marrmot hydrological model")
+        .description("Generate forcing for the Marrmot hydrological model")
+        .dataset(dataset)
+        .start(start_year)
+        .end(end_year)
+        .shape(shape)
+        # TODO do lumping in recipe instead of in diagnostic script
+        # .lump()
+        .add_variables(("tas", "pr", "psl", "rsds"))
+        .add_variable("rsdt", mip="CFday")
+        .script("hydrology/marrmot.py", {"basin": shape.stem})
+        .build()
+    )
