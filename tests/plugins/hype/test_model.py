@@ -136,12 +136,12 @@ class TestWithOnlyParameterSetAndDefaults:
         assert Path(config_file).read_text() == expected
 
     def test_parameters(self, model):
-        expected = [
-            ("start_time", "1961-01-01T00:00:00Z"),
-            ("end_time", "1963-12-31T00:00:00Z"),
-            ("crit_time", "1962-01-01T00:00:00Z"),
-        ]
-        assert model.get_parameters() == expected
+        expected = {
+            "start_time": "1961-01-01T00:00:00Z",
+            "end_time": "1963-12-31T00:00:00Z",
+            "crit_time": "1962-01-01T00:00:00Z",
+        }
+        assert model.parameters == expected
 
     def test_get_value_as_xarray(self, model):
         with pytest.raises(NotImplementedError):
@@ -246,12 +246,12 @@ class TestWithOnlyParameterSetAndFullSetup:
         assert Path(config_file).read_text() == expected
 
     def test_parameters(self, model_with_setup, model):
-        expected = [
-            ("start_time", "2000-01-01T00:00:00Z"),
-            ("end_time", "2010-12-31T00:00:00Z"),
-            ("crit_time", "2002-01-01T00:00:00Z"),
-        ]
-        assert model.get_parameters() == expected
+        expected = {
+            "start_time": "2000-01-01T00:00:00Z",
+            "end_time": "2010-12-31T00:00:00Z",
+            "crit_time": "2002-01-01T00:00:00Z",
+        }
+        assert model.parameters == expected
 
 
 def test_set_code_in_cfg():
@@ -389,9 +389,9 @@ class TestWithForcingAndDefaults:
         assert Path(config_file).read_text() == expected
 
     def test_parameters(self, model):
-        expected = [
-            ("start_time", "1986-01-02T00:00:00Z"),
-            ("end_time", "2018-01-02T00:00:00Z"),
-            ("crit_time", "1986-01-02T00:00:00Z"),
-        ]
-        assert model.get_parameters() == expected
+        expected = {
+            "start_time": "1986-01-02T00:00:00Z",
+            "end_time": "2018-01-02T00:00:00Z",
+            "crit_time": "1986-01-02T00:00:00Z",
+        }
+        assert model.parameters == expected

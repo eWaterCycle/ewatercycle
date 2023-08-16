@@ -9,7 +9,7 @@ from urllib.request import urlopen
 from zipfile import ZipFile
 
 import fsspec
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, ConfigDict, HttpUrl
 
 from ewatercycle.util import to_absolute_path
 
@@ -121,7 +121,8 @@ class ParameterSet(BaseModel):
     """Container object for parameter set options.
 
     Is directory containing data that does not change over time.
-    Should be passed to a models constructor like :py:class:`~ewatercycle.base.model.AbstractModel`.
+    Should be passed to a models constructor like
+    :py:class:`~ewatercycle.base.model.AbstractModel`.
 
     Example:
 
@@ -135,25 +136,28 @@ class ParameterSet(BaseModel):
     """Name of parameter set"""
     directory: Path
     """Location on disk where files of parameter set are stored.
-    If Path is relative then relative to CFG.parameterset_dir."""
+
+    If Path is relative then relative to CFG.parameterset_dir.
+    """
     config: Path
-    """Model configuration file which uses files from
-    :py:attr:`~directory`. If Path is relative then relative to
-    :py:attr:`~directory`."""
+    """Model configuration file which uses files from :py:attr:`~directory`.
+
+    If Path is relative then relative to :py:attr:`~directory`.
+    """
     doi: str = "N/A"
-    """Persistent identifier of parameter set. For a example a DOI
-    for a Zenodo record."""
+    """Persistent identifier of parameter set.
+
+    For a example a DOI for a Zenodo record.
+    """
     target_model: str = "generic"
     """Name of model that parameter set can work with."""
     supported_model_versions: Set[str] = set()
-    """Set of model versions that are
-    supported by this parameter set. If not set then parameter set will be
-    supported by all versions of model"""
+    """Set of model versions that are compatible with this parameter set.
+
+    If not set then parameter set compability check silently passes."""
     downloader: GitHubDownloader | ZenodoDownloader | ArchiveDownloader | None = None
     """Method to download parameter set from somewhere."""
-
-    class Config:
-        extra = "forbid"
+    model_config = ConfigDict(extra="forbid")
 
     def __str__(self):
         """Nice formatting of parameter set."""
@@ -184,7 +188,8 @@ class ParameterSet(BaseModel):
             return None
         if self.downloader is None:
             raise ValueError(
-                f"Cannot download parameter set {self.name} because no downloader is defined"
+                f"Cannot download parameter set {self.name} "
+                "because no downloader is defined."
             )
         logger.info(
             f"Downloading example parameter set {self.name} to {self.directory}..."
@@ -203,7 +208,8 @@ class ParameterSet(BaseModel):
             org: GitHub organization (e.g., 'UU-Hydro')
             repo: Repository name (e.g, 'PCR-GLOBWB_input_example')
             branch: Branch name (e.g., 'master')
-            subfolder: Subfolder within the github repo to extract. E.g. 'pcrglobwb_rhinemeuse_30min'.
+            subfolder: Subfolder within the github repo to extract. E.g.
+                'pcrglobwb_rhinemeuse_30min'.
                 If not given then downloads the entire repository.
             **kwargs: See :py:class:`ParameterSet` for other arguments.
 

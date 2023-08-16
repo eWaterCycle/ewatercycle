@@ -1,11 +1,14 @@
 from datetime import datetime
 import logging
 from pathlib import Path
-from typing import Literal, Optional, Union
+from tempfile import NamedTemporaryFile
+from typing import Annotated, Literal, Optional, Union
 
 from esmvalcore.config import Session
-from esmvalcore.experimental import CFG
-from pydantic import BaseModel, validator
+from esmvalcore.experimental import CFG, Recipe
+from esmvalcore.experimental.recipe_output import RecipeOutput
+from pydantic import BaseModel, field_validator
+from pydantic.functional_validators import AfterValidator
 from ruamel.yaml import YAML
 
 from ewatercycle.util import to_absolute_path
@@ -14,6 +17,11 @@ from ewatercycle.base.esmvaltool_wrapper import Dataset, Recipe
 
 logger = logging.getLogger(__name__)
 FORCING_YAML = "ewatercycle_forcing.yaml"
+
+
+def _to_absolute_path(v: Union[str, Path]):
+    """Wraps to_absolute_path to a single-arg function, to use as Pydantic validator."""
+    return to_absolute_path(v)
 
 
 class DefaultForcing(BaseModel):
@@ -31,19 +39,16 @@ class DefaultForcing(BaseModel):
     model: Literal["default"] = "default"
     start_time: str
     end_time: str
-    directory: Optional[Path] = None
+    directory: Optional[Annotated[Path, AfterValidator(_to_absolute_path)]] = None
     shape: Optional[Path] = None
 
-    @validator("directory")
-    def _absolute_directory(cls, v: Union[str, Path, None]):
-        return to_absolute_path(v) if v is not None else v
-
-    @validator("shape")
-    def _absolute_shape(cls, v: Union[str, Path, None], values: dict):
-        return (
-            to_absolute_path(v, parent=values["directory"], must_be_in_parent=False)
-            if v is not None
-            else v
+    @field_validator("shape")
+    @classmethod
+    def _absolute_shape(cls, v, info):
+        if v is None:
+            return v
+        return to_absolute_path(
+            v, parent=info.data["directory"], must_be_in_parent=False
         )
 
     @classmethod
@@ -124,11 +129,13 @@ class DefaultForcing(BaseModel):
         target = self.directory / FORCING_YAML
         # We want to make the yaml and its parent movable,
         # so the directory and shape should not be included in the yaml file
-        clone = self.copy(exclude={"directory"})
+        clone = self.model_copy()
 
+        # TODO: directory should not be optional, can we remove the directory
+        # from the fdict instead?
         if clone.shape:
             try:
-                clone.shape = str(clone.shape.relative_to(self.directory))
+                clone.shape = clone.shape.relative_to(self.directory)
             except ValueError:
                 clone.shape = None
                 logger.info(
@@ -136,7 +143,7 @@ class DefaultForcing(BaseModel):
                     f"{self.directory}. So, it won't be saved in {target}."
                 )
 
-        fdict = clone.dict(exclude_none=True)
+        fdict = clone.model_dump(exclude={"directory"}, exclude_none=True, mode="json")
         with open(target, "w") as f:
             yaml.dump(fdict, f)
         return target
@@ -163,7 +170,7 @@ class DefaultForcing(BaseModel):
         metadata = meta.read_text()
         # Workaround for legacy forcing files having !PythonClass tag.
         #     Get model name of non-initialized BaseModel with Pydantic class property:
-        modelname = cls.__fields__["model"].default
+        modelname = cls.model_fields["model"].default  # type: ignore
         metadata = metadata.replace(f"!{cls.__name__}", f"model: {modelname}")
 
         fdict = yaml.load(metadata)
@@ -194,6 +201,55 @@ def _session(directory: Optional[str] = None) -> Optional[Session]:
             return self.output_dir
 
     return TimeLessSession(Path(directory).absolute())
+
+
+def run_esmvaltool_recipe(recipe: Recipe, output_dir: str | None) -> RecipeOutput:
+    """Run an ESMValTool recipe.
+
+    The recipe.data dictionary can be modified before running the recipe.
+
+    During run the recipe.path is overwritten with a temporary file containing the updated recipe.
+
+    Args:
+        recipe: ESMValTool recipe
+        output_dir: Directory where output should be written to.
+            If None then output is written to generated timestamped directory.
+
+    Returns:
+        ESMValTool recipe output
+
+    Example:
+
+        >>> from ewatercycle.forcing import run_esmvaltool_recipe
+        >>> from esmvalcore.experimental.recipe import get_recipe
+        >>> recipe = get_recipe('hydrology/recipe_wflow.yml')
+        >>> recipe.data['scripts']['script']['dem_file'] = 'my_dem.nc'
+        >>> output_dir = Path('./output_dir')
+        >>> output = run_esmvaltool_recipe(recipe, output_dir)
+    """
+    # ESMVALCore 2.8.1 always runs original recipe,
+    # write updated recipe to disk and use
+    recipe.path = _write_recipe(recipe)
+    # TODO write recipe in output_dir?
+    # TODO fix in esmvalcore and wait for new version?
+
+    session = _session(output_dir)
+    output = recipe.run(session=session)
+
+    # remove updated recipe file
+    recipe.path.unlink()
+
+    return output
+
+
+def _write_recipe(recipe: Recipe) -> Path:
+    updated_recipe_file = NamedTemporaryFile(
+        suffix=recipe.path.name, mode="w", delete=False
+    )
+    yaml = YAML(typ="safe")
+    yaml.dump(recipe.data, updated_recipe_file)
+    updated_recipe_file.close()
+    return Path(updated_recipe_file.name)
 
 
 DATASETS = {

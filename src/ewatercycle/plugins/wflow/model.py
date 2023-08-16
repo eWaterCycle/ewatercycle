@@ -4,13 +4,13 @@ import datetime
 import logging
 import shutil
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import bmipy
 import numpy as np
 from grpc4bmi.bmi_memoized import MemoizedBmi
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
-from pydantic import PrivateAttr, root_validator
+from pydantic import PrivateAttr, model_validator
 
 from ewatercycle import CFG
 from ewatercycle.base.model import ISO_TIMEFMT, ContainerizedModel
@@ -52,33 +52,27 @@ class Wflow(ContainerizedModel):
     forcing: Optional[WflowForcing] = None
     parameter_set: ParameterSet  # not optional for this model
     bmi_image: ContainerImage = ContainerImage("ewatercycle/wflow-grpc4bmi:2020.1.3")
-    version: str = "2020.1.3"
 
     _config: CaseConfigParser = PrivateAttr()
     _work_dir: Path = PrivateAttr()
 
-    # TODO: move to post_init in pydantic v2.
-    @root_validator
-    def _parse_config(cls, values):
+    @model_validator(mode="after")
+    def _initialize_config(self) -> "Wflow":
         """Load config from parameter set and update with forcing info."""
-        ps = values.get("parameter_set")
-        assert isinstance(ps, ParameterSet)  # pydantic doesn't do its job reliably
-
         cfg = CaseConfigParser()
-        cfg.read(ps.config)
+        cfg.read(self.parameter_set.config)
 
-        forcing = values.get("forcing")
-        if forcing:
-            cfg.set("framework", "netcdfinput", Path(forcing.netcdfinput).name)
-            cfg.set("inputmapstacks", "Precipitation", forcing.Precipitation)
+        if self.forcing is not None:
+            cfg.set("framework", "netcdfinput", Path(self.forcing.netcdfinput).name)
+            cfg.set("inputmapstacks", "Precipitation", self.forcing.Precipitation)
             cfg.set(
                 "inputmapstacks",
                 "EvapoTranspiration",
-                forcing.EvapoTranspiration,
+                self.forcing.EvapoTranspiration,
             )
-            cfg.set("inputmapstacks", "Temperature", forcing.Temperature)
-            cfg.set("run", "starttime", _iso_to_wflow(forcing.start_time))
-            cfg.set("run", "endtime", _iso_to_wflow(forcing.end_time))
+            cfg.set("inputmapstacks", "Temperature", self.forcing.Temperature)
+            cfg.set("run", "starttime", _iso_to_wflow(self.forcing.start_time))
+            cfg.set("run", "endtime", _iso_to_wflow(self.forcing.end_time))
         if not cfg.has_section("API"):
             logger.warning(
                 "Config file from parameter set is missing API section, "
@@ -92,11 +86,8 @@ class Wflow(ContainerizedModel):
             )
             cfg.set("API", "RiverRunoff", "2, m/s")
 
-        cls._config = cfg
-        return values
-
-    # TODO: create setup with custom docstring to explain extra kwargs
-    # (start_time, end_time)
+        self._config = cfg
+        return self
 
     def _make_cfg_file(self, **kwargs) -> Path:
         """Create a new wflow config file and return its path."""
@@ -150,8 +141,8 @@ class Wflow(ContainerizedModel):
 
         return self._work_dir
 
-    def get_parameters(self):
-        self._post_init()
+    @property
+    def parameters(self) -> dict[str, Any]:
         return {
             "start_time": _wflow_to_iso(self._config.get("run", "starttime")),
             "end_time": _wflow_to_iso(self._config.get("run", "endtime")),

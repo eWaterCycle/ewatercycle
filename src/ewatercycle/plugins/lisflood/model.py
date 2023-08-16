@@ -1,11 +1,10 @@
 """eWaterCycle wrapper around Lisflood BMI."""
 
-import datetime
 import logging
 from pathlib import Path
-from typing import Any, Iterable, Optional, Tuple
+from typing import Any
 
-from pydantic import PrivateAttr, root_validator
+from pydantic import PrivateAttr, model_validator
 
 from ewatercycle.base.model import ISO_TIMEFMT, ContainerizedModel
 from ewatercycle.base.parameter_set import ParameterSet
@@ -33,24 +32,13 @@ class Lisflood(ContainerizedModel):
     forcing: LisfloodForcing  # not optional for this model
     parameter_set: ParameterSet  # not optional for this model
     bmi_image: ContainerImage = ContainerImage("ewatercycle/lisflood-grpc4bmi:20.10")
-    version: str = "20.10"
 
     _config: XmlConfig = PrivateAttr()
-    _forcing_dir: Path = PrivateAttr()
-    _forcing_start_time: datetime.datetime = PrivateAttr()
-    _forcing_end_time: datetime.datetime = PrivateAttr()
-    _model_start_time: datetime.datetime = PrivateAttr()
-    _model_end_time: datetime.datetime = PrivateAttr()
-    _irrigation_efficiency: str | None = PrivateAttr(None)
-    _mask_map: Path = PrivateAttr()
 
-    @root_validator
-    def _post_init(cls, values: dict) -> dict:
-        assert "forcing" in values
-        cls._check_forcing(cls, forcing=values.get("forcing"))
-        assert "parameter_set" in values
-        cls._config = XmlConfig(values.get("parameter_set").config)
-        return values
+    @model_validator(mode="after")
+    def _update_config(self: "Lisflood") -> "Lisflood":
+        self._config = XmlConfig(self.parameter_set.config)
+        return self
 
     def _get_textvar_value(self, name: str):
         for textvar in self._config.config.iter("textvar"):
@@ -59,100 +47,53 @@ class Lisflood(ContainerizedModel):
                 return textvar.get("value")
         raise KeyError(f"Name {name} not found in the config file.")
 
-    def setup(
-        self,
-        IrrigationEfficiency: Optional[str] = None,  # noqa: N803
-        start_time: Optional[str] = None,
-        end_time: Optional[str] = None,
-        MaskMap: Optional[str] = None,
-        **kwargs,
-    ) -> Tuple[str, str]:
-        """Configure model run.
+    def _make_cfg_file(self, **kwargs) -> Path:
+        """Create lisflood config file."""
 
-        1. Creates config file and config directory
-           based on the forcing variables and time range.
-        2. Start bmi container and store as :py:attr:`bmi`
-
-        Args:
-            IrrigationEfficiency: Field application irrigation efficiency.
-                max 1, ~0.90 drip irrigation, ~0.75 sprinkling
-            start_time: Start time of model in UTC and ISO format string
-                e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-                If not given then forcing start time is used.
-            end_time: End time of model in  UTC and ISO format string
-                e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
-                If not given then forcing end time is used.
-            MaskMap: Mask map to use instead of one supplied in parameter set.
-                Path to a NetCDF or pcraster file with
-                same dimensions as parameter set map files and a boolean variable.
-            cfg_dir: a run directory given by user or created for user.
-
-        Returns:
-            Path to config file and path to config directory
-        """
-        if IrrigationEfficiency is not None:
-            self._irrigation_efficiency = IrrigationEfficiency
-
-        if start_time is not None:
-            start = get_time(start_time)
-            if self._forcing_start_time <= start <= self._forcing_end_time:
-                self._model_start_time = start
+        # Update times
+        model_start = get_time(self.forcing.start_time)
+        model_end = get_time(self.forcing.end_time)
+        if "start_time" in kwargs:
+            start = get_time(kwargs["start_time"])
+            if (
+                get_time(self.forcing.start_time)
+                <= start
+                <= get_time(self.forcing.end_time)
+            ):
+                model_start = start
             else:
                 raise ValueError("start_time outside forcing time range")
-        if end_time is not None:
-            end = get_time(end_time)
-            if self._forcing_start_time <= end <= self._forcing_end_time:
-                self._model_end_time = end
+        if "end_time" in kwargs:
+            end = get_time(kwargs["end_time"])
+            if (
+                get_time(self.forcing.start_time)
+                <= end
+                <= get_time(self.forcing.end_time)
+            ):
+                model_end = end
             else:
                 raise ValueError("end_time outside forcing time range")
 
-        if MaskMap is not None:
-            self._mask_map = to_absolute_path(MaskMap)
-            try:
-                self._mask_map.relative_to(self.parameter_set.directory)
-            except ValueError:
-                # If not relative add dir
-                self._additional_input_dirs.append(str(self._mask_map.parent))
-
-        return super().setup(**kwargs)
-
-    def _check_forcing(self, forcing):
-        """Check forcing argument and get path, start/end time of forcing data."""
-        # TODO check if mask has same grid as forcing files,
-        # if not warn users to run reindex_forcings
-        if isinstance(forcing, LisfloodForcing):
-            self.forcing = forcing
-            self._forcing_dir = to_absolute_path(forcing.directory)
-            # convert date_strings to datetime objects
-            self._forcing_start_time = get_time(forcing.start_time)
-            self._model_start_time = self._forcing_start_time
-            self._forcing_end_time = get_time(forcing.end_time)
-            self._model_end_time = self._forcing_end_time
-        else:
-            raise TypeError(
-                f"Unknown forcing type: {forcing}. "
-                "Please supply a LisfloodForcing object."
-            )
-
-    def _make_cfg_file(self, **kwargs) -> Path:
-        """Create lisflood config file."""
-        assert self.parameter_set is not None
-        assert self.forcing is not None
-
         settings = {
-            "CalendarDayStart": self._model_start_time.strftime("%d/%m/%Y 00:00"),
+            "CalendarDayStart": model_start.strftime("%d/%m/%Y 00:00"),
             "StepStart": "1",
-            "StepEnd": str((self._model_end_time - self._model_start_time).days),
+            "StepEnd": str((model_end - model_start).days),
             "PathRoot": str(self.parameter_set.directory),
-            "PathMeteo": str(self._forcing_dir),
+            "PathMeteo": str(self.forcing.directory),
             "PathOut": str(self._cfg_dir),
         }
 
-        if self._irrigation_efficiency is not None:
-            settings["IrrigationEfficiency"] = self._irrigation_efficiency
-        if hasattr(self, "_mask_map") and self._mask_map is not None:
-            mask_map = to_absolute_path(self._mask_map)
+        if "IrrigationEfficiency" in kwargs:
+            settings["IrrigationEfficiency"] = kwargs["IrrigationEfficiency"]
+
+        if "MaskMap" in kwargs:
+            mask_map = to_absolute_path(input_path=kwargs["MaskMap"])
             settings["MaskMap"] = str(mask_map.with_suffix(""))
+            try:
+                mask_map.relative_to(self.parameter_set.directory)
+            except ValueError:
+                # If not relative add dir
+                self._additional_input_dirs.append(str(mask_map.parent))
 
         for textvar in self._config.config.iter("textvar"):
             textvar_name = textvar.attrib["name"]
@@ -195,17 +136,29 @@ class Lisflood(ContainerizedModel):
         self._config.save(str(lisflood_file))
         return lisflood_file
 
-    def get_parameters(self) -> Iterable[Tuple[str, Any]]:
-        """List the parameters for this model."""
-        return [
-            (
-                "IrrigationEfficiency",
-                self._get_textvar_value("IrrigationEfficiency"),
-            ),
-            ("MaskMap", self._get_textvar_value("MaskMap")),
-            ("start_time", self._model_start_time.strftime(ISO_TIMEFMT)),
-            ("end_time", self._model_end_time.strftime(ISO_TIMEFMT)),
-        ]
+    @property
+    def parameters(self) -> dict[str, Any]:
+        """List the parameters for this model.
+
+        Exposed Lisflood parameters:
+            IrrigationEfficiency: Field application irrigation efficiency.
+                max 1, ~0.90 drip irrigation, ~0.75 sprinkling
+            MaskMap: Mask map to use instead of one supplied in parameter set.
+                Path to a NetCDF or pcraster file with
+                same dimensions as parameter set map files and a boolean variable.
+            start_time: Start time of model in UTC and ISO format string
+                e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+                If not given then forcing start time is used.
+            end_time: End time of model in  UTC and ISO format string
+                e.g. 'YYYY-MM-DDTHH:MM:SSZ'.
+                If not given then forcing end time is used.
+        """
+        return {
+            "IrrigationEfficiency": self._get_textvar_value("IrrigationEfficiency"),
+            "MaskMap": self._get_textvar_value("MaskMap"),
+            "start_time": get_time(self.forcing.start_time).strftime(ISO_TIMEFMT),
+            "end_time": get_time(self.forcing.end_time).strftime(ISO_TIMEFMT),
+        }
 
     def finalize(self) -> None:
         """Perform tear-down tasks for the model."""

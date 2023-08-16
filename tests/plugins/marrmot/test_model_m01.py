@@ -64,14 +64,14 @@ class TestWithDefaultsAndExampleData:
         assert actual == expected
 
     def test_parameters(self, model):
-        expected = [
-            ("maximum_soil_moisture_storage", 10.0),
-            ("initial_soil_moisture_storage", 5.0),
-            ("solver", Solver()),
-            ("start time", "1989-01-01T00:00:00Z"),
-            ("end time", "1992-12-31T00:00:00Z"),
-        ]
-        assert model.get_parameters() == expected
+        expected = {
+            "maximum_soil_moisture_storage": 10.0,
+            "initial_soil_moisture_storage": 5.0,
+            "solver": Solver(),
+            "start time": "1989-01-01T00:00:00Z",
+            "end time": "1992-12-31T00:00:00Z",
+        }
+        assert model.parameters == expected
 
     def test_setup(self, model_with_setup, forcing_file):
         model, cfg_file, cfg_dir = model_with_setup
@@ -92,14 +92,14 @@ class TestWithDefaultsAndExampleData:
 
     def test_parameters_after_setup(self, model_with_setup):
         model = model_with_setup[0]
-        expected = [
-            ("maximum_soil_moisture_storage", 10.0),
-            ("initial_soil_moisture_storage", 5.0),
-            ("solver", Solver()),
-            ("start time", "1989-01-01T00:00:00Z"),
-            ("end time", "1992-12-31T00:00:00Z"),
-        ]
-        assert model.get_parameters() == expected
+        expected = {
+            "maximum_soil_moisture_storage": 10.0,
+            "initial_soil_moisture_storage": 5.0,
+            "solver": Solver(),
+            "start time": "1989-01-01T00:00:00Z",
+            "end time": "1992-12-31T00:00:00Z",
+        }
+        assert model.parameters == expected
 
     def test_get_value_as_xarray(self, model_with_setup):
         model, cfg_file, cfg_dir = model_with_setup
