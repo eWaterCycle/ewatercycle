@@ -8,7 +8,10 @@ from pydantic import BaseModel, field_validator
 from pydantic.functional_validators import AfterValidator
 from ruamel.yaml import YAML
 
-from ewatercycle.esmvaltool.builder import build_generic_distributed_forcing_recipe
+from ewatercycle.esmvaltool.builder import (
+    build_generic_distributed_forcing_recipe,
+    build_generic_lumped_forcing_recipe,
+)
 from ewatercycle.esmvaltool.models import Dataset, Recipe
 from ewatercycle.esmvaltool.output import parse_recipe_output
 from ewatercycle.esmvaltool.run import run_recipe
@@ -263,7 +266,72 @@ class GenericDistributedForcing(DefaultForcing):
             end_year=end_time.year,
             shape=shape,
             dataset=dataset,
+            # TODO which variables are needed for a generic forcing?
+            # As they are stored as object attributes we can not have a customizable list
             variables=("pr", "tas", "tasmin", "tasmax"),
         )
 
     # TODO add helper method to get forcing data as xarray.Dataset?
+
+
+class GenericLumpedForcing(GenericDistributedForcing):
+    """Generic forcing data for a lumped model.
+
+    Attributes:
+        pr: Path to NetCDF file with precipitation data.
+        tas: Path to NetCDF file with air temperature data.
+        tasmin: Path to NetCDF file with minimum air temperature data.
+        tasmax: Path to NetCDF file with maximum air temperature data.
+
+    Example:
+
+        To generate forcing from ERA5 for the Rhine catchment for 2000-2001:
+
+        ```pycon
+        from pathlib import Path
+        from rich import print
+        from ewatercycle.base.forcing import GenericLumpedForcing
+
+        shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
+        forcing = GenericLumpedForcing.generate(
+            dataset='ERA5',
+            start_time='2000-01-01T00:00:00Z',
+            end_time='2001-01-01T00:00:00Z',
+            shape=shape.absolute(),
+        )
+        print(forcing)
+        ```
+
+        Gives something like:
+
+        ```pycon
+        GenericDistributedForcing(
+            model='generic_distributed',
+            start_time='2000-01-01T00:00:00Z',
+            end_time='2001-01-01T00:00:00Z',
+            directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/tmp05upitxoewcrep_20230815_154640/work/diagnostic/script'),
+            shape=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
+            pr='OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc',
+            tas='OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc',
+            tasmin='OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc',
+            tasmax='OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc'
+        )
+        ```
+    """
+
+    @classmethod
+    def _build_recipe(
+        cls,
+        start_time: datetime,
+        end_time: datetime,
+        shape: Path,
+        dataset: Dataset | str = "ERA5",
+        **model_specific_options,
+    ):
+        return build_generic_lumped_forcing_recipe(
+            start_year=start_time.year,
+            end_year=end_time.year,
+            shape=shape,
+            dataset=dataset,
+            variables=("pr", "tas", "tasmin", "tasmax"),
+        )

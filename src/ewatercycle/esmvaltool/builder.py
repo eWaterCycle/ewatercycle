@@ -1,9 +1,9 @@
 """Builder and runner for ESMValTool recipes, the recipes can be used to generate forcings."""
 from pathlib import Path
-from typing import Any, Sequence, cast
+from typing import Any, Literal, Sequence, cast
 
 from ewatercycle.esmvaltool.datasets import DATASETS
-from ewatercycle.esmvaltool.diagnostic import copy
+from ewatercycle.esmvaltool.diagnostic import copier
 from ewatercycle.esmvaltool.models import (
     ClimateStatistics,
     Dataset,
@@ -19,7 +19,7 @@ from ewatercycle.util import get_extents
 DIAGNOSTIC_NAME = "diagnostic"
 SPATIAL_PREPROCESSOR_NAME = "spatial"
 SCRIPT_NAME = "script"
-DEFAULT_DIAGNOSTIC_SCRIPT = copy.__file__
+DEFAULT_DIAGNOSTIC_SCRIPT = copier.__file__
 
 
 class RecipeBuilder:
@@ -44,6 +44,8 @@ class RecipeBuilder:
 
     Order in which methods are called matters in the following cases:
 
+    * regrid before adding variables
+    * lump after spatial selection and before adding variables
     * temporal selection before adding variables
     * spatial selection before adding variables
 
@@ -142,6 +144,26 @@ class RecipeBuilder:
         extents = get_extents(shape, pad)
         return self.region(**extents)
 
+    def lump(
+        self,
+        operator: Literal[
+            "mean", "median", "std_dev", "sum", "variance", "min", "max", "rms"
+        ] = "mean",
+    ) -> "RecipeBuilder":
+        """Lump gridded data into a single value spatially.
+
+        See https://docs.esmvaltool.org/projects/ESMValCore/en/latest/api/esmvalcore.preprocessor.html#esmvalcore.preprocessor.area_statistics
+
+        Args:
+            operator: The operator to use for lumping.
+        """
+        # TODO do we need different operator for different variables?
+        # TODO should lumping come after unit conversion? Or does it not matter?
+        self._preprocessors[SPATIAL_PREPROCESSOR_NAME]["area_statistics"] = {
+            "operator": operator
+        }
+        return self
+
     @property
     def _diagnostic(self) -> Diagnostic:
         if self._recipe.diagnostics is None:
@@ -220,6 +242,27 @@ def build_generic_distributed_forcing_recipe(
         .start(start_year)
         .end(end_year)
         .shape(shape)
+        .add_variables(variables)
+        .build()
+    )
+
+
+def build_generic_lumped_forcing_recipe(
+    start_year: int,
+    end_year: int,
+    shape: Path,
+    dataset: Dataset | str = "ERA5",
+    variables: Sequence[str] = ("pr", "tas", "tasmin", "tasmax"),
+):
+    return (
+        RecipeBuilder()
+        .title("Generic lumped forcing recipe")
+        .description("Generic lumped forcing recipe")
+        .dataset(dataset)
+        .start(start_year)
+        .end(end_year)
+        .shape(shape)
+        .lump()
         .add_variables(variables)
         .build()
     )

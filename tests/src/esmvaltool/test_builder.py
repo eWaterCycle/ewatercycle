@@ -5,6 +5,7 @@ from ewatercycle.esmvaltool.builder import (
     DEFAULT_DIAGNOSTIC_SCRIPT,
     RecipeBuilder,
     build_generic_distributed_forcing_recipe,
+    build_generic_lumped_forcing_recipe,
 )
 from ewatercycle.esmvaltool.models import Dataset
 
@@ -128,6 +129,93 @@ preprocessors:
       shapefile: myshape.shp
       crop: true
       decomposed: false
+diagnostics:
+  diagnostic:
+    scripts:
+      script:
+        script: {DEFAULT_DIAGNOSTIC_SCRIPT}
+    variables:
+      pr:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: pr
+      tas:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: tas
+      tasmin:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: tasmin
+      tasmax:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: tasmax
+        """
+    )
+    assert recipe_as_string == expected
+
+
+def test_build_generic_lumped_forcing_recipe(sample_shape: str):
+    recipe = build_generic_lumped_forcing_recipe(
+        start_year=1990,
+        end_year=2001,
+        shape=Path(sample_shape),
+    )
+    recipe_as_string = recipe.to_yaml()
+    print(recipe_as_string)
+
+    expected = dedent(
+        f"""\
+documentation:
+  title: Generic lumped forcing recipe
+  description: Generic lumped forcing recipe
+  authors:
+  - unmaintained
+  projects:
+  - ewatercycle
+datasets:
+- dataset: ERA5
+  project: OBS6
+  mip: day
+  tier: 3
+  type: reanaly
+preprocessors:
+  spatial:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+    area_statistics:
+      operator: mean
+  pr:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+    area_statistics:
+      operator: mean
+  tas:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+    area_statistics:
+      operator: mean
+  tasmin:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+    area_statistics:
+      operator: mean
+  tasmax:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+    area_statistics:
+      operator: mean
 diagnostics:
   diagnostic:
     scripts:
