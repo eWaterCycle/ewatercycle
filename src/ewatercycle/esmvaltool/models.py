@@ -1,6 +1,9 @@
+"""ESMValTool recipe and preprocessor models."""
+from io import StringIO
 from typing import Any, Literal
 
 from pydantic import BaseModel
+from ruamel.yaml import YAML
 
 
 class Dataset(BaseModel):
@@ -74,6 +77,7 @@ class Script(BaseModel):
     """
 
     script: str
+    # TODO script can have arguments
 
 
 class Diagnostic(BaseModel):
@@ -129,6 +133,27 @@ class Recipe(BaseModel):
     # see https://docs.esmvaltool.org/projects/ESMValCore/en/v2.9.0/recipe/preprocessor.html
     preprocessors: dict[str, dict[str, Any]] | None = None
     diagnostics: dict[str, Diagnostic] | None = None
+
+    @classmethod
+    def load(cls, path: str) -> "Recipe":
+        return cls.from_yaml(path.read_text())
+
+    @classmethod
+    def from_yaml(cls, recipe_string: str) -> "Recipe":
+        yaml = YAML(typ="rt")
+        raw_recipe = yaml.load(recipe_string)
+        return cls(**raw_recipe)
+
+    def to_yaml(self) -> str:
+        # use rt to preserve order of preprocessor keys
+        yaml = YAML(typ="rt")
+        stream = StringIO()
+        yaml.dump(self.model_dump(exclude_none=True), stream)
+        return stream.getvalue()
+
+    def save(self, path: str) -> None:
+        with open(path, "w") as f:
+            f.write(self.to_yaml())
 
 
 class ClimateStatistics(BaseModel):

@@ -7,7 +7,6 @@ import fiona
 import numpy as np
 import xarray as xr
 from dateutil.parser import parse
-from esmvalcore.experimental.recipe_output import RecipeOutput
 from shapely import geometry
 
 
@@ -136,32 +135,6 @@ def fit_extents_to_grid(extents, step=0.1, offset=0.05, ndigits=2) -> Dict[str, 
         "end_longitude": fit(extents["end_longitude"], offset),
         "end_latitude": fit(extents["end_latitude"], offset),
     }
-
-
-def data_files_from_recipe_output(
-    recipe_output: RecipeOutput,
-) -> Tuple[str, Dict[str, str]]:
-    """Get data files from a ESMVaLTool recipe output
-
-    Expects first diagnostic task to produce files with single var each.
-
-    Args:
-        recipe_output: ESMVaLTool recipe output
-
-    Returns:
-        Tuple with directory of files and a
-        dict where key is cmor short name and value is relative path to NetCDF file
-    """
-    data_files = list(recipe_output.values())[0].data_files
-    forcing_files = {}
-    for data_file in data_files:
-        dataset = data_file.load_xarray()
-        var_name = list(dataset.data_vars.keys())[0]
-        dataset.close()
-        forcing_files[var_name] = data_file.path.name
-    # TODO simplify (recipe_output.location) when next esmvalcore release is made
-    directory = str(data_files[0].path.parent)
-    return directory, forcing_files
 
 
 def to_absolute_path(

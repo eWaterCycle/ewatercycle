@@ -6,12 +6,9 @@ from typing import Dict, Literal, Optional
 from esmvalcore.experimental import get_recipe
 from ruamel.yaml import YAML
 
-from ewatercycle.base.forcing import (
-    DATASETS,
-    DefaultForcing,
-    _session,
-    run_esmvaltool_recipe,
-)
+from ewatercycle.base.forcing import DefaultForcing
+from ewatercycle.esmvaltool.datasets import DATASETS
+from ewatercycle.esmvaltool.run import run_esmvaltool_recipe
 from ewatercycle.util import get_extents, get_time, to_absolute_path
 
 

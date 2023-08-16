@@ -1,14 +1,13 @@
 from pathlib import Path
 from textwrap import dedent
 
-from ewatercycle.base.esmvaltool_wrapper import Dataset
-from ewatercycle.base.forcing_recipe import (
+from ewatercycle.esmvaltool.builder import (
     DEFAULT_DIAGNOSTIC_SCRIPT,
     RecipeBuilder,
     build_generic_distributed_forcing_recipe,
     build_pcrglobwb_recipe,
-    recipe_to_string,
 )
+from ewatercycle.esmvaltool.models import Dataset
 
 
 def test_build_esmvaltool_recipe():
@@ -32,9 +31,8 @@ def test_build_esmvaltool_recipe():
         .add_variable("tas", mip="day", units="degC")
         .build()
     )
-    recipe_as_string = recipe_to_string(recipe)
+    recipe_as_string = recipe.to_yaml()
     print(recipe_as_string)
-
 
     expected = dedent(
         f"""\
@@ -88,7 +86,7 @@ def test_build_generic_distributed_forcing_recipe():
         end_year=2001,
         shape=Path("myshape.shp"),
     )
-    recipe_as_string = recipe_to_string(recipe)
+    recipe_as_string = recipe.to_yaml()
     print(recipe_as_string)
 
     expected = dedent(
@@ -167,7 +165,7 @@ def test_build_pcrglobwb_recipe():
         start_year_climatology=1980,
         end_year_climatology=1990,
     )
-    recipe_as_string = recipe_to_string(recipe)
+    recipe_as_string = recipe.to_yaml()
     print(recipe_as_string)
 
     expected = dedent(

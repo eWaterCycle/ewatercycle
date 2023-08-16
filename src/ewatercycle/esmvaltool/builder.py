@@ -1,17 +1,10 @@
 """Builder and runner for ESMValTool recipes, the recipes can be used to generate forcings."""
-from io import StringIO
 from pathlib import Path
-from tempfile import NamedTemporaryFile
 from typing import Sequence
 
-from esmvalcore.config import CFG, Session
-from esmvalcore.experimental import CFG
-from esmvalcore.experimental import Recipe as ESMValToolRecipe
-from esmvalcore.experimental.recipe import RecipeOutput
-from ruamel.yaml import YAML
-
-from ewatercycle.base import esmvaltool_generic_diagnostic
-from ewatercycle.base.esmvaltool_wrapper import (
+from ewatercycle.esmvaltool.datasets import DATASETS
+from ewatercycle.esmvaltool.diagnostic import copy
+from ewatercycle.esmvaltool.models import (
     ClimateStatistics,
     Dataset,
     Diagnostic,
@@ -23,46 +16,7 @@ from ewatercycle.base.esmvaltool_wrapper import (
 DIAGNOSTIC_NAME = "diagnostic"
 SPATIAL_PREPROCESSOR_NAME = "spatial"
 SCRIPT_NAME = "script"
-DEFAULT_DIAGNOSTIC_SCRIPT = esmvaltool_generic_diagnostic.__file__
-
-
-def load_recipe(path: Path) -> Recipe:
-    return string_to_recipe(path.read_text())
-
-
-def save_recipe(recipe: Recipe, path: Path):
-    path.write_text(recipe_to_string(recipe))
-
-
-def recipe_to_string(recipe: Recipe) -> str:
-    # use rt to preserve order of preprocessor keys
-    yaml = YAML(typ="rt")
-    stream = StringIO()
-    yaml.dump(recipe.model_dump(exclude_none=True), stream)
-    return stream.getvalue()
-
-
-def string_to_recipe(recipe_string: str) -> Recipe:
-    yaml = YAML(typ="rt")
-    raw_recipe = yaml.load(recipe_string)
-    return Recipe(**raw_recipe)
-
-
-def run_recipe(recipe: Recipe, output_dir: Path | None = None) -> RecipeOutput:
-    recipe_file = NamedTemporaryFile(suffix="ewcrep.yml", mode="w", delete=False)
-    recipe_path = Path(recipe_file.name)
-
-    try:
-        save_recipe(recipe, recipe_path)
-
-        # TODO don't like having to different Recipe classes, should fix upstream
-        esmlvaltool_recipe = ESMValToolRecipe(recipe_path)
-        session = _session(output_dir)
-        output = esmlvaltool_recipe.run(session=session)
-    finally:
-        recipe_path.unlink()
-
-    return output
+DEFAULT_DIAGNOSTIC_SCRIPT = copy.__file__
 
 
 class RecipeBuilder:
@@ -103,7 +57,7 @@ class RecipeBuilder:
     def dataset(self, dataset: Dataset | str) -> "RecipeBuilder":
         # Can only have one dataset
         if isinstance(dataset, str):
-            dataset = DATASETS[dataset]
+            dataset = Dataset(**DATASETS[dataset])
         self._recipe.datasets = [dataset]
         return self
 
@@ -199,7 +153,6 @@ class RecipeBuilder:
 
     def script(self, script: str, arguments: dict[str, str]) -> "RecipeBuilder":
         self._diagnostic.scripts[SCRIPT_NAME] = {"script": script, **arguments}
-        # If script is not set then should there be `scripts: null` in recipe yaml?
         return self
 
 
@@ -264,49 +217,3 @@ def build_pcrglobwb_recipe(
         .script("hydrology/pcrglobwb.py", {"basin": shape.stem})
         .build()
     )
-
-
-DATASETS = {
-    "ERA5": Dataset(
-        **{
-            "dataset": "ERA5",
-            "project": "OBS6",
-            "tier": 3,
-            "type": "reanaly",
-            "version": 1,
-            "mip": "day",
-        }
-    ),
-    "ERA-Interim": Dataset(
-        **{
-            "dataset": "ERA-Interim",
-            "project": "OBS6",
-            "tier": 3,
-            "type": "reanaly",
-            "version": 1,
-            "mip": "day",
-        }
-    ),
-}
-"""Dictionary of predefined forcing datasets.
-
-Where key is the name of the dataset and
-value is an `ESMValTool dataset section <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipe/overview.html#datasets>`_.
-"""
-
-
-def _session(directory: Path | str | None = None) -> Session | None:
-    """When directory is set return a ESMValTool session that will write recipe output to that directory."""
-    if directory is None:
-        return None
-
-    class TimeLessSession(Session):
-        def __init__(self, output_dir: Path):
-            super().__init__(CFG.copy())
-            self.output_dir = output_dir
-
-        @property
-        def session_dir(self):
-            return self.output_dir
-
-    return TimeLessSession(Path(directory).absolute())

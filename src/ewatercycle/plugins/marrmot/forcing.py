@@ -9,7 +9,9 @@ import xarray as xr
 from esmvalcore.experimental import get_recipe
 from scipy.io import loadmat
 
-from ewatercycle.base.forcing import DATASETS, DefaultForcing, run_esmvaltool_recipe
+from ewatercycle.base.forcing import DefaultForcing
+from ewatercycle.esmvaltool.datasets import DATASETS
+from ewatercycle.esmvaltool.run import run_esmvaltool_recipe
 from ewatercycle.util import get_time, to_absolute_path
 
 

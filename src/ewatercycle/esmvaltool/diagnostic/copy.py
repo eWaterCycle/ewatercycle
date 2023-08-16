@@ -1,6 +1,5 @@
 """ESMValTool diagnostic script that copies the preprocessing output to the diagnostic output.
 """
-# TODO move from ewatercycle.base to somewhere more specific
 import logging
 import shutil
 from pathlib import Path
@@ -38,7 +37,6 @@ def main(cfg):
         # With copy we duplicate data
         shutil.copy(input_file, outfile)
         with ProvenanceLogger(cfg) as provenance_logger:
-            # TODO Is ancestors needed when files are moved?
             provenance_logger.log(
                 outfile,
                 {

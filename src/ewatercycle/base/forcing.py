@@ -1,23 +1,18 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from tempfile import NamedTemporaryFile
 from typing import Annotated, Literal, Optional, Union
 
-from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_output import RecipeOutput
 from pydantic import BaseModel, field_validator
 from pydantic.functional_validators import AfterValidator
 from ruamel.yaml import YAML
 
-from ewatercycle.base.esmvaltool_wrapper import Dataset
-from ewatercycle.base.esmvaltool_wrapper import Recipe as WrappedRecipe
-from ewatercycle.base.forcing_recipe import (
-    _session,
-    build_generic_distributed_forcing_recipe,
-    run_recipe,
-)
-from ewatercycle.util import data_files_from_recipe_output, get_time, to_absolute_path
+from ewatercycle.esmvaltool.builder import build_generic_distributed_forcing_recipe
+from ewatercycle.esmvaltool.models import Dataset, Recipe
+from ewatercycle.esmvaltool.output import parse_recipe_output
+from ewatercycle.esmvaltool.run import run_recipe
+from ewatercycle.util import get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 FORCING_YAML = "ewatercycle_forcing.yaml"
@@ -95,7 +90,7 @@ class DefaultForcing(BaseModel):
     @classmethod
     def _from_recipe_output(cls, start_time, end_time, shape, recipe_output):
         forcing_args = {"start_time": start_time, "end_time": end_time, "shape": shape}
-        forcing_args.update(_parse_recipe_output(recipe_output))
+        forcing_args.update(parse_recipe_output(recipe_output))
         forcing = cls(**forcing_args)
         forcing.save()
         return forcing
@@ -109,18 +104,14 @@ class DefaultForcing(BaseModel):
         dataset: Dataset | str = "ERA5",
         **model_specific_options,
     ):
-        # TODO move to GenericDistributedForcing, but what should be here then?
-        return build_generic_distributed_forcing_recipe(
-            start_year=start_time.year,
-            end_year=end_time.year,
-            shape=shape,
-            dataset=dataset,
-        )
+        # TODO do we want an implementation here?
+        # If so how is it different from GenericDistributedForcing?
+        raise NotImplementedError("No default recipe available.")
 
     @classmethod
     def _run_recipe(
         cls,
-        recipe: WrappedRecipe,
+        recipe: Recipe,
         directory: Optional[str] = None,
     ) -> RecipeOutput:
         return run_recipe(recipe, directory)
@@ -241,65 +232,20 @@ class GenericDistributedForcing(DefaultForcing):
     tasmin: str
     tasmax: str
 
+    @classmethod
+    def _build_recipe(
+        cls,
+        start_time: datetime,
+        end_time: datetime,
+        shape: Path,
+        dataset: Dataset | str = "ERA5",
+    ):
+        return build_generic_distributed_forcing_recipe(
+            start_year=start_time.year,
+            end_year=end_time.year,
+            shape=shape,
+            dataset=dataset,
+            variables=("pr", "tas", "tasmin", "tasmax"),
+        )
+
     # TODO add helper method to get forcing data as xarray.Dataset?
-
-
-def _parse_recipe_output(recipe_output):
-    """Parse ESMValTool recipe output into a dictionary.
-
-    Returns:
-        Dictionary with forcing data variables as keys and file names as values
-        and a key called directory with is the parent directory of the file names.
-    """
-    directory, variables = data_files_from_recipe_output(recipe_output)
-    # Mold ESMValTool output into the format needed for GenericDistributedForcing
-    return {"directory": directory, **variables}
-
-
-def run_esmvaltool_recipe(recipe: Recipe, output_dir: str | None) -> RecipeOutput:
-    """Run an ESMValTool recipe.
-
-    The recipe.data dictionary can be modified before running the recipe.
-
-    During run the recipe.path is overwritten with a temporary file containing the updated recipe.
-
-    Args:
-        recipe: ESMValTool recipe
-        output_dir: Directory where output should be written to.
-            If None then output is written to generated timestamped directory.
-
-    Returns:
-        ESMValTool recipe output
-
-    Example:
-
-        >>> from ewatercycle.forcing import run_esmvaltool_recipe
-        >>> from esmvalcore.experimental.recipe import get_recipe
-        >>> recipe = get_recipe('hydrology/recipe_wflow.yml')
-        >>> recipe.data['scripts']['script']['dem_file'] = 'my_dem.nc'
-        >>> output_dir = Path('./output_dir')
-        >>> output = run_esmvaltool_recipe(recipe, output_dir)
-    """
-    # ESMVALCore 2.8.1 always runs original recipe,
-    # write updated recipe to disk and use
-    recipe.path = _write_recipe(recipe)
-    # TODO write recipe in output_dir?
-    # TODO fix in esmvalcore and wait for new version?
-
-    session = _session(output_dir)
-    output = recipe.run(session=session)
-
-    # remove updated recipe file
-    recipe.path.unlink()
-
-    return output
-
-
-def _write_recipe(recipe: Recipe) -> Path:
-    updated_recipe_file = NamedTemporaryFile(
-        suffix=recipe.path.name, mode="w", delete=False
-    )
-    yaml = YAML(typ="safe")
-    yaml.dump(recipe.data, updated_recipe_file)
-    updated_recipe_file.close()
-    return Path(updated_recipe_file.name)
