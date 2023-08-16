@@ -161,15 +161,15 @@ def build_recipe(
         .start(start_year)
         .end(end_year)
     )
-    if extract_region is not None:
+    if extract_region is None:
+        partial = partial.region_by_shape(shape)
+    else:
         partial = partial.region(
             start_longitude=extract_region["start_longitude"],
             end_longitude=extract_region["end_longitude"],
             start_latitude=extract_region["start_latitude"],
             end_latitude=extract_region["end_latitude"],
         )
-    else:
-        partial = partial.region_by_shape(shape)
     return (
         partial.add_variable("pr", units="kg m-2 d-1")
         .add_variable("tas")

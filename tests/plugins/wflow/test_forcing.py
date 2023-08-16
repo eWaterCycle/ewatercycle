@@ -9,6 +9,7 @@ from esmvalcore.experimental.recipe_output import DataFile
 
 from ewatercycle.base.forcing import FORCING_YAML
 from ewatercycle.forcing import sources
+from ewatercycle.plugins.wflow.forcing import build_recipe
 
 WflowForcing = sources["WflowForcing"]
 
@@ -226,3 +227,114 @@ def test_load_legacy_forcing(tmp_path):
     result = WflowForcing.load(tmp_path)
 
     assert result == expected
+
+
+def test_build_recipe(sample_shape: str):
+    recipe = build_recipe(
+        dataset="ERA5",
+        start_year=1990,
+        end_year=2001,
+        shape=Path(sample_shape),
+        dem_file="wflow_parameterset/meuse/staticmaps/wflow_dem.map",
+    )
+    recipe_as_string = recipe.to_yaml()
+    print(recipe_as_string)
+
+    # Should look similar to
+    # https://github.com/ESMValGroup/ESMValTool/blob/main/esmvaltool/recipes/hydrology/recipe_lisflood.yml
+    expected = dedent(
+        f"""\
+documentation:
+  title: Generate forcing for the WFlow hydrological model
+  description: ''
+  authors:
+  - unmaintained
+  projects:
+  - ewatercycle
+datasets:
+- dataset: ERA5
+  project: OBS6
+  mip: day
+  tier: 3
+  type: reanaly
+preprocessors:
+  spatial:
+    extract_region:
+      start_longitude: 1.1
+      end_longitude: 14.9
+      start_latitude: 43.3
+      end_latitude: 55.2
+  tas:
+    extract_region:
+      start_longitude: 1.1
+      end_longitude: 14.9
+      start_latitude: 43.3
+      end_latitude: 55.2
+  pr:
+    extract_region:
+      start_longitude: 1.1
+      end_longitude: 14.9
+      start_latitude: 43.3
+      end_latitude: 55.2
+  psl:
+    extract_region:
+      start_longitude: 1.1
+      end_longitude: 14.9
+      start_latitude: 43.3
+      end_latitude: 55.2
+  rsds:
+    extract_region:
+      start_longitude: 1.1
+      end_longitude: 14.9
+      start_latitude: 43.3
+      end_latitude: 55.2
+  orog:
+    extract_region:
+      start_longitude: 1.1
+      end_longitude: 14.9
+      start_latitude: 43.3
+      end_latitude: 55.2
+  rsdt:
+    extract_region:
+      start_longitude: 1.1
+      end_longitude: 14.9
+      start_latitude: 43.3
+      end_latitude: 55.2
+diagnostics:
+  diagnostic:
+    scripts:
+      script:
+        script: hydrology/wflow.py
+        basin: Rhine
+        dem_file: wflow_parameterset/meuse/staticmaps/wflow_dem.map
+        regrid: area_weighted
+    variables:
+      tas:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: tas
+      pr:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: pr
+      psl:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: psl
+      rsds:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: rsds
+      orog:
+        start_year: 1990
+        end_year: 2001
+        mip: fix
+        preprocessor: orog
+      rsdt:
+        start_year: 1990
+        end_year: 2001
+        mip: CFday
+        preprocessor: rsdt
+        """
+    )
+    assert recipe_as_string == expected

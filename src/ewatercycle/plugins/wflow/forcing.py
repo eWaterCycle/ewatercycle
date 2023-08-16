@@ -1,4 +1,5 @@
 """Forcing related functionality for wflow."""
+from datetime import datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Dict, Literal, Optional
@@ -7,7 +8,9 @@ from esmvalcore.experimental import get_recipe
 from ruamel.yaml import YAML
 
 from ewatercycle.base.forcing import DefaultForcing
+from ewatercycle.esmvaltool.builder import RecipeBuilder
 from ewatercycle.esmvaltool.datasets import DATASETS
+from ewatercycle.esmvaltool.models import Dataset
 from ewatercycle.esmvaltool.run import run_esmvaltool_recipe
 from ewatercycle.util import get_extents, get_time, to_absolute_path
 
@@ -65,56 +68,84 @@ class WflowForcing(DefaultForcing):
             shape: Path to a shape file. Used for spatial selection.
             directory:  Directory in which forcing should be written.
                 If not given will create timestamped directory.
-            dem_file: Name of the dem_file to use. Also defines the basin
-                param.
+            dem_file: Name of the dem_file to use.
             extract_region: Region specification, dictionary must
                 contain `start_longitude`, `end_longitude`, `start_latitude`,
                 `end_latitude`
         """
-        # load the ESMValTool recipe
-        recipe_name = "hydrology/recipe_wflow.yml"
-        recipe = get_recipe(recipe_name)
-
-        basin = to_absolute_path(shape).stem
-        recipe.data["diagnostics"]["wflow_daily"]["scripts"]["script"]["basin"] = basin
-
-        # model-specific updates
-        script = recipe.data["diagnostics"]["wflow_daily"]["scripts"]["script"]
-        script["dem_file"] = dem_file
-
-        if extract_region is None:
-            extract_region = get_extents(shape, pad=3)
-        recipe.data["preprocessors"]["rough_cutout"]["extract_region"] = extract_region
-
-        recipe.data["diagnostics"]["wflow_daily"]["additional_datasets"] = [
-            DATASETS[dataset]
-        ]
-
-        variables = recipe.data["diagnostics"]["wflow_daily"]["variables"]
-        var_names = "tas", "pr", "psl", "rsds", "rsdt"
-
-        startyear = get_time(start_time).year
-        for var_name in var_names:
-            variables[var_name]["start_year"] = startyear
-
-        endyear = get_time(end_time).year
-        for var_name in var_names:
-            variables[var_name]["end_year"] = endyear
-
-        # generate forcing data and retrieve useful information
-        recipe_output = run_esmvaltool_recipe(recipe, directory)
-        forcing_data = recipe_output["wflow_daily/script"].data_files[0]
-
-        forcing_file = forcing_data.path
-        directory = str(forcing_file.parent)
-
-        # instantiate forcing object based on generated data
-        generated_forcing = WflowForcing(
-            directory=directory,
+        return super(WflowForcing, cls).generate(
+            dataset=dataset,
             start_time=start_time,
             end_time=end_time,
             shape=shape,
-            netcdfinput=forcing_file.name,
+            dem_file=dem_file,
+            directory=directory,
+            extract_region=extract_region,
         )
-        generated_forcing.save()
-        return generated_forcing
+
+    @classmethod
+    def _build_recipe(
+        cls,
+        start_time: datetime,
+        end_time: datetime,
+        shape: Path,
+        dataset: Dataset | str,
+        **model_specific_options
+    ):
+        extract_region = model_specific_options["extract_region"]
+        return build_recipe(
+            start_year=start_time.year,
+            end_year=end_time.year,
+            shape=shape,
+            dataset=dataset,
+            dem_file=model_specific_options["dem_file"],
+            extract_region=extract_region,
+        )
+
+    @classmethod
+    def _recipe_output_to_forcing_arguments(cls, recipe_output, model_specific_options):
+        first_file = list(recipe_output.values())[0]
+        return {
+            "netcdfinput": first_file,
+        }
+
+
+def build_recipe(
+    start_year: int,
+    end_year: int,
+    shape: Path,
+    dataset: Dataset | str,
+    dem_file: str,
+    extract_region: Optional[Dict[str, float]] = None,
+):
+    partial = (
+        RecipeBuilder()
+        .title("Generate forcing for the WFlow hydrological model")
+        .dataset(dataset)
+        .start(start_year)
+        .end(end_year)
+    )
+    if extract_region is None:
+        MAGIC_PAD = 3  # TODO why 3?
+        partial = partial.region_by_shape(shape, pad=MAGIC_PAD)
+    else:
+        partial = partial.region(
+            start_longitude=extract_region["start_longitude"],
+            end_longitude=extract_region["end_longitude"],
+            start_latitude=extract_region["start_latitude"],
+            end_latitude=extract_region["end_latitude"],
+        )
+    return (
+        partial.add_variables(["tas", "pr", "psl", "rsds"])
+        .add_variable("orog", mip="fix")
+        .add_variable("rsdt", mip="CFday")
+        .script(
+            "hydrology/wflow.py",
+            {
+                "basin": shape.stem,
+                "dem_file": dem_file,
+                "regrid": "area_weighted",
+            },
+        )
+        .build()
+    )
