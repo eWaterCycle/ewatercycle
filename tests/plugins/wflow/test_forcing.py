@@ -241,7 +241,7 @@ def test_build_recipe(sample_shape: str):
     print(recipe_as_string)
 
     # Should look similar to
-    # https://github.com/ESMValGroup/ESMValTool/blob/main/esmvaltool/recipes/hydrology/recipe_lisflood.yml
+    # https://github.com/ESMValGroup/ESMValTool/blob/main/esmvaltool/recipes/hydrology/recipe_wflow.yml
     expected = dedent(
         f"""\
 documentation:

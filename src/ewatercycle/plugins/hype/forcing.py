@@ -1,15 +1,15 @@
 """Forcing related functionality for hype"""
 
-from typing import Literal, Optional
+from datetime import datetime
+from pathlib import Path
+from typing import Literal
 
 import pandas as pd
 import xarray as xr
-from esmvalcore.experimental import get_recipe
 
 from ewatercycle.base.forcing import DefaultForcing
-from ewatercycle.esmvaltool.datasets import DATASETS
-from ewatercycle.esmvaltool.run import run_esmvaltool_recipe
-from ewatercycle.util import get_time, to_absolute_path
+from ewatercycle.esmvaltool.builder import RecipeBuilder
+from ewatercycle.esmvaltool.models import Dataset
 
 
 class HypeForcing(DefaultForcing):
@@ -38,60 +38,25 @@ class HypeForcing(DefaultForcing):
     Tobs: str = "Tobs.txt"
 
     @classmethod
-    def generate(  # type: ignore
+    def _build_recipe(
         cls,
-        dataset: str,
-        start_time: str,
-        end_time: str,
-        shape: str,
-        directory: Optional[str] = None,
-    ) -> "HypeForcing":
-        # load the ESMValTool recipe
-        recipe_name = "hydrology/recipe_hype.yml"
-        recipe = get_recipe(recipe_name)
-
-        # model-specific updates to the recipe
-        preproc_names = ("preprocessor", "temperature", "water")
-
-        for preproc_name in preproc_names:
-            recipe.data["preprocessors"][preproc_name]["extract_shape"][
-                "shapefile"
-            ] = str(to_absolute_path(shape))
-
-        recipe.data["datasets"] = [DATASETS[dataset]]
-
-        variables = recipe.data["diagnostics"]["hype"]["variables"]
-        var_names = "tas", "tasmin", "tasmax", "pr"
-
-        startyear = get_time(start_time).year
-        for var_name in var_names:
-            variables[var_name]["start_year"] = startyear
-
-        endyear = get_time(end_time).year
-        for var_name in var_names:
-            variables[var_name]["end_year"] = endyear
-
-        # generate forcing data and retreive useful information
-        recipe_output = run_esmvaltool_recipe(recipe, directory)
-
-        # retrieve forcing files
-        recipe_files = list(recipe_output.values())[0].files
-        forcing_files = {f.path.stem: f.path for f in recipe_files}
-        directory = str(forcing_files["Pobs"].parent)
-
-        # instantiate forcing object based on generated data
-        generated_forcing = HypeForcing(
-            directory=directory,
-            start_time=start_time,
-            end_time=end_time,
+        start_time: datetime,
+        end_time: datetime,
+        shape: Path,
+        dataset: Dataset | str,
+        **model_specific_options
+    ):
+        return build_recipe(
+            start_year=start_time.year,
+            end_year=end_time.year,
             shape=shape,
-            Pobs=forcing_files["Pobs"].name,
-            TMAXobs=forcing_files["TMAXobs"].name,
-            TMINobs=forcing_files["TMINobs"].name,
-            Tobs=forcing_files["Tobs"].name,
+            dataset=dataset,
         )
-        generated_forcing.save()
-        return generated_forcing
+
+    @classmethod
+    def _recipe_output_to_forcing_arguments(cls, recipe_output, model_specific_options):
+        print(recipe_output)
+        return recipe_output
 
     def to_xarray(self) -> xr.Dataset:
         """Load forcing files into a xarray Dataset.
@@ -126,3 +91,26 @@ class HypeForcing(DefaultForcing):
             "history": "Created by ewatercycle.plugins.hype.forcing.HypeForcing.to_xarray()",
         }
         return ds
+
+
+def build_recipe(
+    start_year: int,
+    end_year: int,
+    shape: Path,
+    dataset: Dataset | str,
+):
+    return (
+        RecipeBuilder()
+        .title("Hype forcing data")
+        .dataset(dataset)
+        .start(start_year)
+        .end(end_year)
+        .shape(shape, decomposed=True)
+        .lump()
+        .add_variable("tas", units="degC")
+        .add_variable("tasmin", units="degC")
+        .add_variable("tasmax", units="degC")
+        .add_variable("pr", units="kg m-2 d-1")
+        .script("hydrology/hype.py")
+        .build()
+    )

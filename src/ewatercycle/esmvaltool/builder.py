@@ -221,10 +221,12 @@ class RecipeBuilder:
             self._preprocessors[preprocessor_name] = preprocessor
         return preprocessor_name
 
-    def script(self, script: str, arguments: dict[str, str]) -> "RecipeBuilder":
+    def script(
+        self, script: str, arguments: dict[str, str] | None = None
+    ) -> "RecipeBuilder":
         if self._diagnostic.scripts is None:
             raise ValueError("Recipe has no scripts")
-        self._diagnostic.scripts[SCRIPT_NAME] = Script(script=script, **arguments)
+        self._diagnostic.scripts[SCRIPT_NAME] = Script(script=script, **arguments or {})
         return self
 
 

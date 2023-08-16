@@ -9,6 +9,7 @@ from esmvalcore.experimental.recipe_output import OutputFile
 
 from ewatercycle.base.forcing import FORCING_YAML
 from ewatercycle.forcing import sources
+from ewatercycle.plugins.hype.forcing import build_recipe
 
 HypeForcing = sources["HypeForcing"]
 
@@ -279,3 +280,101 @@ def test_load_legacy_forcing(tmp_path):
     result = HypeForcing.load(tmp_path)
 
     assert result == expected
+
+
+def test_build_recipe(sample_shape: str):
+    recipe = build_recipe(
+        dataset="ERA5",
+        start_year=1990,
+        end_year=2001,
+        shape=Path(sample_shape),
+    )
+    recipe_as_string = recipe.to_yaml()
+    print(recipe_as_string)
+
+    # Should look similar to
+    # https://github.com/ESMValGroup/ESMValTool/blob/main/esmvaltool/recipes/hydrology/recipe_hype.yml
+    expected = dedent(
+        f"""\
+documentation:
+  title: Hype forcing data
+  description: ''
+  authors:
+  - unmaintained
+  projects:
+  - ewatercycle
+datasets:
+- dataset: ERA5
+  project: OBS6
+  mip: day
+  tier: 3
+  type: reanaly
+preprocessors:
+  spatial:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: true
+    area_statistics:
+      operator: mean
+  tas:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: true
+    area_statistics:
+      operator: mean
+    convert_units:
+      units: degC
+  tasmin:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: true
+    area_statistics:
+      operator: mean
+    convert_units:
+      units: degC
+  tasmax:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: true
+    area_statistics:
+      operator: mean
+    convert_units:
+      units: degC
+  pr:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: true
+    area_statistics:
+      operator: mean
+    convert_units:
+      units: kg m-2 d-1
+diagnostics:
+  diagnostic:
+    scripts:
+      script:
+        script: hydrology/hype.py
+    variables:
+      tas:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: tas
+      tasmin:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: tasmin
+      tasmax:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: tasmax
+      pr:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: pr
+        """
+    )
+    assert recipe_as_string == expected
