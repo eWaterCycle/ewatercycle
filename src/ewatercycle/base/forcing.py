@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Literal, Optional, Union
+from typing import Annotated, Literal, Optional, TypeVar, Union
 
 from esmvalcore.experimental.recipe_output import RecipeOutput
 from pydantic import BaseModel, field_validator
@@ -21,6 +21,9 @@ FORCING_YAML = "ewatercycle_forcing.yaml"
 def _to_absolute_path(v: Union[str, Path]):
     """Wraps to_absolute_path to a single-arg function, to use as Pydantic validator."""
     return to_absolute_path(v)
+
+
+AnyForcing = TypeVar("AnyForcing", bound="DefaultForcing")
 
 
 class DefaultForcing(BaseModel):
@@ -46,20 +49,21 @@ class DefaultForcing(BaseModel):
     def _absolute_shape(cls, v, info):
         if v is None:
             return v
+        # TODO If shape is outside self.directory should we copy or leave as is?
         return to_absolute_path(
             v, parent=info.data["directory"], must_be_in_parent=False
         )
 
     @classmethod
     def generate(
-        cls,
+        cls: type[AnyForcing],
         dataset: str | Dataset,
         start_time: str,
         end_time: str,
         shape: str,
         directory: Optional[str] = None,
         **model_specific_options,
-    ) -> "DefaultForcing":
+    ) -> AnyForcing:
         """Generate forcings for a model.
 
         The forcing is generated with help of
@@ -76,24 +80,35 @@ class DefaultForcing(BaseModel):
                 If not given will create timestamped directory.
 
         """
-        # TODO make data set build function
         recipe = cls._build_recipe(
             dataset=dataset,
             start_time=get_time(start_time),
             end_time=get_time(end_time),
-            shape=shape,
+            shape=Path(shape),
             **model_specific_options,
         )
-        recipe_output = cls._run_recipe(recipe, directory=directory)
-        return cls._from_recipe_output(start_time, end_time, shape, recipe_output)
-
-    @classmethod
-    def _from_recipe_output(cls, start_time, end_time, shape, recipe_output):
-        forcing_args = {"start_time": start_time, "end_time": end_time, "shape": shape}
-        forcing_args.update(parse_recipe_output(recipe_output))
-        forcing = cls(**forcing_args)
+        recipe_output = cls._run_recipe(
+            recipe, directory=Path(directory) if directory else None
+        )
+        arguments = cls._recipe_output_to_forcing_arguments(
+            recipe_output, model_specific_options
+        )
+        forcing = cls(
+            directory=recipe_output["directory"],
+            start_time=start_time,
+            end_time=end_time,
+            shape=shape,
+            **arguments,
+        )
         forcing.save()
         return forcing
+
+    @classmethod
+    def _recipe_output_to_forcing_arguments(cls, recipe_output, model_specific_options):
+        return {
+            **recipe_output,
+            **model_specific_options,
+        }
 
     @classmethod
     def _build_recipe(
@@ -101,7 +116,7 @@ class DefaultForcing(BaseModel):
         start_time: datetime,
         end_time: datetime,
         shape: Path,
-        dataset: Dataset | str = "ERA5",
+        dataset: Dataset | str,
         **model_specific_options,
     ):
         # TODO do we want an implementation here?
@@ -112,9 +127,10 @@ class DefaultForcing(BaseModel):
     def _run_recipe(
         cls,
         recipe: Recipe,
-        directory: Optional[str] = None,
-    ) -> RecipeOutput:
-        return run_recipe(recipe, directory)
+        directory: Optional[Path] = None,
+    ) -> dict[str, str]:
+        recipe_output = run_recipe(recipe, directory)
+        return parse_recipe_output(recipe_output)
 
     def save(self):
         """Export forcing data for later use."""
@@ -226,7 +242,8 @@ class GenericDistributedForcing(DefaultForcing):
         ```
     """
 
-    model: Literal["generic_distributed"] = "generic_distributed"
+    # type ignored because pydantic wants literal in base class while mypy does not
+    model: Literal["generic_distributed"] = "generic_distributed"  # type: ignore
     pr: str
     tas: str
     tasmin: str
@@ -239,6 +256,7 @@ class GenericDistributedForcing(DefaultForcing):
         end_time: datetime,
         shape: Path,
         dataset: Dataset | str = "ERA5",
+        **model_specific_options,
     ):
         return build_generic_distributed_forcing_recipe(
             start_year=start_time.year,

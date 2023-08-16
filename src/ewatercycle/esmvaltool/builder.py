@@ -10,8 +10,10 @@ from ewatercycle.esmvaltool.models import (
     Diagnostic,
     Documentation,
     Recipe,
+    Script,
     Variable,
 )
+from ewatercycle.util import get_extents
 
 DIAGNOSTIC_NAME = "diagnostic"
 SPATIAL_PREPROCESSOR_NAME = "spatial"
@@ -20,6 +22,27 @@ DEFAULT_DIAGNOSTIC_SCRIPT = copy.__file__
 
 
 class RecipeBuilder:
+    """Builder for ESMValTool recipes tailored to generate forcings.
+
+    Example:
+
+        ```pycon
+        >>> from ewatercycle.forcing import RecipeBuilder
+        >>> recipe = (
+        ...     RecipeBuilder()
+        ...     .title("Generic distributed forcing recipe")
+        ...     .description("Generic distributed forcing recipe")
+        ...     .dataset("ERA5")
+        ...     .start(2000)
+        ...     .end(2001)
+        ...     .shape("shapefile.shp")
+        ...     .add_variable("pr")
+        ...     .build()
+        ... )
+        ```
+
+    """
+
     _recipe: Recipe
     _start_year: int = 0
     _end_year: int = 10000
@@ -71,10 +94,17 @@ class RecipeBuilder:
         self._end_year = value
         return self
 
+    @property
+    def _preprocessors(self):
+        if self._recipe.preprocessors is None:
+            raise ValueError("Recipe has no preprocessors")
+        return self._recipe.preprocessors
+
     def shape(
         self, file: Path, crop: bool = True, decomposed: bool = False
     ) -> "RecipeBuilder":
-        self._recipe.preprocessors[SPATIAL_PREPROCESSOR_NAME] = {
+
+        self._preprocessors[SPATIAL_PREPROCESSOR_NAME] = {
             "extract_shape": {
                 "shapefile": str(file),
                 "crop": crop,
@@ -90,7 +120,7 @@ class RecipeBuilder:
         start_latitude: float,
         end_latitude: float,
     ) -> "RecipeBuilder":
-        self._recipe.preprocessors[SPATIAL_PREPROCESSOR_NAME] = {
+        self._preprocessors[SPATIAL_PREPROCESSOR_NAME] = {
             "extract_region": {
                 "start_longitude": start_longitude,
                 "end_longitude": end_longitude,
@@ -100,12 +130,18 @@ class RecipeBuilder:
         }
         return self
 
+    def region_by_shape(self, shape: Path, pad=0) -> "RecipeBuilder":
+        extents = get_extents(shape, pad)
+        return self.region(**extents)
+
     @property
     def _diagnostic(self) -> Diagnostic:
+        if self._recipe.diagnostics is None:
+            raise ValueError("Recipe has no diagnostics")
         return self._recipe.diagnostics[DIAGNOSTIC_NAME]
 
     def add_unit(self, name: str, units: str) -> "RecipeBuilder":
-        self._recipe.preprocessors[name] = {"convert_units": {"units": units}}
+        self._preprocessors[name] = {"convert_units": {"units": units}}
         return self
 
     def add_variables(self, variables: Sequence[str]) -> "RecipeBuilder":
@@ -126,6 +162,8 @@ class RecipeBuilder:
         # TODO check variable is in dataset
         # Each variable needs its own single preprocessor
         preprocessor_name = self._add_preprocessor(variable, units, stats)
+        if self._diagnostic.variables is None:
+            raise ValueError("Recipe has no variables")
         self._diagnostic.variables[variable] = Variable(
             mip=mip,
             preprocessor=preprocessor_name,
@@ -137,10 +175,11 @@ class RecipeBuilder:
         return self
 
     def _add_preprocessor(self, preprocessor_name, units, stats):
-        if preprocessor_name not in self._recipe.preprocessors:
+        if preprocessor_name not in self._preprocessors:
             preprocessor = {}
-            if SPATIAL_PREPROCESSOR_NAME in self._recipe.preprocessors:
-                preprocessor = {**self._recipe.preprocessors[SPATIAL_PREPROCESSOR_NAME]}
+            # TODO allow spatial preprocessor to be configured after adding variables
+            if SPATIAL_PREPROCESSOR_NAME in self._preprocessors:
+                preprocessor = {**self._preprocessors[SPATIAL_PREPROCESSOR_NAME]}
             if units is not None:
                 preprocessor["convert_units"] = {"units": units}
             if stats is not None:
@@ -148,11 +187,13 @@ class RecipeBuilder:
                     "operator": stats.operator,
                     "period": stats.period,
                 }
-            self._recipe.preprocessors[preprocessor_name] = preprocessor
+            self._preprocessors[preprocessor_name] = preprocessor
         return preprocessor_name
 
     def script(self, script: str, arguments: dict[str, str]) -> "RecipeBuilder":
-        self._diagnostic.scripts[SCRIPT_NAME] = {"script": script, **arguments}
+        if self._diagnostic.scripts is None:
+            raise ValueError("Recipe has no scripts")
+        self._diagnostic.scripts[SCRIPT_NAME] = Script(script=script, **arguments)
         return self
 
 
@@ -172,48 +213,5 @@ def build_generic_distributed_forcing_recipe(
         .end(end_year)
         .shape(shape)
         .add_variables(variables)
-        .build()
-    )
-
-
-# TODO move to src/ewatercycle/plugins/pcrglobwb/forcing.py
-def build_pcrglobwb_recipe(
-    start_year: int,
-    end_year: int,
-    shape: Path,
-    start_year_climatology: int,
-    end_year_climatology: int,
-    dataset: Dataset | str = "ERA5",
-):
-    return (
-        RecipeBuilder()
-        .title("PCRGlobWB forcing recipe")
-        .description("PCRGlobWB forcing recipe")
-        .dataset(dataset)
-        .start(start_year)
-        .end(end_year)
-        # Instead of calculating extends of shape
-        # and then using extract_region preprocessor
-        # we use extract_shape with crop=True
-        # to get less data
-        .shape(shape, crop=True)
-        .add_variable("pr", units="kg m-2 d-1")
-        .add_variable("tas")
-        .add_variable(
-            "pr_climatology",
-            units="kg m-2 d-1",
-            stats=ClimateStatistics(operator="mean", period="day"),
-            short_name="pr",
-            start_year=start_year_climatology,
-            end_year=end_year_climatology,
-        )
-        .add_variable(
-            "tas_climatology",
-            stats=ClimateStatistics(operator="mean", period="day"),
-            short_name="tas",
-            start_year=start_year_climatology,
-            end_year=end_year_climatology,
-        )
-        .script("hydrology/pcrglobwb.py", {"basin": shape.stem})
         .build()
     )

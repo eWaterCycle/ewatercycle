@@ -2,7 +2,7 @@
 from io import StringIO
 from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from ruamel.yaml import YAML
 
 
@@ -76,8 +76,8 @@ class Script(BaseModel):
 
     """
 
+    model_config = ConfigDict(extra="allow")
     script: str
-    # TODO script can have arguments
 
 
 class Diagnostic(BaseModel):
@@ -136,7 +136,8 @@ class Recipe(BaseModel):
 
     @classmethod
     def load(cls, path: str) -> "Recipe":
-        return cls.from_yaml(path.read_text())
+        with open(path, encoding="utf-8") as f:
+            return cls.from_yaml(f.read())
 
     @classmethod
     def from_yaml(cls, recipe_string: str) -> "Recipe":
@@ -157,5 +158,13 @@ class Recipe(BaseModel):
 
 
 class ClimateStatistics(BaseModel):
+    """Arguments for the `climate_statistics` preprocessor."""
+
     operator: Literal["mean", "std", "min", "max", "median", "sum"] = "mean"
     period: Literal["hour", "day", "month", "year"] = "day"
+
+
+ExtractRegion = dict[
+    Literal["start_longitude", "end_longitude", "start_latitude", "end_latitude"], float
+]
+"""Arguments for the `extract_region` preprocessor."""

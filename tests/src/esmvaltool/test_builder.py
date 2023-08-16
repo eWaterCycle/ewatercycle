@@ -5,7 +5,6 @@ from ewatercycle.esmvaltool.builder import (
     DEFAULT_DIAGNOSTIC_SCRIPT,
     RecipeBuilder,
     build_generic_distributed_forcing_recipe,
-    build_pcrglobwb_recipe,
 )
 from ewatercycle.esmvaltool.models import Dataset
 
@@ -84,7 +83,7 @@ def test_build_generic_distributed_forcing_recipe():
     recipe = build_generic_distributed_forcing_recipe(
         start_year=1990,
         end_year=2001,
-        shape=Path("myshape.shp"),       
+        shape=Path("myshape.shp"),
     )
     recipe_as_string = recipe.to_yaml()
     print(recipe_as_string)
@@ -152,99 +151,6 @@ diagnostics:
         start_year: 1990
         end_year: 2001
         preprocessor: tasmax
-        """
-    )
-    assert recipe_as_string == expected
-
-
-def test_build_pcrglobwb_recipe():
-    recipe = build_pcrglobwb_recipe(
-        start_year=1990,
-        end_year=2001,
-        shape=Path("myshape.shp"),
-        start_year_climatology=1980,
-        end_year_climatology=1990,
-        dataset='ERA5',
-    )
-    recipe_as_string = recipe.to_yaml()
-    print(recipe_as_string)
-
-    expected = dedent(
-        """\
-documentation:
-  title: PCRGlobWB forcing recipe
-  description: PCRGlobWB forcing recipe
-  authors:
-  - unmaintained
-  projects:
-  - ewatercycle
-datasets:
-- dataset: ERA5
-  project: OBS6
-  mip: day
-  tier: 3
-  type: reanaly
-preprocessors:
-  spatial:
-    extract_shape:
-      shapefile: myshape.shp
-      crop: true
-      decomposed: false
-  pr:
-    extract_shape:
-      shapefile: myshape.shp
-      crop: true
-      decomposed: false
-    convert_units:
-      units: kg m-2 d-1
-  tas:
-    extract_shape:
-      shapefile: myshape.shp
-      crop: true
-      decomposed: false
-  pr_climatology:
-    extract_shape:
-      shapefile: myshape.shp
-      crop: true
-      decomposed: false
-    convert_units:
-      units: kg m-2 d-1
-    climate_statistics:
-      operator: mean
-      period: day
-  tas_climatology:
-    extract_shape:
-      shapefile: myshape.shp
-      crop: true
-      decomposed: false
-    climate_statistics:
-      operator: mean
-      period: day
-diagnostics:
-  diagnostic:
-    scripts:
-      script:
-        script: hydrology/pcrglobwb.py
-        basin: myshape
-    variables:
-      pr:
-        start_year: 1990
-        end_year: 2001
-        preprocessor: pr
-      tas:
-        start_year: 1990
-        end_year: 2001
-        preprocessor: tas
-      pr_climatology:
-        start_year: 1980
-        end_year: 1990
-        preprocessor: pr_climatology
-        short_name: pr
-      tas_climatology:
-        start_year: 1980
-        end_year: 1990
-        preprocessor: tas_climatology
-        short_name: tas
         """
     )
     assert recipe_as_string == expected

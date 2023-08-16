@@ -10,6 +10,8 @@ from esmvalcore.experimental.recipe_output import DataFile
 
 from ewatercycle.base.forcing import FORCING_YAML
 from ewatercycle.forcing import sources
+from ewatercycle.plugins.pcrglobwb.forcing import build_pcrglobwb_recipe
+from ewatercycle.util import get_extents
 
 PCRGlobWBForcing = sources["PCRGlobWBForcing"]
 
@@ -160,3 +162,208 @@ def test_load_legacy_forcing(tmp_path):
     result = PCRGlobWBForcing.load(tmp_path)
 
     assert result == expected
+
+
+def test_build_pcrglobwb_recipe(sample_shape: str):
+    recipe = build_pcrglobwb_recipe(
+        start_year=1990,
+        end_year=2001,
+        shape=Path(sample_shape),
+        start_year_climatology=1980,
+        end_year_climatology=1990,
+        dataset="ERA5",
+    )
+    recipe_as_string = recipe.to_yaml()
+    print(recipe_as_string)
+
+    # Should look similar to
+    # https://github.com/ESMValGroup/ESMValTool/blob/main/esmvaltool/recipes/hydrology/recipe_pcrglobwb.yml
+    expected = dedent(
+        """\
+documentation:
+  title: PCRGlobWB forcing recipe
+  description: PCRGlobWB forcing recipe
+  authors:
+  - unmaintained
+  projects:
+  - ewatercycle
+datasets:
+- dataset: ERA5
+  project: OBS6
+  mip: day
+  tier: 3
+  type: reanaly
+preprocessors:
+  spatial:
+    extract_region:
+      start_longitude: 4.1
+      end_longitude: 11.9
+      start_latitude: 46.3
+      end_latitude: 52.2
+  pr:
+    extract_region:
+      start_longitude: 4.1
+      end_longitude: 11.9
+      start_latitude: 46.3
+      end_latitude: 52.2
+    convert_units:
+      units: kg m-2 d-1
+  tas:
+    extract_region:
+      start_longitude: 4.1
+      end_longitude: 11.9
+      start_latitude: 46.3
+      end_latitude: 52.2
+  pr_climatology:
+    extract_region:
+      start_longitude: 4.1
+      end_longitude: 11.9
+      start_latitude: 46.3
+      end_latitude: 52.2
+    convert_units:
+      units: kg m-2 d-1
+    climate_statistics:
+      operator: mean
+      period: day
+  tas_climatology:
+    extract_region:
+      start_longitude: 4.1
+      end_longitude: 11.9
+      start_latitude: 46.3
+      end_latitude: 52.2
+    climate_statistics:
+      operator: mean
+      period: day
+diagnostics:
+  diagnostic:
+    scripts:
+      script:
+        script: hydrology/pcrglobwb.py
+        basin: Rhine
+    variables:
+      pr:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: pr
+      tas:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: tas
+      pr_climatology:
+        start_year: 1980
+        end_year: 1990
+        preprocessor: pr_climatology
+        short_name: pr
+      tas_climatology:
+        start_year: 1980
+        end_year: 1990
+        preprocessor: tas_climatology
+        short_name: tas
+        """
+    )
+    assert recipe_as_string == expected
+
+
+def test_build_pcrglobwb_recipe_with_region(sample_shape: str):
+    extents = get_extents(sample_shape, 2)
+    recipe = build_pcrglobwb_recipe(
+        start_year=1990,
+        end_year=2001,
+        shape=Path(sample_shape),
+        start_year_climatology=1980,
+        end_year_climatology=1990,
+        dataset="ERA5",
+        extract_region={
+            "start_longitude": extents["start_longitude"],
+            "end_longitude": extents["end_longitude"],
+            "start_latitude": extents["start_latitude"],
+            "end_latitude": extents["end_latitude"],
+        },
+    )
+    recipe_as_string = recipe.to_yaml()
+    print(recipe_as_string)
+
+    expected = dedent(
+        """\
+documentation:
+  title: PCRGlobWB forcing recipe
+  description: PCRGlobWB forcing recipe
+  authors:
+  - unmaintained
+  projects:
+  - ewatercycle
+datasets:
+- dataset: ERA5
+  project: OBS6
+  mip: day
+  tier: 3
+  type: reanaly
+preprocessors:
+  spatial:
+    extract_region:
+      start_longitude: 2.1
+      end_longitude: 13.9
+      start_latitude: 44.3
+      end_latitude: 54.2
+  pr:
+    extract_region:
+      start_longitude: 2.1
+      end_longitude: 13.9
+      start_latitude: 44.3
+      end_latitude: 54.2
+    convert_units:
+      units: kg m-2 d-1
+  tas:
+    extract_region:
+      start_longitude: 2.1
+      end_longitude: 13.9
+      start_latitude: 44.3
+      end_latitude: 54.2
+  pr_climatology:
+    extract_region:
+      start_longitude: 2.1
+      end_longitude: 13.9
+      start_latitude: 44.3
+      end_latitude: 54.2
+    convert_units:
+      units: kg m-2 d-1
+    climate_statistics:
+      operator: mean
+      period: day
+  tas_climatology:
+    extract_region:
+      start_longitude: 2.1
+      end_longitude: 13.9
+      start_latitude: 44.3
+      end_latitude: 54.2
+    climate_statistics:
+      operator: mean
+      period: day
+diagnostics:
+  diagnostic:
+    scripts:
+      script:
+        script: hydrology/pcrglobwb.py
+        basin: Rhine
+    variables:
+      pr:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: pr
+      tas:
+        start_year: 1990
+        end_year: 2001
+        preprocessor: tas
+      pr_climatology:
+        start_year: 1980
+        end_year: 1990
+        preprocessor: pr_climatology
+        short_name: pr
+      tas_climatology:
+        start_year: 1980
+        end_year: 1990
+        preprocessor: tas_climatology
+        short_name: tas
+        """
+    )
+    assert recipe_as_string == expected
