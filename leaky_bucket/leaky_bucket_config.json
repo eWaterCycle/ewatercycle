@@ -1,0 +1,4 @@
+{
+    "forcing_file": "/home/bart/git/ewatercycle/leaky_bucket/precip.nc",
+    "leakiness": 0.002
+}
