@@ -1,4 +1,5 @@
 """Builder and runner for ESMValTool recipes, the recipes can be used to generate forcings."""
+import logging
 from pathlib import Path
 from typing import Any, Literal, Sequence, cast
 
@@ -21,13 +22,16 @@ SPATIAL_PREPROCESSOR_NAME = "spatial"
 SCRIPT_NAME = "script"
 DEFAULT_DIAGNOSTIC_SCRIPT = copier.__file__
 
+logger = logging.getLogger(__name__)
+
 
 class RecipeBuilder:
     """Builder for ESMValTool recipes tailored to generate forcings.
 
     Example:
 
-        ```pycon
+        To download and ERA5 data for the Rhine basin:
+
         >>> from ewatercycle.forcing import RecipeBuilder
         >>> recipe = (
         ...     RecipeBuilder()
@@ -36,11 +40,12 @@ class RecipeBuilder:
         ...     .dataset("ERA5")
         ...     .start(2000)
         ...     .end(2001)
-        ...     .shape("shapefile.shp")
+        ...     .shape("src/ewatercycle/testing/data/Rhine/Rhine.shp")
         ...     .add_variable("pr")
         ...     .build()
         ... )
-        ```
+        >>> recipe.save("recipe.yml")
+        >>> !esmvaltool run recipe.yml
 
     Order in which methods are called matters in the following cases:
 
@@ -86,10 +91,16 @@ class RecipeBuilder:
         self._recipe.documentation.title = title
         return self
 
-    def dataset(self, dataset: Dataset | str) -> "RecipeBuilder":
+    def dataset(self, dataset: Dataset | str | dict) -> "RecipeBuilder":
         # Can only have one dataset
         if isinstance(dataset, str):
             dataset = Dataset(**DATASETS[dataset])
+        elif isinstance(dataset, dict):
+            dataset = Dataset(**dataset)
+        if not isinstance(dataset, Dataset):
+            raise ValueError(
+                f"dataset must be a Dataset, str or dict, got {type(dataset)}"
+            )
         self._recipe.datasets = [dataset]
         return self
 

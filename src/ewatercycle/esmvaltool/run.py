@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -10,6 +11,8 @@ from esmvalcore.experimental.recipe_output import RecipeOutput
 from ruamel.yaml import YAML
 
 from ewatercycle.esmvaltool.models import Recipe
+
+logger = logging.getLogger(__name__)
 
 
 def _session(directory: Path | str | None = None) -> Session | None:
@@ -37,6 +40,8 @@ def run_recipe(recipe: Recipe, output_dir: Path | None = None) -> RecipeOutput:
 
     try:
         recipe.save(recipe_path)
+
+        logger.info(f"Running recipe {recipe_path} with ESMValTool")
 
         # TODO don't like having to different Recipe classes, should fix upstream
         esmlvaltool_recipe = ESMValToolRecipe(recipe_path)

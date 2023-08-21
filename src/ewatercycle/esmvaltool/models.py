@@ -31,12 +31,15 @@ class Dataset(BaseModel):
     end_year: int | None = None
     ensemble: str | list[str] | None = None
     exp: str | list[str] | None = None
-    mip: str | None = None
+    # In ESMValTool mip is optional,
+    # but we require it as its the default frequency for all variables.
+    mip: str
     realm: str | None = None
     shift: str | None = None
     # TODO add min max
     tier: int | None = None
     type: str | None = None
+    grid: str | None = None
 
 
 class Variable(BaseModel):
