@@ -210,40 +210,59 @@ class GenericDistributedForcing(DefaultForcing):
         tasmin: Path to NetCDF file with minimum air temperature data.
         tasmax: Path to NetCDF file with maximum air temperature data.
 
-    Example:
+    Examples:
 
         To generate forcing from ERA5 for the Rhine catchment for 2000-2001:
 
-        ```pycon
-        from pathlib import Path
-        from rich import print
-        from ewatercycle.base.forcing import GenericDistributedForcing
+            from pathlib import Path
+            from rich import print
+            from ewatercycle.base.forcing import GenericDistributedForcing
 
-        shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
-        forcing = GenericDistributedForcing.generate(
-            dataset='ERA5',
-            start_time='2000-01-01T00:00:00Z',
-            end_time='2001-01-01T00:00:00Z',
-            shape=shape.absolute(),
-        )
-        print(forcing)
-        ```
+            shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
+            forcing = GenericDistributedForcing.generate(
+                dataset='ERA5',
+                start_time='2000-01-01T00:00:00Z',
+                end_time='2001-01-01T00:00:00Z',
+                shape=shape.absolute(),
+            )
+            print(forcing)
 
         Gives something like:
 
-        ```pycon
-        GenericDistributedForcing(
-            model='generic_distributed',
-            start_time='2000-01-01T00:00:00Z',
-            end_time='2001-01-01T00:00:00Z',
-            directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/tmp05upitxoewcrep_20230815_154640/work/diagnostic/script'),
-            shape=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
-            pr='OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc',
-            tas='OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc',
-            tasmin='OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc',
-            tasmax='OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc'
-        )
-        ```
+            GenericDistributedForcing(
+                model='generic_distributed',
+                start_time='2000-01-01T00:00:00Z',
+                end_time='2001-01-01T00:00:00Z',
+                directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/tmp05upitxoewcrep_20230815_154640/work/diagnostic/script'),
+                shape=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
+                pr='OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc',
+                tas='OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc',
+                tasmin='OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc',
+                tasmax='OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc'
+            )
+
+        To download CMIP6 data for the Rhine catchment for 2000-2001:
+
+            from ewatercycle.base.forcing import GenericDistributedForcing
+
+            cmip_dataset = {
+                "dataset": "EC-Earth3",
+                "project": "CMIP6",
+                "grid": "gr",
+                "exp": ["historical",],
+                "ensemble": "r4i1p1f1",
+                "start_year": 2000,
+                "end_year": 2022,
+                "mip": 'day'
+            }
+
+            forcing = GenericDistributedForcing.generate(
+                dataset=cmip_dataset,
+                start_time="2020-01-01T00:00:00Z",
+                end_time="2020-01-01T00:00:00Z",
+                shape="/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp",
+            )
+            print(forcing)
     """
 
     # type ignored because pydantic wants literal in base class while mypy does not
@@ -288,36 +307,32 @@ class GenericLumpedForcing(GenericDistributedForcing):
 
         To generate forcing from ERA5 for the Rhine catchment for 2000-2001:
 
-        ```pycon
-        from pathlib import Path
-        from rich import print
-        from ewatercycle.base.forcing import GenericLumpedForcing
+            from pathlib import Path
+            from rich import print
+            from ewatercycle.base.forcing import GenericLumpedForcing
 
-        shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
-        forcing = GenericLumpedForcing.generate(
-            dataset='ERA5',
-            start_time='2000-01-01T00:00:00Z',
-            end_time='2001-01-01T00:00:00Z',
-            shape=shape.absolute(),
-        )
-        print(forcing)
-        ```
+            shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
+            forcing = GenericLumpedForcing.generate(
+                dataset='ERA5',
+                start_time='2000-01-01T00:00:00Z',
+                end_time='2001-01-01T00:00:00Z',
+                shape=shape.absolute(),
+            )
+            print(forcing)
 
         Gives something like:
 
-        ```pycon
-        GenericLumpedForcing(
-            model='generic_distributed',
-            start_time='2000-01-01T00:00:00Z',
-            end_time='2001-01-01T00:00:00Z',
-            directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/ewcrep90hmnvat_20230816_124951/work/diagnostic/script'),
-            shape=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
-            pr='OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc',
-            tas='OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc',
-            tasmin='OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc',
-            tasmax='OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc'
-        )
-        ```
+            GenericLumpedForcing(
+                model='generic_distributed',
+                start_time='2000-01-01T00:00:00Z',
+                end_time='2001-01-01T00:00:00Z',
+                directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/ewcrep90hmnvat_20230816_124951/work/diagnostic/script'),
+                shape=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
+                pr='OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc',
+                tas='OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc',
+                tasmin='OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc',
+                tasmax='OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc'
+            )
     """
 
     # files returned by generate() have only time coordinate and zero lons/lats.
