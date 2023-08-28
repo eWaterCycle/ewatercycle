@@ -3,13 +3,11 @@ from textwrap import dedent
 
 import pytest
 from esmvalcore.experimental import Recipe
-from esmvalcore.experimental.recipe_output import OutputFile
+from esmvalcore.experimental.recipe_info import RecipeInfo
+from esmvalcore.experimental.recipe_output import OutputFile, RecipeOutput
 
 from ewatercycle.base.forcing import FORCING_YAML
-from ewatercycle.forcing import sources
-from ewatercycle.plugins.marrmot.forcing import build_recipe
-
-MarrmotForcing = sources["MarrmotForcing"]
+from ewatercycle.plugins.marrmot.forcing import MarrmotForcing, build_recipe
 
 
 def test_plot():
@@ -28,16 +26,20 @@ def mock_recipe_run(monkeypatch, tmp_path):
     """Overload the `run` method on esmvalcore Recipe's."""
     recorder = {}
 
-    class MockTaskOutput:
-        fake_forcing_path = str(tmp_path / "marrmot.mat")
-        files = (OutputFile(fake_forcing_path),)
+    dummy_recipe_output = RecipeOutput(
+        {
+            "diagnostic/script": {
+                str(tmp_path / "marrmot.mat"): {},
+            }
+        },
+        info=RecipeInfo({"diagnostics": {"diagnostic": {}}}, "script"),
+    )
 
     def mock_run(self, session=None):
         """Store recipe for inspection and return dummy output."""
         nonlocal recorder
-        recorder["data_during_run"] = self.data
         recorder["session"] = session
-        return {"diagnostic_daily/script": MockTaskOutput()}
+        return dummy_recipe_output
 
     monkeypatch.setattr(Recipe, "run", mock_run)
     return recorder  # noqa: R504
@@ -132,22 +134,6 @@ class TestGenerate:
         )
         assert forcing == expected
 
-    def test_recipe_configured(
-        self, forcing, mock_recipe_run, reference_recipe, sample_shape
-    ):
-        actual = mock_recipe_run["data_during_run"]
-        # Remove long description and absolute path so assert is easier
-        actual_desc = actual["documentation"]["description"]
-        del actual["documentation"]["description"]
-        actual_shapefile = actual["preprocessors"]["daily"]["extract_shape"][
-            "shapefile"
-        ]
-        del actual["preprocessors"]["daily"]["extract_shape"]["shapefile"]
-
-        assert actual == reference_recipe
-        assert actual_shapefile == sample_shape
-        assert "MARRMoT" in actual_desc
-
     def test_saved_yaml_content(self, forcing, tmp_path):
         saved_forcing = (tmp_path / FORCING_YAML).read_text()
         # shape should is not included in the yaml file
@@ -224,40 +210,17 @@ def test_generate_with_directory(mock_recipe_run, sample_shape, tmp_path):
 def test_generate_no_output_raises(monkeypatch, sample_shape):
     """Should raise when there is no .mat file in output."""
 
-    class MockTaskOutput:
-        files = ()
+    dummy_recipe_output = RecipeOutput(
+        {"diagnostic/script": {}},
+        info=RecipeInfo({"diagnostics": {"diagnostic": {}}}, "script"),
+    )
 
     def failing_recipe_run(self, session):
-        return {"diagnostic_daily/script": MockTaskOutput}
+        return dummy_recipe_output
 
     monkeypatch.setattr(Recipe, "run", failing_recipe_run)
 
-    with pytest.raises(FileNotFoundError):
-        MarrmotForcing.generate(
-            dataset="ERA5",
-            start_time="1989-01-02T00:00:00Z",
-            end_time="1999-01-02T00:00:00Z",
-            shape=sample_shape,
-        )
-
-
-def test_generate_wrong_output_raises(monkeypatch, sample_shape, tmp_path):
-    """Should raise when there are more than one .mat files in output."""
-
-    class MockTaskOutput:
-        fake_forcing_path1 = str(tmp_path / "marrmot.mat")
-        fake_forcing_path2 = str(tmp_path / "marrmot.mat")
-        files = (
-            OutputFile(fake_forcing_path1),
-            OutputFile(fake_forcing_path2),
-        )
-
-    def failing_recipe_run(self, session):
-        return {"diagnostic_daily/script": MockTaskOutput}
-
-    monkeypatch.setattr(Recipe, "run", failing_recipe_run)
-
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(ValueError):
         MarrmotForcing.generate(
             dataset="ERA5",
             start_time="1989-01-02T00:00:00Z",
@@ -309,7 +272,6 @@ documentation:
 datasets:
 - dataset: ERA5
   project: OBS6
-  mip: day
   tier: 3
   type: reanaly
 preprocessors:
@@ -353,18 +315,22 @@ diagnostics:
       tas:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: tas
       pr:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: pr
       psl:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: psl
       rsds:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: rsds
       rsdt:
         start_year: 1990

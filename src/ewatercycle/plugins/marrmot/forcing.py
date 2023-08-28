@@ -50,7 +50,7 @@ class MarrmotForcing(DefaultForcing):
         start_time: datetime,
         end_time: datetime,
         shape: Path,
-        dataset: Dataset | str,
+        dataset: Dataset | str | dict,
         **model_specific_options,
     ):
         return build_recipe(
@@ -62,11 +62,11 @@ class MarrmotForcing(DefaultForcing):
 
     @classmethod
     def _recipe_output_to_forcing_arguments(cls, recipe_output, model_specific_options):
-        print(recipe_output)
-        return {
-            # TODO check key is correct
-            "forcing_file": recipe_output["marrmot"],
-        }
+        # key in recipe_output is concat of dataset, shape start year and end year
+        # for example 'marrmot_ERA5_Rhine_2000_2001.mat'
+        # instead of constructing key just use first and only value of dict
+        first_forcing_file = next(iter(recipe_output.values()))
+        return {"forcing_file": first_forcing_file}
 
     def to_xarray(self) -> xr.Dataset:
         """Load forcing data from a matlab file into an xarray dataset.
@@ -125,7 +125,7 @@ def build_recipe(
     start_year: int,
     end_year: int,
     shape: Path,
-    dataset: Dataset | str,
+    dataset: Dataset | str | dict,
 ) -> Recipe:
     return (
         RecipeBuilder()
