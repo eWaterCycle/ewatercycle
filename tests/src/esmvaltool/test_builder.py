@@ -1,5 +1,8 @@
+from io import StringIO
 from pathlib import Path
 from textwrap import dedent
+
+from ruamel.yaml import YAML
 
 from ewatercycle.esmvaltool.builder import (
     DEFAULT_DIAGNOSTIC_SCRIPT,
@@ -10,8 +13,24 @@ from ewatercycle.esmvaltool.builder import (
 from ewatercycle.esmvaltool.models import Dataset
 
 
+def reyamlify(value: str) -> str:
+    """Convert value to yaml object and dump it again.
+
+    recipy.to_yaml() can generate a slightly different yaml string
+    than the expected string.
+    Call this method on expected string to get consistent results.
+
+    """
+    yaml = YAML(typ="rt")
+    stream = StringIO()
+    yaml.dump(yaml.load(value), stream=stream)
+    return stream.getvalue()
+
+
 def test_build_esmvaltool_recipe():
-    era5 = Dataset(dataset="ERA5", project="OBS6", tier=3, type="reanaly", version=1)
+    era5 = Dataset(
+        dataset="ERA5", project="OBS6", tier=3, type="reanaly", version=1, mip="day"
+    )
     recipe = (
         RecipeBuilder()
         .description(
@@ -27,11 +46,10 @@ def test_build_esmvaltool_recipe():
             start_latitude=25,
             end_latitude=40,
         )
-        .add_variable("tas", mip="day", units="degC")
+        .add_variable("tas", units="degC")
         .build()
     )
     recipe_as_string = recipe.to_yaml()
-    print(recipe_as_string)
 
     expected = dedent(
         f"""\
@@ -46,6 +64,7 @@ documentation:
 datasets:
 - dataset: ERA5
   project: OBS6
+  mip: day
   tier: 3
   type: reanaly
 preprocessors:
@@ -67,16 +86,16 @@ diagnostics:
   diagnostic:
     scripts:
       script:
-        script: {DEFAULT_DIAGNOSTIC_SCRIPT}
+        script:
+          {DEFAULT_DIAGNOSTIC_SCRIPT}
     variables:
       tas:
         start_year: 2020
         end_year: 2021
-        mip: day
         preprocessor: tas
         """
     )
-    assert recipe_as_string == expected
+    assert recipe_as_string == reyamlify(expected)
 
 
 def test_build_generic_distributed_forcing_recipe():
@@ -86,7 +105,6 @@ def test_build_generic_distributed_forcing_recipe():
         shape=Path("myshape.shp"),
     )
     recipe_as_string = recipe.to_yaml()
-    print(recipe_as_string)
 
     expected = dedent(
         f"""\
@@ -153,7 +171,7 @@ diagnostics:
         preprocessor: tasmax
         """
     )
-    assert recipe_as_string == expected
+    assert recipe_as_string == reyamlify(expected)
 
 
 def test_build_generic_lumped_forcing_recipe(sample_shape: str):
@@ -163,7 +181,6 @@ def test_build_generic_lumped_forcing_recipe(sample_shape: str):
         shape=Path(sample_shape),
     )
     recipe_as_string = recipe.to_yaml()
-    print(recipe_as_string)
 
     expected = dedent(
         f"""\
@@ -240,4 +257,4 @@ diagnostics:
         preprocessor: tasmax
         """
     )
-    assert recipe_as_string == expected
+    assert recipe_as_string == reyamlify(expected)
