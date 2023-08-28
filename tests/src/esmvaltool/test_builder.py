@@ -1,8 +1,5 @@
-from io import StringIO
 from pathlib import Path
 from textwrap import dedent
-
-from ruamel.yaml import YAML
 
 from ewatercycle.esmvaltool.builder import (
     DEFAULT_DIAGNOSTIC_SCRIPT,
@@ -11,20 +8,7 @@ from ewatercycle.esmvaltool.builder import (
     build_generic_lumped_forcing_recipe,
 )
 from ewatercycle.esmvaltool.models import Dataset
-
-
-def reyamlify(value: str) -> str:
-    """Convert value to yaml object and dump it again.
-
-    recipy.to_yaml() can generate a slightly different yaml string
-    than the expected string.
-    Call this method on expected string to get consistent results.
-
-    """
-    yaml = YAML(typ="rt")
-    stream = StringIO()
-    yaml.dump(yaml.load(value), stream=stream)
-    return stream.getvalue()
+from ewatercycle.testing.helpers import reyamlify
 
 
 def test_build_esmvaltool_recipe():

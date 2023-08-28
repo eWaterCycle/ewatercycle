@@ -109,9 +109,9 @@ class RecipeBuilder:
 
         Args:
             dataset: Dataset to use for the recipe.
-                When string is given it is used to look up predefined dataset in
+                When string is given a predefined dataset is looked up in
                 :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
-                When dict given it is passed to Dataset constructor.
+                When dict given it is passed to :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
 
         To generate eWaterCycle forcing data, only one dataset is allowed.
         Calling again will overwrite the previous dataset.

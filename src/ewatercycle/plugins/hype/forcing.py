@@ -43,7 +43,7 @@ class HypeForcing(DefaultForcing):
         start_time: datetime,
         end_time: datetime,
         shape: Path,
-        dataset: Dataset | str,
+        dataset: Dataset | str | dict,
         **model_specific_options
     ):
         return build_recipe(
@@ -52,11 +52,6 @@ class HypeForcing(DefaultForcing):
             shape=shape,
             dataset=dataset,
         )
-
-    @classmethod
-    def _recipe_output_to_forcing_arguments(cls, recipe_output, model_specific_options):
-        print(recipe_output)
-        return recipe_output
 
     def to_xarray(self) -> xr.Dataset:
         """Load forcing files into a xarray Dataset.
@@ -97,8 +92,20 @@ def build_recipe(
     start_year: int,
     end_year: int,
     shape: Path,
-    dataset: Dataset | str,
+    dataset: Dataset | str | dict,
 ):
+    """
+    Builds a recipe for Hype forcing data.
+
+    Args:
+        start_year: The start year of the recipe.
+        end_year: The end year of the recipe.
+        shape: The shape of the recipe.
+        dataset: The dataset of the recipe.
+
+    Returns:
+        The built recipe.
+    """
     return (
         RecipeBuilder()
         .title("Hype forcing data")

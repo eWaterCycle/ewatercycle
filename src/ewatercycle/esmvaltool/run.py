@@ -15,21 +15,23 @@ from ewatercycle.esmvaltool.models import Recipe
 logger = logging.getLogger(__name__)
 
 
+class _TimeLessSession(Session):
+    """ESMValTool session that does not use time in session directory."""
+
+    def __init__(self, output_dir: Path):
+        super().__init__(CFG.copy())
+        self.output_dir = output_dir
+
+    @property
+    def session_dir(self):
+        return self.output_dir
+
+
 def _session(directory: Path | str | None = None) -> Session | None:
     """When directory is set return a ESMValTool session that will write recipe output to that directory."""
     if directory is None:
         return None
-
-    class TimeLessSession(Session):
-        def __init__(self, output_dir: Path):
-            super().__init__(CFG.copy())
-            self.output_dir = output_dir
-
-        @property
-        def session_dir(self):
-            return self.output_dir
-
-    return TimeLessSession(Path(directory).absolute())
+    return _TimeLessSession(Path(directory).absolute())
 
 
 def run_recipe(recipe: Recipe, output_dir: Path | None = None) -> RecipeOutput:

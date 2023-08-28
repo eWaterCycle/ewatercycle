@@ -3,7 +3,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Annotated, Literal, Optional, TypeVar, Union
 
-from esmvalcore.experimental.recipe_output import RecipeOutput
 from pydantic import BaseModel, field_validator
 from pydantic.functional_validators import AfterValidator
 from ruamel.yaml import YAML
@@ -60,7 +59,7 @@ class DefaultForcing(BaseModel):
     @classmethod
     def generate(
         cls: type[AnyForcing],
-        dataset: str | Dataset,
+        dataset: str | Dataset | dict,
         start_time: str,
         end_time: str,
         shape: str,
@@ -73,7 +72,10 @@ class DefaultForcing(BaseModel):
         `ESMValTool <https://esmvaltool.org/>`_.
 
         Args:
-            dataset: Name of the source dataset. See :py:const:`~ewatercycle.base.forcing_recipe.DATASETS`.
+            dataset: Dataset to get forcing data from.
+                When string is given a predefined dataset is looked up in
+                :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
+                When dict given it is passed to :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
             start_time: Start time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: nd time of forcing in UTC and ISO format string e.g.
@@ -98,7 +100,7 @@ class DefaultForcing(BaseModel):
             recipe_output, model_specific_options
         )
         forcing = cls(
-            directory=directory,
+            directory=Path(directory),
             start_time=start_time,
             end_time=end_time,
             shape=shape,
@@ -120,7 +122,7 @@ class DefaultForcing(BaseModel):
         start_time: datetime,
         end_time: datetime,
         shape: Path,
-        dataset: Dataset | str,
+        dataset: Dataset | str | dict,
         **model_specific_options,
     ):
         # TODO do we want an implementation here?
@@ -214,6 +216,8 @@ class GenericDistributedForcing(DefaultForcing):
 
         To generate forcing from ERA5 for the Rhine catchment for 2000-2001:
 
+        .. code-block:: python
+
             from pathlib import Path
             from rich import print
             from ewatercycle.base.forcing import GenericDistributedForcing
@@ -229,6 +233,8 @@ class GenericDistributedForcing(DefaultForcing):
 
         Gives something like:
 
+        .. code-block:: python
+
             GenericDistributedForcing(
                 model='generic_distributed',
                 start_time='2000-01-01T00:00:00Z',
@@ -242,6 +248,8 @@ class GenericDistributedForcing(DefaultForcing):
             )
 
         To download CMIP6 data for the Rhine catchment for 2000-2001:
+
+        .. code-block:: python
 
             from ewatercycle.base.forcing import GenericDistributedForcing
 
@@ -278,7 +286,7 @@ class GenericDistributedForcing(DefaultForcing):
         start_time: datetime,
         end_time: datetime,
         shape: Path,
-        dataset: Dataset | str = "ERA5",
+        dataset: Dataset | str | dict = "ERA5",
         **model_specific_options,
     ):
         return build_generic_distributed_forcing_recipe(
@@ -307,6 +315,8 @@ class GenericLumpedForcing(GenericDistributedForcing):
 
         To generate forcing from ERA5 for the Rhine catchment for 2000-2001:
 
+        .. code-block:: python
+
             from pathlib import Path
             from rich import print
             from ewatercycle.base.forcing import GenericLumpedForcing
@@ -321,6 +331,8 @@ class GenericLumpedForcing(GenericDistributedForcing):
             print(forcing)
 
         Gives something like:
+
+        .. code-block:: python
 
             GenericLumpedForcing(
                 model='generic_distributed',
@@ -345,7 +357,7 @@ class GenericLumpedForcing(GenericDistributedForcing):
         start_time: datetime,
         end_time: datetime,
         shape: Path,
-        dataset: Dataset | str = "ERA5",
+        dataset: Dataset | str | dict = "ERA5",
         **model_specific_options,
     ):
         return build_generic_lumped_forcing_recipe(

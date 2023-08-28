@@ -1,4 +1,10 @@
-"""ESMValTool recipe and preprocessor models."""
+"""ESMValTool recipe and preprocessor models.
+
+The classes and their attributes in this module are based
+on the ESMValTool recipe schema at
+https://github.com/ESMValGroup/ESMValCore/blob/main/esmvalcore/_recipe/recipe_schema.yml
+.
+"""
 from io import StringIO
 from typing import Any, Literal
 
@@ -7,22 +13,7 @@ from ruamel.yaml import YAML
 
 
 class Dataset(BaseModel):
-    """
-    https://github.com/ESMValGroup/ESMValCore/blob/main/esmvalcore/_recipe/recipe_schema.yml
-
-    dataset:
-        dataset: str()
-        project: str(required=False)
-        start_year: int(required=False, min=0000, max=10000)
-        end_year: int(required=False, min=0000, max=10000)
-        ensemble: any(str(), list(str()), required=False)
-        exp: any(str(), list(str()), required=False)
-        mip: str(required=False)
-        realm: str(required=False)
-        shift: str(required=False)
-        tier: int(min=1, max=3, required=False)
-        type: str(required=False)
-    """
+    """ESMValTool dataset section."""
 
     dataset: str
     project: str | None = None
@@ -36,26 +27,13 @@ class Dataset(BaseModel):
     mip: str
     realm: str | None = None
     shift: str | None = None
-    # TODO add min max
-    tier: int | None = None
+    tier: Literal[1, 2, 3] | None = None
     type: str | None = None
     grid: str | None = None
 
 
 class Variable(BaseModel):
-    """
-    project: str(required=False)
-    start_year: int(required=False, min=0000, max=10000)
-    end_year: int(required=False, min=0000, max=10000)
-    ensemble: any(str(), list(str()), required=False)
-    exp: any(str(), list(str()), required=False)
-    mip: str(required=False)
-    preprocessor: str(required=False)
-    reference_dataset: str(required=False)
-    alternative_dataset: str(required=False)
-    fx_files: list(required=False)
-    additional_datasets: list(include('dataset'), required=False)
-    """
+    """ESMValTool variable section."""
 
     project: str | None = None
     # TODO add min max
@@ -74,27 +52,14 @@ class Variable(BaseModel):
 
 
 class Script(BaseModel):
-    """
-    script: str()
-
-    """
+    """ESMValTool script section."""
 
     model_config = ConfigDict(extra="allow")
     script: str
 
 
 class Diagnostic(BaseModel):
-    """
-    From  https://github.com/ESMValGroup/ESMValCore/blob/main/esmvalcore/_recipe/recipe_schema.yml
-
-        scripts: any(null(), map(include('script')))
-        additional_datasets: list(include('dataset'), required=False)
-        title: str(required=False)
-        description: str(required=False)
-        themes: list(str(), required=False)
-        realms: list(str(), required=False)
-        variables: map(include('variable'), null(), required=False)
-    """
+    """ESMValTool diagnostic section."""
 
     scripts: dict[str, Script] | None = None
     additional_datasets: list[Dataset] | None = None
@@ -106,13 +71,7 @@ class Diagnostic(BaseModel):
 
 
 class Documentation(BaseModel):
-    """
-    title: str()
-    description: str()
-    authors: list(str(), min=1)
-    projects: list(str(), required=False)
-    references: list(str(), required=False)
-    """
+    """ESMValTool documentation section."""
 
     title: str
     description: str
@@ -123,12 +82,7 @@ class Documentation(BaseModel):
 
 
 class Recipe(BaseModel):
-    """
-    documentation: include('documentation')
-    datasets: list(include('dataset'), required=False)
-    preprocessors: map(map(), required=False)
-    diagnostics: map(include('diagnostic'), required=False)
-    """
+    """ESMValTool recipe."""
 
     documentation: Documentation
     datasets: list[Dataset] | None = None
@@ -161,7 +115,7 @@ class Recipe(BaseModel):
 
 
 class ClimateStatistics(BaseModel):
-    """Arguments for the `climate_statistics` preprocessor."""
+    """Arguments for the :py:func:`~esmvalcore.preprocessor.climate_statistics` preprocessor."""
 
     operator: Literal["mean", "std", "min", "max", "median", "sum"] = "mean"
     period: Literal["hour", "day", "month", "year"] = "day"
@@ -170,7 +124,7 @@ class ClimateStatistics(BaseModel):
 ExtractRegion = dict[
     Literal["start_longitude", "end_longitude", "start_latitude", "end_latitude"], float
 ]
-"""Arguments for the `extract_region` preprocessor."""
+"""Arguments for the :py:func:`~esmvalcore.preprocessor.extract_region` preprocessor."""
 
 TargetGrid = dict[
     Literal[
@@ -183,3 +137,4 @@ TargetGrid = dict[
     ],
     float,
 ]
+"""Type for target_grid argument for the :py:func:`~esmvalcore.preprocessor.regrid` preprocessor."""
