@@ -133,7 +133,7 @@ def build_recipe(
         )
     return (
         partial.add_variables(["tas", "pr", "psl", "rsds"])
-        .add_variable("orog", mip="fix")
+        .add_variable("orog", mip="fx", start_year=False, end_year=False)
         .add_variable("rsdt", mip="CFday")
         .script(
             "hydrology/wflow.py",

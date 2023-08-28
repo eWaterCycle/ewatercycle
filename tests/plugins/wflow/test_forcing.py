@@ -10,7 +10,7 @@ from esmvalcore.experimental.recipe_output import RecipeOutput
 
 from ewatercycle.base.forcing import FORCING_YAML
 from ewatercycle.plugins.wflow.forcing import WflowForcing, build_recipe
-from ewatercycle.testing.helpers import create_netcdf
+from ewatercycle.testing.helpers import create_netcdf, reyamlify
 
 
 @pytest.fixture
@@ -343,4 +343,4 @@ diagnostics:
         preprocessor: rsdt
         """
     )
-    assert recipe_as_string == expected
+    assert recipe_as_string == reyamlify(expected)

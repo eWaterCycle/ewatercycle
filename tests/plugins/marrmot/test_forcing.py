@@ -8,6 +8,7 @@ from esmvalcore.experimental.recipe_output import OutputFile, RecipeOutput
 
 from ewatercycle.base.forcing import FORCING_YAML
 from ewatercycle.plugins.marrmot.forcing import MarrmotForcing, build_recipe
+from ewatercycle.testing.helpers import reyamlify
 
 
 def test_plot():
@@ -340,4 +341,4 @@ diagnostics:
                       """
     )
 
-    assert recipe_as_string == expected
+    assert recipe_as_string == reyamlify(expected)

@@ -8,7 +8,7 @@ from esmvalcore.experimental.recipe_output import RecipeOutput
 
 from ewatercycle.base.forcing import FORCING_YAML
 from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing, build_recipe
-from ewatercycle.testing.helpers import create_netcdf
+from ewatercycle.testing.helpers import create_netcdf, reyamlify
 from ewatercycle.util import get_extents
 
 
@@ -248,7 +248,7 @@ diagnostics:
         short_name: tas
         """
     )
-    assert recipe_as_string == expected
+    assert recipe_as_string == reyamlify(expected)
 
 
 def test_build_recipe_with_region(sample_shape: str):
@@ -356,4 +356,4 @@ diagnostics:
         short_name: tas
         """
     )
-    assert recipe_as_string == expected
+    assert recipe_as_string == reyamlify(expected)

@@ -279,13 +279,13 @@ class RecipeBuilder:
 
     def add_variable(
         self,
-        variable,
-        mip=None,
-        units=None,
-        stats=None,
-        short_name=None,
-        start_year=None,
-        end_year=None,
+        variable: str,
+        mip: str | None = None,
+        units: str | None = None,
+        stats: ClimateStatistics | None = None,
+        short_name: str | None = None,
+        start_year: int | None | Literal[False] = None,
+        end_year: int | None | Literal[False] = None,
     ):
         """Add a variable to the recipe.
 
@@ -298,7 +298,9 @@ class RecipeBuilder:
                 Defaults to not applying any statistics.
             short_name: A short name for the variable. Defaults to variable name.
             start_year: The start year of the variable. Defaults to start year of dataset.
+                Use False to disable temporal selection.
             end_year: The end year of the variable. Defaults to end year of dataset.
+                Use False to disable temporal selection.
 
         """
         # TODO check variable is in dataset
@@ -308,12 +310,20 @@ class RecipeBuilder:
             raise ValueError("Recipe has no variables")
         if mip is None:
             mip = self._mip
+        if start_year is None:
+            start_year = self._start_year
+        if start_year is False:
+            start_year = None
+        if end_year is None:
+            end_year = self._end_year
+        if end_year is False:
+            end_year = None
         self._diagnostic.variables[variable] = Variable(
             mip=mip,
             preprocessor=preprocessor_name,
-            start_year=start_year or self._start_year,
+            start_year=start_year,
             # TODO check if end_year is exclusive or inclusive
-            end_year=end_year or self._end_year,
+            end_year=end_year,
             short_name=short_name,
         )
         return self
