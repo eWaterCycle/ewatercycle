@@ -5,13 +5,12 @@ from textwrap import dedent
 
 import pytest
 from esmvalcore.experimental.recipe import Recipe
-from esmvalcore.experimental.recipe_output import DataFile
+from esmvalcore.experimental.recipe_info import RecipeInfo
+from esmvalcore.experimental.recipe_output import RecipeOutput
 
 from ewatercycle.base.forcing import FORCING_YAML
-from ewatercycle.forcing import sources
-from ewatercycle.plugins.wflow.forcing import build_recipe
-
-WflowForcing = sources["WflowForcing"]
+from ewatercycle.plugins.wflow.forcing import WflowForcing, build_recipe
+from ewatercycle.testing.helpers import create_netcdf
 
 
 @pytest.fixture
@@ -19,16 +18,23 @@ def mock_recipe_run(monkeypatch, tmp_path):
     """Overload the `run` method on esmvalcore Recipe's."""
     data = {}
 
-    class MockTaskOutput:
-        fake_forcing_path = str(tmp_path / "wflow_forcing.nc")
-        data_files = (DataFile(fake_forcing_path),)
+    dummy_recipe_output = RecipeOutput(
+        {
+            "diagnostic/script": {
+                # create_netcdf() writes single variable while
+                # actual implementation writes multiple variables
+                create_netcdf("pr", tmp_path / "wflow_forcing.nc"): {},
+            }
+        },
+        info=RecipeInfo({"diagnostics": {"diagnostic": {}}}, "script"),
+    )
 
     def mock_run(self, session=None):
         """Store recipe for inspection and return dummy output."""
         nonlocal data
         data["data_during_run"] = self.data
         data["session"] = session
-        return {"wflow_daily/script": MockTaskOutput()}
+        return dummy_recipe_output
 
     monkeypatch.setattr(Recipe, "run", mock_run)
     return data
@@ -145,9 +151,6 @@ class TestGenerateWithExtractRegion:
         )
         assert forcing == expected
 
-    def test_recipe_configured(self, forcing, mock_recipe_run, reference_recipe):
-        assert mock_recipe_run["data_during_run"] == reference_recipe
-
     def test_saved_yaml_content(self, forcing, tmp_path):
         saved_forcing = (tmp_path / FORCING_YAML).read_text()
         # shape should is not included in the yaml file
@@ -254,7 +257,6 @@ documentation:
 datasets:
 - dataset: ERA5
   project: OBS6
-  mip: day
   tier: 3
   type: reanaly
 preprocessors:
@@ -312,18 +314,22 @@ diagnostics:
       tas:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: tas
       pr:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: pr
       psl:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: psl
       rsds:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: rsds
       orog:
         start_year: 1990

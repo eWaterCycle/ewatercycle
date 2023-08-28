@@ -1,35 +1,15 @@
 from pathlib import Path
 from textwrap import dedent
 
-import numpy as np
-import pandas as pd
 import pytest
-import xarray as xr
 from esmvalcore.experimental import Recipe
-from esmvalcore.experimental.recipe_output import DataFile
+from esmvalcore.experimental.recipe_info import RecipeInfo
+from esmvalcore.experimental.recipe_output import RecipeOutput
 
 from ewatercycle.base.forcing import FORCING_YAML
-from ewatercycle.forcing import sources
-from ewatercycle.plugins.pcrglobwb.forcing import build_recipe
+from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing, build_recipe
+from ewatercycle.testing.helpers import create_netcdf
 from ewatercycle.util import get_extents
-
-PCRGlobWBForcing = sources["PCRGlobWBForcing"]
-
-
-def create_netcdf(var_name, filename):
-    var = 15 + 8 * np.random.randn(2, 2, 3)
-    lon = [[-99.83, -99.32], [-99.79, -99.23]]
-    lat = [[42.25, 42.21], [42.63, 42.59]]
-    ds = xr.Dataset(
-        {var_name: (["longitude", "latitude", "time"], var)},
-        coords={
-            "lon": (["longitude", "latitude"], lon),
-            "lat": (["longitude", "latitude"], lat),
-            "time": pd.date_range("2014-09-06", periods=3),
-        },
-    )
-    ds.to_netcdf(filename)
-    return DataFile(filename)
 
 
 @pytest.fixture
@@ -37,18 +17,22 @@ def mock_recipe_run(monkeypatch, tmp_path):
     """Overload the `run` method on esmvalcore Recipe's."""
     data = {}
 
-    class MockTaskOutput:
-        data_files = (
-            create_netcdf("pr", tmp_path / "pcrglobwb_pr.nc"),
-            create_netcdf("tas", tmp_path / "pcrglobwb_tas.nc"),
-        )
+    dummy_recipe_output = RecipeOutput(
+        {
+            "diagnostic/script": {
+                create_netcdf("pr", tmp_path / "pcrglobwb_pr.nc"): {},
+                create_netcdf("tas", tmp_path / "pcrglobwb_tas.nc"): {},
+            }
+        },
+        info=RecipeInfo({"diagnostics": {"diagnostic": {}}}, "script"),
+    )
 
     def mock_run(self, session=None):
         """Store recipe for inspection and return dummy output."""
         nonlocal data
         data["data_during_run"] = self.data
         data["session"] = session
-        return {"diagnostic_daily/script": MockTaskOutput()}
+        return dummy_recipe_output
 
     monkeypatch.setattr(Recipe, "run", mock_run)
     return data
@@ -190,7 +174,6 @@ documentation:
 datasets:
 - dataset: ERA5
   project: OBS6
-  mip: day
   tier: 3
   type: reanaly
 preprocessors:
@@ -244,19 +227,23 @@ diagnostics:
       pr:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: pr
       tas:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: tas
       pr_climatology:
         start_year: 1980
         end_year: 1990
+        mip: day
         preprocessor: pr_climatology
         short_name: pr
       tas_climatology:
         start_year: 1980
         end_year: 1990
+        mip: day
         preprocessor: tas_climatology
         short_name: tas
         """
@@ -295,7 +282,6 @@ documentation:
 datasets:
 - dataset: ERA5
   project: OBS6
-  mip: day
   tier: 3
   type: reanaly
 preprocessors:
@@ -349,19 +335,23 @@ diagnostics:
       pr:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: pr
       tas:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: tas
       pr_climatology:
         start_year: 1980
         end_year: 1990
+        mip: day
         preprocessor: pr_climatology
         short_name: pr
       tas_climatology:
         start_year: 1980
         end_year: 1990
+        mip: day
         preprocessor: tas_climatology
         short_name: tas
         """

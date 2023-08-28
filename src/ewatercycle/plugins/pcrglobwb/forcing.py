@@ -72,7 +72,7 @@ class PCRGlobWBForcing(DefaultForcing):
     @classmethod
     def generate(  # type: ignore
         cls,
-        dataset: str,
+        dataset: str | Dataset | dict,
         start_time: str,
         end_time: str,
         shape: str,
@@ -87,7 +87,10 @@ class PCRGlobWBForcing(DefaultForcing):
         `ESMValTool <https://esmvaltool.org/>`_.
 
         Args:
-            dataset: Name of the source dataset. See :py:const:`~ewatercycle.base.forcing.DATASETS`.
+            dataset: Dataset to get forcing data from.
+                When string is given a predefined dataset is looked up in
+                :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
+                When dict given it is passed to :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
             start_time: Start time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: nd time of forcing in UTC and ISO format string e.g.
@@ -119,7 +122,7 @@ class PCRGlobWBForcing(DefaultForcing):
         start_time: datetime,
         end_time: datetime,
         shape: Path,
-        dataset: Dataset | str = "ERA5",
+        dataset: Dataset | str | dict = "ERA5",
         **model_specific_options,
     ):
         start_time_climatology = model_specific_options["start_time_climatology"]
@@ -150,7 +153,7 @@ def build_recipe(
     shape: Path,
     start_year_climatology: int,
     end_year_climatology: int,
-    dataset: Dataset | str,
+    dataset: Dataset | str | dict,
     extract_region: ExtractRegion | None = None,
 ):
     partial = (
