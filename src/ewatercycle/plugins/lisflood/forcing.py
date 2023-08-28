@@ -159,10 +159,10 @@ class LisfloodForcing(DefaultForcing):
 
             if isinstance(dataset, Dataset):
                 lisvap_dataset = dataset.dataset
-            if isinstance(dataset, dict):
+            elif isinstance(dataset, dict):
                 lisvap_dataset = dataset["dataset"]
             else:
-                lisvap_dataset = lisvap_dataset
+                lisvap_dataset = dataset
             config_file = create_lisvap_config(
                 parameterset_dir,
                 str(reindexed_forcing_directory),
