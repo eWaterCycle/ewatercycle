@@ -213,7 +213,6 @@ documentation:
 datasets:
 - dataset: ERA5
   project: OBS6
-  mip: day
   tier: 3
   type: reanaly
 preprocessors:
@@ -269,18 +268,22 @@ diagnostics:
       tas:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: tas
       tasmin:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: tasmin
       tasmax:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: tasmax
       pr:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: pr
         """
     )

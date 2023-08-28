@@ -22,9 +22,7 @@ class Dataset(BaseModel):
     end_year: int | None = None
     ensemble: str | list[str] | None = None
     exp: str | list[str] | None = None
-    # In ESMValTool mip is optional,
-    # but we require it as its the default frequency for all variables.
-    mip: str
+    mip: str | None = None
     realm: str | None = None
     shift: str | None = None
     tier: Literal[1, 2, 3] | None = None

@@ -68,7 +68,7 @@ class LisfloodForcing(DefaultForcing):
     @classmethod
     def generate(  # type: ignore
         cls,
-        dataset: Dataset | str,
+        dataset: Dataset | str | dict,
         start_time: str,
         end_time: str,
         shape: str,
@@ -82,7 +82,10 @@ class LisfloodForcing(DefaultForcing):
         `ESMValTool <https://esmvaltool.org/>`_.
 
         Args:
-            dataset: Name of the source dataset. See :py:const:`~ewatercycle.base.forcing.DATASETS`.
+            dataset: Dataset to get forcing data from.
+                When string is given a predefined dataset is looked up in
+                :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
+                When dict given it is passed to :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
             start_time: Start time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: nd time of forcing in UTC and ISO format string e.g.
@@ -154,10 +157,16 @@ class LisfloodForcing(DefaultForcing):
                     var_name
                 ] = f"lisflood_{dataset}_{basin}_{var_name}_{start_year}_{end_year}.nc"
 
+            if isinstance(dataset, Dataset):
+                lisvap_dataset = dataset.dataset
+            if isinstance(lisvap_dataset, dict):
+                lisvap_dataset = lisvap_dataset["dataset"]
+            else:
+                lisvap_dataset = lisvap_dataset
             config_file = create_lisvap_config(
                 parameterset_dir,
                 str(reindexed_forcing_directory),
-                dataset if isinstance(dataset, str) else dataset.dataset,
+                lisvap_dataset,
                 lisvap_config,
                 mask_map,
                 start_time,
@@ -193,7 +202,7 @@ class LisfloodForcing(DefaultForcing):
             logger.warning("%s", message)
             # instantiate forcing object based on generated data
             generated_forcing = cls(
-                directory=directory,
+                directory=Path(directory),
                 start_time=start_time,
                 end_time=end_time,
                 shape=shape,
@@ -208,7 +217,7 @@ def build_recipe(
     start_year: int,
     end_year: int,
     shape: Path,
-    dataset: Dataset | str,
+    dataset: Dataset | str | dict,
     target_grid: Optional[dict] = None,
 ) -> Recipe:
     if target_grid is None:

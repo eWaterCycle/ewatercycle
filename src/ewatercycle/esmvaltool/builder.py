@@ -59,6 +59,7 @@ class RecipeBuilder:
     _recipe: Recipe
     _start_year: int = 0
     _end_year: int = 10000
+    _mip: str = "day"
 
     def __init__(self) -> None:
         self._recipe = Recipe(
@@ -126,6 +127,16 @@ class RecipeBuilder:
                 f"dataset must be a Dataset, str or dict, got {type(dataset)}"
             )
         self._recipe.datasets = [dataset]
+        return self
+
+    def mip(self, value: str) -> "RecipeBuilder":
+        """Set the default time frequency for all later added variables.
+
+        Args:
+            value: time frequency, e.g. 'day', 'Eday', 'CFday', 'fx'.
+                Defaults to 'day'.
+        """
+        self._mip = value
         return self
 
     def start(self, value: int) -> "RecipeBuilder":
@@ -280,7 +291,8 @@ class RecipeBuilder:
 
         Args:
             variable: The name of the variable to add.
-            mip: The MIP table to use for the variable. Defaults to mip of dataset.
+            mip: The MIP table to use for the variable.
+                Defaults to what was set with self.mip(value).
             units: The unit to convert the variable to. Default no conversion.
             stats: The climate statistics to apply to the variable.
                 Defaults to not applying any statistics.
@@ -294,6 +306,8 @@ class RecipeBuilder:
         preprocessor_name = self._add_preprocessor(variable, units, stats)
         if self._diagnostic.variables is None:
             raise ValueError("Recipe has no variables")
+        if mip is None:
+            mip = self._mip
         self._diagnostic.variables[variable] = Variable(
             mip=mip,
             preprocessor=preprocessor_name,

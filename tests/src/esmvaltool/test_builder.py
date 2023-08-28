@@ -12,9 +12,7 @@ from ewatercycle.testing.helpers import reyamlify
 
 
 def test_build_esmvaltool_recipe():
-    era5 = Dataset(
-        dataset="ERA5", project="OBS6", tier=3, type="reanaly", version=1, mip="day"
-    )
+    era5 = Dataset(dataset="ERA5", project="OBS6", tier=3, type="reanaly", version=1)
     recipe = (
         RecipeBuilder()
         .description(
@@ -48,7 +46,6 @@ documentation:
 datasets:
 - dataset: ERA5
   project: OBS6
-  mip: day
   tier: 3
   type: reanaly
 preprocessors:
@@ -76,6 +73,7 @@ diagnostics:
       tas:
         start_year: 2020
         end_year: 2021
+        mip: day
         preprocessor: tas
         """
     )
@@ -102,7 +100,6 @@ documentation:
 datasets:
 - dataset: ERA5
   project: OBS6
-  mip: day
   tier: 3
   type: reanaly
 preprocessors:
@@ -140,18 +137,22 @@ diagnostics:
       pr:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: pr
       tas:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: tas
       tasmin:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: tasmin
       tasmax:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: tasmax
         """
     )
@@ -178,7 +179,6 @@ documentation:
 datasets:
 - dataset: ERA5
   project: OBS6
-  mip: day
   tier: 3
   type: reanaly
 preprocessors:
@@ -226,18 +226,22 @@ diagnostics:
       pr:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: pr
       tas:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: tas
       tasmin:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: tasmin
       tasmax:
         start_year: 1990
         end_year: 2001
+        mip: day
         preprocessor: tasmax
         """
     )

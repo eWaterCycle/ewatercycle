@@ -5,7 +5,6 @@ DATASETS = {
         "tier": 3,
         "type": "reanaly",
         "version": 1,
-        "mip": "day",
     },
     "ERA-Interim": {
         "dataset": "ERA-Interim",
@@ -13,7 +12,6 @@ DATASETS = {
         "tier": 3,
         "type": "reanaly",
         "version": 1,
-        "mip": "day",
     },
 }
 """Dictionary of predefined forcing datasets.
@@ -32,3 +30,5 @@ value is an `ESMValTool dataset section <https://docs.esmvaltool.org/projects/ES
 # TODO move predefined forcing datasets to ewatercycle.CFG
 # would give more work for person setting up ewatercycle environment.
 # but would make it easier for users to use the predefined datasets.
+# during testing we must overwrite the predefined datasets in CFG
+# with the datasets the tests need.
