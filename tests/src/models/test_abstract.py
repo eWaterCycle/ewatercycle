@@ -9,7 +9,10 @@ import numpy as np
 import pytest
 import xarray as xr
 from bmipy import Bmi
+from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 from numpy.testing import assert_array_equal
+from pydantic.config import ConfigDict
+from typing_extensions import Unpack
 
 from ewatercycle import CFG
 from ewatercycle.base.model import eWaterCycleModel
@@ -30,14 +33,14 @@ def setup_config(tmp_path: Path):
 
 
 class MockedModel(eWaterCycleModel):
-    available_versions = ("0.4.2",)
+    bmi: OptionalDestBmi
 
-    def __init__(
-        self,
-        version: str = "0.4.2",
-        parameter_set: Optional[ParameterSet] = None,
-    ):
-        super().__init__(version, parameter_set)
+    def _make_bmi_instance(self) -> OptionalDestBmi:
+        return self.bmi
+
+    @property
+    def version(self) -> str:
+        return "0.4.2"
 
     def setup(self, *args, **kwargs) -> Tuple[str, str]:
         if "bmi" in kwargs:
@@ -65,8 +68,8 @@ class MockedModel(eWaterCycleModel):
         return np.array([0])
 
     @property
-    def parameters(self) -> Iterable[Tuple[str, Any]]:
-        return [("area", 42)]
+    def parameters(self) -> dict[str, Any]:
+        return {"area": 42}
 
 
 @pytest.fixture
@@ -85,28 +88,17 @@ def bmi(MockedBmi):
 
 @pytest.fixture
 def model(bmi: Bmi):
-    mocked_model = MockedModel()
-    mocked_model.setup(bmi=bmi)
+    mocked_model = MockedModel(bmi=bmi)
+    mocked_model.setup()
     return mocked_model
 
 
 def test_construct():
     with pytest.raises(TypeError) as excinfo:
-        AbstractModel(version="0.4.2")
+        eWaterCycleModel()
     msg = str(excinfo.value)
     assert "Can't instantiate abstract class" in msg
-    assert "setup" in msg
-    assert "parameters" in msg
-
-
-def test_construct_with_unsupported_version():
-    with pytest.raises(ValueError) as excinfo:
-        MockedModel(version="1.2.3")
-
-    assert (
-        "Supplied version 1.2.3 is not supported by this model. "
-        "Available versions are ('0.4.2',)." in str(excinfo.value)
-    )
+    assert "_make_bmi_instance" in msg
 
 
 def test_setup(model):
