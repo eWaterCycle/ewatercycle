@@ -53,6 +53,7 @@ class DefaultForcing(BaseModel):
             self.shape = to_absolute_path(
                 self.shape, parent=self.directory, must_be_in_parent=False
             )
+        return self
 
     @classmethod
     def generate(
