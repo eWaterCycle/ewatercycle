@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Literal, Optional, cast
+from typing import Optional, cast
 
 from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.esmvaltool.builder import RecipeBuilder
@@ -56,8 +56,6 @@ class LisfloodForcing(DefaultForcing):
         )
     """
 
-    # type ignored because pydantic wants literal in base class while mypy does not
-    model: Literal["lisflood"] = "lisflood"  # type: ignore
     PrefixPrecipitation: str = "pr.nc"
     PrefixTavg: str = "tas.nc"
     PrefixE0: str = "e0.nc"

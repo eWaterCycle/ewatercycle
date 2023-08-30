@@ -1,7 +1,7 @@
 """Forcing related functionality for wflow."""
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Literal, Optional
+from typing import Dict, Optional
 
 from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.esmvaltool.builder import RecipeBuilder
@@ -28,8 +28,6 @@ class WflowForcing(DefaultForcing):
         Inflow (str) = None: Variable name of inflow data in input file.
     """
 
-    # type ignored because pydantic wants literal in base class while mypy does not
-    model: Literal["wflow"] = "wflow"  # type: ignore
     netcdfinput: str = "inmaps.nc"
     Precipitation: str = "/pr"  # noqa: N803
     EvapoTranspiration: str = "/pet"

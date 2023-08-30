@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Annotated, Literal, Optional, TypeVar, Union
 
 from pydantic import BaseModel, field_validator
-from pydantic.functional_validators import AfterValidator
+from pydantic.functional_validators import AfterValidator, model_validator
 from ruamel.yaml import YAML
 
 from ewatercycle.esmvaltool.builder import (
@@ -39,22 +39,20 @@ class DefaultForcing(BaseModel):
         end_time: End time of forcing in UTC and ISO format string e.g.
             'YYYY-MM-DDTHH:MM:SSZ'.
         shape: Path to a shape file. Used for spatial selection.
+            If relative then it is relative to the given directory.
     """
 
-    model: Literal["default"] = "default"
     start_time: str
     end_time: str
     directory: Optional[Annotated[Path, AfterValidator(_to_absolute_path)]] = None
     shape: Optional[Path] = None
 
-    @field_validator("shape")
-    @classmethod
-    def _absolute_shape(cls, v, info):
-        if v is None:
-            return v
-        # TODO If shape is outside self.directory should we copy or leave as is?
-        return to_absolute_path(
-            v, parent=info.data["directory"], must_be_in_parent=False
+    @model_validator(mode="after")
+    def _absolute_shape(self):
+        if self.shape is None or self.directory is None:
+            return self
+        self.shape = to_absolute_path(
+            self.shape, parent=self.directory, must_be_in_parent=False
         )
 
     @classmethod
@@ -146,7 +144,7 @@ class DefaultForcing(BaseModel):
             raise ValueError("Cannot save forcing without directory.")
         target = self.directory / FORCING_YAML
         # We want to make the yaml and its parent movable,
-        # so the directory and shape should not be included in the yaml file
+        # so the directory should not be included in the yaml file
         clone = self.model_copy()
 
         # TODO: directory should not be optional, can we remove the directory
@@ -187,9 +185,8 @@ class DefaultForcing(BaseModel):
             )
         metadata = meta.read_text()
         # Workaround for legacy forcing files having !PythonClass tag.
-        #     Get model name of non-initialized BaseModel with Pydantic class property:
-        modelname = cls.model_fields["model"].default  # type: ignore
-        metadata = metadata.replace(f"!{cls.__name__}", f"model: {modelname}")
+        # Remove it so ewatercycle.forcing.source[<forcing name>].load(dir) works.
+        metadata = metadata.replace(f"!{cls.__name__}", "")
 
         fdict = yaml.load(metadata)
         fdict["directory"] = data_source
@@ -270,8 +267,6 @@ class GenericDistributedForcing(DefaultForcing):
             print(forcing)
     """
 
-    # type ignored because pydantic wants literal in base class while mypy does not
-    model: Literal["generic_distributed"] = "generic_distributed"  # type: ignore
     pr: str
     tas: str
     tasmin: str
@@ -346,7 +341,7 @@ class GenericLumpedForcing(GenericDistributedForcing):
 
     # files returned by generate() have only time coordinate and zero lons/lats.
     # TODO inject centroid of shape as single lon/lat into files?
-    # use diagnostic or overwrite generate()
+    # use diagnostic script or overwrite generate()
 
     @classmethod
     def _build_recipe(

@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Literal
 
 import pandas as pd
 import xarray as xr
@@ -30,8 +29,6 @@ class HypeForcing(DefaultForcing):
         Tobs (optional): Input file for temperature data. Defaults to 'Tobs.txt'
     """
 
-    # type ignored because pydantic wants literal in base class while mypy does not
-    model: Literal["hype"] = "hype"  # type: ignore
     Pobs: str = "Pobs.txt"
     TMAXobs: str = "TMAXobs.txt"
     TMINobs: str = "TMINobs.txt"

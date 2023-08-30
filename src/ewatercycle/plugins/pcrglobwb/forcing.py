@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Optional
 
 from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.esmvaltool.builder import RecipeBuilder
@@ -64,8 +64,6 @@ class PCRGlobWBForcing(DefaultForcing):
         ```
     """
 
-    # type ignored because pydantic wants literal in base class while mypy does not
-    model: Literal["pcrglobwb"] = "pcrglobwb"  # type: ignore
     precipitationNC: Optional[str] = "precipitation.nc"
     temperatureNC: Optional[str] = "temperature.nc"
 

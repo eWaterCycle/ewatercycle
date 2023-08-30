@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Optional
 
 import pandas as pd
 import xarray as xr
@@ -40,8 +40,6 @@ class MarrmotForcing(DefaultForcing):
         )
     """
 
-    # type ignored because pydantic wants literal in base class while mypy does not
-    model: Literal["marrmot"] = "marrmot"  # type: ignore
     forcing_file: Optional[str] = "marrmot.mat"
 
     @classmethod
