@@ -83,8 +83,10 @@ class MarrmotForcing(DefaultForcing):
         precip = dataset["forcing"]["precip"][0][0][0]
         temp = dataset["forcing"]["temp"][0][0][0]
         pet = dataset["forcing"]["pet"][0][0][0]
-        forcing_start = datetime(*map(int, dataset["time_start"][0][:3]))  # type: ignore
-        forcing_end = datetime(*map(int, dataset["time_end"][0][:3]))  # type: ignore
+        time_start = dataset["time_start"][0][:3]
+        forcing_start = datetime(*map(int, time_start))  # type: ignore
+        time_end = dataset["time_end"][0][:3]
+        forcing_end = datetime(*map(int, time_end))  # type: ignore
         # store data as a pandas Series (deliberately keep default time: 00:00)
         index = pd.date_range(forcing_start, forcing_end, name="time")
         lat, lon = dataset["data_origin"][0]
@@ -125,6 +127,18 @@ def build_recipe(
     shape: Path,
     dataset: Dataset | str | dict,
 ) -> Recipe:
+    """Build a recipe for generating forcing for the Marrmot hydrological model.
+
+    Args:
+        start_year: Start year of forcing.
+        end_year: End year of forcing.
+        shape: Path to a shape file. Used for spatial selection.
+        dataset: Dataset to get forcing data from.
+            When string is given a predefined dataset is looked up in
+            :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
+            When dict given it is passed to
+            :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
+    """
     return (
         RecipeBuilder()
         .title("Generate forcing for the Marrmot hydrological model")

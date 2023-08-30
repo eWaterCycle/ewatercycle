@@ -198,7 +198,6 @@ def test_generate_with_directory(mock_recipe_run, sample_shape, tmp_path):
 
 def test_generate_no_output_raises(monkeypatch, sample_shape):
     """Should raise when there is no .mat file in output."""
-
     dummy_recipe_output = RecipeOutput(
         {"diagnostic/script": {}},
         info=RecipeInfo({"diagnostics": {"diagnostic": {}}}, "script"),
@@ -247,7 +246,6 @@ def test_build_recipe(sample_shape: str):
         shape=Path(sample_shape),
     )
     recipe_as_string = recipe.to_yaml()
-    print(recipe_as_string)
 
     expected = dedent(
         f"""\

@@ -155,8 +155,7 @@ def build_recipe(
     dataset: Dataset | str | dict,
     extract_region: ExtractRegion | None = None,
 ):
-    """
-    Builds a recipe for PCRGlobWB forcing.
+    """Build a recipe for PCRGlobWB forcing.
 
     Args:
         start_year: The start year of the recipe.
@@ -164,7 +163,11 @@ def build_recipe(
         shape: The shape of the region to extract.
         start_year_climatology: The start year of the climatology.
         end_year_climatology: The end year of the climatology.
-        dataset: The dataset to use.
+        dataset: Dataset to use for the recipe.
+            When string is given a predefined dataset is looked up in
+            :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
+            When dict given it is passed to
+            :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
         extract_region: The region to extract.
             When not given uses extents of shape.
 

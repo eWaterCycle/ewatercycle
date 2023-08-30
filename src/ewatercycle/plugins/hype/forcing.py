@@ -1,4 +1,4 @@
-"""Forcing related functionality for hype"""
+"""Forcing related functionality for hype."""
 
 from datetime import datetime
 from pathlib import Path
@@ -58,8 +58,8 @@ class HypeForcing(DefaultForcing):
         """
         assert self.directory is not None, "Forcing directory is not set"
 
-        # TODO add lats/lons to dataset
-        # maybe infer from centers of subbasins in shapefile in ewatercycle_forcing.yaml?
+        # TODO add lats/lons to dataset maybe infer
+        # from centers of subbasins in shapefile in ewatercycle_forcing.yaml?
         ds = xr.Dataset()
         ds["Pobs"] = pd.read_csv(
             self.directory / self.Pobs, sep=" ", index_col="DATE", parse_dates=True
@@ -91,8 +91,7 @@ def build_recipe(
     shape: Path,
     dataset: Dataset | str | dict,
 ):
-    """
-    Builds a recipe for Hype forcing data.
+    """Build a recipe for Hype forcing data.
 
     Args:
         start_year: The start year of the recipe.

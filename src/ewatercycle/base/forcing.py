@@ -2,9 +2,9 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Literal, Optional, TypeVar, Union
+from typing import Annotated, Optional, TypeVar, Union
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 from pydantic.functional_validators import AfterValidator, model_validator
 from ruamel.yaml import YAML
 
@@ -21,7 +21,7 @@ FORCING_YAML = "ewatercycle_forcing.yaml"
 
 
 def _to_absolute_path(v: Union[str, Path]):
-    """Wrapper of to_absolute_path to a single-arg function, to use as Pydantic validator."""
+    """Absolute path validator."""
     return to_absolute_path(v)
 
 
@@ -49,11 +49,10 @@ class DefaultForcing(BaseModel):
 
     @model_validator(mode="after")
     def _absolute_shape(self):
-        if self.shape is None or self.directory is None:
-            return self
-        self.shape = to_absolute_path(
-            self.shape, parent=self.directory, must_be_in_parent=False
-        )
+        if self.shape is not None and self.directory is not None:
+            self.shape = to_absolute_path(
+                self.shape, parent=self.directory, must_be_in_parent=False
+            )
 
     @classmethod
     def generate(
@@ -287,7 +286,8 @@ class GenericDistributedForcing(DefaultForcing):
             shape=shape,
             dataset=dataset,
             # TODO which variables are needed for a generic forcing?
-            # As they are stored as object attributes we can not have a customizable list
+            # As they are stored as object attributes
+            # we can not have a customizable list
             variables=("pr", "tas", "tasmin", "tasmax"),
         )
 

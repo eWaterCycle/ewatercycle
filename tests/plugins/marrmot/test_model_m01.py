@@ -55,7 +55,7 @@ class TestWithDefaultsAndExampleData:
         actual = str(model)
         expected_forcing = "".join(
             [
-                "MarrmotForcing(model='marrmot', start_time='1989-01-01T00:00:00Z', ",
+                "MarrmotForcing(start_time='1989-01-01T00:00:00Z', ",
                 f"end_time='1992-12-31T00:00:00Z', directory={repr(Path(forcing_file).parent)}, ",
                 "shape=None, forcing_file='BMI_testcase_m01_BuffaloRiver_TN_USA.mat')",
             ]

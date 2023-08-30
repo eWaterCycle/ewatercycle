@@ -1,4 +1,4 @@
-"""Forcing related functionality for lisflood"""
+"""Forcing related functionality for lisflood."""
 
 import logging
 from pathlib import Path
@@ -100,20 +100,26 @@ class LisfloodForcing(DefaultForcing):
                     centers.
                 - ``start_latitude``: latitude at the center of the first grid cell.
                 - ``end_latitude``: longitude at the center of the last grid cell.
-                - ``step_latitude``: constant latitude distance between grid cell centers.
+                - ``step_latitude``: constant latitude distance between grid cell \
+                    centers.
 
-                Make sure the target grid matches up with the grid in the mask_map and files in parameterset_dir.
+                Make sure the target grid matches up with the grid in the mask_map
+                and files in parameterset_dir.
                 Also the `shape` should be within the target grid.
 
-                If not given will guestimate target grid from `shape` using a 0.1x0.1 grid with 0.05 offset.
-            run_lisvap: Lisvap specification. Default is None. If lisvap should be run then
+                If not given will guestimate target grid from `shape`
+                using a 0.1x0.1 grid with 0.05 offset.
+            run_lisvap: Lisvap specification. Default is None.
+                If lisvap should be run then
                 give a dictionary with following key/value pairs:
 
                     - lisvap_config: Name of Lisvap configuration file.
                     - mask_map: A mask for the spatial selection.
-                        This file should have same extent and resolution as parameter-set.
+                        This file should have same extent and resolution
+                        as parameter-set.
                     - parameterset_dir: Directory of the parameter set.
-                        Directory should contains the Lisvap config file and files the config points to.
+                        Directory should contains the Lisvap config file
+                        and files the config points to.
         """
         # Cannot call super as we want recipe_output not forcing object
         start_year = get_time(start_time).year
@@ -218,6 +224,21 @@ def build_recipe(
     dataset: Dataset | str | dict,
     target_grid: Optional[dict] = None,
 ) -> Recipe:
+    """Build a recipe for lisflood forcing.
+
+    Args:
+        start_year: Start year of forcing.
+        end_year: End year of forcing.
+        shape: Path to a shape file. Used for spatial selection.
+        dataset: Dataset to get forcing data from.
+            When string is given a predefined dataset is looked up in
+            :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
+            When dict given it is passed to
+            :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
+        target_grid: the ``target_grid`` should be a ``dict`` with the
+            following keys:
+                start_longitude, end_longitude, start_latitude, end_latitude
+    """
     if target_grid is None:
         logger.warning("target_grid was not given, guestimating from shape")
         step = 0.1

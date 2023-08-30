@@ -54,7 +54,8 @@ class WflowForcing(DefaultForcing):
             dataset: Dataset to get forcing data from.
                 When string is given a predefined dataset is looked up in
                 :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
-                When dict given it is passed to :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
+                When dict given it is passed to
+                :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
             start_time: Start time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: nd time of forcing in UTC and ISO format string e.g.
@@ -112,6 +113,22 @@ def build_recipe(
     dem_file: str,
     extract_region: Optional[Dict[str, float]] = None,
 ):
+    """Build a recipe for the WFlow hydrological model.
+
+    Args:
+        start_year: Start year of forcing.
+        end_year: End year of forcing.
+        shape: Path to a shape file. Used for spatial selection.
+        dataset: Dataset to get forcing data from.
+            When string is given a predefined dataset is looked up in
+            :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
+            When dict given it is passed to
+            :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
+        dem_file: Name of the dem_file to use.
+        extract_region: Region specification, dictionary must
+            contain `start_longitude`, `end_longitude`, `start_latitude`,
+            `end_latitude`
+    """
     partial = (
         RecipeBuilder()
         .title("Generate forcing for the WFlow hydrological model")
@@ -120,8 +137,8 @@ def build_recipe(
         .end(end_year)
     )
     if extract_region is None:
-        MAGIC_PAD = 3  # TODO why 3?
-        partial = partial.region_by_shape(shape, pad=MAGIC_PAD)
+        magic_pad = 3  # TODO why 3?
+        partial = partial.region_by_shape(shape, pad=magic_pad)
     else:
         partial = partial.region(
             start_longitude=extract_region["start_longitude"],

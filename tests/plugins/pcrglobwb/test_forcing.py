@@ -157,7 +157,6 @@ def test_build_recipe(sample_shape: str):
         dataset="ERA5",
     )
     recipe_as_string = recipe.to_yaml()
-    print(recipe_as_string)
 
     # Should look similar to
     # https://github.com/ESMValGroup/ESMValTool/blob/main/esmvaltool/recipes/hydrology/recipe_pcrglobwb.yml
@@ -267,7 +266,6 @@ def test_build_recipe_with_region(sample_shape: str):
         },
     )
     recipe_as_string = recipe.to_yaml()
-    print(recipe_as_string)
 
     expected = dedent(
         """\
