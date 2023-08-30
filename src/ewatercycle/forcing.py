@@ -5,7 +5,11 @@ from typing import Any, Type
 
 from importlib_metadata import EntryPoint
 
-from ewatercycle.base.forcing import DefaultForcing
+from ewatercycle.base.forcing import (
+    DefaultForcing,
+    GenericDistributedForcing,
+    GenericLumpedForcing,
+)
 
 
 class ForcingSources(Mapping):
@@ -42,9 +46,15 @@ class ForcingSources(Mapping):
 
 
 _forcings: dict[str, Any] = {
-    entry_point.name: entry_point
-    for entry_point in entry_points(group="ewatercycle.forcings")  # /NOSONAR
+    "GenericDistributedForcing": GenericDistributedForcing,
+    "GenericLumpedForcing": GenericLumpedForcing,
 }
+_forcings.update(
+    {
+        entry_point.name: entry_point
+        for entry_point in entry_points(group="ewatercycle.forcings")  # /NOSONAR
+    }
+)
 
 sources = ForcingSources(_forcings)
 """Dictionary filled with available forcing sources.
@@ -77,7 +87,7 @@ sources = ForcingSources(_forcings)
         >>> forcing = sources.DefaultForcing.load("path/to/forcing/directory")
 
 To get your own forcing source to be listed here it needs to be
-registered in the :py:data:`ewatercycle.forcings`
+registered in the `ewatercycle.forcings`
 `entry point group <https://packaging.python.org/en/latest/specifications/entry-points/>`_
 .
 
