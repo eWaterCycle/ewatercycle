@@ -129,7 +129,6 @@ class TestGenerate:
         # shape should is not included in the yaml file
         expected = dedent(
             """\
-        model: marrmot
         start_time: '1989-01-02T00:00:00Z'
         end_time: '1999-01-02T00:00:00Z'
         forcing_file: marrmot.mat

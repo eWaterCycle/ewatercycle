@@ -82,7 +82,6 @@ class TestGenerate:
         # shape should is not included in the yaml file
         expected = dedent(
             """\
-        model: hype
         start_time: '1989-01-02T00:00:00Z'
         end_time: '1999-01-02T00:00:00Z'
         Pobs: Pobs.txt
@@ -153,30 +152,6 @@ def test_with_directory(mock_recipe_run, sample_shape, tmp_path):
     )
 
     assert mock_recipe_run["session"].session_dir == forcing_dir
-
-
-def test_load_legacy_forcing(tmp_path):
-    (tmp_path / FORCING_YAML).write_text(
-        """\
-        !HypeForcing
-        start_time: '1989-01-02T00:00:00Z'
-        end_time: '1999-01-02T00:00:00Z'
-        Pobs: Pobs.txt
-        TMAXobs: TMAXobs.txt
-        TMINobs: TMINobs.txt
-        Tobs: Tobs.txt
-    """
-    )
-
-    expected = HypeForcing(
-        start_time="1989-01-02T00:00:00Z",
-        end_time="1999-01-02T00:00:00Z",
-        directory=tmp_path,
-    )
-
-    result = HypeForcing.load(tmp_path)
-
-    assert result == expected
 
 
 def test_build_recipe(sample_shape: str):

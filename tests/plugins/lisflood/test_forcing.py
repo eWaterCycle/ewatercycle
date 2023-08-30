@@ -261,7 +261,6 @@ class TestGenerateForcingWithoutLisvap:
         # shape should is not included in the yaml file
         expected = dedent(
             """\
-        model: lisflood
         start_time: '1989-01-02T00:00:00Z'
         end_time: '1999-01-02T00:00:00Z'
         PrefixPrecipitation: lisflood_pr.nc

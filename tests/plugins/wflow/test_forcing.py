@@ -156,7 +156,6 @@ class TestGenerateWithExtractRegion:
         # shape should is not included in the yaml file
         expected = dedent(
             """\
-        model: wflow
         start_time: '1989-01-02T00:00:00Z'
         end_time: '1999-01-02T00:00:00Z'
         netcdfinput: wflow_forcing.nc
@@ -179,7 +178,7 @@ class TestGenerateWithExtractRegion:
         result = str(forcing)
         expected = "".join(
             [
-                "model='wflow' start_time='1989-01-02T00:00:00Z' end_time='1999-01-02T00:00:00Z' ",
+                "start_time='1989-01-02T00:00:00Z' end_time='1999-01-02T00:00:00Z' ",
                 f"directory={repr(tmp_path)} shape={repr(Path(sample_shape))} ",
                 "netcdfinput='wflow_forcing.nc' Precipitation='/pr' ",
                 "EvapoTranspiration='/pet' Temperature='/tas' Inflow=None",

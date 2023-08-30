@@ -71,7 +71,7 @@ class TestGenerateWithExtractRegion:
         result = str(forcing)
         expected = "".join(
             [
-                "model='pcrglobwb' start_time='1989-01-02T00:00:00Z' end_time='1999-01-02T00:00:00Z' ",
+                "start_time='1989-01-02T00:00:00Z' end_time='1999-01-02T00:00:00Z' ",
                 f"directory={repr(tmp_path)} shape={repr(Path(sample_shape))} ",
                 "precipitationNC='pcrglobwb_pr.nc' temperatureNC='pcrglobwb_tas.nc'",
             ]
@@ -85,7 +85,6 @@ class TestGenerateWithExtractRegion:
         # shape should is not included in the yaml file
         expected = dedent(
             """\
-        model: pcrglobwb
         start_time: '1989-01-02T00:00:00Z'
         end_time: '1999-01-02T00:00:00Z'
         precipitationNC: pcrglobwb_pr.nc
