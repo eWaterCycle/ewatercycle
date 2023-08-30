@@ -1,14 +1,11 @@
+"""Run ESMValTool recipes."""
 import logging
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from esmvalcore.config import CFG, Session
-from esmvalcore.experimental import CFG
-from esmvalcore.experimental import Recipe
-from esmvalcore.experimental import Recipe as ESMValToolRecipe
-from esmvalcore.experimental.recipe import RecipeOutput
-from esmvalcore.experimental.recipe_output import RecipeOutput
-from ruamel.yaml import YAML
+from esmvalcore.experimental.recipe import Recipe as ESMValToolRecipe
+from esmvalcore.experimental.recipe_output import DataFile, ImageFile, RecipeOutput
 
 from ewatercycle.esmvaltool.models import Recipe
 
@@ -28,49 +25,72 @@ class _TimeLessSession(Session):
 
 
 def _session(directory: Path | str | None = None) -> Session | None:
-    """When directory is set return a ESMValTool session that will write recipe output to that directory."""
+    """Make ESMValTool session with optional output directory.
+
+    Args:
+        directory: Directory where output should be written to.
+            If None then output is written to generated timestamped directory.
+    """
     if directory is None:
         return None
     return _TimeLessSession(Path(directory).absolute())
 
 
-def run_recipe(recipe: Recipe, output_dir: Path | None = None) -> RecipeOutput:
-    recipe_file = NamedTemporaryFile(
-        prefix="ewcrep", suffix=".yml", mode="w", delete=False
-    )
-    recipe_path = Path(recipe_file.name)
-
-    try:
-        recipe.save(recipe_path)
-
-        logger.info(f"Running recipe {recipe_path} with ESMValTool")
-
-        # TODO don't like having to different Recipe classes, should fix upstream
-        esmlvaltool_recipe = ESMValToolRecipe(recipe_path)
-        session = _session(output_dir)
-        output = esmlvaltool_recipe.run(session=session)
-    finally:
-        recipe_path.unlink()
-
-    return output
-
-
-def _write_recipe(recipe: Recipe) -> Path:
-    updated_recipe_file = NamedTemporaryFile(
-        suffix=recipe.path.name, mode="w", delete=False
-    )
-    yaml = YAML(typ="safe")
-    yaml.dump(recipe.data, updated_recipe_file)
-    updated_recipe_file.close()
-    return Path(updated_recipe_file.name)
-
-
-def run_esmvaltool_recipe(recipe: Recipe, output_dir: str | None) -> RecipeOutput:
+def run_recipe(recipe: Recipe, output_dir: Path | None = None) -> dict[str, str]:
     """Run an ESMValTool recipe.
 
-    The recipe.data dictionary can be modified before running the recipe.
+    Args:
+        recipe: ESMValTool recipe
+        output_dir: Directory where output should be written to.
+            If None then output is written to generated timestamped directory.
 
-    During run the recipe.path is overwritten with a temporary file containing the updated recipe.
+    Returns:
+        Dictionary with forcing data variables as keys and file names as values
+        and a key called directory with value the parent directory of the file names.
+
+    Example:
+
+        To run a recipe that generates a distributed forcing dataset:
+
+        >>> from ewatercycle.testing.fixtures import rhine_shape
+        >>> from ewatercycle.esmvaltool.builder import (
+        ...    build_generic_distributed_forcing_recipe
+        ... )
+        >>> from ewatercycle.esmvaltool.run import run_recipe
+        >>> shape = rhine_shape()
+        >>> recipe = build_generic_distributed_forcing_recipe(
+        ...     start_year=2000,
+        ...     end_year=2001,
+        ...     shape=shape,
+        ...     dataset='ERA5',
+        ... )
+        >>> output = run_recipe(recipe)
+        >>> output
+        diagnostic/script:
+          DataFile('OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc')
+          DataFile('OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc')
+          DataFile('OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc')
+          DataFile('OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc')
+        <BLANKLINE>
+        diagnostic/pr:
+          DataFile('OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc')
+        <BLANKLINE>
+        diagnostic/tas:
+          DataFile('OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc')
+        <BLANKLINE>
+        diagnostic/tasmin:
+          DataFile('OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc')
+        <BLANKLINE>
+        diagnostic/tasmax:
+          DataFile('OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc')
+
+    """
+    output = _save_and_run_recipe(recipe, output_dir)
+    return _parse_recipe_output(output)
+
+
+def _save_and_run_recipe(recipe: Recipe, output_dir: Path | None) -> RecipeOutput:
+    """Save recipe to temporary file and run it with ESMValTool.
 
     Args:
         recipe: ESMValTool recipe
@@ -79,26 +99,57 @@ def run_esmvaltool_recipe(recipe: Recipe, output_dir: str | None) -> RecipeOutpu
 
     Returns:
         ESMValTool recipe output
-
-    Example:
-
-        >>> from ewatercycle.forcing import run_esmvaltool_recipe
-        >>> from esmvalcore.experimental.recipe import get_recipe
-        >>> recipe = get_recipe('hydrology/recipe_wflow.yml')
-        >>> recipe.data['scripts']['script']['dem_file'] = 'my_dem.nc'
-        >>> output_dir = Path('./output_dir')
-        >>> output = run_esmvaltool_recipe(recipe, output_dir)
     """
-    # ESMVALCore 2.8.1 always runs original recipe,
-    # write updated recipe to disk and use
-    recipe.path = _write_recipe(recipe)
-    # TODO write recipe in output_dir?
-    # TODO fix in esmvalcore and wait for new version?
+    recipe_file = NamedTemporaryFile(
+        prefix="ewcrep", suffix=".yml", mode="w", delete=False
+    )
+    recipe_path = Path(recipe_file.name)
 
-    session = _session(output_dir)
-    output = recipe.run(session=session)
+    try:
+        recipe.save(recipe_path)
 
-    # remove updated recipe file
-    recipe.path.unlink()
+        logger.info("Running recipe %s with ESMValTool", recipe_path)
 
+        # TODO don't like having to different Recipe classes, should fix upstream
+        esmlvaltool_recipe = ESMValToolRecipe(recipe_path)
+        session = _session(output_dir)
+        output = esmlvaltool_recipe.run(session=session)
+    finally:
+        recipe_path.unlink()
     return output
+
+
+def _parse_recipe_output(recipe_output: RecipeOutput) -> dict[str, str]:
+    """Parse ESMValTool recipe output into a dictionary.
+
+    This method assumes:
+
+    * Recipe had at least one diagnostic
+    * Diagnostic produced at least one file
+    * All files are in the same directory
+    * The first variable name in a NetCDF file is the primary one
+
+    Returns:
+        Dictionary with forcing data variables as keys and file names as values
+        and a key called directory with value the parent directory of the file names.
+    """
+    first_diagnostic_output = list(recipe_output.values())[0]
+    output_files = first_diagnostic_output.files
+    if not output_files:
+        raise ValueError("No recipe output files found")
+    forcing_files = {}
+    for output_file in output_files:
+        var_name = output_file.path.stem
+        if isinstance(output_file, DataFile):
+            # Datafile means ends with .nc
+            # Use first variable name from inside file as key
+            dataset = output_file.load_xarray()
+            var_name = list(dataset.data_vars.keys())[0]
+            dataset.close()
+        elif isinstance(output_file, ImageFile):
+            # Skip image files
+            continue
+        # Assume all files are in the same directory
+        forcing_files[var_name] = output_file.path.name
+        directory = str(output_file.path.parent)
+    return {"directory": directory, **forcing_files}

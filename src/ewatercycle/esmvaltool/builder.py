@@ -1,7 +1,10 @@
-"""Builder and runner for ESMValTool recipes, the recipes can be used to generate forcings."""
+"""Builder and runner for ESMValTool recipes.
+
+The recipes can be used to generate forcings.
+"""
 import logging
 from pathlib import Path
-from typing import Any, Literal, Sequence, cast
+from typing import Literal, Sequence
 
 from ewatercycle.esmvaltool.datasets import DATASETS
 from ewatercycle.esmvaltool.diagnostic import copier
@@ -30,22 +33,29 @@ class RecipeBuilder:
 
     Example:
 
-        To download and ERA5 data for the Rhine basin:
+        To create a recipe from ERA5 dataset and the Rhine basin:
 
-        >>> from ewatercycle.forcing import RecipeBuilder
-        >>> recipe = (
-        ...     RecipeBuilder()
-        ...     .title("Generic distributed forcing recipe")
-        ...     .description("Generic distributed forcing recipe")
-        ...     .dataset("ERA5")
-        ...     .start(2000)
-        ...     .end(2001)
-        ...     .shape("src/ewatercycle/testing/data/Rhine/Rhine.shp")
-        ...     .add_variable("pr")
-        ...     .build()
-        ... )
-        >>> recipe.save("recipe.yml")
-        >>> !esmvaltool run recipe.yml
+        .. code-block:: python
+
+            >>> from ewatercycle.testing.fixtures import rhine_shape
+            >>> from ewatercycle.forcing import RecipeBuilder
+            >>> recipe = (
+            ...     RecipeBuilder()
+            ...     .title("Generic distributed forcing recipe")
+            ...     .dataset("ERA5")
+            ...     .start(2000)
+            ...     .end(2001)
+            ...     .shape(rhine_shape())
+            ...     .add_variable("pr")
+            ...     .build()
+            ... )
+            >>> recipe.save("recipe.yml")
+
+        To run the recipe:
+
+        .. code-block:: bash
+
+            esmvaltool recipe.yml
 
     Order in which methods are called matters in the following cases:
 
@@ -81,7 +91,10 @@ class RecipeBuilder:
         )
 
     def build(self) -> Recipe:
-        """Build the recipe."""
+        """Build the recipe.
+
+        Should be called after all other methods.
+        """
         # TODO de-duplicate preprocessors
         if self._recipe.datasets is None or len(self._recipe.datasets) == 0:
             raise ValueError("Recipe has no dataset")
@@ -112,10 +125,11 @@ class RecipeBuilder:
             dataset: Dataset to use for the recipe.
                 When string is given a predefined dataset is looked up in
                 :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
-                When dict given it is passed to :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
+                When dict given it is passed to
+                :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
 
-        To generate eWaterCycle forcing data, only one dataset is allowed.
-        Calling again will overwrite the previous dataset.
+        Only one dataset is allowed when generating eWaterCycle forcings.
+        Calling this method again will overwrite the previous dataset.
         """
         # Can only have one dataset
         if isinstance(dataset, str):
@@ -170,8 +184,8 @@ class RecipeBuilder:
         """Regrid the data from the dataset to a different grid.
 
         Args:
-            schema: Regridding scheme to use.
-                See https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipes/recipe_file.html#regrid
+            schema: Regridding scheme to use. See
+                https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipes/recipe_file.html#regrid
             target_grid: Target grid to regrid to.
         """
         self._preprocessors[SPATIAL_PREPROCESSOR_NAME]["regrid"] = {
@@ -181,7 +195,7 @@ class RecipeBuilder:
         return self
 
     def shape(
-        self, file: Path, crop: bool = True, decomposed: bool = False
+        self, file: Path | str, crop: bool = True, decomposed: bool = False
     ) -> "RecipeBuilder":
         """Select data within a shapefile.
 
@@ -238,7 +252,8 @@ class RecipeBuilder:
     ) -> "RecipeBuilder":
         """Lump gridded data into a single value spatially.
 
-        See https://docs.esmvaltool.org/projects/ESMValCore/en/latest/api/esmvalcore.preprocessor.html#esmvalcore.preprocessor.area_statistics
+        See
+        https://docs.esmvaltool.org/projects/ESMValCore/en/latest/api/esmvalcore.preprocessor.html#esmvalcore.preprocessor.area_statistics
 
         Args:
             operator: The operator to use for lumping.
@@ -255,17 +270,6 @@ class RecipeBuilder:
         if self._recipe.diagnostics is None:
             raise ValueError("Recipe has no diagnostics")
         return self._recipe.diagnostics[DIAGNOSTIC_NAME]
-
-    def add_unit(self, name: str, units: str) -> "RecipeBuilder":
-        """Perform unit conversion for a variable.
-
-        Args:
-            name: Name of the variable.
-            units: Units to convert to.
-                See https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipes/recipe_file.html#convert-units
-        """
-        self._preprocessors[name] = {"convert_units": {"units": units}}
-        return self
 
     def add_variables(self, variables: Sequence[str]) -> "RecipeBuilder":
         """Add variables to the recipe.
@@ -292,12 +296,15 @@ class RecipeBuilder:
         Args:
             variable: The name of the variable to add.
             mip: The MIP table to use for the variable.
-                Defaults to what was set with self.mip(value).
-            units: The unit to convert the variable to. Default no conversion.
+                If not given then defaults to what was set with self.mip(value).
+            units: The unit to convert the variable to.
+                Default no conversion. See
+                https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipes/recipe_file.html#convert-units
             stats: The climate statistics to apply to the variable.
                 Defaults to not applying any statistics.
             short_name: A short name for the variable. Defaults to variable name.
-            start_year: The start year of the variable. Defaults to start year of dataset.
+            start_year: The start year of the variable.
+                Defaults to start year of dataset.
                 Use False to disable temporal selection.
             end_year: The end year of the variable. Defaults to end year of dataset.
                 Use False to disable temporal selection.
@@ -347,7 +354,7 @@ class RecipeBuilder:
     def script(
         self, script: str, arguments: dict[str, str] | None = None
     ) -> "RecipeBuilder":
-        """Set script of recipe
+        """Set script of recipe.
 
         When script has not been set will default to copying
         the ESMValTool preprocessed files to the output directory
@@ -379,7 +386,7 @@ def build_generic_distributed_forcing_recipe(
         dataset: Dataset to use for the recipe.
         variables: Names of variables to add to the recipe.
 
-    Recipe will return netCDF files for each variables.
+    Recipe will return a NetCDF file for each variable.
     """
     return (
         RecipeBuilder()
@@ -410,7 +417,7 @@ def build_generic_lumped_forcing_recipe(
         dataset: Dataset to use for the recipe.
         variables: Names of variables to add to the recipe.
 
-    Recipe will return netCDF files for each variables.
+    Recipe will return a NetCDF file for each variable.
     """
     return (
         RecipeBuilder()

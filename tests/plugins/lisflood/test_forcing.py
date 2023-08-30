@@ -13,16 +13,6 @@ from ewatercycle.plugins.lisflood.forcing import LisfloodForcing, build_recipe
 from ewatercycle.testing.helpers import reyamlify
 
 
-def test_plot():
-    f = LisfloodForcing(
-        directory=".",
-        start_time="1989-01-02T00:00:00Z",
-        end_time="1999-01-02T00:00:00Z",
-    )
-    with pytest.raises(NotImplementedError):
-        f.plot()
-
-
 def create_netcdf(var_name, filename):
     ds = xr.DataArray(
         data=[[1.0, 2.0], [3.0, 4.0]],

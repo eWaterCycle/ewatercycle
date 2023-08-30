@@ -1,5 +1,4 @@
-"""ESMValTool diagnostic script that copies the preprocessing output to the diagnostic output.
-"""
+"""ESMValTool diagnostic script that copies the preprocessing output to the diagnostic output."""
 import logging
 import shutil
 from pathlib import Path
@@ -14,6 +13,11 @@ logger = logging.getLogger(Path(__file__).name)
 
 
 def main(cfg):
+    """Copy input data to the output directory.
+
+    Args:
+        cfg: Configuration dictionary.
+    """
     input_data = cfg["input_data"]
     provenance = {
         "caption": "Forcings for generic hydrological model",

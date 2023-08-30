@@ -6,9 +6,13 @@ from ewatercycle import CFG
 from ewatercycle.config import Configuration
 
 
+def rhine_shape() -> Path:
+    return Path(__file__).parent / "data" / "Rhine" / "Rhine.shp"
+
+
 @pytest.fixture
 def sample_shape():
-    return str(Path(__file__).parent / "data" / "Rhine" / "Rhine.shp")
+    return str(rhine_shape())
 
 
 @pytest.fixture

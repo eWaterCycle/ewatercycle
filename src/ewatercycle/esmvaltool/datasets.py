@@ -1,3 +1,5 @@
+"""Forcing datasets."""
+
 DATASETS = {
     "ERA5": {
         "dataset": "ERA5",
@@ -17,7 +19,8 @@ DATASETS = {
 """Dictionary of predefined forcing datasets.
 
 Where key is the name of the dataset and
-value is an `ESMValTool dataset section <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipe/overview.html#datasets>`_.
+value is an `ESMValTool dataset section
+<https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipe/overview.html#datasets>`_.
 
 .. code-block:: python
 

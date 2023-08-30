@@ -1,3 +1,4 @@
+"""Base classes for eWaterCycle forcings."""
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -12,7 +13,6 @@ from ewatercycle.esmvaltool.builder import (
     build_generic_lumped_forcing_recipe,
 )
 from ewatercycle.esmvaltool.models import Dataset, Recipe
-from ewatercycle.esmvaltool.output import parse_recipe_output
 from ewatercycle.esmvaltool.run import run_recipe
 from ewatercycle.util import get_time, to_absolute_path
 
@@ -21,10 +21,11 @@ FORCING_YAML = "ewatercycle_forcing.yaml"
 
 
 def _to_absolute_path(v: Union[str, Path]):
-    """Wraps to_absolute_path to a single-arg function, to use as Pydantic validator."""
+    """Wrapper of to_absolute_path to a single-arg function, to use as Pydantic validator."""
     return to_absolute_path(v)
 
 
+# Needed so subclass.generate() can return type of subclass instead of base class.
 AnyForcing = TypeVar("AnyForcing", bound="DefaultForcing")
 
 
@@ -75,7 +76,8 @@ class DefaultForcing(BaseModel):
             dataset: Dataset to get forcing data from.
                 When string is given a predefined dataset is looked up in
                 :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
-                When dict given it is passed to :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
+                When dict given it is passed to
+                :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
             start_time: Start time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: nd time of forcing in UTC and ISO format string e.g.
@@ -135,8 +137,7 @@ class DefaultForcing(BaseModel):
         recipe: Recipe,
         directory: Optional[Path] = None,
     ) -> dict[str, str]:
-        recipe_output = run_recipe(recipe, directory)
-        return parse_recipe_output(recipe_output)
+        return run_recipe(recipe, directory)
 
     def save(self):
         """Export forcing data for later use."""
@@ -161,7 +162,7 @@ class DefaultForcing(BaseModel):
                 )
 
         fdict = clone.model_dump(exclude={"directory"}, exclude_none=True, mode="json")
-        with open(target, "w") as f:
+        with target.open("w") as f:
             yaml.dump(fdict, f)
         return target
 
@@ -194,10 +195,6 @@ class DefaultForcing(BaseModel):
         fdict["directory"] = data_source
 
         return cls(**fdict)
-
-    @classmethod
-    def plot(cls):
-        raise NotImplementedError("No generic plotting method available.")
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__

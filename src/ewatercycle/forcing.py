@@ -45,7 +45,6 @@ _forcings: dict[str, Any] = {
     entry_point.name: entry_point
     for entry_point in entry_points(group="ewatercycle.forcings")  # /NOSONAR
 }
-_forcings["DefaultForcing"] = DefaultForcing
 
 sources = ForcingSources(_forcings)
 """Dictionary filled with available forcing sources.

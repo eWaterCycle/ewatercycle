@@ -13,18 +13,8 @@ from ewatercycle.plugins.hype.forcing import HypeForcing, build_recipe
 from ewatercycle.testing.helpers import reyamlify
 
 
-def test_plot():
-    f = HypeForcing(
-        directory=".",
-        start_time="1989-01-02T00:00:00Z",
-        end_time="1999-01-02T00:00:00Z",
-    )
-    with pytest.raises(NotImplementedError):
-        f.plot()
-
-
-def create_txt(dir: Path, var_name: str) -> Path:
-    fn = dir / f"{var_name}.txt"
+def create_txt(path: Path, var_name: str) -> Path:
+    fn = path / f"{var_name}.txt"
     # Some dummy data shaped as the model expects it
     lines = [
         "DATE 300730 300822",
@@ -197,7 +187,6 @@ def test_build_recipe(sample_shape: str):
         shape=Path(sample_shape),
     )
     recipe_as_string = recipe.to_yaml()
-    print(recipe_as_string)
 
     # Should look similar to
     # https://github.com/ESMValGroup/ESMValTool/blob/main/esmvaltool/recipes/hydrology/recipe_hype.yml

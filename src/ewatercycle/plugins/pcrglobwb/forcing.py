@@ -1,4 +1,4 @@
-"""Forcing related functionality for pcrglobwb"""
+"""Forcing related functionality for pcrglobwb."""
 
 from datetime import datetime
 from pathlib import Path
@@ -90,7 +90,8 @@ class PCRGlobWBForcing(DefaultForcing):
             dataset: Dataset to get forcing data from.
                 When string is given a predefined dataset is looked up in
                 :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
-                When dict given it is passed to :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
+                When dict given it is passed to
+                :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
             start_time: Start time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: nd time of forcing in UTC and ISO format string e.g.
@@ -156,6 +157,22 @@ def build_recipe(
     dataset: Dataset | str | dict,
     extract_region: ExtractRegion | None = None,
 ):
+    """
+    Builds a recipe for PCRGlobWB forcing.
+
+    Args:
+        start_year: The start year of the recipe.
+        end_year: The end year of the recipe.
+        shape: The shape of the region to extract.
+        start_year_climatology: The start year of the climatology.
+        end_year_climatology: The end year of the climatology.
+        dataset: The dataset to use.
+        extract_region: The region to extract.
+            When not given uses extents of shape.
+
+    Returns:
+        The recipe for PCRGlobWB forcing.
+    """
     partial = (
         RecipeBuilder()
         .title("PCRGlobWB forcing recipe")

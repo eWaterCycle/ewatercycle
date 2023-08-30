@@ -6,7 +6,8 @@ https://github.com/ESMValGroup/ESMValCore/blob/main/esmvalcore/_recipe/recipe_sc
 .
 """
 from io import StringIO
-from typing import Any, Literal
+from pathlib import Path
+from typing import Any, Literal, TypedDict
 
 from pydantic import BaseModel, ConfigDict
 from ruamel.yaml import YAML
@@ -90,25 +91,29 @@ class Recipe(BaseModel):
     diagnostics: dict[str, Diagnostic] | None = None
 
     @classmethod
-    def load(cls, path: str) -> "Recipe":
-        with open(path, encoding="utf-8") as f:
+    def load(cls, path: Path) -> "Recipe":
+        """Load recipe from path."""
+        with path.open(encoding="utf-8") as f:
             return cls.from_yaml(f.read())
 
     @classmethod
     def from_yaml(cls, recipe_string: str) -> "Recipe":
+        """Load recipe from YAML string."""
         yaml = YAML(typ="rt")
         raw_recipe = yaml.load(recipe_string)
         return cls(**raw_recipe)
 
     def to_yaml(self) -> str:
+        """Return recipe as YAML string."""
         # use rt to preserve order of preprocessor keys
         yaml = YAML(typ="rt")
         stream = StringIO()
         yaml.dump(self.model_dump(exclude_none=True), stream)
         return stream.getvalue()
 
-    def save(self, path: str) -> None:
-        with open(path, "w") as f:
+    def save(self, path: Path) -> None:
+        """Save recipe to path."""
+        with path.open("w") as f:
             f.write(self.to_yaml())
 
 
@@ -124,15 +129,15 @@ ExtractRegion = dict[
 ]
 """Arguments for the :py:func:`~esmvalcore.preprocessor.extract_region` preprocessor."""
 
-TargetGrid = dict[
-    Literal[
-        "start_longitude",
-        "end_longitude",
-        "start_latitude",
-        "end_latitude",
-        "step_longitude",
-        "step_latitude",
-    ],
-    float,
-]
+TargetGrid = TypedDict(
+    "TargetGrid",
+    {
+        "start_longitude": float,
+        "end_longitude": float,
+        "start_latitude": float,
+        "end_latitude": float,
+        "step_longitude": float,
+        "step_latitude": float,
+    },
+)
 """Type for target_grid argument for the :py:func:`~esmvalcore.preprocessor.regrid` preprocessor."""

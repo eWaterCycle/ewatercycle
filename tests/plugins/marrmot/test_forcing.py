@@ -4,22 +4,11 @@ from textwrap import dedent
 import pytest
 from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_info import RecipeInfo
-from esmvalcore.experimental.recipe_output import OutputFile, RecipeOutput
+from esmvalcore.experimental.recipe_output import RecipeOutput
 
 from ewatercycle.base.forcing import FORCING_YAML
 from ewatercycle.plugins.marrmot.forcing import MarrmotForcing, build_recipe
 from ewatercycle.testing.helpers import reyamlify
-
-
-def test_plot():
-    forcing = MarrmotForcing(
-        directory=".",
-        start_time="1989-01-02T00:00:00Z",
-        end_time="1999-01-02T00:00:00Z",
-        forcing_file="marrmot.mat",
-    )
-    with pytest.raises(NotImplementedError):
-        forcing.plot()
 
 
 @pytest.fixture
