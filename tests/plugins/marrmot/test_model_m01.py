@@ -198,7 +198,7 @@ class TestWithDatesOutsideRangeSetupAndExampleData:
         return forcing
 
     @pytest.fixture
-    def model(self, generate_forcing, mocked_config):
+    def model(self, generate_forcing: MarrmotForcing, mocked_config):
         m = MarrmotM01(forcing=generate_forcing)
         yield m
         # if m._bmi:

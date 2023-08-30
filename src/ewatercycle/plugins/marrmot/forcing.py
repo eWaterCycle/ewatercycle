@@ -27,17 +27,35 @@ class MarrmotForcing(DefaultForcing):
             models. See format forcing file in `model implementation
             <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`_.
 
-    .. code-block:: python
+    Examples:
 
-        from ewatercycle.forcing import sources
+        From existing forcing data:
 
-        forcing = sources.MarrmotForcing(
-            'marmot',
-            directory='/data/marrmot-forcings-case1',
-            start_time='1989-01-02T00:00:00Z',
-            end_time='1999-01-02T00:00:00Z',
-            forcing_file='marrmot-1989-1999.mat'
-        )
+        .. code-block:: python
+
+            from ewatercycle.forcing import sources
+
+            forcing = sources.MarrmotForcing(
+                directory='/data/marrmot-forcings-case1',
+                start_time='1989-01-02T00:00:00Z',
+                end_time='1999-01-02T00:00:00Z',
+                forcing_file='marrmot-1989-1999.mat'
+            )
+
+        Generate from ERA5 forcing dataset and Rhine.
+
+        .. code-block:: python
+
+            from ewatercycle.forcing import sources
+            from ewatercycle.testing.fixtures import rhine_shape
+
+            shape = rhine_shape()
+            forcing = sources.MarrmotForcing.generate(
+                dataset='ERA5',
+                start_time='2000-01-01T00:00:00Z',
+                end_time='2001-01-01T00:00:00Z',
+                shape=shape,
+            )
     """
 
     forcing_file: Optional[str] = "marrmot.mat"
@@ -71,18 +89,16 @@ class MarrmotForcing(DefaultForcing):
 
         Returns:
             Dataset with forcing data.
-
-        Example:
-
-            >>> fn = forcing.directory / forcing.forcing_file
-            >>> ds = load_forcing_file(fn)
-            >>> ds
-
         """
-        dataset = loadmat(self.forcing_file, mat_dtype=True)
-        precip = dataset["forcing"]["precip"][0][0][0]
-        temp = dataset["forcing"]["temp"][0][0][0]
-        pet = dataset["forcing"]["pet"][0][0][0]
+        if self.directory is None or self.forcing_file is None:
+            raise ValueError("Directory or forcing_file is not set")
+        fn = self.directory / self.forcing_file
+        dataset = loadmat(fn, mat_dtype=True)
+        # Generated forcing with ewatercycle has shape (1, <nr timestamps>)
+        # Mat files from elsewhere can have shape (<nr timestamps>, 1)
+        precip = dataset["forcing"]["precip"][0][0].flatten()
+        temp = dataset["forcing"]["temp"][0][0].flatten()
+        pet = dataset["forcing"]["pet"][0][0].flatten()
         time_start = dataset["time_start"][0][:3]
         forcing_start = datetime(*map(int, time_start))  # type: ignore
         time_end = dataset["time_end"][0][:3]

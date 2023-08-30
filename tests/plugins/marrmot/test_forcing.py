@@ -1,6 +1,7 @@
 from pathlib import Path
 from textwrap import dedent
 
+import numpy as np
 import pytest
 from esmvalcore.experimental import Recipe
 from esmvalcore.experimental.recipe_info import RecipeInfo
@@ -198,6 +199,7 @@ def test_generate_with_directory(mock_recipe_run, sample_shape, tmp_path):
 
 def test_generate_no_output_raises(monkeypatch, sample_shape):
     """Should raise when there is no .mat file in output."""
+
     dummy_recipe_output = RecipeOutput(
         {"diagnostic/script": {}},
         info=RecipeInfo({"diagnostics": {"diagnostic": {}}}, "script"),
@@ -328,3 +330,25 @@ diagnostics:
     )
 
     assert recipe_as_string == reyamlify(expected)
+
+
+def test_to_xarray(sample_marrmot_forcing_file: str):
+    directory = Path(sample_marrmot_forcing_file).parent
+    forcing_file = Path(sample_marrmot_forcing_file).name
+    forcing = MarrmotForcing(
+        start_time="1989-01-01T00:00:00Z",
+        end_time="1992-12-31T00:00:00Z",
+        directory=str(directory),
+        forcing_file=forcing_file,
+    )
+
+    ds = forcing.to_xarray()
+
+    assert ds.attrs["title"] == "MARRMoT forcing data"
+    assert ds.precipitation.shape == (1, 1, 1461)
+    assert ds.temperature.shape == (1, 1, 1461)
+    assert ds.evspsblpot.shape == (1, 1, 1461)
+    assert ds.time.values[0] == np.datetime64("1989-01-01T00:00:00.000000000")
+    assert ds.time.values[-1] == np.datetime64("1992-12-31T00:00:00.000000000")
+    assert ds.lon.values == [87.49]
+    assert ds.lat.values == [35.29]
