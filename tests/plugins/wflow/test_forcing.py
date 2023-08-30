@@ -332,9 +332,7 @@ diagnostics:
         mip: day
         preprocessor: rsds
       orog:
-        start_year: 1990
-        end_year: 2001
-        mip: fix
+        mip: fx
         preprocessor: orog
       rsdt:
         start_year: 1990
