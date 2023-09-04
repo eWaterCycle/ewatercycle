@@ -435,6 +435,7 @@ datasets:
   project: OBS6
   tier: 3
   type: reanaly
+  version: 1
 preprocessors:
   spatial:
     regrid:
@@ -651,6 +652,7 @@ datasets:
   project: OBS6
   tier: 3
   type: reanaly
+  version: 1
 preprocessors:
   spatial:
     regrid:

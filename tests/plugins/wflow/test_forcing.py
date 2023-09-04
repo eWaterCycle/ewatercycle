@@ -257,6 +257,7 @@ datasets:
   project: OBS6
   tier: 3
   type: reanaly
+  version: 1
 preprocessors:
   spatial:
     extract_region:
