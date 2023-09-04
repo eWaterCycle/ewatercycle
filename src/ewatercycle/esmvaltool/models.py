@@ -29,6 +29,9 @@ class Dataset(BaseModel):
     tier: Literal[1, 2, 3] | None = None
     type: str | None = None
     grid: str | None = None
+    # any more attributes are passed through
+    # to ESMValTool without validation
+    model_config = ConfigDict(extra="allow")
 
 
 class Variable(BaseModel):

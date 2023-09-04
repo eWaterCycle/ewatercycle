@@ -235,10 +235,10 @@ class GenericDistributedForcing(DefaultForcing):
                 end_time='2001-01-01T00:00:00Z',
                 directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/tmp05upitxoewcrep_20230815_154640/work/diagnostic/script'),
                 shape=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
-                pr='OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc',
-                tas='OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc',
-                tasmin='OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc',
-                tasmax='OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc'
+                pr='OBS6_ERA5_reanaly_1_day_pr_2000-2001.nc',
+                tas='OBS6_ERA5_reanaly_1_day_tas_2000-2001.nc',
+                tasmin='OBS6_ERA5_reanaly_1_day_tasmin_2000-2001.nc',
+                tasmax='OBS6_ERA5_reanaly_1_day_tasmax_2000-2001.nc'
             )
 
         To generate forcing from CMIP6 for the Rhine catchment for 2000-2001:
@@ -361,10 +361,10 @@ class GenericLumpedForcing(GenericDistributedForcing):
                 end_time='2001-01-01T00:00:00Z',
                 directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/ewcrep90hmnvat_20230816_124951/work/diagnostic/script'),
                 shape=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
-                pr='OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc',
-                tas='OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc',
-                tasmin='OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc',
-                tasmax='OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc'
+                pr='OBS6_ERA5_reanaly_1_day_pr_2000-2001.nc',
+                tas='OBS6_ERA5_reanaly_1_day_tas_2000-2001.nc',
+                tasmin='OBS6_ERA5_reanaly_1_day_tasmin_2000-2001.nc',
+                tasmax='OBS6_ERA5_reanaly_1_day_tasmax_2000-2001.nc'
             )
     """
 
