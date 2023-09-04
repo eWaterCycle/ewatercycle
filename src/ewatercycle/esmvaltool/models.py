@@ -112,7 +112,11 @@ class Recipe(BaseModel):
         return stream.getvalue()
 
     def save(self, path: Path) -> None:
-        """Save recipe to path."""
+        """Save recipe to path.
+
+        Args:
+            path: Path to save recipe to.
+        """
         with path.open("w") as f:
             f.write(self.to_yaml())
 
