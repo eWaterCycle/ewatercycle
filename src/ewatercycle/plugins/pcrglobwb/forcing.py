@@ -1,4 +1,4 @@
-"""Forcing related functionality for pcrglobwb."""
+"""Forcing related functionality for PCR-GLOBWB."""
 
 from datetime import datetime
 from pathlib import Path
@@ -11,7 +11,7 @@ from ewatercycle.util import get_time
 
 
 class PCRGlobWBForcing(DefaultForcing):
-    """Container for pcrglobwb forcing data.
+    """Container for PCR-GLOBWB forcing data.
 
     Args:
         directory: Directory where forcing data files are stored.
@@ -29,39 +29,39 @@ class PCRGlobWBForcing(DefaultForcing):
 
         To generate forcing from ERA5 for the Rhine catchment for 2000-2001:
 
-        ```pycon
-        from pathlib import Path
+        .. code-block:: python
 
-        from rich import print
+            from pathlib import Path
 
-        from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing
+            from rich import print
 
-        shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
+            from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing
 
-        forcing = PCRGlobWBForcing.generate(
-            dataset='ERA5',
-            start_time='2000-01-01T00:00:00Z',
-            end_time='2001-01-01T00:00:00Z',
-            shape=shape.absolute(),
-            start_time_climatology='2000-01-01T00:00:00Z',
-            end_time_climatology='2001-01-01T00:00:00Z',
-        )
-        print(forcing)
-        ```
+            shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
+
+            forcing = PCRGlobWBForcing.generate(
+                dataset='ERA5',
+                start_time='2000-01-01T00:00:00Z',
+                end_time='2001-01-01T00:00:00Z',
+                shape=shape.absolute(),
+                start_time_climatology='2000-01-01T00:00:00Z',
+                end_time_climatology='2001-01-01T00:00:00Z',
+            )
+            print(forcing)
 
         Gives something like:
 
-        ```pycon
-        PCRGlobWBForcing(
-            model='pcrglobwb',
-            start_time='2000-01-01T00:00:00Z',
-            end_time='2001-01-01T00:00:00Z',
-            directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/ewcrephogjj0pt_20230816_095928/work/diagnostic/script'),
-            shape=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
-            precipitationNC='pcrglobwb_OBS6_ERA5_reanaly_*_day_pr_2000-2001_Rhine.nc',
-            temperatureNC='pcrglobwb_OBS6_ERA5_reanaly_*_day_tas_2000-2001_Rhine.nc'
-        )
-        ```
+        .. code-block:: python
+
+            PCRGlobWBForcing(
+                model='pcrglobwb',
+                start_time='2000-01-01T00:00:00Z',
+                end_time='2001-01-01T00:00:00Z',
+                directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/ewcrephogjj0pt_20230816_095928/work/diagnostic/script'),
+                shape=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
+                precipitationNC='pcrglobwb_OBS6_ERA5_reanaly_*_day_pr_2000-2001_Rhine.nc',
+                temperatureNC='pcrglobwb_OBS6_ERA5_reanaly_*_day_tas_2000-2001_Rhine.nc'
+            )
     """
 
     precipitationNC: Optional[str] = "precipitation.nc"
@@ -155,7 +155,7 @@ def build_recipe(
     dataset: Dataset | str | dict,
     extract_region: ExtractRegion | None = None,
 ):
-    """Build a recipe for PCRGlobWB forcing.
+    """Build an ESMValTool recipe for PCR-GLOBWB forcing.
 
     Args:
         start_year: The start year of the recipe.
@@ -172,12 +172,12 @@ def build_recipe(
             When not given uses extents of shape.
 
     Returns:
-        The recipe for PCRGlobWB forcing.
+        The recipe for PCR-GLOBWB forcing.
     """
     partial = (
         RecipeBuilder()
-        .title("PCRGlobWB forcing recipe")
-        .description("PCRGlobWB forcing recipe")
+        .title("PCR-GLOBWB forcing recipe")
+        .description("PCR-GLOBWB forcing recipe")
         .dataset(dataset)
         .start(start_year)
         .end(end_year)

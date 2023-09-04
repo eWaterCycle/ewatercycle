@@ -44,6 +44,11 @@ class TestLFlatlonUseCase:
     @pytest.fixture(scope="session")
     def parameterset(self, mocked_config):
         example_parameter_set = example_parameter_sets()["lisflood_fraser"]
+        # TODO the download can take a long time (> 4 minutes)
+        # as it downloads over 500Mb
+        # we could make it quicker by creating
+        # a fake parameter set and forcing,
+        # but then how do we make sure the fakes are correct?
         example_parameter_set.download(CFG.parameterset_dir)
         # example_parameter_set.to_config()
         return example_parameter_set
@@ -53,7 +58,7 @@ class TestLFlatlonUseCase:
         forcing_dir = tmp_path / "forcing"
         forcing_dir.mkdir()
         meteo_dir = Path(parameterset.directory) / "meteo"
-        # Create the case where forcing data arenot part of parameter_set
+        # Create the case where forcing data are not part of parameter_set
         for file in meteo_dir.glob("*.nc"):
             shutil.copy(file, forcing_dir / f"my{file.stem}.nc")
 

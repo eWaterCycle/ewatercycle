@@ -113,7 +113,7 @@ def build_recipe(
     dem_file: str,
     extract_region: Optional[Dict[str, float]] = None,
 ):
-    """Build a recipe for the WFlow hydrological model.
+    """Build an ESMValTool recipe for the WFlow hydrological model.
 
     Args:
         start_year: Start year of forcing.

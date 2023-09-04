@@ -91,13 +91,17 @@ def build_recipe(
     shape: Path,
     dataset: Dataset | str | dict,
 ):
-    """Build a recipe for Hype forcing data.
+    """Build an ESMValTool recipe for Hype forcing data.
 
     Args:
         start_year: The start year of the recipe.
         end_year: The end year of the recipe.
         shape: The shape of the recipe.
-        dataset: The dataset of the recipe.
+        dataset: Dataset to get forcing data from.
+            When string is given a predefined dataset is looked up in
+            :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
+            When dict given it is passed to
+            :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
 
     Returns:
         The built recipe.

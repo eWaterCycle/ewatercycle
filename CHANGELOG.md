@@ -9,6 +9,11 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 ### Added
 
 - Apptainer support ([#290](https://github.com/eWaterCycle/ewatercycle/issues/290))
+- Forcing ((#365)[https://github.com/eWaterCycle/ewatercycle/pull/365]):
+  - GenericDistributedForcing class
+  - GenericLumpedForcing class
+  - Generate from not just ERA5 or ERA-Interim dataset, but any ESMvalTool supported dataset
+- Testing helpers for plugins ((#365)[https://github.com/eWaterCycle/ewatercycle/pull/365])
 
 ### Changed
 
@@ -18,6 +23,9 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 - Functions of a model inside a container that return the same result each call are cached with [MemoizedBmi](https://grpc4bmi.readthedocs.io/en/latest/api/grpc4bmi.bmi_memoized.html#grpc4bmi.bmi_memoized.MemoizedBmi) ([#339](https://github.com/eWaterCycle/ewatercycle/pull/339))
 - Moved CaseConfig to src/utils.py
 - forcing.load_foreign has been superceded by using sources.model(...)
+- Forcing ((#365)[https://github.com/eWaterCycle/ewatercycle/pull/365]):
+  - Instead of modifying an existing recipe now builds a ESMValTool recipe from scratch using a fluent interface
+  - DefaultForcing has overridable class methods for each step of the forcing generation process (build_recipe, run_recipe, recipe_output_to_forcing_arguments).
 
 ### Deprecated
 

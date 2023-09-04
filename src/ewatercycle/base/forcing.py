@@ -42,6 +42,9 @@ class DefaultForcing(BaseModel):
             If relative then it is relative to the given directory.
     """
 
+    # TODO add validation for start_time and end_time
+    # using https://docs.pydantic.dev/latest/usage/types/datetime/
+    # TODO make sure start_time < end_time
     start_time: str
     end_time: str
     directory: Optional[Annotated[Path, AfterValidator(_to_absolute_path)]] = None
@@ -310,6 +313,9 @@ class GenericDistributedForcing(DefaultForcing):
         **model_specific_options,
     ):
         return build_generic_distributed_forcing_recipe(
+            # TODO allow finer selection then a whole year.
+            # using ISO 8601 str as type or timerange attribute see
+            # https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipe/overview.html#recipe-section-datasets
             start_year=start_time.year,
             end_year=end_time.year,
             shape=shape,

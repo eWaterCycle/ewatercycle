@@ -1,4 +1,4 @@
-"""Forcing related functionality for marrmot."""
+"""Forcing related functionality for MARRMoT."""
 
 from datetime import datetime
 from pathlib import Path
@@ -14,7 +14,7 @@ from ewatercycle.esmvaltool.models import Dataset, Recipe
 
 
 class MarrmotForcing(DefaultForcing):
-    """Container for marrmot forcing data.
+    """Container for MARRMoT forcing data.
 
     Args:
         directory: Directory where forcing data files are stored.
@@ -23,7 +23,7 @@ class MarrmotForcing(DefaultForcing):
         end_time: End time of forcing in UTC and ISO format string e.g.
             'YYYY-MM-DDTHH:MM:SSZ'.
         shape: Path to a shape file. Used for spatial selection.
-        forcing_file: Matlab file that contains forcings for Marrmot
+        forcing_file: Matlab file that contains forcings for MARRMoT
             models. See format forcing file in `model implementation
             <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`_.
 
@@ -85,7 +85,7 @@ class MarrmotForcing(DefaultForcing):
         return {"forcing_file": first_forcing_file}
 
     def to_xarray(self) -> xr.Dataset:
-        """Load forcing data from a matlab file into an xarray dataset.
+        """Load forcing data from a Matlab file into an xarray dataset.
 
         Returns:
             Dataset with forcing data.
@@ -143,7 +143,7 @@ def build_recipe(
     shape: Path,
     dataset: Dataset | str | dict,
 ) -> Recipe:
-    """Build a recipe for generating forcing for the Marrmot hydrological model.
+    """Build an ESMValTool recipe for generating forcing for MARRMoT.
 
     Args:
         start_year: Start year of forcing.
@@ -157,13 +157,13 @@ def build_recipe(
     """
     return (
         RecipeBuilder()
-        .title("Generate forcing for the Marrmot hydrological model")
-        .description("Generate forcing for the Marrmot hydrological model")
+        .title("Generate forcing for the MARRMoT hydrological model")
+        .description("Generate forcing for the MARRMoT hydrological model")
         .dataset(dataset)
         .start(start_year)
         .end(end_year)
         .shape(shape)
-        # TODO do lumping in recipe instead of in diagnostic script
+        # TODO do lumping in recipe preprocessor instead of in diagnostic script
         # .lump()
         .add_variables(("tas", "pr", "psl", "rsds"))
         .add_variable("rsdt", mip="CFday")

@@ -1,4 +1,4 @@
-"""ESMValTool recipe and preprocessor models.
+"""ESMValTool recipe Pydantic models and preprocessor types.
 
 The classes and their attributes in this module are based
 on the ESMValTool recipe schema at

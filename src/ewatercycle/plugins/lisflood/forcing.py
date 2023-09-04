@@ -40,20 +40,24 @@ class LisfloodForcing(DefaultForcing):
         PrefixET0: Path to a NetCDF or pcraster file with potential
             (reference) evapotranspiration rate data
 
-    .. code-block:: python
+    Example:
 
-        from ewatercycle.forcing import sources
+    To load forcing data from a directory:
 
-        forcing = sources.LisfloodForcing(
-            directory='/data/lisflood-forcings-case1',
-            start_time='1989-01-02T00:00:00Z',
-            end_time='1999-01-02T00:00:00Z',
-            PrefixPrecipitation='tp.nc',
-            PrefixTavg='ta.nc',
-            PrefixE0='e.nc',
-            PrefixES0='es.nc',
-            PrefixET0='et.nc'
-        )
+        .. code-block:: python
+
+            from ewatercycle.forcing import sources
+
+            forcing = sources.LisfloodForcing(
+                directory='/data/lisflood-forcings-case1',
+                start_time='1989-01-02T00:00:00Z',
+                end_time='1999-01-02T00:00:00Z',
+                PrefixPrecipitation='tp.nc',
+                PrefixTavg='ta.nc',
+                PrefixE0='e.nc',
+                PrefixES0='es.nc',
+                PrefixET0='et.nc'
+            )
     """
 
     PrefixPrecipitation: str = "pr.nc"
@@ -83,7 +87,8 @@ class LisfloodForcing(DefaultForcing):
             dataset: Dataset to get forcing data from.
                 When string is given a predefined dataset is looked up in
                 :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
-                When dict given it is passed to :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
+                When dict given it is passed to
+                :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
             start_time: Start time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: nd time of forcing in UTC and ISO format string e.g.
@@ -224,7 +229,7 @@ def build_recipe(
     dataset: Dataset | str | dict,
     target_grid: Optional[dict] = None,
 ) -> Recipe:
-    """Build a recipe for lisflood forcing.
+    """Build an ESMValTool recipe for lisflood forcing.
 
     Args:
         start_year: Start year of forcing.
@@ -261,6 +266,7 @@ def build_recipe(
         .shape(shape, crop=True)
         .add_variable("pr", units="kg m-2 d-1")
         .add_variable("tas", units="degC")
+        # Rest of variables are inputs for lisvap
         .add_variable("tasmin", units="degC")
         .add_variable("tasmax", units="degC")
         .add_variable("tdps", units="degC", mip="Eday")
