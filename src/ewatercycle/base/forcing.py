@@ -241,30 +241,58 @@ class GenericDistributedForcing(DefaultForcing):
                 tasmax='OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc'
             )
 
-        To download CMIP6 data for the Rhine catchment for 2000-2001:
+        To generate forcing from CMIP6 for the Rhine catchment for 2000-2001:
 
         .. code-block:: python
 
+            from pathlib import Path
+            from rich import print
             from ewatercycle.base.forcing import GenericDistributedForcing
 
+            shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
             cmip_dataset = {
                 "dataset": "EC-Earth3",
                 "project": "CMIP6",
                 "grid": "gr",
                 "exp": ["historical",],
-                "ensemble": "r4i1p1f1",
-                "start_year": 2000,
-                "end_year": 2022,
-                "mip": 'day'
+                "ensemble": "r6i1p1f1",
             }
 
             forcing = GenericDistributedForcing.generate(
                 dataset=cmip_dataset,
-                start_time="2020-01-01T00:00:00Z",
-                end_time="2020-01-01T00:00:00Z",
-                shape="/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp",
+                start_time="2000-01-01T00:00:00Z",
+                end_time="2001-01-01T00:00:00Z",
+                shape=shape.absolute(),
             )
             print(forcing)
+
+        Gives something like:
+
+        .. code-block:: python
+
+            GenericDistributedForcing(
+                start_time='2000-01-01T00:00:00Z',
+                end_time='2001-01-01T00:00:00Z',
+                directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/ewcrep0ibzlds__20230904_082748/work/diagnostic/script'),
+                shape=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
+                pr='CMIP6_EC-Earth3_day_historical_r6i1p1f1_pr_gr_2000-2001.nc',
+                tas='CMIP6_EC-Earth3_day_historical_r6i1p1f1_tas_gr_2000-2001.nc',
+                tasmin='CMIP6_EC-Earth3_day_historical_r6i1p1f1_tasmin_gr_2000-2001.nc',
+                tasmax='CMIP6_EC-Earth3_day_historical_r6i1p1f1_tasmax_gr_2000-2001.nc'
+            )
+
+        To retrieve data from ESFG you will need a ~/.esmvaltool/config-user.yml file with:
+
+        .. code-block:: yaml
+
+            search_esgf: when_missing
+            download_dir: ~/climate_data
+            rootpath:
+                CMIP6: ~/climate_data/CMIP6
+            drs:
+                CMIP6: BADC
+                # If Synda is installed then use SYNDA instead of BADC
+
     """
 
     pr: str
