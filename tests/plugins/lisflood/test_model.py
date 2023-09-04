@@ -15,10 +15,9 @@ from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.forcing import sources
 from ewatercycle.parameter_sets import example_parameter_sets
 from ewatercycle.plugins.lisflood.config import XmlConfig
+from ewatercycle.plugins.lisflood.forcing import LisfloodForcing
 from ewatercycle.plugins.lisflood.model import Lisflood
 from ewatercycle.testing.fake_models import FailingModel
-
-LisfloodForcing = sources["LisfloodForcing"]
 
 
 @pytest.fixture(scope="session")
@@ -40,15 +39,16 @@ def find_values_in_xml(tree, name):
     return set(values)
 
 
+# TODO the download can take a long time (> 4 minutes)
+# as it downloads over 500Mb
+# we could make it quicker by creating
+# a fake parameter set and forcing,
+# but then how do we make sure the fakes are correct?
+@pytest.mark.skip("Too slow")
 class TestLFlatlonUseCase:
     @pytest.fixture(scope="session")
     def parameterset(self, mocked_config):
         example_parameter_set = example_parameter_sets()["lisflood_fraser"]
-        # TODO the download can take a long time (> 4 minutes)
-        # as it downloads over 500Mb
-        # we could make it quicker by creating
-        # a fake parameter set and forcing,
-        # but then how do we make sure the fakes are correct?
         example_parameter_set.download(CFG.parameterset_dir)
         # example_parameter_set.to_config()
         return example_parameter_set
