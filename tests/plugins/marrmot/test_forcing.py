@@ -252,8 +252,8 @@ def test_build_recipe(sample_shape: str):
     expected = dedent(
         f"""\
 documentation:
-  title: Generate forcing for the Marrmot hydrological model
-  description: Generate forcing for the Marrmot hydrological model
+  title: Generate forcing for the MARRMoT hydrological model
+  description: Generate forcing for the MARRMoT hydrological model
   authors:
   - unmaintained
   projects:

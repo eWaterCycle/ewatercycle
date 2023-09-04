@@ -163,8 +163,8 @@ def test_build_recipe(sample_shape: str):
     expected = dedent(
         """\
 documentation:
-  title: PCRGlobWB forcing recipe
-  description: PCRGlobWB forcing recipe
+  title: PCR-GLOBWB forcing recipe
+  description: PCR-GLOBWB forcing recipe
   authors:
   - unmaintained
   projects:
@@ -271,8 +271,8 @@ def test_build_recipe_with_region(sample_shape: str):
     expected = dedent(
         """\
 documentation:
-  title: PCRGlobWB forcing recipe
-  description: PCRGlobWB forcing recipe
+  title: PCR-GLOBWB forcing recipe
+  description: PCR-GLOBWB forcing recipe
   authors:
   - unmaintained
   projects:
