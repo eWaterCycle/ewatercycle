@@ -133,7 +133,7 @@ class RecipeBuilder:
         """
         # Can only have one dataset
         if isinstance(dataset, str):
-            dataset = Dataset(**DATASETS[dataset])
+            dataset = DATASETS[dataset]
         elif isinstance(dataset, dict):
             dataset = Dataset(**dataset)
         if not isinstance(dataset, Dataset):
