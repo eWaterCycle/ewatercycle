@@ -43,6 +43,36 @@ directly exposes this interface, but the more common use case is to add a
 wrapper around an existing model. For more information please follow the
 instructions at https://bmi.readthedocs.io/.
 
+The following BMI methods are called by the eWatercycle library
+and should be implemented:
+
+* ``initialize()``
+* ``finalize()``
+* ``update()``
+* ``get_current_time()``
+* ``get_end_time()``
+* ``get_grid_type()``
+* ``get_grid_rank()``
+.. To convert flat array to xarray or get/set value at coord
+* ``get_grid_shape()``
+* ``get_grid_size()``
+* ``get_grid_x()``
+* ``get_grid_y()``
+* ``get_output_var_names()``
+* ``get_start_time()``
+* ``get_time_step()``
+.. To convert time to a datetime object
+* ``get_time_units()``
+* ``get_value_at_indices()``
+* ``get_value()``
+* ``get_var_grid()``
+.. To reserve a correctly sized array for output
+* ``get_var_itemsize()``
+* ``get_var_nbytes()``
+* ``get_var_type()``
+* ``set_value_at_indices()``
+* ``set_value()``
+
 .. _Make container:
 
 Package the model together with grpc4bmi server in a docker container
