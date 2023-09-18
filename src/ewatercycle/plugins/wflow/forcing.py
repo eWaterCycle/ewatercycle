@@ -88,7 +88,7 @@ class WflowForcing(DefaultForcing):
         **model_specific_options
     ):
         extract_region = model_specific_options["extract_region"]
-        return build_recipe(
+        return build_wflow_recipe(
             start_year=start_time.year,
             end_year=end_time.year,
             shape=shape,
@@ -105,7 +105,7 @@ class WflowForcing(DefaultForcing):
         }
 
 
-def build_recipe(
+def build_wflow_recipe(
     start_year: int,
     end_year: int,
     shape: Path,

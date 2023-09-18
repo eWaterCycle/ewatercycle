@@ -129,7 +129,7 @@ class LisfloodForcing(DefaultForcing):
         # Cannot call super as we want recipe_output not forcing object
         start_year = get_time(start_time).year
         end_year = get_time(end_time).year
-        recipe = build_recipe(
+        recipe = build_lisflood_recipe(
             start_year=start_year,
             end_year=end_year,
             shape=Path(shape),
@@ -222,7 +222,7 @@ class LisfloodForcing(DefaultForcing):
         return generated_forcing
 
 
-def build_recipe(
+def build_lisflood_recipe(
     start_year: int,
     end_year: int,
     shape: Path,

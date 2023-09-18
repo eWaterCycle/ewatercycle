@@ -9,7 +9,7 @@ from esmvalcore.experimental.recipe_info import RecipeInfo
 from esmvalcore.experimental.recipe_output import DataFile, RecipeOutput
 
 from ewatercycle.base.forcing import FORCING_YAML
-from ewatercycle.plugins.lisflood.forcing import LisfloodForcing, build_recipe
+from ewatercycle.plugins.lisflood.forcing import LisfloodForcing, build_lisflood_recipe
 from ewatercycle.testing.helpers import reyamlify
 
 
@@ -240,8 +240,8 @@ def test_load_legacy_forcing(tmp_path):
     assert result == expected
 
 
-def test_build_recipe_with_targetgrid(sample_shape: str):
-    recipe = build_recipe(
+def test_build_lisflood_recipe_with_targetgrid(sample_shape: str):
+    recipe = build_lisflood_recipe(
         dataset="ERA5",
         start_year=1990,
         end_year=2001,
@@ -465,8 +465,8 @@ diagnostics:
     assert recipe_as_string == reyamlify(expected)
 
 
-def test_build_recipe_without_targetgrid(sample_shape: str):
-    recipe = build_recipe(
+def test_build_lisflood_recipe_without_targetgrid(sample_shape: str):
+    recipe = build_lisflood_recipe(
         dataset="ERA5",
         start_year=1990,
         end_year=2001,

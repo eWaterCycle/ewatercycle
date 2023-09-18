@@ -9,7 +9,7 @@ from esmvalcore.experimental.recipe_info import RecipeInfo
 from esmvalcore.experimental.recipe_output import RecipeOutput
 
 from ewatercycle.base.forcing import FORCING_YAML
-from ewatercycle.plugins.hype.forcing import HypeForcing, build_recipe
+from ewatercycle.plugins.hype.forcing import HypeForcing, build_hype_recipe
 from ewatercycle.testing.helpers import reyamlify
 
 
@@ -154,8 +154,8 @@ def test_with_directory(mock_recipe_run, sample_shape, tmp_path):
     assert mock_recipe_run["session"].session_dir == forcing_dir
 
 
-def test_build_recipe(sample_shape: str):
-    recipe = build_recipe(
+def test_build_hype_recipe(sample_shape: str):
+    recipe = build_hype_recipe(
         dataset="ERA5",
         start_year=1990,
         end_year=2001,

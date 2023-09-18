@@ -7,7 +7,10 @@ from esmvalcore.experimental.recipe_info import RecipeInfo
 from esmvalcore.experimental.recipe_output import RecipeOutput
 
 from ewatercycle.base.forcing import FORCING_YAML
-from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing, build_recipe
+from ewatercycle.plugins.pcrglobwb.forcing import (
+    PCRGlobWBForcing,
+    build_pcrglobwb_recipe,
+)
 from ewatercycle.testing.helpers import create_netcdf, reyamlify
 from ewatercycle.util import get_extents
 
@@ -147,8 +150,8 @@ def test_load_legacy_forcing(tmp_path):
     assert result == expected
 
 
-def test_build_recipe(sample_shape: str):
-    recipe = build_recipe(
+def test_build_pcrglobwb_recipe(sample_shape: str):
+    recipe = build_pcrglobwb_recipe(
         start_year=1990,
         end_year=2001,
         shape=Path(sample_shape),
@@ -250,9 +253,9 @@ diagnostics:
     assert recipe_as_string == reyamlify(expected)
 
 
-def test_build_recipe_with_region(sample_shape: str):
+def test_build_pcrglobwb_recipe_with_region(sample_shape: str):
     extents = get_extents(sample_shape, 2)
-    recipe = build_recipe(
+    recipe = build_pcrglobwb_recipe(
         start_year=1990,
         end_year=2001,
         shape=Path(sample_shape),

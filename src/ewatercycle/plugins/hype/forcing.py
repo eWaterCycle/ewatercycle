@@ -43,7 +43,7 @@ class HypeForcing(DefaultForcing):
         dataset: Dataset | str | dict,
         **model_specific_options
     ):
-        return build_recipe(
+        return build_hype_recipe(
             start_year=start_time.year,
             end_year=end_time.year,
             shape=shape,
@@ -85,7 +85,7 @@ class HypeForcing(DefaultForcing):
         return ds
 
 
-def build_recipe(
+def build_hype_recipe(
     start_year: int,
     end_year: int,
     shape: Path,

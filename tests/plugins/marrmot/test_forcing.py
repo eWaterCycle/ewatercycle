@@ -8,7 +8,7 @@ from esmvalcore.experimental.recipe_info import RecipeInfo
 from esmvalcore.experimental.recipe_output import RecipeOutput
 
 from ewatercycle.base.forcing import FORCING_YAML
-from ewatercycle.plugins.marrmot.forcing import MarrmotForcing, build_recipe
+from ewatercycle.plugins.marrmot.forcing import MarrmotForcing, build_marrmot_recipe
 from ewatercycle.testing.helpers import reyamlify
 
 
@@ -240,8 +240,8 @@ def test_load_legacy_forcing(tmp_path):
     assert result == expected
 
 
-def test_build_recipe(sample_shape: str):
-    recipe = build_recipe(
+def test_build_marrmot_recipe(sample_shape: str):
+    recipe = build_marrmot_recipe(
         dataset="ERA5",
         start_year=1990,
         end_year=2001,
