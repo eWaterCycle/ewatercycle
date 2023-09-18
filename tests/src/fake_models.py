@@ -1,6 +1,7 @@
 # TODO do not copy from https://github.com/eWaterCycle/grpc4bmi/blob/main/test/fake_models.py
 # but import instead
 from typing import Tuple
+from unittest.mock import Mock
 
 import numpy
 import numpy as np

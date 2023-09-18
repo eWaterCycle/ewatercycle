@@ -14,7 +14,6 @@ import xarray as xr
 import yaml
 from cftime import num2pydate
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
-from grpc4bmi.reserve import reserve_values, reserve_values_at_indices
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -163,7 +162,10 @@ class eWaterCycleModel(BaseModel, abc.ABC):
         self._bmi.initialize(config_file)
 
     def finalize(self) -> None:
-        """Perform tear-down tasks for the model."""
+        """Perform tear-down tasks for the model.
+
+        After finalization, the model should not be used anymore.
+        """
         self._bmi.finalize()
         del self._bmi
 
@@ -177,10 +179,7 @@ class eWaterCycleModel(BaseModel, abc.ABC):
         Args:
             name: Name of variable
         """
-        if isinstance(self._bmi, OptionalDestBmi):
-            return self._bmi.get_value(name)
-        dest = reserve_values(self._bmi, name)
-        return self._bmi.get_value(name, dest)
+        return self._bmi.get_value(name)
 
     def get_value_at_coords(
         self, name, lat: Iterable[float], lon: Iterable[float]
@@ -194,10 +193,7 @@ class eWaterCycleModel(BaseModel, abc.ABC):
         """
         indices = self._coords_to_indices(name, lat, lon)
         indices = np.array(indices)
-        if isinstance(self._bmi, OptionalDestBmi):
-            return self._bmi.get_value_at_indices(name, indices)
-        dest = reserve_values_at_indices(self._bmi, name, indices)
-        return self._bmi.get_value_at_indices(name, dest, indices)
+        return self._bmi.get_value_at_indices(name, indices)
 
     def set_value(self, name: str, value: np.ndarray) -> None:
         """Specify a new value for a model variable.
@@ -269,9 +265,9 @@ class eWaterCycleModel(BaseModel, abc.ABC):
             data=np.reshape(
                 self.get_value(name),
                 (
+                    1,
                     shape[0],
                     shape[1],
-                    1,
                 ),
             ),
             coords={
@@ -367,6 +363,10 @@ class eWaterCycleModel(BaseModel, abc.ABC):
     @property
     def time_as_datetime(self) -> datetime.datetime:
         """Current time of the model as a datetime object'."""
+        # TODO some bmi implementations like Wflow.jl returns 'd'
+        # which can not be converted to a datetime object
+        # as nupmy2date expects a
+        # `<time units> since <reference time>` formatted string
         return num2pydate(
             self._bmi.get_current_time(),
             self._bmi.get_time_units(),
