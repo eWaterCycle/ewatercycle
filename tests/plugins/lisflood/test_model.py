@@ -79,7 +79,7 @@ class TestLFlatlonUseCase:
             "MaskMap": "$(PathMaps)/masksmall.map",
             "start_time": "1986-01-02T00:00:00Z",
             "end_time": "2018-01-02T00:00:00Z",
-        }
+        }.items()
         assert model.parameters == expected_parameters
 
     @pytest.fixture
@@ -243,7 +243,7 @@ class TestLFlatlonUseCase:
                 "MaskMap": f"{tmp_path}/custommask/mask",
                 "start_time": "1986-01-02T00:00:00Z",
                 "end_time": "2018-01-02T00:00:00Z",
-            }
+            }.items()
             assert model_with_setup[3].parameters == expected_parameters
 
 

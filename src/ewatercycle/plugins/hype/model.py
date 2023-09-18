@@ -3,7 +3,7 @@ import datetime
 import logging
 import types
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Any, ItemsView, Iterable, Optional
 
 import bmipy
 import xarray as xr
@@ -133,7 +133,7 @@ class Hype(ContainerizedModel):
         raise NotImplementedError("Hype coordinates cannot be mapped to grid")
 
     @property
-    def parameters(self) -> dict[str, Any]:
+    def parameters(self) -> ItemsView[str, Any]:
         """List the parameters for this model.
 
         Exposed Lisflood parameters:
@@ -157,7 +157,7 @@ class Hype(ContainerizedModel):
             "crit_time": _get_hype_time(
                 _get_code_in_cfg(self._config, "cdate")
             ).strftime(ISO_TIMEFMT),
-        }
+        }.items()
 
     def _coords_to_indices(
         self, name: str, lat: Iterable[float], lon: Iterable[float]

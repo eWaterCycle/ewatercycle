@@ -6,7 +6,7 @@ import inspect
 import logging
 from datetime import timezone
 from pathlib import Path
-from typing import Annotated, Any, Iterable, Optional, Type, cast
+from typing import Annotated, Any, ItemsView, Iterable, Optional, Type, cast
 
 import bmipy
 import numpy as np
@@ -83,9 +83,9 @@ class eWaterCycleModel(BaseModel, abc.ABC):
         """Attach a BMI instance to self._bmi."""
 
     @property
-    def parameters(self) -> dict[str, Any]:
+    def parameters(self) -> ItemsView[str, Any]:
         """Display the model's parameters and their values."""
-        return {}
+        return {}.items()
 
     def setup(self, *, cfg_dir: str | None = None, **kwargs) -> tuple[str, str]:
         """Perform model setup.
@@ -131,9 +131,10 @@ class eWaterCycleModel(BaseModel, abc.ABC):
     def _make_cfg_file(self, **kwargs):
         """Create new config file and return its path."""
         cfg_file = self._cfg_dir / "config.yaml"
-        self.parameters.update(**kwargs)
+        myparameters = dict(list(self.parameters))
+        myparameters.update(**kwargs)
         with cfg_file.open(mode="w") as file:
-            yaml.dump({k: v for k, v in self.parameters}, file)
+            yaml.dump({k: v for k, v in self.myparameters}, file)
 
         return cfg_file
 

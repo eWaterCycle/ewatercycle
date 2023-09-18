@@ -42,7 +42,7 @@ def test_version(mocked_model: eWaterCycleModel):
 
 
 def test_parameters(mocked_model: eWaterCycleModel):
-    assert mocked_model.parameters == {}
+    assert mocked_model.parameters == {}.items()
 
 
 class TestWithSetup:

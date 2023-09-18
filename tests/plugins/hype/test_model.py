@@ -140,7 +140,7 @@ class TestWithOnlyParameterSetAndDefaults:
             "start_time": "1961-01-01T00:00:00Z",
             "end_time": "1963-12-31T00:00:00Z",
             "crit_time": "1962-01-01T00:00:00Z",
-        }
+        }.items()
         assert model.parameters == expected
 
     def test_get_value_as_xarray(self, model):
@@ -250,7 +250,7 @@ class TestWithOnlyParameterSetAndFullSetup:
             "start_time": "2000-01-01T00:00:00Z",
             "end_time": "2010-12-31T00:00:00Z",
             "crit_time": "2002-01-01T00:00:00Z",
-        }
+        }.items()
         assert model.parameters == expected
 
 
@@ -393,5 +393,5 @@ class TestWithForcingAndDefaults:
             "start_time": "1986-01-02T00:00:00Z",
             "end_time": "2018-01-02T00:00:00Z",
             "crit_time": "1986-01-02T00:00:00Z",
-        }
+        }.items()
         assert model.parameters == expected

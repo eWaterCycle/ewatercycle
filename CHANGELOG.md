@@ -18,6 +18,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 - Functions of a model inside a container that return the same result each call are cached with [MemoizedBmi](https://grpc4bmi.readthedocs.io/en/latest/api/grpc4bmi.bmi_memoized.html#grpc4bmi.bmi_memoized.MemoizedBmi) ([#339](https://github.com/eWaterCycle/ewatercycle/pull/339))
 - Moved CaseConfig to src/utils.py
 - forcing.load_foreign has been superceded by using sources.model(...)
+- eWaterCycleModel.parameters property type is ItemsView instead of dict.
 
 ### Deprecated
 

@@ -4,7 +4,7 @@ import datetime
 import logging
 import shutil
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, ItemsView, Optional
 
 import bmipy
 import numpy as np
@@ -142,11 +142,11 @@ class Wflow(ContainerizedModel):
         return self._work_dir
 
     @property
-    def parameters(self) -> dict[str, Any]:
+    def parameters(self) -> ItemsView[str, Any]:
         return {
             "start_time": _wflow_to_iso(self._config.get("run", "starttime")),
             "end_time": _wflow_to_iso(self._config.get("run", "endtime")),
-        }
+        }.items()
 
 
 def _wflow_to_iso(time):
