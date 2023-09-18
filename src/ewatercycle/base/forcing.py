@@ -1,4 +1,30 @@
-"""Base classes for eWaterCycle forcings."""
+"""Base classes for eWaterCycle forcings.
+
+Configuring ESMValTool
+----------------------
+
+.. _esmvaltool-configuring:
+
+To download data from ESFG via ESMValTool you will need a ~/.esmvaltool/config-user.yml file with something like:
+
+.. code-block:: yaml
+
+    search_esgf: when_missing
+    download_dir: ~/climate_data
+    rootpath:
+        CMIP6: ~/climate_data/CMIP6
+    drs:
+        CMIP6: ESGF
+
+A config file can be generated with:
+
+.. code-block:: bash
+
+    esmvaltool config get-config-user
+
+See `ESMValTool configuring docs <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/quickstart/configure.html#user-configuration-file>`_
+for more information.
+"""
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -244,7 +270,8 @@ class GenericDistributedForcing(DefaultForcing):
                 tasmax='OBS6_ERA5_reanaly_1_day_tasmax_2000-2001.nc'
             )
 
-        To generate forcing from CMIP6 for the Rhine catchment for 2000-2001:
+        To generate forcing from CMIP6 for the Rhine catchment for 2000-2001
+        (make sure :ref:`ESMValTool is configured <esmvaltool-configuring>` correctly):
 
         .. code-block:: python
 
@@ -283,19 +310,6 @@ class GenericDistributedForcing(DefaultForcing):
                 tasmin='CMIP6_EC-Earth3_day_historical_r6i1p1f1_tasmin_gr_2000-2001.nc',
                 tasmax='CMIP6_EC-Earth3_day_historical_r6i1p1f1_tasmax_gr_2000-2001.nc'
             )
-
-        To retrieve data from ESFG you will need a ~/.esmvaltool/config-user.yml file with:
-
-        .. code-block:: yaml
-
-            search_esgf: when_missing
-            download_dir: ~/climate_data
-            rootpath:
-                CMIP6: ~/climate_data/CMIP6
-            drs:
-                CMIP6: BADC
-                # If Synda is installed then use SYNDA instead of BADC
-
     """
 
     pr: str
@@ -372,6 +386,32 @@ class GenericLumpedForcing(GenericDistributedForcing):
                 tasmin='OBS6_ERA5_reanaly_1_day_tasmin_2000-2001.nc',
                 tasmax='OBS6_ERA5_reanaly_1_day_tasmax_2000-2001.nc'
             )
+
+        To generate forcing from CMIP6 for the Rhine catchment for 2000-2001
+        (make sure :ref:`ESMValTool is configured <esmvaltool-configuring>` correctly):
+
+        .. code-block:: python
+
+            from pathlib import Path
+            from rich import print
+            from ewatercycle.base.forcing import GenericLumpedForcing
+
+            shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
+            cmip_dataset = {
+                "dataset": "EC-Earth3",
+                "project": "CMIP6",
+                "grid": "gr",
+                "exp": ["historical",],
+                "ensemble": "r6i1p1f1",
+            }
+
+            forcing = GenericLumpedForcing.generate(
+                dataset=cmip_dataset,
+                start_time="2000-01-01T00:00:00Z",
+                end_time="2001-01-01T00:00:00Z",
+                shape=shape.absolute(),
+            )
+            print(forcing)
     """
 
     # files returned by generate() have only time coordinate and zero lons/lats.
