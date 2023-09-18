@@ -36,9 +36,6 @@ def main(cfg):
         input_path = Path(input_file)
         outfile = get_diagnostic_filename(input_path.stem, cfg, input_path.suffix[1:])
         logger.info("Copying %s to %s", input_file, outfile)
-        # TODO copy or move?
-        # With move provenance chain is broken
-        # With copy we duplicate data
         shutil.copy(input_file, outfile)
         with ProvenanceLogger(cfg) as provenance_logger:
             provenance_logger.log(
