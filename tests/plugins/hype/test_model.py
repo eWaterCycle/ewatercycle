@@ -6,6 +6,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
+from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 
 from ewatercycle import CFG
 from ewatercycle.base.parameter_set import ParameterSet
@@ -154,12 +155,12 @@ class TestWithOnlyParameterSetAndDefaults:
             def get_var_grid(self, name):
                 return 1
 
-            def get_grid_x(self, grid_id):
+            def get_grid_x(self, grid_id, dest):
                 return np.array(
                     [5.8953929, 4.9553967, 5.6387277]
                 )  # x subbasin lons of subbasinsin hype
 
-            def get_grid_y(self, grid_id):
+            def get_grid_y(self, grid_id, dest):
                 return np.array(
                     [51.16437912, 50.21104813, 48.6910553]
                 )  # y are lats of subbasins in hype
@@ -177,11 +178,20 @@ class TestWithOnlyParameterSetAndDefaults:
             def get_var_nbytes(self, name):
                 return np.float64().size * 3 * 3
 
-        model._bmi = MockedBmi()
+            def get_grid_rank(self, grid):
+                return 2
+
+            def get_grid_shape(self, grid, shape):
+                return (3, 3)
+
+            def get_grid_type(self, grid):
+                return "rectilinear"
+
+        model._bmi = OptionalDestBmi(MockedBmi())
 
         actual = model.get_value_at_coords("comp outflow olake", lon=[5], lat=[50])
         assert actual == np.array([13.0])
-        assert model._bmi.indices == [1]
+        assert model._bmi.origin.indices == [1]
 
 
 class TestWithOnlyParameterSetAndFullSetup:

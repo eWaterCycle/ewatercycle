@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 from grpc import FutureTimeoutError
 from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
+from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 
 from ewatercycle import CFG
 from ewatercycle.base.parameter_set import ParameterSet
@@ -28,13 +29,13 @@ class MockedBmi(FailingModel):
     def get_var_grid(self, name):
         return 1
 
-    def get_grid_shape(self, grid_id):
+    def get_grid_shape(self, grid_id, dest):
         return 3, 2
 
-    def get_grid_y(self, grid_id):
+    def get_grid_y(self, grid_id, dest):
         return np.array([45.0, 46.0, 47.0])
 
-    def get_grid_x(self, grid_id):
+    def get_grid_x(self, grid_id, dest):
         return np.array([5.0, 6.0])
 
     def get_grid_spacing(self, grid_id):
@@ -52,6 +53,12 @@ class MockedBmi(FailingModel):
 
     def get_var_nbytes(self, name):
         return np.float64().size * 3 * 2
+
+    def get_grid_rank(self, grid):
+        return 2
+
+    def get_grid_type(self, grid):
+        return "rectilinear"
 
 
 @pytest.fixture
@@ -106,7 +113,7 @@ def model(parameter_set):
 @pytest.fixture
 def initialized_model(model):
     """Model with fake parameterset and fake BMI instance."""
-    model._bmi = MockedBmi()
+    model._bmi = OptionalDestBmi(MockedBmi())
     return model
 
 
@@ -196,4 +203,4 @@ def test_get_value_as_coords(initialized_model, caplog):
 
     assert msg1 in caplog.text and msg2 in caplog.text
     assert result == np.array([1.0])
-    assert model._bmi.indices == [4]
+    assert model._bmi.origin.indices == [4]
