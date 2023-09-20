@@ -38,8 +38,8 @@ from ewatercycle.esmvaltool.builder import (
     build_generic_distributed_forcing_recipe,
     build_generic_lumped_forcing_recipe,
 )
-from ewatercycle.esmvaltool.models import Dataset, Recipe
 from ewatercycle.esmvaltool.run import run_recipe
+from ewatercycle.esmvaltool.schema import Dataset, Recipe
 from ewatercycle.util import get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)

@@ -8,7 +8,7 @@ from typing import Literal, Sequence
 
 from ewatercycle.esmvaltool.datasets import DATASETS
 from ewatercycle.esmvaltool.diagnostic import copier
-from ewatercycle.esmvaltool.models import (
+from ewatercycle.esmvaltool.schema import (
     ClimateStatistics,
     Dataset,
     Diagnostic,

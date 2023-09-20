@@ -1,6 +1,6 @@
 """Forcing datasets."""
 
-from ewatercycle.esmvaltool.models import Dataset
+from ewatercycle.esmvaltool.schema import Dataset
 
 DATASETS = {
     "ERA5": Dataset(

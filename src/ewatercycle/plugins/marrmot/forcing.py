@@ -10,7 +10,7 @@ from scipy.io import loadmat
 
 from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.esmvaltool.builder import RecipeBuilder
-from ewatercycle.esmvaltool.models import Dataset, Recipe
+from ewatercycle.esmvaltool.schema import Dataset, Recipe
 
 
 class MarrmotForcing(DefaultForcing):

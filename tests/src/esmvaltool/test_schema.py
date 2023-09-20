@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from ewatercycle.esmvaltool.models import Recipe
+from ewatercycle.esmvaltool.schema import Recipe
 from ewatercycle.testing.helpers import reyamlify
 
 

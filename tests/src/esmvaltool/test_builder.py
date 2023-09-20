@@ -7,7 +7,7 @@ from ewatercycle.esmvaltool.builder import (
     build_generic_distributed_forcing_recipe,
     build_generic_lumped_forcing_recipe,
 )
-from ewatercycle.esmvaltool.models import Dataset
+from ewatercycle.esmvaltool.schema import Dataset
 from ewatercycle.testing.helpers import reyamlify
 
 

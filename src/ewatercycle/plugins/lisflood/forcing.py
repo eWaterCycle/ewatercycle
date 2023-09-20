@@ -6,7 +6,7 @@ from typing import Optional, cast
 
 from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.esmvaltool.builder import RecipeBuilder
-from ewatercycle.esmvaltool.models import Dataset, Recipe, TargetGrid
+from ewatercycle.esmvaltool.schema import Dataset, Recipe, TargetGrid
 from ewatercycle.plugins.lisflood.lisvap import create_lisvap_config, lisvap
 from ewatercycle.util import (
     fit_extents_to_grid,

@@ -7,7 +7,7 @@ from esmvalcore.config import CFG, Session
 from esmvalcore.experimental.recipe import Recipe as ESMValToolRecipe
 from esmvalcore.experimental.recipe_output import DataFile, ImageFile, RecipeOutput
 
-from ewatercycle.esmvaltool.models import Recipe
+from ewatercycle.esmvaltool.schema import Recipe
 
 logger = logging.getLogger(__name__)
 

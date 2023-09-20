@@ -8,7 +8,7 @@ import xarray as xr
 
 from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.esmvaltool.builder import RecipeBuilder
-from ewatercycle.esmvaltool.models import Dataset
+from ewatercycle.esmvaltool.schema import Dataset
 
 
 class HypeForcing(DefaultForcing):

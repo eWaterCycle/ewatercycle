@@ -6,7 +6,7 @@ from typing import Optional
 
 from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.esmvaltool.builder import RecipeBuilder
-from ewatercycle.esmvaltool.models import ClimateStatistics, Dataset, ExtractRegion
+from ewatercycle.esmvaltool.schema import ClimateStatistics, Dataset, ExtractRegion
 from ewatercycle.util import get_time
 
 
