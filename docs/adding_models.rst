@@ -21,6 +21,7 @@ There are roughly five steps to adding a model to eWaterCycle:
 3. :ref:`Make recipe`
 4. :ref:`Add to Python package`
 5. :ref:`Add to platform`
+6. :ref:`Custom forcing`
 
 If you want to add a new version of a model the procedure is roughly the
 same, but you can skip several steps. If you are already familiar with the
@@ -238,3 +239,84 @@ Adding a new version of a model involves the following code changes:
 * Create new release of Python package. Done by package maintainers
 
 .. _scripts: https://github.com/eWaterCycle/infra/tree/main/roles/prep_shared_data
+
+.. _Custom forcing:
+
+Custom forcing
+==============
+
+If your model can use generic forcing data
+(:py:class:`~ewatercycle.base.forcing.GenericDistributedForcing` or :py:class:`~ewatercycle.base.forcing.GenericLumpedForcing`), you can skip this section.
+
+If your model needs custom forcing data, you need to create your own forcing class.
+
+The forcing class should sub class :py:class:`~ewatercycle.base.forcing.DefaultForcing`.
+
+In the class you have to define attributes for the forcing files your model will need.
+
+To use a ESMValTool recipe you have to implement the :py:meth:`~ewatercycle.base.forcing.DefaultForcing._build_recipe` method.
+It should return a :py:class:`~ewatercycle.esmvaltool.models.Recipe` object which can be build using the
+:py:class:`~ewatercycle.esmvaltool.builder.RecipeBuilder` class.
+For example if your model only needs precipitation you can implement the method like this:
+
+.. code-block:: python
+
+  from ewatercycle.forcing import RecipeBuilder
+
+  ...
+
+  @classmethod
+  def _build_recipe(cls,
+      start_time: datetime,
+      end_time: datetime,
+      shape: Path,
+      dataset: Dataset | str | dict = "ERA5",
+  ):
+      return (
+        RecipeBuilder()
+        .start(start_time.year)
+        .end(end_time.year)
+        .shape(shape)
+        .dataset(dataset)
+        .add_variable("pr")
+        .build()
+      )
+
+If your ESMValTool recipe needs additional arguments you can add and document them by implementing the :py:meth:`~ewatercycle.base.forcing.DefaultForcing.generate` method like
+so
+
+.. code-block:: python
+
+    @classmethod
+    def generate(
+      cls,
+      <arguments of DefaultForcing>,
+      my_argument: str,
+    ):
+        """Generate forcing data for my model.
+
+        Args:
+            <arguments of DefaultForcing>
+            my_argument: My argument
+        """
+        return super().generate(
+            <arguments of DefaultForcing>,
+            my_argument=my_argument,
+        )
+
+
+The recipe output is mapped to the forcing class arguments with the :py:meth:`~ewatercycle.base.forcing.DefaultForcing._recipe_output_to_forcing_arguments` method.
+If you want to change the mapping you can override this method.
+
+If you do not want to use ESMValTool to generate recipes you can override the :py:meth:`~ewatercycle.base.forcing.DefaultForcing.generate` method.
+
+To list your forcing class in :py:const:`ewatercycle.forcing.sources` you have to register in the `ewatercycle.forcings` entry point group.
+It can then be imported with
+
+.. code-block:: python
+
+  from ewatercycle.forcings import sources
+
+  forcing = source['MyForcing'](
+    ...
+  )

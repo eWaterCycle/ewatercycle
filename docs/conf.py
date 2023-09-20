@@ -13,17 +13,6 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import sys
-# from pathlib import Path
-
-# src = Path(__file__).parent / ".." / "src"
-# sys.path.insert(0, str(src.absolute()))
-
-
 # -- General configuration ------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -201,3 +190,6 @@ intersphinx_mapping = {
     "sklearn": ("https://scikit-learn.org/stable", None),
     "xarray": ("https://docs.xarray.dev/en/stable/", None),
 }
+
+# Dont copy line number, >>> and ... from code blocks
+copybutton_exclude = ".linenos, .gp"

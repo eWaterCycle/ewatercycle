@@ -1,20 +1,14 @@
-"""Forcing related functionality for lisflood"""
+"""Forcing related functionality for lisflood."""
 
 import logging
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Optional, cast
 
-from esmvalcore.experimental import get_recipe
-
-from ewatercycle.base.forcing import (
-    DATASETS,
-    DefaultForcing,
-    _session,
-    run_esmvaltool_recipe,
-)
+from ewatercycle.base.forcing import DefaultForcing
+from ewatercycle.esmvaltool.builder import RecipeBuilder
+from ewatercycle.esmvaltool.schema import Dataset, Recipe, TargetGrid
 from ewatercycle.plugins.lisflood.lisvap import create_lisvap_config, lisvap
 from ewatercycle.util import (
-    data_files_from_recipe_output,
     fit_extents_to_grid,
     get_extents,
     get_time,
@@ -46,24 +40,26 @@ class LisfloodForcing(DefaultForcing):
         PrefixET0: Path to a NetCDF or pcraster file with potential
             (reference) evapotranspiration rate data
 
-    .. code-block:: python
+    Example:
 
-        from ewatercycle.forcing import sources
+    To load forcing data from a directory:
 
-        forcing = sources.LisfloodForcing(
-            directory='/data/lisflood-forcings-case1',
-            start_time='1989-01-02T00:00:00Z',
-            end_time='1999-01-02T00:00:00Z',
-            PrefixPrecipitation='tp.nc',
-            PrefixTavg='ta.nc',
-            PrefixE0='e.nc',
-            PrefixES0='es.nc',
-            PrefixET0='et.nc'
-        )
+        .. code-block:: python
+
+            from ewatercycle.forcing import sources
+
+            forcing = sources.LisfloodForcing(
+                directory='/data/lisflood-forcings-case1',
+                start_time='1989-01-02T00:00:00Z',
+                end_time='1999-01-02T00:00:00Z',
+                PrefixPrecipitation='tp.nc',
+                PrefixTavg='ta.nc',
+                PrefixE0='e.nc',
+                PrefixES0='es.nc',
+                PrefixET0='et.nc'
+            )
     """
 
-    # type ignored because pydantic wants literal in base class while mypy does not
-    model: Literal["lisflood"] = "lisflood"  # type: ignore
     PrefixPrecipitation: str = "pr.nc"
     PrefixTavg: str = "tas.nc"
     PrefixE0: str = "e0.nc"
@@ -74,7 +70,7 @@ class LisfloodForcing(DefaultForcing):
     @classmethod
     def generate(  # type: ignore
         cls,
-        dataset: str,
+        dataset: Dataset | str | dict,
         start_time: str,
         end_time: str,
         shape: str,
@@ -88,7 +84,11 @@ class LisfloodForcing(DefaultForcing):
         `ESMValTool <https://esmvaltool.org/>`_.
 
         Args:
-            dataset: Name of the source dataset. See :py:const:`~ewatercycle.base.forcing.DATASETS`.
+            dataset: Dataset to get forcing data from.
+                When string is given a predefined dataset is looked up in
+                :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
+                When dict given it is passed to
+                :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
             start_time: Start time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: nd time of forcing in UTC and ISO format string e.g.
@@ -105,87 +105,41 @@ class LisfloodForcing(DefaultForcing):
                     centers.
                 - ``start_latitude``: latitude at the center of the first grid cell.
                 - ``end_latitude``: longitude at the center of the last grid cell.
-                - ``step_latitude``: constant latitude distance between grid cell centers.
+                - ``step_latitude``: constant latitude distance between grid cell \
+                    centers.
 
-                Make sure the target grid matches up with the grid in the mask_map and files in parameterset_dir.
+                Make sure the target grid matches up with the grid in the mask_map
+                and files in parameterset_dir.
                 Also the `shape` should be within the target grid.
 
-                If not given will guestimate target grid from `shape` using a 0.1x0.1 grid with 0.05 offset.
-            run_lisvap: Lisvap specification. Default is None. If lisvap should be run then
+                If not given will guestimate target grid from `shape`
+                using a 0.1x0.1 grid with 0.05 offset.
+            run_lisvap: Lisvap specification. Default is None.
+                If lisvap should be run then
                 give a dictionary with following key/value pairs:
 
                     - lisvap_config: Name of Lisvap configuration file.
                     - mask_map: A mask for the spatial selection.
-                        This file should have same extent and resolution as parameter-set.
+                        This file should have same extent and resolution
+                        as parameter-set.
                     - parameterset_dir: Directory of the parameter set.
-                        Directory should contains the Lisvap config file and files the config points to.
+                        Directory should contains the Lisvap config file
+                        and files the config points to.
         """
-        # load the ESMValTool recipe
-        recipe_name = "hydrology/recipe_lisflood.yml"
-        recipe = get_recipe(recipe_name)
-
-        # model-specific updates to the recipe
-        preproc_names = (
-            "general",
-            "daily_water",
-            "daily_temperature",
-            "daily_radiation",
-            "daily_windspeed",
+        # Cannot call super as we want recipe_output not forcing object
+        start_year = get_time(start_time).year
+        end_year = get_time(end_time).year
+        recipe = build_lisflood_recipe(
+            start_year=start_year,
+            end_year=end_year,
+            shape=Path(shape),
+            dataset=dataset,
+            target_grid=target_grid,
         )
-
-        basin = to_absolute_path(shape).stem
-        for preproc_name in preproc_names:
-            recipe.data["preprocessors"][preproc_name]["extract_shape"][
-                "shapefile"
-            ] = shape
-        recipe.data["diagnostics"]["diagnostic_daily"]["scripts"]["script"][
-            "catchment"
-        ] = basin
-
-        if target_grid is None:
-            logger.warning("target_grid was not given, guestimating from shape")
-            step = 0.1
-            target_grid = fit_extents_to_grid(get_extents(shape), step=step)
-            target_grid.update(
-                {
-                    "step_longitude": step,
-                    "step_latitude": step,
-                }
-            )
-        for preproc_name in preproc_names:
-            preproc = recipe.data["preprocessors"][preproc_name]
-            # Remove stuff from old version of ESMValTool recipe, as regrid preproccesor takes care of region extraction.
-            if "extract_region" in preproc:
-                del preproc["extract_region"]
-                del preproc["custom_order"]
-                if "lon_offset" in preproc["regrid"]:
-                    del preproc["regrid"]["lon_offset"]
-                if "lat_offset" in preproc["regrid"]:
-                    del preproc["regrid"]["lat_offset"]
-            preproc["regrid"]["target_grid"] = target_grid
-
-        recipe.data["datasets"] = [DATASETS[dataset]]
-
-        variables = recipe.data["diagnostics"]["diagnostic_daily"]["variables"]
-        var_names = "pr", "tas", "tasmax", "tasmin", "tdps", "uas", "vas", "rsds"
-
-        startyear = get_time(start_time).year
-        for var_name in var_names:
-            variables[var_name]["start_year"] = startyear
-
-        endyear = get_time(end_time).year
-        for var_name in var_names:
-            variables[var_name]["end_year"] = endyear
-
-        # set crop to false to keep the entire globe (time consuming)
-        # because lisflood parameter set is global i.e.
-        # recipe.data["preprocessors"]["general"]["extract_shape"]["crop"] = False
-        # However, lisflood diagnostics line 144 gives error
-        # ValueError: The 'longitude' DimCoord points array must be strictly monotonic.
-
-        # generate forcing data and retrieve useful information
-        recipe_output = run_esmvaltool_recipe(recipe, directory)
-        directory, forcing_files = data_files_from_recipe_output(recipe_output)
+        forcing_files = cls._run_recipe(
+            recipe, directory=Path(directory) if directory else None
+        )
+        directory = forcing_files["directory"]
 
         if run_lisvap:
             # Get lisvap specific options and make paths absolute
@@ -206,15 +160,22 @@ class LisfloodForcing(DefaultForcing):
                     f"{reindexed_forcing_directory}/{forcing_files[var_name]}",
                 )
             # Add lisvap file names
+            basin = Path(shape).stem
             for var_name in {"e0", "es0", "et0"}:
                 forcing_files[
                     var_name
-                ] = f"lisflood_{dataset}_{basin}_{var_name}_{startyear}_{endyear}.nc"
+                ] = f"lisflood_{dataset}_{basin}_{var_name}_{start_year}_{end_year}.nc"
 
+            if isinstance(dataset, Dataset):
+                lisvap_dataset = dataset.dataset
+            elif isinstance(dataset, dict):
+                lisvap_dataset = dataset["dataset"]
+            else:
+                lisvap_dataset = dataset
             config_file = create_lisvap_config(
                 parameterset_dir,
                 str(reindexed_forcing_directory),
-                dataset,
+                lisvap_dataset,
                 lisvap_config,
                 mask_map,
                 start_time,
@@ -230,7 +191,7 @@ class LisfloodForcing(DefaultForcing):
             # TODO add a logger message about the results of lisvap using
             # exit_code, stdout, stderr
             # Instantiate forcing object based on generated data
-            generated_forcing = LisfloodForcing(
+            generated_forcing = cls(
                 directory=str(reindexed_forcing_directory),
                 start_time=start_time,
                 end_time=end_time,
@@ -249,8 +210,8 @@ class LisfloodForcing(DefaultForcing):
             )
             logger.warning("%s", message)
             # instantiate forcing object based on generated data
-            generated_forcing = LisfloodForcing(
-                directory=directory,
+            generated_forcing = cls(
+                directory=Path(directory),
                 start_time=start_time,
                 end_time=end_time,
                 shape=shape,
@@ -259,3 +220,58 @@ class LisfloodForcing(DefaultForcing):
             )
         generated_forcing.save()
         return generated_forcing
+
+
+def build_lisflood_recipe(
+    start_year: int,
+    end_year: int,
+    shape: Path,
+    dataset: Dataset | str | dict,
+    target_grid: Optional[dict] = None,
+) -> Recipe:
+    """Build an ESMValTool recipe for lisflood forcing.
+
+    Args:
+        start_year: Start year of forcing.
+        end_year: End year of forcing.
+        shape: Path to a shape file. Used for spatial selection.
+        dataset: Dataset to get forcing data from.
+            When string is given a predefined dataset is looked up in
+            :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
+            When dict given it is passed to
+            :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
+        target_grid: the ``target_grid`` should be a ``dict`` with the
+            following keys:
+                start_longitude, end_longitude, start_latitude, end_latitude
+    """
+    if target_grid is None:
+        logger.warning("target_grid was not given, guestimating from shape")
+        step = 0.1
+        target_grid = fit_extents_to_grid(get_extents(shape), step=step)
+        target_grid.update(
+            {
+                "step_longitude": step,
+                "step_latitude": step,
+            }
+        )
+
+    return (
+        RecipeBuilder()
+        .title("Lisflood forcing recipe")
+        .description("Lisflood forcing recipe")
+        .dataset(dataset)
+        .start(start_year)
+        .end(end_year)
+        .regrid(target_grid=cast(TargetGrid, target_grid), scheme="linear")
+        .shape(shape, crop=True)
+        .add_variable("pr", units="kg m-2 d-1")
+        .add_variable("tas", units="degC")
+        # Rest of variables are inputs for lisvap
+        .add_variable("tasmin", units="degC")
+        .add_variable("tasmax", units="degC")
+        .add_variable("tdps", units="degC", mip="Eday")
+        .add_variables(["uas", "vas"])
+        .add_variable("rsds", units="J m-2 day-1")
+        .script("hydrology/lisflood.py", {"catchment": shape.stem})
+        .build()
+    )

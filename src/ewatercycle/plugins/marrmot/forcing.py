@@ -1,20 +1,20 @@
-"""Forcing related functionality for marrmot."""
+"""Forcing related functionality for MARRMoT."""
 
 from datetime import datetime
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Optional
 
 import pandas as pd
 import xarray as xr
-from esmvalcore.experimental import get_recipe
 from scipy.io import loadmat
 
-from ewatercycle.base.forcing import DATASETS, DefaultForcing, run_esmvaltool_recipe
-from ewatercycle.util import get_time, to_absolute_path
+from ewatercycle.base.forcing import DefaultForcing
+from ewatercycle.esmvaltool.builder import RecipeBuilder
+from ewatercycle.esmvaltool.schema import Dataset, Recipe
 
 
 class MarrmotForcing(DefaultForcing):
-    """Container for marrmot forcing data.
+    """Container for MARRMoT forcing data.
 
     Args:
         directory: Directory where forcing data files are stored.
@@ -23,115 +23,86 @@ class MarrmotForcing(DefaultForcing):
         end_time: End time of forcing in UTC and ISO format string e.g.
             'YYYY-MM-DDTHH:MM:SSZ'.
         shape: Path to a shape file. Used for spatial selection.
-        forcing_file: Matlab file that contains forcings for Marrmot
+        forcing_file: Matlab file that contains forcings for MARRMoT
             models. See format forcing file in `model implementation
             <https://github.com/wknoben/MARRMoT/blob/8f7e80979c2bef941c50f2fb19ce4998e7b273b0/BMI/lib/marrmotBMI_oct.m#L15-L19>`_.
 
-    .. code-block:: python
+    Examples:
 
-        from ewatercycle.forcing import sources
+        From existing forcing data:
 
-        forcing = sources.MarrmotForcing(
-            'marmot',
-            directory='/data/marrmot-forcings-case1',
-            start_time='1989-01-02T00:00:00Z',
-            end_time='1999-01-02T00:00:00Z',
-            forcing_file='marrmot-1989-1999.mat'
-        )
+        .. code-block:: python
+
+            from ewatercycle.forcing import sources
+
+            forcing = sources.MarrmotForcing(
+                directory='/data/marrmot-forcings-case1',
+                start_time='1989-01-02T00:00:00Z',
+                end_time='1999-01-02T00:00:00Z',
+                forcing_file='marrmot-1989-1999.mat'
+            )
+
+        Generate from ERA5 forcing dataset and Rhine.
+
+        .. code-block:: python
+
+            from ewatercycle.forcing import sources
+            from ewatercycle.testing.fixtures import rhine_shape
+
+            shape = rhine_shape()
+            forcing = sources.MarrmotForcing.generate(
+                dataset='ERA5',
+                start_time='2000-01-01T00:00:00Z',
+                end_time='2001-01-01T00:00:00Z',
+                shape=shape,
+            )
     """
 
-    # type ignored because pydantic wants literal in base class while mypy does not
-    model: Literal["marrmot"] = "marrmot"  # type: ignore
     forcing_file: Optional[str] = "marrmot.mat"
 
     @classmethod
-    def generate(  # type: ignore
+    def _build_recipe(
         cls,
-        dataset: str,
-        start_time: str,
-        end_time: str,
-        shape: str,
-        directory: Optional[str] = None,
-    ) -> "MarrmotForcing":
-        # load the ESMValTool recipe
-        recipe_name = "hydrology/recipe_marrmot.yml"
-        recipe = get_recipe(recipe_name)
-
-        # model-specific updates to the recipe
-        basin = to_absolute_path(shape).stem
-        recipe.data["preprocessors"]["daily"]["extract_shape"]["shapefile"] = shape
-        recipe.data["diagnostics"]["diagnostic_daily"]["scripts"]["script"][
-            "basin"
-        ] = basin
-
-        recipe.data["diagnostics"]["diagnostic_daily"]["additional_datasets"] = [
-            DATASETS[dataset]
-        ]
-
-        variables = recipe.data["diagnostics"]["diagnostic_daily"]["variables"]
-        var_names = "tas", "pr", "psl", "rsds", "rsdt"
-
-        startyear = get_time(start_time).year
-        for var_name in var_names:
-            variables[var_name]["start_year"] = startyear
-
-        endyear = get_time(end_time).year
-        for var_name in var_names:
-            variables[var_name]["end_year"] = endyear
-
-        # generate forcing data and retrieve useful information
-        recipe_output = run_esmvaltool_recipe(recipe, directory)
-        task_output = recipe_output["diagnostic_daily/script"]
-
-        # check that recipe output contains only one .mat file
-        matlab_files = []
-        for datafile in task_output.files:
-            if datafile.path.suffix == ".mat":
-                matlab_files.append(datafile)
-
-        if len(matlab_files) == 0:
-            raise FileNotFoundError(
-                "No .mat files found in output directory: " + str(directory)
-            )
-        if len(matlab_files) > 1:
-            raise FileNotFoundError(
-                "More than one .mat files found in output directory: " + str(directory)
-            )
-
-        # everything ok so retreive paths
-        forcing_file: Path = matlab_files[0].path
-        directory = str(forcing_file.parent)
-
-        # instantiate forcing object based on generated data
-        generated_forcing = MarrmotForcing(
-            directory=directory,
-            start_time=start_time,
-            end_time=end_time,
+        start_time: datetime,
+        end_time: datetime,
+        shape: Path,
+        dataset: Dataset | str | dict,
+        **model_specific_options,
+    ):
+        return build_marrmot_recipe(
+            start_year=start_time.year,
+            end_year=end_time.year,
             shape=shape,
-            forcing_file=forcing_file.name,
+            dataset=dataset,
         )
-        generated_forcing.save()
-        return generated_forcing
+
+    @classmethod
+    def _recipe_output_to_forcing_arguments(cls, recipe_output, model_specific_options):
+        # key in recipe_output is concat of dataset, shape start year and end year
+        # for example 'marrmot_ERA5_Rhine_2000_2001.mat'
+        # instead of constructing key just use first and only value of dict
+        first_forcing_file = next(iter(recipe_output.values()))
+        return {"forcing_file": first_forcing_file}
 
     def to_xarray(self) -> xr.Dataset:
-        """Load forcing data from a matlab file into an xarray dataset.
+        """Load forcing data from a Matlab file into an xarray dataset.
 
         Returns:
             Dataset with forcing data.
-
-        Example:
-
-            >>> fn = forcing.directory / forcing.forcing_file
-            >>> ds = load_forcing_file(fn)
-            >>> ds
-
         """
-        dataset = loadmat(self.forcing_file, mat_dtype=True)
-        precip = dataset["forcing"]["precip"][0][0][0]
-        temp = dataset["forcing"]["temp"][0][0][0]
-        pet = dataset["forcing"]["pet"][0][0][0]
-        forcing_start = datetime(*map(int, dataset["time_start"][0][:3]))  # type: ignore
-        forcing_end = datetime(*map(int, dataset["time_end"][0][:3]))  # type: ignore
+        if self.directory is None or self.forcing_file is None:
+            raise ValueError("Directory or forcing_file is not set")
+        fn = self.directory / self.forcing_file
+        dataset = loadmat(fn, mat_dtype=True)
+        # Generated forcing with ewatercycle has shape (1, <nr timestamps>)
+        # Mat files from elsewhere can have shape (<nr timestamps>, 1)
+        precip = dataset["forcing"]["precip"][0][0].flatten()
+        temp = dataset["forcing"]["temp"][0][0].flatten()
+        pet = dataset["forcing"]["pet"][0][0].flatten()
+        time_start = dataset["time_start"][0][:3]
+        forcing_start = datetime(*map(int, time_start))  # type: ignore
+        time_end = dataset["time_end"][0][:3]
+        forcing_end = datetime(*map(int, time_end))  # type: ignore
         # store data as a pandas Series (deliberately keep default time: 00:00)
         index = pd.date_range(forcing_start, forcing_end, name="time")
         lat, lon = dataset["data_origin"][0]
@@ -164,3 +135,38 @@ class MarrmotForcing(DefaultForcing):
                 "history": "Created by ewatercycle.plugins.marrmot.forcing.MarrmotForcing.to_xarray()",
             },
         )
+
+
+def build_marrmot_recipe(
+    start_year: int,
+    end_year: int,
+    shape: Path,
+    dataset: Dataset | str | dict,
+) -> Recipe:
+    """Build an ESMValTool recipe for generating forcing for MARRMoT.
+
+    Args:
+        start_year: Start year of forcing.
+        end_year: End year of forcing.
+        shape: Path to a shape file. Used for spatial selection.
+        dataset: Dataset to get forcing data from.
+            When string is given a predefined dataset is looked up in
+            :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
+            When dict given it is passed to
+            :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
+    """
+    return (
+        RecipeBuilder()
+        .title("Generate forcing for the MARRMoT hydrological model")
+        .description("Generate forcing for the MARRMoT hydrological model")
+        .dataset(dataset)
+        .start(start_year)
+        .end(end_year)
+        .shape(shape)
+        # TODO do lumping in recipe preprocessor instead of in diagnostic script
+        # .lump()
+        .add_variables(("tas", "pr", "psl", "rsds"))
+        .add_variable("rsdt", mip="CFday")
+        .script("hydrology/marrmot.py", {"basin": shape.stem})
+        .build()
+    )

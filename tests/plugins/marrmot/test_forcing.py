@@ -1,25 +1,15 @@
 from pathlib import Path
 from textwrap import dedent
 
+import numpy as np
 import pytest
 from esmvalcore.experimental import Recipe
-from esmvalcore.experimental.recipe_output import OutputFile
+from esmvalcore.experimental.recipe_info import RecipeInfo
+from esmvalcore.experimental.recipe_output import RecipeOutput
 
 from ewatercycle.base.forcing import FORCING_YAML
-from ewatercycle.forcing import sources
-
-MarrmotForcing = sources["MarrmotForcing"]
-
-
-def test_plot():
-    forcing = MarrmotForcing(
-        directory=".",
-        start_time="1989-01-02T00:00:00Z",
-        end_time="1999-01-02T00:00:00Z",
-        forcing_file="marrmot.mat",
-    )
-    with pytest.raises(NotImplementedError):
-        forcing.plot()
+from ewatercycle.plugins.marrmot.forcing import MarrmotForcing, build_marrmot_recipe
+from ewatercycle.testing.helpers import reyamlify
 
 
 @pytest.fixture
@@ -27,16 +17,20 @@ def mock_recipe_run(monkeypatch, tmp_path):
     """Overload the `run` method on esmvalcore Recipe's."""
     recorder = {}
 
-    class MockTaskOutput:
-        fake_forcing_path = str(tmp_path / "marrmot.mat")
-        files = (OutputFile(fake_forcing_path),)
+    dummy_recipe_output = RecipeOutput(
+        {
+            "diagnostic/script": {
+                str(tmp_path / "marrmot.mat"): {},
+            }
+        },
+        info=RecipeInfo({"diagnostics": {"diagnostic": {}}}, "script"),
+    )
 
     def mock_run(self, session=None):
         """Store recipe for inspection and return dummy output."""
         nonlocal recorder
-        recorder["data_during_run"] = self.data
         recorder["session"] = session
-        return {"diagnostic_daily/script": MockTaskOutput()}
+        return dummy_recipe_output
 
     monkeypatch.setattr(Recipe, "run", mock_run)
     return recorder  # noqa: R504
@@ -131,28 +125,11 @@ class TestGenerate:
         )
         assert forcing == expected
 
-    def test_recipe_configured(
-        self, forcing, mock_recipe_run, reference_recipe, sample_shape
-    ):
-        actual = mock_recipe_run["data_during_run"]
-        # Remove long description and absolute path so assert is easier
-        actual_desc = actual["documentation"]["description"]
-        del actual["documentation"]["description"]
-        actual_shapefile = actual["preprocessors"]["daily"]["extract_shape"][
-            "shapefile"
-        ]
-        del actual["preprocessors"]["daily"]["extract_shape"]["shapefile"]
-
-        assert actual == reference_recipe
-        assert actual_shapefile == sample_shape
-        assert "MARRMoT" in actual_desc
-
     def test_saved_yaml_content(self, forcing, tmp_path):
         saved_forcing = (tmp_path / FORCING_YAML).read_text()
         # shape should is not included in the yaml file
         expected = dedent(
             """\
-        model: marrmot
         start_time: '1989-01-02T00:00:00Z'
         end_time: '1999-01-02T00:00:00Z'
         forcing_file: marrmot.mat
@@ -223,40 +200,17 @@ def test_generate_with_directory(mock_recipe_run, sample_shape, tmp_path):
 def test_generate_no_output_raises(monkeypatch, sample_shape):
     """Should raise when there is no .mat file in output."""
 
-    class MockTaskOutput:
-        files = ()
+    dummy_recipe_output = RecipeOutput(
+        {"diagnostic/script": {}},
+        info=RecipeInfo({"diagnostics": {"diagnostic": {}}}, "script"),
+    )
 
     def failing_recipe_run(self, session):
-        return {"diagnostic_daily/script": MockTaskOutput}
+        return dummy_recipe_output
 
     monkeypatch.setattr(Recipe, "run", failing_recipe_run)
 
-    with pytest.raises(FileNotFoundError):
-        MarrmotForcing.generate(
-            dataset="ERA5",
-            start_time="1989-01-02T00:00:00Z",
-            end_time="1999-01-02T00:00:00Z",
-            shape=sample_shape,
-        )
-
-
-def test_generate_wrong_output_raises(monkeypatch, sample_shape, tmp_path):
-    """Should raise when there are more than one .mat files in output."""
-
-    class MockTaskOutput:
-        fake_forcing_path1 = str(tmp_path / "marrmot.mat")
-        fake_forcing_path2 = str(tmp_path / "marrmot.mat")
-        files = (
-            OutputFile(fake_forcing_path1),
-            OutputFile(fake_forcing_path2),
-        )
-
-    def failing_recipe_run(self, session):
-        return {"diagnostic_daily/script": MockTaskOutput}
-
-    monkeypatch.setattr(Recipe, "run", failing_recipe_run)
-
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(ValueError):
         MarrmotForcing.generate(
             dataset="ERA5",
             start_time="1989-01-02T00:00:00Z",
@@ -284,3 +238,118 @@ def test_load_legacy_forcing(tmp_path):
     result = MarrmotForcing.load(tmp_path)
 
     assert result == expected
+
+
+def test_build_marrmot_recipe(sample_shape: str):
+    recipe = build_marrmot_recipe(
+        dataset="ERA5",
+        start_year=1990,
+        end_year=2001,
+        shape=Path(sample_shape),
+    )
+    recipe_as_string = recipe.to_yaml()
+
+    expected = dedent(
+        f"""\
+documentation:
+  title: Generate forcing for the MARRMoT hydrological model
+  description: Generate forcing for the MARRMoT hydrological model
+  authors:
+  - unmaintained
+  projects:
+  - ewatercycle
+datasets:
+- dataset: ERA5
+  project: OBS6
+  tier: 3
+  type: reanaly
+  version: 1
+preprocessors:
+  spatial:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+  tas:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+  pr:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+  psl:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+  rsds:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+  rsdt:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: false
+diagnostics:
+  diagnostic:
+    scripts:
+      script:
+        script: hydrology/marrmot.py
+        basin: Rhine
+    variables:
+      tas:
+        start_year: 1990
+        end_year: 2001
+        mip: day
+        preprocessor: tas
+      pr:
+        start_year: 1990
+        end_year: 2001
+        mip: day
+        preprocessor: pr
+      psl:
+        start_year: 1990
+        end_year: 2001
+        mip: day
+        preprocessor: psl
+      rsds:
+        start_year: 1990
+        end_year: 2001
+        mip: day
+        preprocessor: rsds
+      rsdt:
+        start_year: 1990
+        end_year: 2001
+        mip: CFday
+        preprocessor: rsdt
+                      """
+    )
+
+    assert recipe_as_string == reyamlify(expected)
+
+
+def test_to_xarray(sample_marrmot_forcing_file: str):
+    directory = Path(sample_marrmot_forcing_file).parent
+    forcing_file = Path(sample_marrmot_forcing_file).name
+    forcing = MarrmotForcing(
+        start_time="1989-01-01T00:00:00Z",
+        end_time="1992-12-31T00:00:00Z",
+        directory=str(directory),
+        forcing_file=forcing_file,
+    )
+
+    ds = forcing.to_xarray()
+
+    assert ds.attrs["title"] == "MARRMoT forcing data"
+    assert ds.precipitation.shape == (1, 1, 1461)
+    assert ds.temperature.shape == (1, 1, 1461)
+    assert ds.evspsblpot.shape == (1, 1, 1461)
+    assert ds.time.values[0] == np.datetime64("1989-01-01T00:00:00.000000000")
+    assert ds.time.values[-1] == np.datetime64("1992-12-31T00:00:00.000000000")
+    assert ds.lon.values == [87.49]
+    assert ds.lat.values == [35.29]
