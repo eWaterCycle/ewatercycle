@@ -5,7 +5,11 @@ from typing import Any, Type
 
 from importlib_metadata import EntryPoint
 
-from ewatercycle.base.forcing import DefaultForcing
+from ewatercycle.base.forcing import (
+    DefaultForcing,
+    GenericDistributedForcing,
+    GenericLumpedForcing,
+)
 
 
 class ForcingSources(Mapping):
@@ -18,14 +22,14 @@ class ForcingSources(Mapping):
         self._raw_dict = dict(*args, **kw)
 
     def __getitem__(self, key) -> Type[DefaultForcing]:
-        """Gets the entry point, loads it, and returns the Forcing object."""
+        """Get the entry point, loads it, and returns the Forcing object."""
         if isinstance(self._raw_dict[key], EntryPoint):
             return self._raw_dict[key].load()
         else:
             return self._raw_dict[key]
 
     def __getattr__(self, attr):
-        """Accesses the keys like attributes. E.g. sources.HypeForcing."""
+        """Access the keys like attributes. E.g. sources.HypeForcing."""
         if attr in self._raw_dict.keys():
             return self.__getitem__(attr)
         else:
@@ -42,10 +46,15 @@ class ForcingSources(Mapping):
 
 
 _forcings: dict[str, Any] = {
-    entry_point.name: entry_point
-    for entry_point in entry_points(group="ewatercycle.forcings")  # /NOSONAR
+    "GenericDistributedForcing": GenericDistributedForcing,
+    "GenericLumpedForcing": GenericLumpedForcing,
 }
-_forcings["DefaultForcing"] = DefaultForcing
+_forcings.update(
+    {
+        entry_point.name: entry_point
+        for entry_point in entry_points(group="ewatercycle.forcings")  # /NOSONAR
+    }
+)
 
 sources = ForcingSources(_forcings)
 """Dictionary filled with available forcing sources.
@@ -78,6 +87,8 @@ sources = ForcingSources(_forcings)
         >>> forcing = sources.DefaultForcing.load("path/to/forcing/directory")
 
 To get your own forcing source to be listed here it needs to be
-registered in the :py:data:`ewatercycle.forcings` `entry point group <https://packaging.python.org/en/latest/specifications/entry-points/>`_.
+registered in the `ewatercycle.forcings`
+`entry point group <https://packaging.python.org/en/latest/specifications/entry-points/>`_
+.
 
 """

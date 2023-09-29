@@ -1,25 +1,17 @@
-"""Forcing related functionality for pcrglobwb"""
+"""Forcing related functionality for PCR-GLOBWB."""
 
-from typing import Literal, Optional
+from datetime import datetime
+from pathlib import Path
+from typing import Optional
 
-from esmvalcore.experimental import get_recipe
-
-from ewatercycle.base.forcing import (
-    DATASETS,
-    DefaultForcing,
-    _session,
-    run_esmvaltool_recipe,
-)
-from ewatercycle.util import (
-    data_files_from_recipe_output,
-    get_extents,
-    get_time,
-    to_absolute_path,
-)
+from ewatercycle.base.forcing import DefaultForcing
+from ewatercycle.esmvaltool.builder import RecipeBuilder
+from ewatercycle.esmvaltool.schema import ClimateStatistics, Dataset, ExtractRegion
+from ewatercycle.util import get_time
 
 
 class PCRGlobWBForcing(DefaultForcing):
-    """Container for pcrglobwb forcing data.
+    """Container for PCR-GLOBWB forcing data.
 
     Args:
         directory: Directory where forcing data files are stored.
@@ -32,17 +24,53 @@ class PCRGlobWBForcing(DefaultForcing):
             'precipitation.nc'.
         temperatureNC (optional): Input file for temperature data. Defaults to
             'temperature.nc'
+
+    Example:
+
+        To generate forcing from ERA5 for the Rhine catchment for 2000-2001:
+
+        .. code-block:: python
+
+            from pathlib import Path
+
+            from rich import print
+
+            from ewatercycle.plugins.pcrglobwb.forcing import PCRGlobWBForcing
+
+            shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
+
+            forcing = PCRGlobWBForcing.generate(
+                dataset='ERA5',
+                start_time='2000-01-01T00:00:00Z',
+                end_time='2001-01-01T00:00:00Z',
+                shape=shape.absolute(),
+                start_time_climatology='2000-01-01T00:00:00Z',
+                end_time_climatology='2001-01-01T00:00:00Z',
+            )
+            print(forcing)
+
+        Gives something like:
+
+        .. code-block:: python
+
+            PCRGlobWBForcing(
+                model='pcrglobwb',
+                start_time='2000-01-01T00:00:00Z',
+                end_time='2001-01-01T00:00:00Z',
+                directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/ewcrephogjj0pt_20230816_095928/work/diagnostic/script'),
+                shape=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
+                precipitationNC='pcrglobwb_OBS6_ERA5_reanaly_*_day_pr_2000-2001_Rhine.nc',
+                temperatureNC='pcrglobwb_OBS6_ERA5_reanaly_*_day_tas_2000-2001_Rhine.nc'
+            )
     """
 
-    # type ignored because pydantic wants literal in base class while mypy does not
-    model: Literal["pcrglobwb"] = "pcrglobwb"  # type: ignore
     precipitationNC: Optional[str] = "precipitation.nc"
     temperatureNC: Optional[str] = "temperature.nc"
 
     @classmethod
     def generate(  # type: ignore
         cls,
-        dataset: str,
+        dataset: str | Dataset | dict,
         start_time: str,
         end_time: str,
         shape: str,
@@ -57,7 +85,11 @@ class PCRGlobWBForcing(DefaultForcing):
         `ESMValTool <https://esmvaltool.org/>`_.
 
         Args:
-            dataset: Name of the source dataset. See :py:const:`~ewatercycle.base.forcing.DATASETS`.
+            dataset: Dataset to get forcing data from.
+                When string is given a predefined dataset is looked up in
+                :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
+                When dict given it is passed to
+                :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
             start_time: Start time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: nd time of forcing in UTC and ISO format string e.g.
@@ -71,70 +103,112 @@ class PCRGlobWBForcing(DefaultForcing):
                 contain `start_longitude`, `end_longitude`, `start_latitude`,
                 `end_latitude`
         """
-        # load the ESMValTool recipe
-        recipe_name = "hydrology/recipe_pcrglobwb.yml"
-        recipe = get_recipe(recipe_name)
-
-        # model-specific updates to the recipe
-        preproc_names = (
-            "crop_basin",
-            "preproc_pr",
-            "preproc_tas",
-            "preproc_pr_clim",
-            "preproc_tas_clim",
-        )
-
-        if dataset is not None:
-            recipe.data["diagnostics"]["diagnostic_daily"]["additional_datasets"] = [
-                DATASETS[dataset]
-            ]
-
-        basin = to_absolute_path(shape).stem
-        recipe.data["diagnostics"]["diagnostic_daily"]["scripts"]["script"][
-            "basin"
-        ] = basin
-
-        if extract_region is None:
-            extract_region = get_extents(shape)
-        for preproc_name in preproc_names:
-            recipe.data["preprocessors"][preproc_name][
-                "extract_region"
-            ] = extract_region
-
-        variables = recipe.data["diagnostics"]["diagnostic_daily"]["variables"]
-        var_names = "tas", "pr"
-
-        startyear = get_time(start_time).year
-        for var_name in var_names:
-            variables[var_name]["start_year"] = startyear
-
-        endyear = get_time(end_time).year
-        for var_name in var_names:
-            variables[var_name]["end_year"] = endyear
-
-        var_names_climatology = "pr_climatology", "tas_climatology"
-
-        startyear_climatology = get_time(start_time_climatology).year
-        for var_name in var_names_climatology:
-            variables[var_name]["start_year"] = startyear_climatology
-
-        endyear_climatology = get_time(end_time_climatology).year
-        for var_name in var_names_climatology:
-            variables[var_name]["end_year"] = endyear_climatology
-
-        # generate forcing data and retrieve useful information
-        recipe_output = run_esmvaltool_recipe(recipe, directory)
-        # TODO dont open recipe output, but use standard name from ESMValTool
-        directory, forcing_files = data_files_from_recipe_output(recipe_output)
-
-        # instantiate forcing object based on generated data
-        generated_forcing = PCRGlobWBForcing(
-            directory=directory,
+        # method is replicated here to document the model specific options
+        return super(PCRGlobWBForcing, cls).generate(
+            dataset=dataset,
             start_time=start_time,
             end_time=end_time,
             shape=shape,
-            precipitationNC=forcing_files["pr"],
-            temperatureNC=forcing_files["tas"],
+            start_time_climatology=start_time_climatology,
+            end_time_climatology=end_time_climatology,
+            extract_region=extract_region,
+            directory=directory,
         )
-        generated_forcing.save()
-        return generated_forcing
+
+    @classmethod
+    def _build_recipe(
+        cls,
+        start_time: datetime,
+        end_time: datetime,
+        shape: Path,
+        dataset: Dataset | str | dict = "ERA5",
+        **model_specific_options,
+    ):
+        start_time_climatology = model_specific_options["start_time_climatology"]
+        end_time_climatology = model_specific_options["end_time_climatology"]
+        extract_region = model_specific_options["extract_region"]
+        return build_pcrglobwb_recipe(
+            start_year=start_time.year,
+            end_year=end_time.year,
+            shape=shape,
+            dataset=dataset,
+            start_year_climatology=get_time(start_time_climatology).year,
+            end_year_climatology=get_time(end_time_climatology).year,
+            extract_region=extract_region,
+        )
+
+    @classmethod
+    def _recipe_output_to_forcing_arguments(cls, recipe_output, model_specific_options):
+        # TODO dont rename recipe output, but use standard name from ESMValTool
+        return {
+            "precipitationNC": recipe_output["pr"],
+            "temperatureNC": recipe_output["tas"],
+        }
+
+
+def build_pcrglobwb_recipe(
+    start_year: int,
+    end_year: int,
+    shape: Path,
+    start_year_climatology: int,
+    end_year_climatology: int,
+    dataset: Dataset | str | dict,
+    extract_region: ExtractRegion | None = None,
+):
+    """Build an ESMValTool recipe for PCR-GLOBWB forcing.
+
+    Args:
+        start_year: The start year of the recipe.
+        end_year: The end year of the recipe.
+        shape: The shape of the region to extract.
+        start_year_climatology: The start year of the climatology.
+        end_year_climatology: The end year of the climatology.
+        dataset: Dataset to use for the recipe.
+            When string is given a predefined dataset is looked up in
+            :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
+            When dict given it is passed to
+            :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
+        extract_region: The region to extract.
+            When not given uses extents of shape.
+
+    Returns:
+        The recipe for PCR-GLOBWB forcing.
+    """
+    partial = (
+        RecipeBuilder()
+        .title("PCR-GLOBWB forcing recipe")
+        .description("PCR-GLOBWB forcing recipe")
+        .dataset(dataset)
+        .start(start_year)
+        .end(end_year)
+    )
+    if extract_region is None:
+        partial = partial.region_by_shape(shape)
+    else:
+        partial = partial.region(
+            start_longitude=extract_region["start_longitude"],
+            end_longitude=extract_region["end_longitude"],
+            start_latitude=extract_region["start_latitude"],
+            end_latitude=extract_region["end_latitude"],
+        )
+    return (
+        partial.add_variable("pr", units="kg m-2 d-1")
+        .add_variable("tas")
+        .add_variable(
+            "pr_climatology",
+            units="kg m-2 d-1",
+            stats=ClimateStatistics(operator="mean", period="day"),
+            short_name="pr",
+            start_year=start_year_climatology,
+            end_year=end_year_climatology,
+        )
+        .add_variable(
+            "tas_climatology",
+            stats=ClimateStatistics(operator="mean", period="day"),
+            short_name="tas",
+            start_year=start_year_climatology,
+            end_year=end_year_climatology,
+        )
+        .script("hydrology/pcrglobwb.py", {"basin": shape.stem})
+        .build()
+    )

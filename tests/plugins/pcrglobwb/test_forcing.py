@@ -1,33 +1,18 @@
 from pathlib import Path
 from textwrap import dedent
 
-import numpy as np
-import pandas as pd
 import pytest
-import xarray as xr
 from esmvalcore.experimental import Recipe
-from esmvalcore.experimental.recipe_output import DataFile
+from esmvalcore.experimental.recipe_info import RecipeInfo
+from esmvalcore.experimental.recipe_output import RecipeOutput
 
 from ewatercycle.base.forcing import FORCING_YAML
-from ewatercycle.forcing import sources
-
-PCRGlobWBForcing = sources["PCRGlobWBForcing"]
-
-
-def create_netcdf(var_name, filename):
-    var = 15 + 8 * np.random.randn(2, 2, 3)
-    lon = [[-99.83, -99.32], [-99.79, -99.23]]
-    lat = [[42.25, 42.21], [42.63, 42.59]]
-    ds = xr.Dataset(
-        {var_name: (["longitude", "latitude", "time"], var)},
-        coords={
-            "lon": (["longitude", "latitude"], lon),
-            "lat": (["longitude", "latitude"], lat),
-            "time": pd.date_range("2014-09-06", periods=3),
-        },
-    )
-    ds.to_netcdf(filename)
-    return DataFile(filename)
+from ewatercycle.plugins.pcrglobwb.forcing import (
+    PCRGlobWBForcing,
+    build_pcrglobwb_recipe,
+)
+from ewatercycle.testing.helpers import create_netcdf, reyamlify
+from ewatercycle.util import get_extents
 
 
 @pytest.fixture
@@ -35,18 +20,22 @@ def mock_recipe_run(monkeypatch, tmp_path):
     """Overload the `run` method on esmvalcore Recipe's."""
     data = {}
 
-    class MockTaskOutput:
-        data_files = (
-            create_netcdf("pr", tmp_path / "pcrglobwb_pr.nc"),
-            create_netcdf("tas", tmp_path / "pcrglobwb_tas.nc"),
-        )
+    dummy_recipe_output = RecipeOutput(
+        {
+            "diagnostic/script": {
+                create_netcdf("pr", tmp_path / "pcrglobwb_pr.nc"): {},
+                create_netcdf("tas", tmp_path / "pcrglobwb_tas.nc"): {},
+            }
+        },
+        info=RecipeInfo({"diagnostics": {"diagnostic": {}}}, "script"),
+    )
 
     def mock_run(self, session=None):
         """Store recipe for inspection and return dummy output."""
         nonlocal data
         data["data_during_run"] = self.data
         data["session"] = session
-        return {"diagnostic_daily/script": MockTaskOutput()}
+        return dummy_recipe_output
 
     monkeypatch.setattr(Recipe, "run", mock_run)
     return data
@@ -85,7 +74,7 @@ class TestGenerateWithExtractRegion:
         result = str(forcing)
         expected = "".join(
             [
-                "model='pcrglobwb' start_time='1989-01-02T00:00:00Z' end_time='1999-01-02T00:00:00Z' ",
+                "start_time='1989-01-02T00:00:00Z' end_time='1999-01-02T00:00:00Z' ",
                 f"directory={repr(tmp_path)} shape={repr(Path(sample_shape))} ",
                 "precipitationNC='pcrglobwb_pr.nc' temperatureNC='pcrglobwb_tas.nc'",
             ]
@@ -99,7 +88,6 @@ class TestGenerateWithExtractRegion:
         # shape should is not included in the yaml file
         expected = dedent(
             """\
-        model: pcrglobwb
         start_time: '1989-01-02T00:00:00Z'
         end_time: '1999-01-02T00:00:00Z'
         precipitationNC: pcrglobwb_pr.nc
@@ -160,3 +148,214 @@ def test_load_legacy_forcing(tmp_path):
     result = PCRGlobWBForcing.load(tmp_path)
 
     assert result == expected
+
+
+def test_build_pcrglobwb_recipe(sample_shape: str):
+    recipe = build_pcrglobwb_recipe(
+        start_year=1990,
+        end_year=2001,
+        shape=Path(sample_shape),
+        start_year_climatology=1980,
+        end_year_climatology=1990,
+        dataset="ERA5",
+    )
+    recipe_as_string = recipe.to_yaml()
+
+    # Should look similar to
+    # https://github.com/ESMValGroup/ESMValTool/blob/main/esmvaltool/recipes/hydrology/recipe_pcrglobwb.yml
+    expected = dedent(
+        """\
+documentation:
+  title: PCR-GLOBWB forcing recipe
+  description: PCR-GLOBWB forcing recipe
+  authors:
+  - unmaintained
+  projects:
+  - ewatercycle
+datasets:
+- dataset: ERA5
+  project: OBS6
+  tier: 3
+  type: reanaly
+  version: 1
+preprocessors:
+  spatial:
+    extract_region:
+      start_longitude: 4.1
+      end_longitude: 11.9
+      start_latitude: 46.3
+      end_latitude: 52.2
+  pr:
+    extract_region:
+      start_longitude: 4.1
+      end_longitude: 11.9
+      start_latitude: 46.3
+      end_latitude: 52.2
+    convert_units:
+      units: kg m-2 d-1
+  tas:
+    extract_region:
+      start_longitude: 4.1
+      end_longitude: 11.9
+      start_latitude: 46.3
+      end_latitude: 52.2
+  pr_climatology:
+    extract_region:
+      start_longitude: 4.1
+      end_longitude: 11.9
+      start_latitude: 46.3
+      end_latitude: 52.2
+    convert_units:
+      units: kg m-2 d-1
+    climate_statistics:
+      operator: mean
+      period: day
+  tas_climatology:
+    extract_region:
+      start_longitude: 4.1
+      end_longitude: 11.9
+      start_latitude: 46.3
+      end_latitude: 52.2
+    climate_statistics:
+      operator: mean
+      period: day
+diagnostics:
+  diagnostic:
+    scripts:
+      script:
+        script: hydrology/pcrglobwb.py
+        basin: Rhine
+    variables:
+      pr:
+        start_year: 1990
+        end_year: 2001
+        mip: day
+        preprocessor: pr
+      tas:
+        start_year: 1990
+        end_year: 2001
+        mip: day
+        preprocessor: tas
+      pr_climatology:
+        start_year: 1980
+        end_year: 1990
+        mip: day
+        preprocessor: pr_climatology
+        short_name: pr
+      tas_climatology:
+        start_year: 1980
+        end_year: 1990
+        mip: day
+        preprocessor: tas_climatology
+        short_name: tas
+        """
+    )
+    assert recipe_as_string == reyamlify(expected)
+
+
+def test_build_pcrglobwb_recipe_with_region(sample_shape: str):
+    extents = get_extents(sample_shape, 2)
+    recipe = build_pcrglobwb_recipe(
+        start_year=1990,
+        end_year=2001,
+        shape=Path(sample_shape),
+        start_year_climatology=1980,
+        end_year_climatology=1990,
+        dataset="ERA5",
+        extract_region={
+            "start_longitude": extents["start_longitude"],
+            "end_longitude": extents["end_longitude"],
+            "start_latitude": extents["start_latitude"],
+            "end_latitude": extents["end_latitude"],
+        },
+    )
+    recipe_as_string = recipe.to_yaml()
+
+    expected = dedent(
+        """\
+documentation:
+  title: PCR-GLOBWB forcing recipe
+  description: PCR-GLOBWB forcing recipe
+  authors:
+  - unmaintained
+  projects:
+  - ewatercycle
+datasets:
+- dataset: ERA5
+  project: OBS6
+  tier: 3
+  type: reanaly
+  version: 1
+preprocessors:
+  spatial:
+    extract_region:
+      start_longitude: 2.1
+      end_longitude: 13.9
+      start_latitude: 44.3
+      end_latitude: 54.2
+  pr:
+    extract_region:
+      start_longitude: 2.1
+      end_longitude: 13.9
+      start_latitude: 44.3
+      end_latitude: 54.2
+    convert_units:
+      units: kg m-2 d-1
+  tas:
+    extract_region:
+      start_longitude: 2.1
+      end_longitude: 13.9
+      start_latitude: 44.3
+      end_latitude: 54.2
+  pr_climatology:
+    extract_region:
+      start_longitude: 2.1
+      end_longitude: 13.9
+      start_latitude: 44.3
+      end_latitude: 54.2
+    convert_units:
+      units: kg m-2 d-1
+    climate_statistics:
+      operator: mean
+      period: day
+  tas_climatology:
+    extract_region:
+      start_longitude: 2.1
+      end_longitude: 13.9
+      start_latitude: 44.3
+      end_latitude: 54.2
+    climate_statistics:
+      operator: mean
+      period: day
+diagnostics:
+  diagnostic:
+    scripts:
+      script:
+        script: hydrology/pcrglobwb.py
+        basin: Rhine
+    variables:
+      pr:
+        start_year: 1990
+        end_year: 2001
+        mip: day
+        preprocessor: pr
+      tas:
+        start_year: 1990
+        end_year: 2001
+        mip: day
+        preprocessor: tas
+      pr_climatology:
+        start_year: 1980
+        end_year: 1990
+        mip: day
+        preprocessor: pr_climatology
+        short_name: pr
+      tas_climatology:
+        start_year: 1980
+        end_year: 1990
+        mip: day
+        preprocessor: tas_climatology
+        short_name: tas
+        """
+    )
+    assert recipe_as_string == reyamlify(expected)

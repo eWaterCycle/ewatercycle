@@ -82,6 +82,10 @@ class eWaterCycleModel(BaseModel, abc.ABC):
     def _make_bmi_instance(self) -> OptionalDestBmi:
         """Attach a BMI instance to self._bmi."""
 
+    # this has different signature than pymt see
+    # https://github.com/csdms/pymt/blob/9ef61a0010b4997d5a2b09e5d434371598291261/pymt/framework/bmi_setup.py#L77C21-L77C32
+    # where it is {}.items()
+    # TODO is this OK?
     @property
     def parameters(self) -> ItemsView[str, Any]:
         """Display the model's parameters and their values."""

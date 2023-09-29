@@ -16,10 +16,9 @@ from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.forcing import sources
 from ewatercycle.parameter_sets import example_parameter_sets
 from ewatercycle.plugins.lisflood.config import XmlConfig
+from ewatercycle.plugins.lisflood.forcing import LisfloodForcing
 from ewatercycle.plugins.lisflood.model import Lisflood
 from ewatercycle.testing.fake_models import FailingModel
-
-LisfloodForcing = sources["LisfloodForcing"]
 
 
 @pytest.fixture(scope="session")
@@ -41,6 +40,12 @@ def find_values_in_xml(tree, name):
     return set(values)
 
 
+# TODO the download can take a long time (> 4 minutes)
+# as it downloads over 500Mb
+# we could make it quicker by creating
+# a fake parameter set and forcing,
+# but then how do we make sure the fakes are correct?
+@pytest.mark.skip("Too slow")
 class TestLFlatlonUseCase:
     @pytest.fixture(scope="session")
     def parameterset(self, mocked_config):
@@ -54,7 +59,7 @@ class TestLFlatlonUseCase:
         forcing_dir = tmp_path / "forcing"
         forcing_dir.mkdir()
         meteo_dir = Path(parameterset.directory) / "meteo"
-        # Create the case where forcing data arenot part of parameter_set
+        # Create the case where forcing data are not part of parameter_set
         for file in meteo_dir.glob("*.nc"):
             shutil.copy(file, forcing_dir / f"my{file.stem}.nc")
 

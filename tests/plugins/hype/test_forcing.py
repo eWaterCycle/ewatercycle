@@ -5,26 +5,16 @@ from textwrap import dedent
 import pytest
 import xarray as xr
 from esmvalcore.experimental import Recipe
-from esmvalcore.experimental.recipe_output import OutputFile
+from esmvalcore.experimental.recipe_info import RecipeInfo
+from esmvalcore.experimental.recipe_output import RecipeOutput
 
 from ewatercycle.base.forcing import FORCING_YAML
-from ewatercycle.forcing import sources
-
-HypeForcing = sources["HypeForcing"]
-
-
-def test_plot():
-    f = HypeForcing(
-        directory=".",
-        start_time="1989-01-02T00:00:00Z",
-        end_time="1999-01-02T00:00:00Z",
-    )
-    with pytest.raises(NotImplementedError):
-        f.plot()
+from ewatercycle.plugins.hype.forcing import HypeForcing, build_hype_recipe
+from ewatercycle.testing.helpers import reyamlify
 
 
-def create_txt(dir: Path, var_name: str) -> OutputFile:
-    fn = dir / f"{var_name}.txt"
+def create_txt(path: Path, var_name: str) -> Path:
+    fn = path / f"{var_name}.txt"
     # Some dummy data shaped as the model expects it
     lines = [
         "DATE 300730 300822",
@@ -32,29 +22,31 @@ def create_txt(dir: Path, var_name: str) -> OutputFile:
         "1990-01-02 -0.308 -0.868",
     ]
     fn.write_text("\n".join(lines))
-    return OutputFile(fn)
+    return fn
 
 
 @pytest.fixture
 def mock_recipe_run(monkeypatch, tmp_path):
-    """Overload the `run` method on esmvalcore Recipe's."""
+    """Mock the `run` method on esmvalcore Recipe's."""
     recorder = {}
 
-    class MockTaskOutput:
-        fake_forcing_path = str(tmp_path / "marrmot.mat")
-        files = (
-            create_txt(tmp_path, "Tobs"),
-            create_txt(tmp_path, "TMINobs"),
-            create_txt(tmp_path, "TMAXobs"),
-            create_txt(tmp_path, "Pobs"),
-        )
+    dummy_recipe_output = RecipeOutput(
+        {
+            "diagnostic/script": {
+                create_txt(tmp_path, "Tobs"): {},
+                create_txt(tmp_path, "TMINobs"): {},
+                create_txt(tmp_path, "TMAXobs"): {},
+                create_txt(tmp_path, "Pobs"): {},
+            }
+        },
+        info=RecipeInfo({"diagnostics": {"diagnostic": {}}}, "script"),
+    )
 
     def mock_run(self, session=None):
-        """Store recipe for inspection and return dummy output."""
+        """Record run arguments for inspection and return dummy output."""
         nonlocal recorder
-        recorder["data_during_run"] = self.data
         recorder["session"] = session
-        return {"diagnostic_daily/script": MockTaskOutput()}
+        return dummy_recipe_output
 
     monkeypatch.setattr(Recipe, "run", mock_run)
     return recorder
@@ -71,100 +63,6 @@ class TestGenerate:
             end_time="1999-01-02T00:00:00Z",
             shape=sample_shape,
         )
-
-    @pytest.fixture
-    def expected_recipe(self):
-        return {
-            "datasets": [
-                {
-                    "dataset": "ERA5",
-                    "project": "OBS6",
-                    "tier": 3,
-                    "type": "reanaly",
-                    "version": 1,
-                }
-            ],
-            "diagnostics": {
-                "hype": {
-                    "description": "HYPE input preprocessor for daily " "data",
-                    "scripts": {"script": {"script": "hydrology/hype.py"}},
-                    "variables": {
-                        "pr": {
-                            "end_year": 1999,
-                            "mip": "day",
-                            "preprocessor": "water",
-                            "start_year": 1989,
-                        },
-                        "tas": {
-                            "end_year": 1999,
-                            "mip": "day",
-                            "preprocessor": "temperature",
-                            "start_year": 1989,
-                        },
-                        "tasmax": {
-                            "end_year": 1999,
-                            "mip": "day",
-                            "preprocessor": "temperature",
-                            "start_year": 1989,
-                        },
-                        "tasmin": {
-                            "end_year": 1999,
-                            "mip": "day",
-                            "preprocessor": "temperature",
-                            "start_year": 1989,
-                        },
-                    },
-                }
-            },
-            "documentation": {
-                "authors": ["pelupessy_inti", "kalverla_peter"],
-                "maintainer": ["unmaintained"],
-                "projects": ["ewatercycle"],
-                "references": ["acknow_project"],
-                "title": "Generate forcing for the Hype hydrological model",
-            },
-            "preprocessors": {
-                "preprocessor": {
-                    "area_statistics": {"operator": "mean"},
-                    "extract_shape": {
-                        "decomposed": True,
-                        "method": "contains",
-                    },
-                },
-                "temperature": {
-                    "area_statistics": {"operator": "mean"},
-                    "convert_units": {"units": "degC"},
-                    "extract_shape": {
-                        "decomposed": True,
-                        "method": "contains",
-                    },
-                },
-                "water": {
-                    "area_statistics": {"operator": "mean"},
-                    "convert_units": {"units": "kg m-2 d-1"},
-                    "extract_shape": {
-                        "decomposed": True,
-                        "method": "contains",
-                    },
-                },
-            },
-        }
-
-    def test_recipe_configured(
-        self, forcing, mock_recipe_run, expected_recipe, sample_shape
-    ):
-        actual = mock_recipe_run["data_during_run"]
-        # Remove absolute path so assert is easier
-        ps = actual["preprocessors"]
-        actual_shapefile = ps["preprocessor"]["extract_shape"]["shapefile"]
-        del ps["preprocessor"]["extract_shape"]["shapefile"]
-        # Remove long description and absolute path so assert is easier
-        actual_desc = actual["documentation"]["description"]
-        del actual["documentation"]["description"]
-
-        assert actual == expected_recipe
-        assert str(actual_shapefile) == sample_shape
-        assert "Hype" in actual_desc
 
     def test_result(self, forcing, tmp_path, sample_shape):
         expected = HypeForcing(
@@ -184,7 +82,6 @@ class TestGenerate:
         # shape should is not included in the yaml file
         expected = dedent(
             """\
-        model: hype
         start_time: '1989-01-02T00:00:00Z'
         end_time: '1999-01-02T00:00:00Z'
         Pobs: Pobs.txt
@@ -257,25 +154,102 @@ def test_with_directory(mock_recipe_run, sample_shape, tmp_path):
     assert mock_recipe_run["session"].session_dir == forcing_dir
 
 
-def test_load_legacy_forcing(tmp_path):
-    (tmp_path / FORCING_YAML).write_text(
-        """\
-        !HypeForcing
-        start_time: '1989-01-02T00:00:00Z'
-        end_time: '1999-01-02T00:00:00Z'
-        Pobs: Pobs.txt
-        TMAXobs: TMAXobs.txt
-        TMINobs: TMINobs.txt
-        Tobs: Tobs.txt
-    """
+def test_build_hype_recipe(sample_shape: str):
+    recipe = build_hype_recipe(
+        dataset="ERA5",
+        start_year=1990,
+        end_year=2001,
+        shape=Path(sample_shape),
     )
+    recipe_as_string = recipe.to_yaml()
 
-    expected = HypeForcing(
-        start_time="1989-01-02T00:00:00Z",
-        end_time="1999-01-02T00:00:00Z",
-        directory=tmp_path,
+    # Should look similar to
+    # https://github.com/ESMValGroup/ESMValTool/blob/main/esmvaltool/recipes/hydrology/recipe_hype.yml
+    expected = dedent(
+        f"""\
+documentation:
+  title: Hype forcing data
+  description: ''
+  authors:
+  - unmaintained
+  projects:
+  - ewatercycle
+datasets:
+- dataset: ERA5
+  project: OBS6
+  tier: 3
+  type: reanaly
+  version: 1
+preprocessors:
+  spatial:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: true
+    area_statistics:
+      operator: mean
+  tas:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: true
+    area_statistics:
+      operator: mean
+    convert_units:
+      units: degC
+  tasmin:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: true
+    area_statistics:
+      operator: mean
+    convert_units:
+      units: degC
+  tasmax:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: true
+    area_statistics:
+      operator: mean
+    convert_units:
+      units: degC
+  pr:
+    extract_shape:
+      shapefile: {sample_shape}
+      crop: true
+      decomposed: true
+    area_statistics:
+      operator: mean
+    convert_units:
+      units: kg m-2 d-1
+diagnostics:
+  diagnostic:
+    scripts:
+      script:
+        script: hydrology/hype.py
+    variables:
+      tas:
+        start_year: 1990
+        end_year: 2001
+        mip: day
+        preprocessor: tas
+      tasmin:
+        start_year: 1990
+        end_year: 2001
+        mip: day
+        preprocessor: tasmin
+      tasmax:
+        start_year: 1990
+        end_year: 2001
+        mip: day
+        preprocessor: tasmax
+      pr:
+        start_year: 1990
+        end_year: 2001
+        mip: day
+        preprocessor: pr
+        """
     )
-
-    result = HypeForcing.load(tmp_path)
-
-    assert result == expected
+    assert recipe_as_string == reyamlify(expected)
