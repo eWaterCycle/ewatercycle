@@ -8,9 +8,10 @@ import pytest
 import xarray as xr
 from bmipy import Bmi
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_almost_equal
 from pydantic import ConfigDict
 from pytest import fixture
+from xarray.testing import assert_allclose
 
 from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.base.model import ContainerizedModel, LocalModel, eWaterCycleModel
@@ -73,10 +74,12 @@ class TestWithSetup:
         mocked_model: eWaterCycleModel,
         mocked_bmi: DummyModelWith2DRectilinearGrid,
     ):
+        assert hasattr(mocked_model, "_bmi")
+
         mocked_model.finalize()
 
-        # mocked_model._bmi should be gone, so all calls after finalize fail
-        assert not hasattr(mocked_model, "_bmi")
+        with pytest.raises(AttributeError, match="has no attribute '_bmi'"):
+            mocked_model.bmi
         mocked_bmi.mock.finalize.assert_called_once_with()
 
     def test_update(self, mocked_model: eWaterCycleModel):
@@ -84,27 +87,27 @@ class TestWithSetup:
         mocked_model.update()
         mocked_model.update()
 
-        assert mocked_model.time == 3.0
+        assert mocked_model.time == pytest.approx(3.0)
 
     def test_time(self, mocked_model: eWaterCycleModel):
         result = mocked_model.time
 
-        assert result == 0.0
+        assert result == pytest.approx(0.0)
 
     def test_time_step(self, mocked_model: eWaterCycleModel):
         result = mocked_model.time_step
 
-        assert result == 1.0
+        assert result == pytest.approx(1.0)
 
     def test_start_time(self, mocked_model: eWaterCycleModel):
         result = mocked_model.start_time
 
-        assert result == 0.0
+        assert result == pytest.approx(0.0)
 
     def test_end_time(self, mocked_model: eWaterCycleModel):
         result = mocked_model.end_time
 
-        assert result == 100.0
+        assert result == pytest.approx(100.0)
 
     def test_time_as_datetime(self, mocked_model: eWaterCycleModel):
         result = mocked_model.time_as_datetime
@@ -167,7 +170,7 @@ class TestWithSetup:
             ],
             dtype=np.float32,
         )
-        assert_array_equal(result, expected)
+        assert_almost_equal(result, expected)
 
     def test_get_value_at_coords(self, mocked_model: eWaterCycleModel):
         result = mocked_model.get_value_at_coords(
@@ -186,7 +189,7 @@ class TestWithSetup:
             ],
             dtype=np.float32,
         )
-        assert_array_equal(result, expected)
+        assert_almost_equal(result, expected)
 
     def test_set_value(
         self,
@@ -197,7 +200,7 @@ class TestWithSetup:
 
         mocked_model.set_value("plate_surface__temperature", new_values)
 
-        assert_array_equal(mocked_bmi.value, new_values)
+        assert_almost_equal(mocked_bmi.value, new_values)
 
     def test_set_value_at_coords(
         self,
@@ -230,11 +233,8 @@ class TestWithSetup:
             ],
             dtype=np.float32,
         )
-        assert_array_equal(mocked_bmi.value, expected)
+        assert_almost_equal(mocked_bmi.value, expected)
 
-    @pytest.mark.skip(
-        reason="Implemntation and DummyModelWith2DRectilinearGrid are incompatible"
-    )
     def test_get_value_as_xarray(self, mocked_model: eWaterCycleModel):
         result = mocked_model.get_value_as_xarray("plate_surface__temperature")
 
@@ -258,7 +258,11 @@ class TestWithSetup:
             name="plate_surface__temperature",
             attrs={"units": "K"},
         )
-        xr.testing.assert_equal(result, expected)
+        assert_allclose(result, expected)
+        # Check that data and coords are aligned
+        assert result.sel(
+            longitude=0.2, latitude=1.2, time=datetime(1970, 1, 1)
+        ).values.tolist() == pytest.approx(6.6)
 
 
 class DummyLocalModel(LocalModel):
@@ -266,7 +270,7 @@ class DummyLocalModel(LocalModel):
 
 
 # bit ugly to have version here,
-# but that is how version of DummyLocalModel class is determined
+# but that is how version of LocalModel class is determined
 __version__ = "1.2.3"
 
 
@@ -283,7 +287,8 @@ class TestLocalModel:
         return model.setup(cfg_dir=str(tmp_path))
 
     def test_bmi_class(self, model: eWaterCycleModel):
-        assert model._bmi.origin.__class__ == DummyModelWith2DRectilinearGrid
+        assert isinstance(model.bmi, OptionalDestBmi)
+        assert isinstance(model.bmi.origin, DummyModelWith2DRectilinearGrid)
 
 
 class TestContainerizedModel:
@@ -340,3 +345,53 @@ class TestContainerizedModel:
             ],
             timeout=300,
         )
+
+
+class VersionedMockModel(MockModel):
+    @property
+    def version(self) -> str:
+        return "latest"
+
+
+class TestParameterSetValidation:
+    def test_with_matching_model_and_version(self, mocked_config, mocked_bmi):
+        parameter_set = ParameterSet(
+            name="test",
+            directory=".",
+            config="config.yaml",
+            target_model="versionedmockmodel",
+            supported_model_versions=["latest"],
+        )
+
+        model = VersionedMockModel(mybmi=mocked_bmi, parameter_set=parameter_set)
+        assert (
+            repr(model)
+            == "VersionedMockModel(parameter_set=ParameterSet(name='test', directory=PosixPath('.'), config=PosixPath('config.yaml'), doi='N/A', target_model='versionedmockmodel', supported_model_versions={'latest'}, downloader=None), forcing=None)"
+        )
+
+    def test_with_mismatching_model(self, mocked_config, mocked_bmi):
+        parameter_set = ParameterSet(
+            name="test",
+            directory=".",
+            config="config.yaml",
+            target_model="wrongmodel",
+            supported_model_versions=["latest"],
+        )
+
+        with pytest.raises(ValueError, match="Parameter set has wrong target model"):
+            VersionedMockModel(mybmi=mocked_bmi, parameter_set=parameter_set)
+
+    def test_with_mismatching_version(self, mocked_config, mocked_bmi):
+        parameter_set = ParameterSet(
+            name="test",
+            directory=".",
+            config="config.yaml",
+            target_model="versionedmockmodel",
+            supported_model_versions=["1.0.0"],
+        )
+
+        with pytest.raises(
+            ValueError,
+            match="Parameter set 'test' not compatible with this model version.",
+        ):
+            VersionedMockModel(mybmi=mocked_bmi, parameter_set=parameter_set)

@@ -145,9 +145,9 @@ class NotImplementedModel(FailingModel):
 
 
 class WithMocksMixin:
-    """Mock the bmi methods that return None and have no getter equivalent.
+    """Mock the bmi methods that return None and have no getter companion.
 
-    Use `instance._mock.<method name>.assert_called_once_with()`
+    Use `instance.mock.<method name>.assert_called_once_with()`
     to check if the method is called correctly.
     """
 
@@ -162,6 +162,11 @@ class WithMocksMixin:
 
 
 class WithDailyMixin:
+    """Mock the bmi methods that deal wtih time.
+
+    Behaves like a daily model which started since epoch.
+    """
+
     def __init__(self) -> None:
         self.time = 0.0
 
@@ -189,7 +194,9 @@ class DummyModelWith2DRectilinearGrid(
 ):
     def __init__(self):
         super().__init__()
-        WithDailyMixin.__init__(self)
+        # not sure why extra call to init is needed,
+        # but without the self.time is not initialized
+        WithMocksMixin.__init__(self)
         WithDailyMixin.__init__(self)
         self.dtype = np.dtype("float32")
         self.value = np.array(
