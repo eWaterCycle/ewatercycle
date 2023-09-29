@@ -191,7 +191,7 @@ class TestWithOnlyParameterSetAndDefaults:
 
         actual = model.get_value_at_coords("comp outflow olake", lon=[5], lat=[50])
         assert actual == np.array([13.0])
-        assert model._bmi.origin.indices == [1]
+        assert model.bmi.origin.indices == [1]
 
 
 class TestWithOnlyParameterSetAndFullSetup:

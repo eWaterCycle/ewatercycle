@@ -156,7 +156,7 @@ class TestLFlatlonUseCase:
             assert msg[0] in caplog.text
             assert msg[1] in caplog.text
             assert result == np.array([1.0])
-            assert model._bmi.origin.indices == [311]
+            assert model.bmi.origin.indices == [311]
 
         def test_get_value_at_coords_multiple(self, model: Lisflood):
             model._bmi = OptionalDestBmi(MockedBmi())
@@ -165,7 +165,7 @@ class TestLFlatlonUseCase:
                 lon=[-124.45, -124.35, -121.45],
                 lat=[53.95, 52.93, 52.65],
             )
-            assert_array_equal(model._bmi.origin.indices, [0, 311, 433])
+            assert_array_equal(model.bmi.origin.indices, [0, 311, 433])
 
         def test_get_value_at_coords_faraway(self, model: Lisflood):
             model._bmi = OptionalDestBmi(MockedBmi())

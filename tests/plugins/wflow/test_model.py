@@ -203,4 +203,4 @@ def test_get_value_as_coords(initialized_model, caplog):
 
     assert msg1 in caplog.text and msg2 in caplog.text
     assert result == np.array([1.0])
-    assert model._bmi.origin.indices == [4]
+    assert model.bmi.origin.indices == [4]
