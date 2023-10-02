@@ -4,9 +4,9 @@ import abc
 import datetime
 import inspect
 import logging
+from collections.abc import ItemsView
 from datetime import timezone
 from pathlib import Path
-from collections.abc import ItemsView
 from typing import Annotated, Any, Iterable, Optional, Type, cast
 
 import bmipy
