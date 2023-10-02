@@ -73,12 +73,12 @@ class DefaultForcing(BaseModel):
     # TODO make sure start_time < end_time
     start_time: str
     end_time: str
-    directory: Optional[Annotated[Path, AfterValidator(_to_absolute_path)]] = None
+    directory: Annotated[Path, AfterValidator(_to_absolute_path)]
     shape: Optional[Path] = None
 
     @model_validator(mode="after")
     def _absolute_shape(self):
-        if self.shape is not None and self.directory is not None:
+        if self.shape is not None:
             self.shape = to_absolute_path(
                 self.shape, parent=self.directory, must_be_in_parent=False
             )
