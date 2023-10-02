@@ -15,7 +15,7 @@ There are roughly three steps to adding a model to eWaterCycle:
 
 To help you add yout model to eWaterCycle, you use the flowchart below.
 
-.. image:: images/adding_models_to_ewatercycle.svg
+.. image:: _static/flowchart_ewatercycle.excalidraw.svg
    :width: 100%
    :alt: Flowchart for adding models to eWaterCycle
 
