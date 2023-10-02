@@ -13,11 +13,10 @@ There are roughly three steps to adding a model to eWaterCycle:
 2. :ref:`eWaterCycle plugin`
 3. :ref:`Custom forcing` (Optional)
 
-To help you add yout model to eWaterCycle, you use the flowchart below.
+Use the flowchart below to determine which steps are required for your model.
 
-.. image:: _static/flowchart_ewatercycle.excalidraw.svg
-   :width: 100%
-   :alt: Flowchart for adding models to eWaterCycle
+.. raw:: html
+    :file: _static/flowchart_ewatercycle.excalidraw.svg
 
 .. _BMI model:
 
