@@ -6,7 +6,8 @@ import inspect
 import logging
 from datetime import timezone
 from pathlib import Path
-from typing import Annotated, Any, ItemsView, Iterable, Optional, Type, cast
+from collections.abc import ItemsView
+from typing import Annotated, Any, Iterable, Optional, Type, cast
 
 import bmipy
 import numpy as np
