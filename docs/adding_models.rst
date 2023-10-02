@@ -26,7 +26,7 @@ Create a model which exposes the Basic Model Interface (BMI)
 Models in eWaterCycle follow the `Basic Model
 Interface <https://bmi.readthedocs.io>`_. You can either write a model that
 directly exposes this interface, but the more common use case is to add a
-wrapper around an existing model. 
+wrapper around an existing model.
 
 The `https://github.com/eWaterCycle/leakybucket-bmi <https://github.com/eWaterCycle/leakybucket-bmi>`_ repository contains a simple example of a BMI model.
 It can be used as a template for your own model.
