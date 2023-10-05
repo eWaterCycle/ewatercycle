@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, ItemsView
 
 from pydantic import PrivateAttr, model_validator
 
@@ -137,7 +137,7 @@ class Lisflood(ContainerizedModel):
         return lisflood_file
 
     @property
-    def parameters(self) -> dict[str, Any]:
+    def parameters(self) -> ItemsView[str, Any]:
         """List the parameters for this model.
 
         Exposed Lisflood parameters:
@@ -158,7 +158,7 @@ class Lisflood(ContainerizedModel):
             "MaskMap": self._get_textvar_value("MaskMap"),
             "start_time": get_time(self.forcing.start_time).strftime(ISO_TIMEFMT),
             "end_time": get_time(self.forcing.end_time).strftime(ISO_TIMEFMT),
-        }
+        }.items()
 
     def finalize(self) -> None:
         """Perform tear-down tasks for the model."""

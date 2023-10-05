@@ -4,7 +4,7 @@ import datetime
 import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, ItemsView, Literal
 
 import scipy.io as sio
 from pydantic import PrivateAttr, model_validator
@@ -136,7 +136,7 @@ class MarrmotM01(ContainerizedModel):
         return config_file
 
     @property
-    def parameters(self) -> dict[str, Any]:
+    def parameters(self) -> ItemsView[str, Any]:
         """List MarrmotM01's parameters and their values.
 
         Model parameters:
@@ -157,7 +157,7 @@ class MarrmotM01(ContainerizedModel):
             "solver": get_solver(self._config),
             "start time": get_marrmot_time(self._config, "start"),
             "end time": get_marrmot_time(self._config, "end"),
-        }
+        }.items()
 
 
 M14_PARAMS = (
@@ -272,7 +272,7 @@ class MarrmotM14(ContainerizedModel):
         return config_file
 
     @property
-    def parameters(self) -> dict[str, Any]:
+    def parameters(self) -> ItemsView[str, Any]:
         """List the parameters for this model.
 
         Exposed Marrmot M14 parameters:
@@ -304,4 +304,4 @@ class MarrmotM14(ContainerizedModel):
                 "end time": get_marrmot_time(self._config, "end"),
             }
         )
-        return pars
+        return pars.items()

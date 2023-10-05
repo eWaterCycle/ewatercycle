@@ -26,6 +26,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 - Forcing ((#365)[https://github.com/eWaterCycle/ewatercycle/pull/365]):
   - Instead of modifying an existing recipe now builds a ESMValTool recipe from scratch using a fluent interface
   - DefaultForcing has overridable class methods for each step of the forcing generation process (build_recipe, run_recipe, recipe_output_to_forcing_arguments).
+- eWaterCycleModel.parameters property type is ItemsView instead of dict.
 
 ### Deprecated
 
