@@ -5,7 +5,6 @@ channels:
 dependencies:
   - python==3.10
   - esmvaltool-python>=2.3.0
-  - subversion
   # Pin esmpy so we dont get forced to run all parallel tasks on single cpu
   # Can be removed once
   # https://github.com/ESMValGroup/ESMValCore/issues/1208 is resolved.
