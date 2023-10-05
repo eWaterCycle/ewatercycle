@@ -8,7 +8,7 @@ how to add a new model as a plugin.
 
 Each plugin has its own documentation. Below is a list of all known plugins:
 
-* :doc:`Hype <plugins/hype/index>`
+* `Hype <https://github.com/eWaterCycle/ewatercycle-hype>`_
 * :doc:`LISFLOOD <plugins/lisflood/index>`
 * :doc:`MARRMoT <plugins/marrmot/index>`
 * :doc:`PCRGlobWB <plugins/pcrglobwb/index>`
