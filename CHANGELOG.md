@@ -34,15 +34,13 @@ The eWatercycle package no longer contains models and their forcing and/or examp
   - DefaultForcing has overridable class methods for each step of the forcing generation process (build_recipe, run_recipe, recipe_output_to_forcing_arguments).
 - eWaterCycleModel.parameters property type is ItemsView instead of dict.
 
-### Removed
-
-- Models live in their own repository as a eWatercycle plugin. ([#371](https://github.com/eWaterCycle/ewatercycle/issues/371))
-
 ### Deprecated
 
 - Singularity support ([#290](https://github.com/eWaterCycle/ewatercycle/issues/290))
 
-## Removed
+### Removed
+
+- Models live in their own repository as a eWatercycle plugin. ([#371](https://github.com/eWaterCycle/ewatercycle/issues/371))
 - Removed parametersetdb module. XmlConfig moved to lisflood plugin. YamlConfig & IniConfig have been removed.
 
 ## [1.4.1] (2022-12-20)
