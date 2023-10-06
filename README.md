@@ -47,6 +47,12 @@ The ewatercycle package is installed with
 pip install ewatercycle
 ```
 
+The ewatercycle package ships without any models. Models are packaged in [plugins](https://ewatercycle.readthedocs.io/en/latest/plugins.html). To install all endorsed plugins use
+
+```shell
+pip install ewatercycle-hype ewatercycle-lisflood ewatercycle-marrmot ewatercycle-pcrglobwb ewatercycle-wflow  ewatercycle-leakybucket
+```
+
 Besides installing software you will need to create a configuration
 file, download several data sets and get container images. See the
 [system setup
