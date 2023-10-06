@@ -6,6 +6,12 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+## [2.0.0b1] (2023-10-06)
+
+### Breaking changes
+
+The eWatercycle package no longer contains models and their forcing and/or example parameter sets. Instead, models are now plugins that can be installed separately. See https://ewatercycle.readthedocs.io/en/latest/plugins.html for a list of endorsed plugins.
+
 ### Added
 
 - Apptainer support ([#290](https://github.com/eWaterCycle/ewatercycle/issues/290))
@@ -27,6 +33,10 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
   - Instead of modifying an existing recipe now builds a ESMValTool recipe from scratch using a fluent interface
   - DefaultForcing has overridable class methods for each step of the forcing generation process (build_recipe, run_recipe, recipe_output_to_forcing_arguments).
 - eWaterCycleModel.parameters property type is ItemsView instead of dict.
+
+### Removed
+
+- Models live in their own repository as a eWatercycle plugin. ([#371](https://github.com/eWaterCycle/ewatercycle/issues/371))
 
 ### Deprecated
 
@@ -192,7 +202,8 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/1.4.1...HEAD
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.0.0b1...HEAD
+[2.0.0b1]: https://github.com/eWaterCycle/ewatercycle/compare/1.4.1...2.0.0b1
 [1.4.1]: https://github.com/eWaterCycle/ewatercycle/compare/1.4.0...1.4.1
 [1.4.0]: https://github.com/eWaterCycle/ewatercycle/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/eWaterCycle/ewatercycle/compare/1.2.0...1.3.0
