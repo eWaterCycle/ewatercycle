@@ -6,7 +6,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
-## [2.0.0b1] (2023-10-06)
+## [2.0.0b2] (2023-10-06)
 
 ### Breaking changes
 
@@ -200,8 +200,8 @@ The eWatercycle package no longer contains models and their forcing and/or examp
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.0.0b1...HEAD
-[2.0.0b1]: https://github.com/eWaterCycle/ewatercycle/compare/1.4.1...2.0.0b1
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.0.0b2...HEAD
+[2.0.0b2]: https://github.com/eWaterCycle/ewatercycle/compare/1.4.1...2.0.0b2
 [1.4.1]: https://github.com/eWaterCycle/ewatercycle/compare/1.4.0...1.4.1
 [1.4.0]: https://github.com/eWaterCycle/ewatercycle/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/eWaterCycle/ewatercycle/compare/1.2.0...1.3.0
