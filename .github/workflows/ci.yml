@@ -17,14 +17,11 @@ jobs:
     name: Run tests in conda environment ${{ matrix.python-version }}
     steps:
       - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: mamba-org/setup-micromamba@v1
         with:
-          activate-environment: ewatercycle
           environment-file: environment.yml
-          mamba-version: "*"
-          python-version: ${{ matrix.python-version }}
-          miniconda-version: "latest"
-          channels: conda-forge
+          cache-environment: true
+          init-shell: bash
       - name: Install dependencies
         shell: bash -l {0}
         run: |
