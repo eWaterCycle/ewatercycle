@@ -25,7 +25,7 @@ models.
 - Supports observation data from [GRDC or
     USGS](https://ewatercycle.readthedocs.io/en/latest/observations.html)
 - Exposes [simple
-    interface](https://ewatercycle.readthedocs.io/en/latest/examples/ewatercycle_api_notebook.html)
+    interface](https://ewatercycle.readthedocs.io/en/latest/user_guide.html)
     to quickly get up and running
 
 ## Install
@@ -117,8 +117,8 @@ ewatercycle.analysis.hydrograph(simulated_discharge_df.join(observations_df), re
 model.finalize()
 ```
 
-More examples can be found in the
-[documentation](https://ewatercycle.readthedocs.io).
+More examples can be found in the plugins listed in the
+[documentation](https://ewatercycle.readthedocs.io/en/latest/plugins.html).
 
 ## Contributing
 
