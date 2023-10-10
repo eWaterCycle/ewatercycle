@@ -70,7 +70,7 @@ class TestWithDefaultsAndExampleData:
             "solver": Solver(),
             "start time": "1989-01-01T00:00:00Z",
             "end time": "1992-12-31T00:00:00Z",
-        }
+        }.items()
         assert model.parameters == expected
 
     def test_setup(self, model_with_setup, forcing_file):
@@ -98,7 +98,7 @@ class TestWithDefaultsAndExampleData:
             "solver": Solver(),
             "start time": "1989-01-01T00:00:00Z",
             "end time": "1992-12-31T00:00:00Z",
-        }
+        }.items()
         assert model.parameters == expected
 
     def test_get_value_as_xarray(self, model_with_setup):

@@ -7,6 +7,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
+from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 from numpy.testing import assert_array_equal
 from pytest import TempPathFactory
 
@@ -84,7 +85,7 @@ class TestLFlatlonUseCase:
             "MaskMap": "$(PathMaps)/masksmall.map",
             "start_time": "1986-01-02T00:00:00Z",
             "end_time": "2018-01-02T00:00:00Z",
-        }
+        }.items()
         assert model.parameters == expected_parameters
 
     @pytest.fixture
@@ -140,7 +141,7 @@ class TestLFlatlonUseCase:
 
     class TestGetValueAtCoords:
         def test_get_value_at_coords_single(self, caplog, model: Lisflood):
-            model._bmi = MockedBmi()
+            model._bmi = OptionalDestBmi(MockedBmi())
 
             with caplog.at_level(logging.DEBUG):
                 result = model.get_value_at_coords(
@@ -155,19 +156,19 @@ class TestLFlatlonUseCase:
             assert msg[0] in caplog.text
             assert msg[1] in caplog.text
             assert result == np.array([1.0])
-            assert model._bmi.indices == [311]
+            assert model.bmi.origin.indices == [311]
 
         def test_get_value_at_coords_multiple(self, model: Lisflood):
-            model._bmi = MockedBmi()
+            model._bmi = OptionalDestBmi(MockedBmi())
             model.get_value_at_coords(
                 "Discharge",
                 lon=[-124.45, -124.35, -121.45],
                 lat=[53.95, 52.93, 52.65],
             )
-            assert_array_equal(model._bmi.indices, [0, 311, 433])
+            assert_array_equal(model.bmi.origin.indices, [0, 311, 433])
 
         def test_get_value_at_coords_faraway(self, model: Lisflood):
-            model._bmi = MockedBmi()
+            model._bmi = OptionalDestBmi(MockedBmi())
             with pytest.raises(ValueError) as excinfo:
                 model.get_value_at_coords("Discharge", lon=[0.0], lat=[0.0])
             msg = str(excinfo.value)
@@ -248,7 +249,7 @@ class TestLFlatlonUseCase:
                 "MaskMap": f"{tmp_path}/custommask/mask",
                 "start_time": "1986-01-02T00:00:00Z",
                 "end_time": "2018-01-02T00:00:00Z",
-            }
+            }.items()
             assert model_with_setup[3].parameters == expected_parameters
 
 
@@ -258,10 +259,10 @@ class MockedBmi(FailingModel):
     def get_var_grid(self, name):
         return 0
 
-    def get_grid_shape(self, grid_id):
+    def get_grid_shape(self, grid_id, dest):
         return 14, 31  # shape returns (len(y), len(x))
 
-    def get_grid_x(self, grid_id):
+    def get_grid_x(self, grid_id, dest):
         return np.array(
             [
                 -124.450000000003,
@@ -298,7 +299,7 @@ class MockedBmi(FailingModel):
             ]
         )
 
-    def get_grid_y(self, grid_id):
+    def get_grid_y(self, grid_id, dest):
         return np.array(
             [
                 53.950000000002,
@@ -333,3 +334,9 @@ class MockedBmi(FailingModel):
 
     def get_var_nbytes(self, name):
         return np.float64().size * 14 * 31
+
+    def get_grid_rank(self, grid):
+        return 2
+
+    def get_grid_type(self, grid):
+        return "rectilinear"

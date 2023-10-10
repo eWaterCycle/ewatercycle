@@ -14,7 +14,7 @@ from ewatercycle.container import (
     _parse_docker_url,
     start_container,
 )
-from tests.src.fake_models import Rect3DGridModel
+from ewatercycle.testing.fake_models import DummyModelWith2DRectilinearGrid
 
 images = [
     (
@@ -115,51 +115,45 @@ def eq(a, b):
     "orig_model, method_name, method_args, assert_func",
     [
         [
-            Rect3DGridModel(),
+            DummyModelWith2DRectilinearGrid(),
             "get_grid_shape",
-            (0, np.zeros((3,))),
-            lambda r: npeq(r, np.array([2, 3, 4])),
+            (0, np.zeros((2,))),
+            lambda r: npeq(r, np.array([3, 4])),
         ],
         [
-            Rect3DGridModel(),
+            DummyModelWith2DRectilinearGrid(),
             "get_grid_rank",
             (0,),
-            lambda r: eq(r, 3),
+            lambda r: eq(r, 2),
         ],
         [
-            Rect3DGridModel(),
+            DummyModelWith2DRectilinearGrid(),
             "get_grid_size",
             (0,),
-            lambda r: eq(r, 24),
+            lambda r: eq(r, 12),
         ],
         [
-            Rect3DGridModel(),
+            DummyModelWith2DRectilinearGrid(),
             "get_var_grid",
             ("air__temperature",),
             lambda r: eq(r, 0),
         ],
         [
-            Rect3DGridModel(),
+            DummyModelWith2DRectilinearGrid(),
             "get_grid_x",
             (0, np.empty((4,))),
             lambda r: npeq(r, np.array([0.1, 0.2, 0.3, 0.4])),
         ],
         [
-            Rect3DGridModel(),
+            DummyModelWith2DRectilinearGrid(),
             "get_grid_y",
             (0, np.empty((3,))),
             lambda r: npeq(r, np.array([1.1, 1.2, 1.3])),
         ],
-        [
-            Rect3DGridModel(),
-            "get_grid_z",
-            (0, np.empty((2,))),
-            lambda r: npeq(r, np.array([2.1, 2.2])),
-        ],
     ],
 )
 def test_bmi_proxy(orig_model, method_name, method_args, assert_func):
-    orig_model = Rect3DGridModel()
+    orig_model = DummyModelWith2DRectilinearGrid()
     model = BmiProxy(orig_model)
 
     method = getattr(model, method_name)
@@ -182,7 +176,7 @@ def force_apptainer(tmp_path: Path):
 @pytest.fixture
 def mock_bmi_client_apptainer():
     with mock.patch("ewatercycle.container.BmiClientApptainer") as mock_class:
-        mock_class.return_value = Rect3DGridModel()
+        mock_class.return_value = DummyModelWith2DRectilinearGrid()
         yield mock_class
 
 
@@ -194,7 +188,7 @@ def test_start_container(
 
     assert isinstance(container, OptionalDestBmi)
     assert isinstance(container.origin, MemoizedBmi)
-    assert isinstance(container.origin.origin, Rect3DGridModel)
+    assert isinstance(container.origin.origin, DummyModelWith2DRectilinearGrid)
     mock_bmi_client_apptainer.assert_called_once_with(
         image=force_apptainer.apptainer_filename,
         work_dir=str(tmp_path),
@@ -208,7 +202,7 @@ def test_start_container_without_wrapper(
     tmp_path: Path, force_apptainer, mock_bmi_client_apptainer: mock.MagicMock
 ):
     container = start_container(work_dir=tmp_path, image=force_apptainer, wrappers=[])
-    assert isinstance(container, Rect3DGridModel)
+    assert isinstance(container, DummyModelWith2DRectilinearGrid)
 
 
 def test_start_container_with_own_wrapper(
@@ -222,4 +216,4 @@ def test_start_container_with_own_wrapper(
     )
 
     assert isinstance(container, MyWrapper)
-    assert isinstance(container.origin, Rect3DGridModel)
+    assert isinstance(container.origin, DummyModelWith2DRectilinearGrid)

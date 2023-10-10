@@ -2,7 +2,7 @@
 
 import logging
 from os import PathLike
-from typing import Any, Optional
+from typing import Any, ItemsView, Optional
 
 import bmipy
 import numpy as np
@@ -97,7 +97,7 @@ class PCRGlobWB(ContainerizedModel):
         return self
 
     @property
-    def parameters(self) -> dict[str, Any]:
+    def parameters(self) -> ItemsView[str, Any]:
         """List the parameters for this model."""
         return {
             "start_time": f"{self._config.get('globalOptions', 'startTime')}T00:00:00Z",
@@ -106,7 +106,7 @@ class PCRGlobWB(ContainerizedModel):
             "max_spinups_in_years": self._config.get(
                 "globalOptions", "maxSpinUpsInYears"
             ),
-        }
+        }.items()
 
     def _make_cfg_file(self, **kwargs):
         self._update_config(**kwargs)
