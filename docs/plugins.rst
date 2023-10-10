@@ -8,11 +8,11 @@ how to add a new model as a plugin.
 
 Each plugin has its own documentation. Below is a list of all known plugins:
 
-* :doc:`Hype <plugins/hype/index>`
-* :doc:`LISFLOOD <plugins/lisflood/index>`
-* :doc:`MARRMoT <plugins/marrmot/index>`
-* :doc:`PCRGlobWB <plugins/pcrglobwb/index>`
-* :doc:`Wflow <plugins/wflow/index>`
+* `Hype <https://github.com/eWaterCycle/ewatercycle-hype>`_
+* `LISFLOOD <https://github.com/eWaterCycle/ewatercycle-lisflood>`_
+* `MARRMoT <https://github.com/eWaterCycle/ewatercycle-marrmot>`_
+* `PCRGlobWB <https://github.com/eWaterCycle/ewatercycle-pcrglobwb>`_
+* `Wflow <https://github.com/eWaterCycle/ewatercycle-wflow>`_
 * `LeakyBucket <https://github.com/eWaterCycle/ewatercycle-leakybucket>`_
 
 .. note::

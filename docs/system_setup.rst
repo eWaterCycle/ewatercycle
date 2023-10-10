@@ -13,7 +13,7 @@ This setup should work on any Linux machine with sufficient memory (8Gb, mostly 
 The setup steps:
 
 1.  `Conda environment <#conda-environment>`__
-2.  `Install ewatercycle package <#install-ewatercycle-package>`__
+2.  `Install ewatercycle packages <#install-ewatercycle-package>`__
 3.  `Configure ESMValTool <#configure-ESMValTool>`__
 4.  `Download climate data <#download-climate-data>`__
 5.  `Install container engine <#install-container-engine>`__
@@ -47,14 +47,14 @@ file <https://github.com/eWaterCycle/ewatercycle/blob/main/environment.yml>`__.
 
 Do not forget that any terminal or Jupyter kernel should activate the conda environment before the eWaterCycle Python package can be used.
 
-Install eWaterCycle package
----------------------------
+Install eWaterCycle packages
+----------------------------
 
-The Python package can be installed using pip
+The Python package and the plugins can be installed using pip
 
 .. code:: shell
 
-    pip install ewatercycle
+    pip install ewatercycle ewatercycle-hype ewatercycle-lisflood ewatercycle-marrmot ewatercycle-pcrglobwb ewatercycle-wflow  ewatercycle-leakybucket
 
 
 Configure ESMValTool

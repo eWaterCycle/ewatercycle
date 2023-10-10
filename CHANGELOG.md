@@ -6,6 +6,12 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+## [2.0.0] (2023-10-10)
+
+### Breaking changes
+
+The eWatercycle package no longer contains models and their forcing and/or example parameter sets. Instead, models are now plugins that can be installed separately. See https://ewatercycle.readthedocs.io/en/latest/plugins.html for a list of endorsed plugins.
+
 ### Added
 
 - Apptainer support ([#290](https://github.com/eWaterCycle/ewatercycle/issues/290))
@@ -27,13 +33,20 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
   - Instead of modifying an existing recipe now builds a ESMValTool recipe from scratch using a fluent interface
   - DefaultForcing has overridable class methods for each step of the forcing generation process (build_recipe, run_recipe, recipe_output_to_forcing_arguments).
 - eWaterCycleModel.parameters property type is ItemsView instead of dict.
+- Rewrote adding models documentation to use the new plugin system ([#383](https://github.com/eWaterCycle/ewatercycle/pull/383)
 
 ### Deprecated
 
 - Singularity support ([#290](https://github.com/eWaterCycle/ewatercycle/issues/290))
 
-## Removed
+### Removed
+
+- Models live in their own repository as a eWatercycle plugin. ([#371](https://github.com/eWaterCycle/ewatercycle/issues/371))
 - Removed parametersetdb module. XmlConfig moved to lisflood plugin. YamlConfig & IniConfig have been removed.
+
+## [2.0.0] (2023-10-06)
+
+Everthing listed at [2.0.0](2.0.0), but without the adding models part.
 
 ## [1.4.1] (2022-12-20)
 
@@ -192,7 +205,9 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/1.4.1...HEAD
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.0.0...HEAD
+[2.0.0]: https://github.com/eWaterCycle/ewatercycle/compare/2.0.0b2...2.0.0
+[2.0.0b2]: https://github.com/eWaterCycle/ewatercycle/compare/1.4.1...2.0.0b2
 [1.4.1]: https://github.com/eWaterCycle/ewatercycle/compare/1.4.0...1.4.1
 [1.4.0]: https://github.com/eWaterCycle/ewatercycle/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/eWaterCycle/ewatercycle/compare/1.2.0...1.3.0

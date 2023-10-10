@@ -83,15 +83,13 @@ class TestAvailableParameterSets:
 
 def test_example_parameter_sets(setup_config):
     examples = example_parameter_sets()
-    assert len(list(examples)) > 0
-    for name in examples:
-        assert name == examples[name].name
+    assert examples == {}
 
 
 @patch.object(ParameterSet, "download")
 def test_download_example_parameter_sets(mocked_download, setup_config, tmp_path):
     download_example_parameter_sets()
 
-    assert mocked_download.call_count > 0
+    assert mocked_download.call_count == 0
     assert CFG.ewatercycle_config.read_text() == CFG.dump_to_yaml()
-    assert len(CFG.parameter_sets) > 0
+    assert len(CFG.parameter_sets) == 0

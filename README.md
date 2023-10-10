@@ -25,7 +25,7 @@ models.
 - Supports observation data from [GRDC or
     USGS](https://ewatercycle.readthedocs.io/en/latest/observations.html)
 - Exposes [simple
-    interface](https://ewatercycle.readthedocs.io/en/latest/examples/ewatercycle_api_notebook.html)
+    interface](https://ewatercycle.readthedocs.io/en/latest/user_guide.html)
     to quickly get up and running
 
 ## Install
@@ -45,6 +45,12 @@ The ewatercycle package is installed with
 
 ```shell
 pip install ewatercycle
+```
+
+The ewatercycle package ships without any models. Models are packaged in [plugins](https://ewatercycle.readthedocs.io/en/latest/plugins.html). To install all endorsed plugins use
+
+```shell
+pip install ewatercycle-hype ewatercycle-lisflood ewatercycle-marrmot ewatercycle-pcrglobwb ewatercycle-wflow  ewatercycle-leakybucket
 ```
 
 Besides installing software you will need to create a configuration
@@ -111,8 +117,8 @@ ewatercycle.analysis.hydrograph(simulated_discharge_df.join(observations_df), re
 model.finalize()
 ```
 
-More examples can be found in the
-[documentation](https://ewatercycle.readthedocs.io).
+More examples can be found in the plugins listed in the
+[documentation](https://ewatercycle.readthedocs.io/en/latest/plugins.html).
 
 ## Contributing
 
