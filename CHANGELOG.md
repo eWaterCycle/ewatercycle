@@ -6,7 +6,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
-## [2.0.0b2] (2023-10-06)
+## [2.0.0] (2023-10-10)
 
 ### Breaking changes
 
@@ -33,6 +33,7 @@ The eWatercycle package no longer contains models and their forcing and/or examp
   - Instead of modifying an existing recipe now builds a ESMValTool recipe from scratch using a fluent interface
   - DefaultForcing has overridable class methods for each step of the forcing generation process (build_recipe, run_recipe, recipe_output_to_forcing_arguments).
 - eWaterCycleModel.parameters property type is ItemsView instead of dict.
+- Rewrote adding models documentation to use the new plugin system ([#383](https://github.com/eWaterCycle/ewatercycle/pull/383)
 
 ### Deprecated
 
@@ -42,6 +43,10 @@ The eWatercycle package no longer contains models and their forcing and/or examp
 
 - Models live in their own repository as a eWatercycle plugin. ([#371](https://github.com/eWaterCycle/ewatercycle/issues/371))
 - Removed parametersetdb module. XmlConfig moved to lisflood plugin. YamlConfig & IniConfig have been removed.
+
+## [2.0.0] (2023-10-06)
+
+Everthing listed at [2.0.0](2.0.0), but without the adding models part.
 
 ## [1.4.1] (2022-12-20)
 
@@ -200,7 +205,8 @@ The eWatercycle package no longer contains models and their forcing and/or examp
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.0.0b2...HEAD
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.0.0...HEAD
+[2.0.0]: https://github.com/eWaterCycle/ewatercycle/compare/2.0.0b2...2.0.0
 [2.0.0b2]: https://github.com/eWaterCycle/ewatercycle/compare/1.4.1...2.0.0b2
 [1.4.1]: https://github.com/eWaterCycle/ewatercycle/compare/1.4.0...1.4.1
 [1.4.0]: https://github.com/eWaterCycle/ewatercycle/compare/1.3.0...1.4.0
