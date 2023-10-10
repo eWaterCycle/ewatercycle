@@ -13,6 +13,7 @@ Each plugin has its own documentation. Below is a list of all known plugins:
 * :doc:`MARRMoT <plugins/marrmot/index>`
 * :doc:`PCRGlobWB <plugins/pcrglobwb/index>`
 * :doc:`Wflow <plugins/wflow/index>`
+* `LeakyBucket <https://github.com/eWaterCycle/ewatercycle-leakybucket>`_
 
 .. note::
 
