@@ -13,7 +13,7 @@ This setup should work on any Linux machine with sufficient memory (8Gb, mostly 
 The setup steps:
 
 1.  `Conda environment <#conda-environment>`__
-2.  `Install ewatercycle packages <#install-ewatercycle-package>`__
+2.  `Install ewatercycle packages <#install-ewatercycle-packages>`__
 3.  `Configure ESMValTool <#configure-ESMValTool>`__
 4.  `Download climate data <#download-climate-data>`__
 5.  `Install container engine <#install-container-engine>`__
@@ -246,8 +246,16 @@ Model container images
 As hydrological models run in containers, their container images should be
 made available on the system.
 
-The names of the images can be found in the ``ewatercycle.models.*``
-classes.
+The names of the images can be found in the ``ewatercycle.models.<model class>().bmi_image``
+classes. For example for LeakyBucket model:
+
+.. code:: ipython3
+
+    >>> from ewatercycle.models import LeakyBucket
+    >>> LeakyBucket().bmi_image
+    'ghcr.io/ewatercycle/leakybucket-grpc4bmi:v0.0.1'
+    >>> LeakyBucket().bmi_image.apptainer_filename
+    'ewatercycle-leakybucket-grpc4bmi_v0.0.1.sif'
 
 Docker
 ~~~~~~
@@ -264,6 +272,7 @@ Docker images will be downloaded with ``docker pull``:
     docker pull ewatercycle/wflow-grpc4bmi:2020.1.3
     docker pull ewatercycle/hype-grpc4bmi:feb2021
     docker pull ghcr.io/ewatercycle/leakybucket-grpc4bmi:v0.0.1
+    docker pull ghcr.io/ewatercycle/sfincs-bmiserver:sfincs-v2.0.2-blockhaus-release-q2-2023
 
 Apptainer
 ~~~~~~~~~
@@ -282,6 +291,7 @@ Apptainer images should be stored in configured directory
     apptainer build ewatercycle-wflow-grpc4bmi_2020.1.3.sif docker://ewatercycle/wflow-grpc4bmi:2020.1.3
     apptainer build ewatercycle-hype-grpc4bmi_feb2021.sif docker://ewatercycle/hype-grpc4bmi:feb2021
     apptainer build ewatercycle-leakybucket-grpc4bmi_v0.0.1.sif docker://ghcr.io/ewatercycle/leakybucket-grpc4bmi:v0.0.1
+    apptainer build ewatercycle-sfincs-bmiserver_sfincs-v2.0.2-blockhaus-release-q2-2023.sif docker://ghcr.io/ewatercycle/sfincs-bmiserver:sfincs-v2.0.2-blockhaus-release-q2-2023
     cd -
 
 Download example parameter sets
