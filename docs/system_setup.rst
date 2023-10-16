@@ -263,6 +263,7 @@ Docker images will be downloaded with ``docker pull``:
     docker pull ewatercycle/wflow-grpc4bmi:2020.1.2
     docker pull ewatercycle/wflow-grpc4bmi:2020.1.3
     docker pull ewatercycle/hype-grpc4bmi:feb2021
+    docker pull ghcr.io/ewatercycle/leakybucket-grpc4bmi:v0.0.1
 
 Apptainer
 ~~~~~~~~~
@@ -280,6 +281,7 @@ Apptainer images should be stored in configured directory
     apptainer build ewatercycle-wflow-grpc4bmi_2020.1.2.sif docker://ewatercycle/wflow-grpc4bmi:2020.1.2
     apptainer build ewatercycle-wflow-grpc4bmi_2020.1.3.sif docker://ewatercycle/wflow-grpc4bmi:2020.1.3
     apptainer build ewatercycle-hype-grpc4bmi_feb2021.sif docker://ewatercycle/hype-grpc4bmi:feb2021
+    apptainer build ewatercycle-leakybucket-grpc4bmi_v0.0.1.sif docker://ghcr.io/ewatercycle/leakybucket-grpc4bmi:v0.0.1
     cd -
 
 Download example parameter sets
