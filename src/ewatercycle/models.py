@@ -11,7 +11,7 @@ Examples:
 
     To list all available models:
 
-    >>> from ewatercycle.models
+    >>> import ewatercycle.models
     >>> dir(lambaewatercycle.models)
     # List models + some private stuff
 
