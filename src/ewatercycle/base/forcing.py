@@ -28,7 +28,7 @@ for more information.
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Optional, TypeVar, Union
+from typing import Annotated, Callable, ClassVar, Optional, TypeVar, Union
 
 from pydantic import BaseModel
 from pydantic.functional_validators import AfterValidator, model_validator
@@ -75,6 +75,11 @@ class DefaultForcing(BaseModel):
     end_time: str
     directory: Annotated[Path, AfterValidator(_to_absolute_path)]
     shape: Optional[Path] = None
+    filenames: dict[str, str] = {}  # Default value for backwards compatibility
+    _preprocessor: Callable | None = None  # Makes UserForcing mixin possible
+
+    variables: ClassVar[tuple[str, ...]] = ()
+    derived_variables: ClassVar[tuple[str, ...]] = ()
 
     @model_validator(mode="after")
     def _absolute_shape(self):
@@ -83,6 +88,10 @@ class DefaultForcing(BaseModel):
                 self.shape, parent=self.directory, must_be_in_parent=False
             )
         return self
+
+    @classmethod
+    def preprocessor(cls, recipe_output):
+        pass
 
     @classmethod
     def generate(
@@ -124,6 +133,8 @@ class DefaultForcing(BaseModel):
         recipe_output = cls._run_recipe(
             recipe, directory=Path(directory) if directory else None
         )
+        cls.preprocessor(recipe_output)  # Run possible preprocessor (e.g. derive var)
+
         directory = recipe_output.pop("directory")
         arguments = cls._recipe_output_to_forcing_arguments(
             recipe_output, model_specific_options
@@ -132,7 +143,10 @@ class DefaultForcing(BaseModel):
             directory=Path(directory),
             start_time=start_time,
             end_time=end_time,
-            shape=shape,
+            shape=Path(shape),
+            filenames={
+                var: recipe_output[var] for var in cls.variables + cls.derived_variables
+            },
             **arguments,
         )
         forcing.save()
@@ -312,10 +326,7 @@ class GenericDistributedForcing(DefaultForcing):
             )
     """
 
-    pr: str
-    tas: str
-    tasmin: str
-    tasmax: str
+    variables: ClassVar[tuple[str, ...]] = ("pr", "tas") #, "evspsbl")
 
     @classmethod
     def _build_recipe(
@@ -334,12 +345,8 @@ class GenericDistributedForcing(DefaultForcing):
             end_year=end_time.year,
             shape=shape,
             dataset=dataset,
-            # TODO which variables are needed for a generic forcing?
-            # As they are stored as object attributes
-            # we can not have a customizable list
-            variables=("pr", "tas", "tasmin", "tasmax"),
+            variables=cls.variables,
         )
-
     # TODO add helper method to get forcing data as xarray.Dataset?
 
 
@@ -432,5 +439,38 @@ class GenericLumpedForcing(GenericDistributedForcing):
             end_year=end_time.year,
             shape=shape,
             dataset=dataset,
-            variables=("pr", "tas", "tasmin", "tasmax"),
+            variables=cls.variables,
         )
+
+
+class UserForcingMixins(DefaultForcing):
+    _preprocessor: Callable | None = None
+
+    @classmethod
+    def generate( # type: ignore
+        cls: type["DefaultForcing"],
+        dataset: str | Dataset | dict,
+        start_time: str,
+        end_time: str,
+        shape: str,
+        directory: Optional[str] = None,
+        variables: tuple[str, ...] = (),
+        derived_variables: tuple[str, ...] = (),
+        preprocessor: Callable | None = None
+    ) -> "DefaultForcing":
+        cls.variables = variables
+        cls.derived_variables = derived_variables
+        cls._preprocessor = preprocessor
+        return super().generate(dataset, start_time, end_time, shape, directory)
+
+    @classmethod
+    def preprocessor(cls, forcing_files):
+        if cls._preprocessor is not None:
+            cls._preprocessor(forcing_files)
+
+
+class DistributedUserForcing(UserForcingMixins, GenericDistributedForcing):
+    ...
+
+class LumpedUserForcing(UserForcingMixins, GenericLumpedForcing):
+    ...
