@@ -28,11 +28,12 @@ for more information.
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Callable, ClassVar, Optional, TypeVar, Union
+from typing import Annotated, Any, Callable, Optional, TypeAlias, TypeVar, Union
 
 from pydantic import BaseModel
 from pydantic.functional_validators import AfterValidator, model_validator
 from ruamel.yaml import YAML
+import xarray as xr
 
 from ewatercycle.esmvaltool.builder import (
     build_generic_distributed_forcing_recipe,
@@ -53,6 +54,7 @@ def _to_absolute_path(v: Union[str, Path]):
 
 # Needed so subclass.generate() can return type of subclass instead of base class.
 AnyForcing = TypeVar("AnyForcing", bound="DefaultForcing")
+Postprocessor: TypeAlias = Callable[[dict[str, Any]], tuple[str, ...]]
 
 
 class DefaultForcing(BaseModel):
@@ -76,10 +78,6 @@ class DefaultForcing(BaseModel):
     directory: Annotated[Path, AfterValidator(_to_absolute_path)]
     shape: Optional[Path] = None
     filenames: dict[str, str] = {}  # Default value for backwards compatibility
-    _preprocessor: Callable | None = None  # Makes UserForcing mixin possible
-
-    variables: ClassVar[tuple[str, ...]] = ()
-    derived_variables: ClassVar[tuple[str, ...]] = ()
 
     @model_validator(mode="after")
     def _absolute_shape(self):
@@ -90,17 +88,15 @@ class DefaultForcing(BaseModel):
         return self
 
     @classmethod
-    def preprocessor(cls, recipe_output):
-        pass
-
-    @classmethod
     def generate(
         cls: type[AnyForcing],
         dataset: str | Dataset | dict,
         start_time: str,
         end_time: str,
         shape: str,
-        directory: Optional[str] = None,
+        directory: str | None = None,
+        variables: tuple[str, ...] = (),
+        postprocessor: Callable[[dict[str, str]], tuple[str, ...]] | None = None,
         **model_specific_options,
     ) -> AnyForcing:
         """Generate forcings for a model.
@@ -128,12 +124,17 @@ class DefaultForcing(BaseModel):
             start_time=get_time(start_time),
             end_time=get_time(end_time),
             shape=Path(shape),
+            variables=variables,
             **model_specific_options,
         )
+    
         recipe_output = cls._run_recipe(
             recipe, directory=Path(directory) if directory else None
         )
-        cls.preprocessor(recipe_output)  # Run possible preprocessor (e.g. derive var)
+    
+        derived_variables: tuple[str, ...] = ()
+        if postprocessor is not None:
+            derived_variables = postprocessor(recipe_output)  # Run possible postprocessor (e.g. derive var)
 
         directory = recipe_output.pop("directory")
         arguments = cls._recipe_output_to_forcing_arguments(
@@ -145,7 +146,7 @@ class DefaultForcing(BaseModel):
             end_time=end_time,
             shape=Path(shape),
             filenames={
-                var: recipe_output[var] for var in cls.variables + cls.derived_variables
+                var: recipe_output[var] for var in variables + derived_variables
             },
             **arguments,
         )
@@ -166,8 +167,9 @@ class DefaultForcing(BaseModel):
         end_time: datetime,
         shape: Path,
         dataset: Dataset | str | dict,
+        variables: tuple[str, ...] = (),
         **model_specific_options,
-    ):
+    ) -> Recipe:
         # TODO do we want an implementation here?
         # If so how is it different from GenericDistributedForcing?
         raise NotImplementedError("No default recipe available.")
@@ -239,8 +241,114 @@ class DefaultForcing(BaseModel):
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
+    def keys(self) -> tuple[str, ...]:
+        """Xarray/pandas-like keys method"""
+        return tuple([key for key in self.filenames])
+    
+    def __getitem__(self, key: str):
+        """Allows for easy access to the forcing variables using square brackets."""
+        if key in self.filenames:
+            return xr.open_dataset(self.directory / self.filenames[key])[key]
+        else:
+            msg = f"'{key}' is not a valid variable for this forcing object."
+            raise KeyError(msg)
 
-class GenericDistributedForcing(DefaultForcing):
+
+class DistributedUserForcing(DefaultForcing):
+    """Forcing object with user-specified downloaded variables and postprocessing."""
+
+    @classmethod
+    def _build_recipe(
+        cls,
+        start_time: datetime,
+        end_time: datetime,
+        shape: Path,
+        dataset: Dataset | str | dict,
+        variables: tuple[str, ...] = (),
+        **model_specific_options,
+    ):
+        return build_generic_distributed_forcing_recipe(
+            # TODO allow finer selection then a whole year.
+            # using ISO 8601 str as type or timerange attribute see
+            # https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipe/overview.html#recipe-section-datasets
+            start_year=start_time.year,
+            end_year=end_time.year,
+            shape=shape,
+            dataset=dataset,
+            variables=variables,
+        )
+    
+    @classmethod
+    def generate(
+        cls: type[AnyForcing],
+        dataset: str | Dataset | dict,
+        start_time: str,
+        end_time: str,
+        shape: str,
+        directory: str | None = None,
+        variables: tuple[str, ...] = (),
+        postprocessor: Postprocessor | None = None,
+        **model_specific_options,
+    ) -> AnyForcing:
+        return super().generate(
+            dataset,
+            start_time,
+            end_time,
+            shape,
+            directory,
+            variables=variables,
+            postprocessor=postprocessor,
+            **model_specific_options,
+        )
+
+
+class LumpedUserForcing(DistributedUserForcing):
+    @classmethod
+    def _build_recipe(
+        cls,
+        start_time: datetime,
+        end_time: datetime,
+        shape: Path,
+        dataset: Dataset | str | dict,
+        variables: tuple[str, ...] = (),
+        **model_specific_options,
+    ):
+        return build_generic_lumped_forcing_recipe(
+            # TODO allow finer selection then a whole year.
+            # using ISO 8601 str as type or timerange attribute see
+            # https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipe/overview.html#recipe-section-datasets
+            start_year=start_time.year,
+            end_year=end_time.year,
+            shape=shape,
+            dataset=dataset,
+            variables=variables,
+        )
+
+
+class _GenericForcing(DefaultForcing):
+    @classmethod
+    def generate(  # type: ignore[override]
+        cls: type[AnyForcing],
+        dataset: str | Dataset | dict,
+        start_time: str,
+        end_time: str,
+        shape: str,
+        directory: str | None = None,
+        **model_specific_options,
+    ) -> AnyForcing:
+        return super().generate(
+            dataset,
+            start_time,
+            end_time,
+            shape,
+            directory,
+            variables=("pr", "tas"),
+            postprocessor=None,
+            **model_specific_options,
+        )
+
+
+class GenericDistributedForcing(_GenericForcing, DistributedUserForcing):  # type: ignore[misc]
     """Generic forcing data for a distributed model.
 
     Attributes:
@@ -325,32 +433,10 @@ class GenericDistributedForcing(DefaultForcing):
                 tasmax='CMIP6_EC-Earth3_day_historical_r6i1p1f1_tasmax_gr_2000-2001.nc'
             )
     """
-
-    variables: ClassVar[tuple[str, ...]] = ("pr", "tas") #, "evspsbl")
-
-    @classmethod
-    def _build_recipe(
-        cls,
-        start_time: datetime,
-        end_time: datetime,
-        shape: Path,
-        dataset: Dataset | str | dict = "ERA5",
-        **model_specific_options,
-    ):
-        return build_generic_distributed_forcing_recipe(
-            # TODO allow finer selection then a whole year.
-            # using ISO 8601 str as type or timerange attribute see
-            # https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipe/overview.html#recipe-section-datasets
-            start_year=start_time.year,
-            end_year=end_time.year,
-            shape=shape,
-            dataset=dataset,
-            variables=cls.variables,
-        )
-    # TODO add helper method to get forcing data as xarray.Dataset?
+    ...
 
 
-class GenericLumpedForcing(GenericDistributedForcing):
+class GenericLumpedForcing(_GenericForcing, LumpedUserForcing):  # type: ignore[misc]
     """Generic forcing data for a lumped model.
 
     Attributes:
@@ -420,57 +506,7 @@ class GenericLumpedForcing(GenericDistributedForcing):
             )
             print(forcing)
     """
-
     # files returned by generate() have only time coordinate and zero lons/lats.
     # TODO inject centroid of shape as single lon/lat into files?
     # use diagnostic script or overwrite generate()
-
-    @classmethod
-    def _build_recipe(
-        cls,
-        start_time: datetime,
-        end_time: datetime,
-        shape: Path,
-        dataset: Dataset | str | dict = "ERA5",
-        **model_specific_options,
-    ):
-        return build_generic_lumped_forcing_recipe(
-            start_year=start_time.year,
-            end_year=end_time.year,
-            shape=shape,
-            dataset=dataset,
-            variables=cls.variables,
-        )
-
-
-class UserForcingMixins(DefaultForcing):
-    _preprocessor: Callable | None = None
-
-    @classmethod
-    def generate( # type: ignore
-        cls: type["DefaultForcing"],
-        dataset: str | Dataset | dict,
-        start_time: str,
-        end_time: str,
-        shape: str,
-        directory: Optional[str] = None,
-        variables: tuple[str, ...] = (),
-        derived_variables: tuple[str, ...] = (),
-        preprocessor: Callable | None = None
-    ) -> "DefaultForcing":
-        cls.variables = variables
-        cls.derived_variables = derived_variables
-        cls._preprocessor = preprocessor
-        return super().generate(dataset, start_time, end_time, shape, directory)
-
-    @classmethod
-    def preprocessor(cls, forcing_files):
-        if cls._preprocessor is not None:
-            cls._preprocessor(forcing_files)
-
-
-class DistributedUserForcing(UserForcingMixins, GenericDistributedForcing):
-    ...
-
-class LumpedUserForcing(UserForcingMixins, GenericLumpedForcing):
     ...
