@@ -10,13 +10,15 @@ class TestGenericDistributedForcingWithExternalShape:
     def test_save(self, tmp_path: Path, sample_shape: str):
         forcing = GenericDistributedForcing(
             directory=tmp_path,
-            shape=sample_shape,
+            shape=Path(sample_shape),
             start_time="2000-01-01T00:00:00Z",
             end_time="2001-01-01T00:00:00Z",
-            pr="OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc",
-            tas="OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc",
-            tasmin="OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc",
-            tasmax="OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc",
+            filenames={
+                "pr": "OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc",
+                "tas": "OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc",
+                "tasmin": "OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc",
+                "tasmax": "OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc",
+            },
         )
         forcing.save()
 
@@ -26,10 +28,11 @@ class TestGenericDistributedForcingWithExternalShape:
         expected = """\
 start_time: '2000-01-01T00:00:00Z'
 end_time: '2001-01-01T00:00:00Z'
-pr: OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc
-tas: OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc
-tasmin: OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc
-tasmax: OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc
+filenames:
+  pr: OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc
+  tas: OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc
+  tasmin: OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc
+  tasmax: OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc
 """
 
         assert content == expected
@@ -47,10 +50,12 @@ class TestGenericDistributedForcingWithInternalShape:
             shape=shape,
             start_time="2000-01-01T00:00:00Z",
             end_time="2001-01-01T00:00:00Z",
-            pr="OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc",
-            tas="OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc",
-            tasmin="OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc",
-            tasmax="OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc",
+            filenames={
+                "pr": "OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc",
+                "tas": "OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc",
+                "tasmin": "OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc",
+                "tasmax": "OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc",
+            },
         )
         forcing.save()
 
@@ -61,10 +66,11 @@ class TestGenericDistributedForcingWithInternalShape:
 start_time: '2000-01-01T00:00:00Z'
 end_time: '2001-01-01T00:00:00Z'
 shape: Rhine/Rhine.shp
-pr: OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc
-tas: OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc
-tasmin: OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc
-tasmax: OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc
+filenames:
+  pr: OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc
+  tas: OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc
+  tasmin: OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc
+  tasmax: OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc
 """
 
         assert content == expected
@@ -76,10 +82,12 @@ class TestGenericDistributedForcingWithoutShape:
             directory=tmp_path,
             start_time="2000-01-01T00:00:00Z",
             end_time="2001-01-01T00:00:00Z",
-            pr="OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc",
-            tas="OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc",
-            tasmin="OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc",
-            tasmax="OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc",
+            filenames={
+                "pr": "OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc",
+                "tas": "OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc",
+                "tasmin": "OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc",
+                "tasmax": "OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc",
+            },
         )
         forcing.save()
 
@@ -89,10 +97,11 @@ class TestGenericDistributedForcingWithoutShape:
         expected = """\
 start_time: '2000-01-01T00:00:00Z'
 end_time: '2001-01-01T00:00:00Z'
-pr: OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc
-tas: OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc
-tasmin: OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc
-tasmax: OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc
+filenames:
+  pr: OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc
+  tas: OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc
+  tasmin: OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc
+  tasmax: OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc
 """
 
         assert content == expected
@@ -103,11 +112,12 @@ tasmax: OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc
             """\
 start_time: '2000-01-01T00:00:00Z'
 end_time: '2001-01-01T00:00:00Z'
-pr: OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc
-tas: OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc
-tasmin: OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc
-tasmax: OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc
-        """
+filenames:
+  pr: OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc
+  tas: OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc
+  tasmin: OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc
+  tasmax: OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc
+"""
         )
 
         forcing = GenericDistributedForcing.load(tmp_path)
@@ -116,10 +126,12 @@ tasmax: OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc
             directory=tmp_path,
             start_time="2000-01-01T00:00:00Z",
             end_time="2001-01-01T00:00:00Z",
-            pr="OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc",
-            tas="OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc",
-            tasmin="OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc",
-            tasmax="OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc",
+            filenames={
+                "pr": "OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc",
+                "tas": "OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc",
+                "tasmin": "OBS6_ERA5_reanaly_*_day_tasmin_2000-2001.nc",
+                "tasmax": "OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc",
+            },
         )
         assert forcing == expected
 
