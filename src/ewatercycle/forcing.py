@@ -5,10 +5,20 @@ from typing import Any, Type
 
 from importlib_metadata import EntryPoint
 
+from ewatercycle._forcings.makkink import (
+    DistributedMakkinkForcing,
+    LumpedMakkinkForcing,
+)
+from ewatercycle._forcings.penman_monteith import (
+    DistributedPenmanMonteithForcing,
+    LumpedPenmanMonteithForcing,
+)
 from ewatercycle.base.forcing import (
     DefaultForcing,
+    DistributedUserForcing,
     GenericDistributedForcing,
     GenericLumpedForcing,
+    LumpedUserForcing,
 )
 
 
@@ -48,6 +58,12 @@ class ForcingSources(Mapping):
 _forcings: dict[str, Any] = {
     "GenericDistributedForcing": GenericDistributedForcing,
     "GenericLumpedForcing": GenericLumpedForcing,
+    "DistributedUserForcing": DistributedUserForcing,
+    "LumpedUserForcing": LumpedUserForcing,
+    "DistributedMakkinkForcing": DistributedMakkinkForcing,
+    "LumpedMakkinkForcing": LumpedMakkinkForcing,
+    "DistributedPenmanMonteithForcing": DistributedPenmanMonteithForcing,
+    "LumpedPenmanMonteithForcing": LumpedPenmanMonteithForcing,
 }
 _forcings.update(
     {

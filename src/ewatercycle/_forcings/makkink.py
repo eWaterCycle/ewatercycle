@@ -1,41 +1,43 @@
-from ewatercycle.base.forcing import (
-    DefaultForcing, DistributedUserForcing, LumpedUserForcing
-)
 from pathlib import Path
-import xarray as xr
+
 import numpy as np
+import xarray as xr
 
+from ewatercycle.base.forcing import (
+    DefaultForcing,
+    DistributedUserForcing,
+    LumpedUserForcing,
+)
 from ewatercycle.esmvaltool.schema import Dataset
+from ewatercycle.util import merge_esvmaltool_datasets
 
 
-def derive_e_pot(recipe_output: dict):
-    ds_tas = xr.open_dataset(
-        Path(recipe_output["directory"]) / recipe_output["tas"]
-    )
-    ds_rsds = xr.open_dataset(
-        Path(recipe_output["directory"]) / recipe_output["rsds"]
-    )
+def derive_e_pot(recipe_output: dict) -> tuple[str, ...]:
+    """Derive the Makkink PET from the ESMValTool recipe output."""
+    ds_tas = xr.open_dataset(Path(recipe_output["directory"]) / recipe_output["tas"])
+    ds_rsds = xr.open_dataset(Path(recipe_output["directory"]) / recipe_output["rsds"])
     # We need to make sure the coordinates line up. Floating point errors from
     #  ESMValTool mess with this:
-    for ds in [ds_tas, ds_rsds]:
-        for coord in ["lat", "lon"]:
-            # 7 decimals is sufficient for "waldo" precision (https://xkcd.com/2170/)
-            ds[coord] = np.round(ds[coord], decimals=7)  
+    ds = merge_esvmaltool_datasets([ds_tas, ds_rsds])
 
-    da_et = et_makkink(ds_tas["tas"], ds_rsds["rsds"])
-    da_et.attrs = {
-        "standard_name": "water_potential_evaporation_flux", 
-        "units": "kg m-2 s-1", 
-        "long_name": "Potential Evapotranspiration", 
-    }
-    et_fname = "evspsblpot.nc"
+    da_et = et_makkink(ds["tas"], ds["rsds"])
+    et_fname = "Derived_Makkink_evspsblpot.nc"
     da_et.to_netcdf(Path(recipe_output["directory"]) / et_fname)
     recipe_output["evspsblpot"] = et_fname
 
-    return ("evspsblpot", )
+    return ("evspsblpot",)
 
 
 class Makkink(DefaultForcing):
+    """Forcing object with derived potential evaporatin using the Makkink equation.
+
+    Contains the following variables:
+        pr - precipitation
+        tas - near-surface air temperature
+        rsds - near-surface downwelling shortwave radiation
+        evspsblpot - potential evaporation flux
+    """
+
     @classmethod
     def generate(  # type: ignore[override]
         cls: type["Makkink"],
@@ -61,6 +63,7 @@ class Makkink(DefaultForcing):
 class LumpedMakkinkForcing(Makkink, LumpedUserForcing):  # type: ignore[misc]
     ...
 
+
 class DistributedMakkinkForcing(Makkink, DistributedUserForcing):  # type: ignore[misc]
     ...
 
@@ -74,19 +77,25 @@ def et_makkink(tas: xr.DataArray, rsds: xr.DataArray) -> xr.DataArray:
 
     Returns:
         Makkink ET (kg m-2 s-1).
+
+    Reference:
+        de Bruin, H., 1987. From penman to makkink. In: Hooghart, C. (Ed.),
+            Evaporation and Weather: Proceedings and Information. Vol. 28. TNO committee
+            on Hydrological Research: The Hague, pp. 5-30.
     """
     c1 = 0.65
-    c2 = 0.
+    c2 = 0.0
     gamma = 0.66
     labda = 2.45e6
 
-    s = vapor_pressure_slope(tas) 
-    
-    et = (c1 * s / (s + gamma) * rsds + c2)/labda
+    s = vapor_pressure_slope(tas)
+
+    et = (c1 * s / (s + gamma) * rsds + c2) / labda
     et.name = "evspsblpot"
     et.attrs = {
-        "long_name": "potential evaporation",
+        "standard_name": "water_potential_evaporation_flux",
         "units": "kg m-2 s-1",
+        "long_name": "potential evaporation",
     }
     return et
 
@@ -104,4 +113,4 @@ def vapor_pressure_slope(tas):
     a = 6.1078
     b = 17.294
     c = 237.74
-    return (a*b*c) / (c + t)**2 * np.exp(b*t/(c+t))
+    return (a * b * c) / (c + t) ** 2 * np.exp(b * t / (c + t))

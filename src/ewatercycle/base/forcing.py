@@ -26,14 +26,15 @@ See `ESMValTool configuring docs <https://docs.esmvaltool.org/projects/ESMValCor
 for more information.
 """
 import logging
+import warnings
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Any, Callable, Optional, TypeAlias, TypeVar, Union
+from typing import Annotated, Callable, Optional, TypeAlias, TypeVar, Union
 
+import xarray as xr
 from pydantic import BaseModel
 from pydantic.functional_validators import AfterValidator, model_validator
 from ruamel.yaml import YAML
-import xarray as xr
 
 from ewatercycle.esmvaltool.builder import (
     build_generic_distributed_forcing_recipe,
@@ -41,7 +42,7 @@ from ewatercycle.esmvaltool.builder import (
 )
 from ewatercycle.esmvaltool.run import run_recipe
 from ewatercycle.esmvaltool.schema import Dataset, Recipe
-from ewatercycle.util import get_time, to_absolute_path
+from ewatercycle.util import get_time, merge_esvmaltool_datasets, to_absolute_path
 
 logger = logging.getLogger(__name__)
 FORCING_YAML = "ewatercycle_forcing.yaml"
@@ -54,7 +55,7 @@ def _to_absolute_path(v: Union[str, Path]):
 
 # Needed so subclass.generate() can return type of subclass instead of base class.
 AnyForcing = TypeVar("AnyForcing", bound="DefaultForcing")
-Postprocessor: TypeAlias = Callable[[dict[str, Any]], tuple[str, ...]]
+Postprocessor: TypeAlias = Callable[[dict[str, str]], tuple[str, ...]]
 
 
 class DefaultForcing(BaseModel):
@@ -68,6 +69,8 @@ class DefaultForcing(BaseModel):
             'YYYY-MM-DDTHH:MM:SSZ'.
         shape: Path to a shape file. Used for spatial selection.
             If relative then it is relative to the given directory.
+        filenames: Dictionary of the variables contained in this forcing object, as well
+            as the file names. Default value is empty, for backwards compatibility.
     """
 
     # TODO add validation for start_time and end_time
@@ -85,6 +88,17 @@ class DefaultForcing(BaseModel):
             self.shape = to_absolute_path(
                 self.shape, parent=self.directory, must_be_in_parent=False
             )
+        if self.filenames == {}:
+            warnings.warn(
+                message=(
+                    "Forcing stores the filenames in the 'filenames' dict since "
+                    "ewatercycle version 2.1, instead of as separate properties.\n"
+                    "In a future version this argument will become required instead of "
+                    "optional."
+                ),
+                category=DeprecationWarning,
+                stacklevel=1,
+            )
         return self
 
     @classmethod
@@ -96,7 +110,7 @@ class DefaultForcing(BaseModel):
         shape: str,
         directory: str | None = None,
         variables: tuple[str, ...] = (),
-        postprocessor: Callable[[dict[str, str]], tuple[str, ...]] | None = None,
+        postprocessor: Postprocessor | None = None,
         **model_specific_options,
     ) -> AnyForcing:
         """Generate forcings for a model.
@@ -115,9 +129,12 @@ class DefaultForcing(BaseModel):
             end_time: nd time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             shape: Path to a shape file. Used for spatial selection.
-            directory:  Directory in which forcing should be written.
+            directory: Directory in which forcing should be written.
                 If not given will create timestamped directory.
-
+            variables: Variables which need to be downloaded/preprocessed by ESMValTool.
+            postprocessor: A custom post-processor that can, e.g., derive additional
+                variables based on the ESMValTool recipe output. Must return
+                the names & filenames of the variables it derived.
         """
         recipe = cls._build_recipe(
             dataset=dataset,
@@ -127,14 +144,16 @@ class DefaultForcing(BaseModel):
             variables=variables,
             **model_specific_options,
         )
-    
+
         recipe_output = cls._run_recipe(
             recipe, directory=Path(directory) if directory else None
         )
-    
+
         derived_variables: tuple[str, ...] = ()
         if postprocessor is not None:
-            derived_variables = postprocessor(recipe_output)  # Run possible postprocessor (e.g. derive var)
+            derived_variables = postprocessor(
+                recipe_output
+            )  # Run possible postprocessor (e.g. derive var)
 
         directory = recipe_output.pop("directory")
         arguments = cls._recipe_output_to_forcing_arguments(
@@ -238,24 +257,86 @@ class DefaultForcing(BaseModel):
 
         return cls(**fdict)
 
+    def to_xarray(self) -> xr.Dataset:
+        """Return this Forcing object as an xarray Dataset."""
+        if len(self.filenames) == 0:
+            msg = "There are no variables stored in this Forcing object."
+            raise ValueError(msg)
+        if not all(fname.endswith(".nc") for _, fname in self.filenames.items()):
+            msg = (
+                "Not all files are netCDF files. Only netCDF files can be opened as "
+                "xarray Dataset."
+            )
+        fpaths = [self.directory / filename for _, filename in self.filenames.items()]
+
+        datasets = [xr.open_dataset(fpath) for fpath in fpaths]
+        return merge_esvmaltool_datasets(datasets)
+
+    def variables(self) -> tuple[str, ...]:
+        """Return the names of the variables. Shorthand for self.filenames.keys()"""
+        return tuple([key for key in self.filenames])
+
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
-    def keys(self) -> tuple[str, ...]:
-        """Xarray/pandas-like keys method"""
-        return tuple([key for key in self.filenames])
-    
-    def __getitem__(self, key: str):
-        """Allows for easy access to the forcing variables using square brackets."""
+    def __getitem__(self, key: str) -> Path:
+        """Allows for easy access to the (absolute) path of a forcing variable file."""
         if key in self.filenames:
-            return xr.open_dataset(self.directory / self.filenames[key])[key]
+            return (self.directory / self.filenames[key]).absolute()
         else:
             msg = f"'{key}' is not a valid variable for this forcing object."
             raise KeyError(msg)
 
 
 class DistributedUserForcing(DefaultForcing):
-    """Forcing object with user-specified downloaded variables and postprocessing."""
+    """Forcing object with user-specified downloaded variables and postprocessing.
+
+    Examples:
+
+    To generate forcing from ERA5 for the Rhine catchment for 2000-2001, retrieving
+    the 'pr', 'tas' and 'rsds' variables, and applying the Makkink evaporation
+    postprocessor.
+
+    .. code-block:: python
+
+        from pathlib import Path
+        from rich import print
+        from ewatercycle.base.forcing import DistributedUserForcing
+
+        cmip_dataset = {
+            "dataset": "EC-Earth3",
+            "project": "CMIP6",
+            "grid": "gr",
+            "exp": "historical",
+            "ensemble": "r6i1p1f1",
+        }
+        shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
+        forcing = DistributedUserForcing.generate(
+            dataset=cmip_dataset,
+            start_time='2000-01-01T00:00:00Z',
+            end_time='2001-01-01T00:00:00Z',
+            shape=str(shape.absolute()),
+            variables=("pr", "tas"),
+        )
+        print(forcing)
+
+    Gives something like:
+
+    .. code-block:: python
+
+        DistributedUserForcing(
+            start_time='2000-01-01T00:00:00Z',
+            end_time='2001-01-01T00:00:00Z',
+            directory=PosixPath('/home/bart/esmvaltool_output/ewcrepvl1jeunb_20240305_131155/work/diagnostic/script'),
+            shape=PosixPath('/home/bart/git/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
+            filenames={
+                'pr': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_pr_gr_2000-2001.nc',
+                'tas': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_tas_gr_2000-2001.nc',
+                'rsds': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_rsds_gr_2000-2001.nc',
+                'evspsblpot': 'Derived_Makkink_evspsblpot.nc'
+            }
+        )
+    """
 
     @classmethod
     def _build_recipe(
@@ -277,32 +358,58 @@ class DistributedUserForcing(DefaultForcing):
             dataset=dataset,
             variables=variables,
         )
-    
-    @classmethod
-    def generate(
-        cls: type[AnyForcing],
-        dataset: str | Dataset | dict,
-        start_time: str,
-        end_time: str,
-        shape: str,
-        directory: str | None = None,
-        variables: tuple[str, ...] = (),
-        postprocessor: Postprocessor | None = None,
-        **model_specific_options,
-    ) -> AnyForcing:
-        return super().generate(
-            dataset,
-            start_time,
-            end_time,
-            shape,
-            directory,
-            variables=variables,
-            postprocessor=postprocessor,
-            **model_specific_options,
-        )
 
 
 class LumpedUserForcing(DistributedUserForcing):
+    """Forcing object with user-specified downloaded variables and postprocessing.
+
+    Examples:
+
+    To generate lumped forcing from ERA5 for the Rhine catchment for 2000-2001,
+    retrieving the 'pr', 'tas' and 'rsds' variables, and applying the Makkink
+    evaporation postprocessor.
+
+    .. code-block:: python
+
+        from pathlib import Path
+        from rich import print
+        from ewatercycle.base.forcing import LumpedUserForcing
+
+        cmip_dataset = {
+            "dataset": "EC-Earth3",
+            "project": "CMIP6",
+            "grid": "gr",
+            "exp": "historical",
+            "ensemble": "r6i1p1f1",
+        }
+        shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
+        forcing = LumpedUserForcing.generate(
+            dataset=cmip_dataset,
+            start_time='2000-01-01T00:00:00Z',
+            end_time='2001-01-01T00:00:00Z',
+            shape=str(shape.absolute()),
+            variables=("pr", "tas"),
+        )
+        print(forcing)
+
+    Gives something like:
+
+    .. code-block:: python
+
+        LumpedUserForcing(
+            start_time='2000-01-01T00:00:00Z',
+            end_time='2001-01-01T00:00:00Z',
+            directory=PosixPath('/home/bart/esmvaltool_output/ewcrepvl1jeunb_20240305_131155/work/diagnostic/script'),
+            shape=PosixPath('/home/bart/git/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
+            filenames={
+                'pr': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_pr_gr_2000-2001.nc',
+                'tas': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_tas_gr_2000-2001.nc',
+                'rsds': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_rsds_gr_2000-2001.nc',
+                'evspsblpot': 'Derived_Makkink_evspsblpot.nc'
+            }
+        )
+    """
+
     @classmethod
     def _build_recipe(
         cls,
@@ -351,12 +458,6 @@ class _GenericForcing(DefaultForcing):
 class GenericDistributedForcing(_GenericForcing, DistributedUserForcing):  # type: ignore[misc]
     """Generic forcing data for a distributed model.
 
-    Attributes:
-        pr: Path to NetCDF file with precipitation data.
-        tas: Path to NetCDF file with air temperature data.
-        tasmin: Path to NetCDF file with minimum air temperature data.
-        tasmax: Path to NetCDF file with maximum air temperature data.
-
     Examples:
 
         To generate forcing from ERA5 for the Rhine catchment for 2000-2001:
@@ -386,10 +487,10 @@ class GenericDistributedForcing(_GenericForcing, DistributedUserForcing):  # typ
                 end_time='2001-01-01T00:00:00Z',
                 directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/tmp05upitxoewcrep_20230815_154640/work/diagnostic/script'),
                 shape=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
-                pr='OBS6_ERA5_reanaly_1_day_pr_2000-2001.nc',
-                tas='OBS6_ERA5_reanaly_1_day_tas_2000-2001.nc',
-                tasmin='OBS6_ERA5_reanaly_1_day_tasmin_2000-2001.nc',
-                tasmax='OBS6_ERA5_reanaly_1_day_tasmax_2000-2001.nc'
+                filenames={
+                    pr='OBS6_ERA5_reanaly_1_day_pr_2000-2001.nc',
+                    tas='OBS6_ERA5_reanaly_1_day_tas_2000-2001.nc',
+                }
             )
 
         To generate forcing from CMIP6 for the Rhine catchment for 2000-2001
@@ -427,23 +528,18 @@ class GenericDistributedForcing(_GenericForcing, DistributedUserForcing):  # typ
                 end_time='2001-01-01T00:00:00Z',
                 directory=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/esmvaltool_output/ewcrep0ibzlds__20230904_082748/work/diagnostic/script'),
                 shape=PosixPath('/home/verhoes/git/eWaterCycle/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
-                pr='CMIP6_EC-Earth3_day_historical_r6i1p1f1_pr_gr_2000-2001.nc',
-                tas='CMIP6_EC-Earth3_day_historical_r6i1p1f1_tas_gr_2000-2001.nc',
-                tasmin='CMIP6_EC-Earth3_day_historical_r6i1p1f1_tasmin_gr_2000-2001.nc',
-                tasmax='CMIP6_EC-Earth3_day_historical_r6i1p1f1_tasmax_gr_2000-2001.nc'
+                filenames={
+                    pr='CMIP6_EC-Earth3_day_historical_r6i1p1f1_pr_gr_2000-2001.nc',
+                    tas='CMIP6_EC-Earth3_day_historical_r6i1p1f1_tas_gr_2000-2001.nc',
+                }
             )
     """
+
     ...
 
 
 class GenericLumpedForcing(_GenericForcing, LumpedUserForcing):  # type: ignore[misc]
     """Generic forcing data for a lumped model.
-
-    Attributes:
-        pr: Path to NetCDF file with precipitation data.
-        tas: Path to NetCDF file with air temperature data.
-        tasmin: Path to NetCDF file with minimum air temperature data.
-        tasmax: Path to NetCDF file with maximum air temperature data.
 
     Example:
 
@@ -506,6 +602,7 @@ class GenericLumpedForcing(_GenericForcing, LumpedUserForcing):  # type: ignore[
             )
             print(forcing)
     """
+
     # files returned by generate() have only time coordinate and zero lons/lats.
     # TODO inject centroid of shape as single lon/lat into files?
     # use diagnostic script or overwrite generate()
