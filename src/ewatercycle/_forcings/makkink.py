@@ -44,7 +44,7 @@ class Makkink(DefaultForcing):
         dataset: str | Dataset | dict,
         start_time: str,
         end_time: str,
-        shape: str,
+        shape: str | Path,
         directory: str | None = None,
         **model_specific_options,
     ) -> "Makkink":

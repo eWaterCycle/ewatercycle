@@ -52,8 +52,18 @@ class ForcingSources(Mapping):
         return len(self._raw_dict)
 
     def __repr__(self):
-        return self.__class__.__name__ + str(list(self._raw_dict.keys()))
+        return (
+            f"{self.__class__.__name__}[\n"
+            "    \"" + "\",\n    \"".join(sorted(self._raw_dict.keys()))
+            + "\"\n]"
+        )
 
+    def __rich__(self):
+        return (
+            f"[blue]{self.__class__.__name__}[\n[green]"
+            "    \"" + "\",\n    \"".join(sorted(self._raw_dict.keys()))
+            + "\"\n[blue]]"
+        )
 
 _forcings: dict[str, Any] = {
     "GenericDistributedForcing": GenericDistributedForcing,

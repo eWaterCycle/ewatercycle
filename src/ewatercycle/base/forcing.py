@@ -107,7 +107,7 @@ class DefaultForcing(BaseModel):
         dataset: str | Dataset | dict,
         start_time: str,
         end_time: str,
-        shape: str,
+        shape: str | Path,
         directory: str | None = None,
         variables: tuple[str, ...] = (),
         postprocessor: Postprocessor | None = None,
@@ -439,7 +439,7 @@ class _GenericForcing(DefaultForcing):
         dataset: str | Dataset | dict,
         start_time: str,
         end_time: str,
-        shape: str,
+        shape: str | Path,
         directory: str | None = None,
         **model_specific_options,
     ) -> AnyForcing:
