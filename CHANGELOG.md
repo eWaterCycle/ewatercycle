@@ -6,6 +6,16 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+### Added
+- Added new forcing classes ([#393](https://github.com/eWaterCycle/ewatercycle/pull/393)):
+  - LumpedUserForcing, DistributedUserForcing - have the variable names as an argument, as well as an optional post-processor that can derive addition variables from the downloaded data.
+  - LumpedMakkinkForcing, DistributedMakkinkForcing - based on the UserForcing: selects the required variables and computes the Makkink potential evaporation.
+  - LumpedPenmanMonteithForcing, DistributedPenmanMonteithForcing - based on the UserForcing: includes all meteo variables required to compute the Penman-Monteith potential evaporation. More (parameterset) info such as plant type and height are required to compute the actual E_pot.
+
+### Changed
+- Internal changes to DefaultForcing: variables are no longer attributes of the class, but are stored under a "filenames" (dict) attribute ([#393](https://github.com/eWaterCycle/ewatercycle/pull/393)).
+- Updated the documentation to reflect the changes in the forcing generation ([#393](https://github.com/eWaterCycle/ewatercycle/pull/393)).
+
 ## [2.0.0] (2023-10-10)
 
 ### Breaking changes
