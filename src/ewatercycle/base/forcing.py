@@ -265,8 +265,9 @@ class DefaultForcing(BaseModel):
         if not all(fname.endswith(".nc") for _, fname in self.filenames.items()):
             msg = (
                 "Not all files are netCDF files. Only netCDF files can be opened as "
-                "xarray Dataset."
+                "an xarray Dataset."
             )
+            raise ValueError(msg)
         fpaths = [self.directory / filename for _, filename in self.filenames.items()]
 
         datasets = [xr.open_dataset(fpath) for fpath in fpaths]
