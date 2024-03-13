@@ -72,7 +72,6 @@ that are commonly used throughout this documentation.
    :maxdepth: 2
    :hidden:
 
-   user_guide/*
    system_setup
    adding_models
    plugins
