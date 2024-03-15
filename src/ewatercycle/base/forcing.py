@@ -26,6 +26,7 @@ See `ESMValTool configuring docs <https://docs.esmvaltool.org/projects/ESMValCor
 for more information.
 """
 import logging
+import shutil
 import warnings
 from datetime import datetime
 from pathlib import Path
@@ -211,17 +212,13 @@ class DefaultForcing(BaseModel):
         # so the directory should not be included in the yaml file
         clone = self.model_copy()
 
-        # TODO: directory should not be optional, can we remove the directory
-        # from the fdict instead?
-        if clone.shape:
-            try:
-                clone.shape = clone.shape.relative_to(self.directory)
-            except ValueError:
-                clone.shape = None
-                logger.info(
-                    f"Shapefile {self.shape} is not in forcing directory "
-                    f"{self.directory}. So, it won't be saved in {target}."
+        # Copy shapefile so statistics like area can be derived
+        if clone.shape is not None:
+            if not clone.shape.is_relative_to(clone.directory):
+                clone.shape = Path(
+                    shutil.copy(clone.shape, clone.directory / clone.shape.name)
                 )
+            clone.shape = clone.shape.relative_to(clone.directory)
 
         fdict = clone.model_dump(exclude={"directory"}, exclude_none=True, mode="json")
         with target.open("w") as f:
