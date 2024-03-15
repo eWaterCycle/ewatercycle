@@ -87,7 +87,7 @@ def run_recipe(recipe: Recipe, output_dir: Path | None = None) -> dict[str, str]
 
     """
     # Relax esmvalcore log warnings, otherwise the user is spammed with useless info
-    logging.getLogger("esmvalcore").setLevel(logging.CRITICAL)
+    logging.getLogger("esmvalcore").setLevel(logging.ERROR)
 
     with warnings.catch_warnings():
         # Note: the following filterwarnings doesn't seem to work:
