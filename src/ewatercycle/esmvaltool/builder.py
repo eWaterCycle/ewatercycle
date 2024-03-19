@@ -278,10 +278,7 @@ class RecipeBuilder:
             variables: Names of variables to add to the recipe.
         """
         for variable in variables:
-            if variable == "tdps":
-                self.add_variable(variable, mip="Eday")
-            else:
-                self.add_variable(variable)
+            self.add_variable(variable)
         return self
 
     def add_variable(

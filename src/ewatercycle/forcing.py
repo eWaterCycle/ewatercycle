@@ -9,10 +9,6 @@ from ewatercycle._forcings.makkink import (
     DistributedMakkinkForcing,
     LumpedMakkinkForcing,
 )
-from ewatercycle._forcings.penman_monteith import (
-    DistributedPenmanMonteithForcing,
-    LumpedPenmanMonteithForcing,
-)
 from ewatercycle.base.forcing import (
     DefaultForcing,
     DistributedUserForcing,
@@ -72,8 +68,6 @@ _forcings: dict[str, Any] = {
     "LumpedUserForcing": LumpedUserForcing,
     "DistributedMakkinkForcing": DistributedMakkinkForcing,
     "LumpedMakkinkForcing": LumpedMakkinkForcing,
-    "DistributedPenmanMonteithForcing": DistributedPenmanMonteithForcing,
-    "LumpedPenmanMonteithForcing": LumpedPenmanMonteithForcing,
 }
 _forcings.update(
     {
