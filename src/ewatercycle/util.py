@@ -189,7 +189,7 @@ def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
             datasets[i]["time"] = datasets[i]["time_bnds"].isel(
                 bnds=0
             ) + np.timedelta64(12, "h")
-            datasets[i] = datasets[i].drop("time_bnds")
+            datasets[i] = datasets[i].drop_vars("time_bnds")
 
         # A "height" coordinate can be present, which will result in conflicts.
         #   Instead, we move it to the variable's attributes.
@@ -204,7 +204,7 @@ def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
                     "height_units": datasets[i]["height"].attrs["units"],
                 }
             )
-            datasets[i] = datasets[i].drop(("height",))
+            datasets[i] = datasets[i].drop_vars(("height",))
 
     return xr.combine_by_coords(datasets, combine_attrs="drop_conflicts")  # type: ignore[return-value]
 
