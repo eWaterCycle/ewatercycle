@@ -1,13 +1,25 @@
 from pathlib import Path
 from shutil import copytree
 
-from ewatercycle.base.forcing import FORCING_YAML, GenericDistributedForcing
+import pytest
+
+from ewatercycle._forcings.makkink import (
+    DistributedMakkinkForcing,
+    LumpedMakkinkForcing,
+)
+from ewatercycle.base.forcing import (
+    FORCING_YAML,
+    DistributedUserForcing,
+    GenericDistributedForcing,
+    LumpedUserForcing,
+)
 
 # Use GenericDistributedForcing to test abstract DefaultForcing class
 
 
 class TestGenericDistributedForcingWithExternalShape:
     """External shape files are now copied into the forcing directory."""
+
     def test_save(self, tmp_path: Path, sample_shape: str):
         forcing = GenericDistributedForcing(
             directory=tmp_path,
@@ -163,3 +175,50 @@ tasmax: OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc
             tasmax="OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc",
         )
         assert forcing == expected
+
+
+class TestMakkinkUserForcing:
+    @pytest.mark.parametrize(
+        "forcing_class",
+        [
+            DistributedMakkinkForcing,
+            LumpedMakkinkForcing,
+            DistributedUserForcing,
+            LumpedUserForcing,
+        ],
+    )
+    def test_save_distributed(self, forcing_class, tmp_path: Path, sample_shape: str):
+        # Copy shape to tmp_path
+        shape_dir = Path(sample_shape).parent
+        copytree(shape_dir, tmp_path / shape_dir.name)
+        shape = tmp_path / shape_dir.name / Path(sample_shape).name
+
+        forcing = forcing_class(
+            directory=tmp_path,
+            shape=shape,
+            start_time="2000-01-01T00:00:00Z",
+            end_time="2001-01-01T00:00:00Z",
+            filenames={
+                "pr": "OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc",
+                "tas": "OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc",
+                "rsds": "OBS6_ERA5_reanaly_*_day_rsds_2000-2001.nc",
+                "evspsblpot": "Derived_Makkink_evspsblpot.nc",
+            },
+        )
+        forcing.save()
+
+        fn = tmp_path / FORCING_YAML
+        content = fn.read_text()
+
+        expected = """\
+start_time: '2000-01-01T00:00:00Z'
+end_time: '2001-01-01T00:00:00Z'
+shape: Rhine/Rhine.shp
+filenames:
+  pr: OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc
+  tas: OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc
+  rsds: OBS6_ERA5_reanaly_*_day_rsds_2000-2001.nc
+  evspsblpot: Derived_Makkink_evspsblpot.nc
+"""
+
+        assert content == expected
