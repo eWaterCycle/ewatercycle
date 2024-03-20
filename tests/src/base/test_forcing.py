@@ -1,8 +1,8 @@
 from pathlib import Path
 from shutil import copytree
-import xarray as xr
 
 import pytest
+import xarray as xr
 
 from ewatercycle._forcings.makkink import (
     DistributedMakkinkForcing,
@@ -230,7 +230,7 @@ def test_makkink_derivation(tmp_path: Path):
     forcing_dir = Path(__file__).parent.parent / "esmvaltool/files"
     output_dir = tmp_path / "output"
     copytree(forcing_dir, output_dir)
-    
+
     recipe_output = {
         "directory": output_dir,
         "tas": "OBS6_ERA5_reanaly_1_day_tas_2000-2000.nc",
