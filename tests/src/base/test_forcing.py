@@ -227,7 +227,7 @@ filenames:
         assert content == expected
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def recipe_output(tmp_path: Path) -> dict:
     forcing_dir = Path(__file__).parent.parent / "esmvaltool/files"
     output_dir = tmp_path / "output"
@@ -250,13 +250,18 @@ def test_makkink_derivation(recipe_output):
     assert not ds["evspsblpot"].mean(dim=["lat", "lon"]).isnull().any("time")
 
 
-def integration_test_makkink_forcing(recipe_output, sample_shape):
-    with mock.patch.object(DistributedMakkinkForcing, "_run_recipe", new=recipe_output):
+def test_integration_makkink_forcing(sample_shape, recipe_output):
+    def recipe_output_cls(cls, *args, **kwargs):
+        return recipe_output
+
+    with mock.patch.object(
+        DistributedMakkinkForcing, "_run_recipe", new=recipe_output_cls
+    ):
         forcing = DistributedMakkinkForcing.generate(
             dataset="ERA5",
             start_time="2000-01-01T00:00:00Z",
             end_time="2000-12-31T00:00:00Z",
-            shape=str(sample_shape.absolute()),
+            shape=sample_shape,
         )
 
         assert (
