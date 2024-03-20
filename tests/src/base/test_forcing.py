@@ -7,6 +7,7 @@ from ewatercycle.base.forcing import FORCING_YAML, GenericDistributedForcing
 
 
 class TestGenericDistributedForcingWithExternalShape:
+    """External shape files are now copied into the forcing directory."""
     def test_save(self, tmp_path: Path, sample_shape: str):
         forcing = GenericDistributedForcing(
             directory=tmp_path,
@@ -28,6 +29,7 @@ class TestGenericDistributedForcingWithExternalShape:
         expected = """\
 start_time: '2000-01-01T00:00:00Z'
 end_time: '2001-01-01T00:00:00Z'
+shape: Rhine.shp
 filenames:
   pr: OBS6_ERA5_reanaly_*_day_pr_2000-2001.nc
   tas: OBS6_ERA5_reanaly_*_day_tas_2000-2001.nc
