@@ -242,5 +242,5 @@ def test_makkink_derivation(tmp_path: Path):
 
     assert "evspsblpot" in recipe_output
 
-    ds = xr.open_dataset(recipe_output["directory"] / recipe_output["evspsblpot"])
+    ds = xr.open_dataset(recipe_output["directory"] / recipe_output["evspsblpot"])  # type: ignore
     assert not ds["evspsblpot"].mean(dim=["lat", "lon"]).isnull().any("time")
