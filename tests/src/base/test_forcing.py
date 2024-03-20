@@ -1,5 +1,6 @@
 from pathlib import Path
 from shutil import copytree
+from unittest import mock
 
 import pytest
 import xarray as xr
@@ -226,21 +227,41 @@ filenames:
         assert content == expected
 
 
-def test_makkink_derivation(tmp_path: Path):
+@pytest.fixture
+def recipe_output(tmp_path: Path) -> dict:
     forcing_dir = Path(__file__).parent.parent / "esmvaltool/files"
     output_dir = tmp_path / "output"
     copytree(forcing_dir, output_dir)
 
-    recipe_output = {
+    return {
         "directory": output_dir,
         "tas": "OBS6_ERA5_reanaly_1_day_tas_2000-2000.nc",
         "rsds": "OBS6_ERA5_reanaly_1_day_rsds_2000-2000.nc",
         "pr": "OBS6_ERA5_reanaly_1_day_pr_2000-2000.nc",
     }
 
+
+def test_makkink_derivation(recipe_output):
     derive_e_pot(recipe_output)
 
     assert "evspsblpot" in recipe_output
 
     ds = xr.open_dataset(recipe_output["directory"] / recipe_output["evspsblpot"])  # type: ignore
     assert not ds["evspsblpot"].mean(dim=["lat", "lon"]).isnull().any("time")
+
+
+def integration_test_makkink_forcing(recipe_output, sample_shape):
+    with mock.patch.object(DistributedMakkinkForcing, "_run_recipe", new=recipe_output):
+        forcing = DistributedMakkinkForcing.generate(
+            dataset="ERA5",
+            start_time="2000-01-01T00:00:00Z",
+            end_time="2000-12-31T00:00:00Z",
+            shape=str(sample_shape.absolute()),
+        )
+
+        assert (
+            not forcing.to_xarray()["evspsblpot"]
+            .mean(dim=["lat", "lon"])
+            .isnull()
+            .any("time")
+        )
