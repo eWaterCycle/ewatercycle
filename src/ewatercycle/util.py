@@ -186,9 +186,9 @@ def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
         #   https://github.com/eWaterCycle/infra/issues/157
         #   the following is a workaround.
         if "time_bnds" in datasets[i] and xr.infer_freq(datasets[i]["time"]) == "D":
-            datasets[i]["time"] = (
-                datasets[i]["time_bnds"].isel(bnds=0) + np.timedelta64(12, "h")
-            )
+            datasets[i]["time"] = datasets[i]["time_bnds"].isel(
+                bnds=0
+            ) + np.timedelta64(12, "h")
             datasets[i] = datasets[i].drop("time_bnds")
 
         # A "height" coordinate can be present, which will result in conflicts.
