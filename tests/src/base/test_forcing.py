@@ -227,7 +227,7 @@ filenames:
         assert content == expected
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def recipe_output(tmp_path: Path) -> dict:
     forcing_dir = Path(__file__).parent.parent / "esmvaltool/files"
     output_dir = tmp_path / "output"

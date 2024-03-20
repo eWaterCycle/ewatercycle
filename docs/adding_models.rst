@@ -75,8 +75,10 @@ It can be used as a template for your own plugin.
 Custom forcing
 ==============
 
-If your model can use generic forcing data
-(:py:class:`~ewatercycle.base.forcing.GenericDistributedForcing` or :py:class:`~ewatercycle.base.forcing.GenericLumpedForcing`), you can skip this section.
+If your model can use generic forcing data such as forcings based off
+(:py:class:`~ewatercycle.base.forcing.GenericDistributedForcing` or :py:class:`~ewatercycle.base.forcing.GenericLumpedForcing`),
+e.g. the MakkinkForcing classes, you can skip this section.
+For more information on forcing, see `the user guide <user_guide/02_forcing.html>`_ .
 
 If your model needs custom forcing data, you need to create your own forcing class.
 
