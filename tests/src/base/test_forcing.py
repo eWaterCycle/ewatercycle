@@ -1,11 +1,13 @@
 from pathlib import Path
 from shutil import copytree
+import xarray as xr
 
 import pytest
 
 from ewatercycle._forcings.makkink import (
     DistributedMakkinkForcing,
     LumpedMakkinkForcing,
+    derive_e_pot,
 )
 from ewatercycle.base.forcing import (
     FORCING_YAML,
@@ -222,3 +224,23 @@ filenames:
 """
 
         assert content == expected
+
+
+def test_makkink_derivation(tmp_path: Path):
+    forcing_dir = Path(__file__).parent.parent / "esmvaltool/files"
+    output_dir = tmp_path / "output"
+    copytree(forcing_dir, output_dir)
+    
+    recipe_output = {
+        "directory": output_dir,
+        "tas": "OBS6_ERA5_reanaly_1_day_tas_2000-2000.nc",
+        "rsds": "OBS6_ERA5_reanaly_1_day_rsds_2000-2000.nc",
+        "pr": "OBS6_ERA5_reanaly_1_day_pr_2000-2000.nc",
+    }
+
+    derive_e_pot(recipe_output)
+
+    assert "evspsblpot" in recipe_output
+
+    ds = xr.open_dataset(recipe_output["directory"] / recipe_output["evspsblpot"])
+    assert not ds["evspsblpot"].mean(dim=["lat", "lon"]).isnull().any("time")
