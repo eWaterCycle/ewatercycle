@@ -83,7 +83,7 @@ To download ERA5 data files you can use the
 
     pip install era5cli
 
-Follow `instructions <https://era5cli.readthedocs.io/en/stable/instructions.html>`_ to get access to data.
+Follow `instructions <https://era5cli.readthedocs.io/en/stable/getting_started/>`_ to get access to data.
 
 As an example, the hourly ERA5 data for the years 1990
 and 1991 and for variables pr, psl, tas, taxmin, tasmax, tdps, uas,
