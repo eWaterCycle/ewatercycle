@@ -6,6 +6,9 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+
+## [2.1.0] (2024-03-25)
+
 ### Added
 - Added new forcing classes ([#393](https://github.com/eWaterCycle/ewatercycle/pull/393)):
   - LumpedUserForcing, DistributedUserForcing - have the variable names as an argument, as well as an optional post-processor that can derive addition variables from the downloaded data.
@@ -216,7 +219,8 @@ Everthing listed at [2.0.0](2.0.0), but without the adding models part.
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.0.0...HEAD
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.1.0...HEAD
+[2.1.0]: https://github.com/eWaterCycle/ewatercycle/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/eWaterCycle/ewatercycle/compare/2.0.0b2...2.0.0
 [2.0.0b2]: https://github.com/eWaterCycle/ewatercycle/compare/1.4.1...2.0.0b2
 [1.4.1]: https://github.com/eWaterCycle/ewatercycle/compare/1.4.0...1.4.1
