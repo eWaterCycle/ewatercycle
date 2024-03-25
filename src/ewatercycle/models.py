@@ -21,9 +21,7 @@ registered in the :py:data:`ewatercycle.models`
 """
 
 from importlib.metadata import entry_points
-from typing import Mapping, Type
-
-from importlib_metadata import EntryPoint
+from typing import Type
 
 from ewatercycle import shared
 from ewatercycle.base.model import eWaterCycleModel
@@ -66,11 +64,8 @@ class ModelSources(shared.Sources):
     """
 
     def __getitem__(self, key) -> Type[eWaterCycleModel]:
-        """Get the entry point, loads it, and returns the Forcing object."""
-        if isinstance(self._raw_dict[key], EntryPoint):
-            return self._raw_dict[key].load()
-        else:
-            return self._raw_dict[key]
+        """Get the entry point, loads it, and returns the model object."""
+        return super().__getitem__(key)
 
 
 _models = {entry_point.name: entry_point for entry_point in _model_entrypoints}

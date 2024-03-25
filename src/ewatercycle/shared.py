@@ -1,6 +1,8 @@
 from abc import abstractmethod
 from collections.abc import Mapping
 
+from importlib_metadata import EntryPoint
+
 
 class Sources(Mapping):
     """Lazy dictionary to hold the different models/forcings/parametersets.
@@ -11,13 +13,12 @@ class Sources(Mapping):
     def __init__(self, *args, **kw):
         self._raw_dict = dict(*args, **kw)
 
-    @abstractmethod
     def __getitem__(self, key):
-        """Get the entry point, loads it, and returns the object.
-
-        No implementation, to allow for type hinting in the subclasses.
-        """
-        ...
+        """Get the entry point, loads it, and returns the object."""
+        if isinstance(self._raw_dict[key], EntryPoint):
+            return self._raw_dict[key].load()
+        else:
+            return self._raw_dict[key]
 
     def __getattr__(self, attr):
         """Access the keys like attributes. E.g. sources.HypeForcing."""

@@ -2,8 +2,6 @@
 from importlib.metadata import entry_points
 from typing import Any, Type
 
-from importlib_metadata import EntryPoint
-
 from ewatercycle import shared
 from ewatercycle._forcings.makkink import (
     DistributedMakkinkForcing,
@@ -57,10 +55,7 @@ class ForcingSources(shared.Sources):
 
     def __getitem__(self, key) -> Type[DefaultForcing]:
         """Get the entry point, loads it, and returns the Forcing object."""
-        if isinstance(self._raw_dict[key], EntryPoint):
-            return self._raw_dict[key].load()
-        else:
-            return self._raw_dict[key]
+        return super().__getitem__(key)
 
 
 _forcings: dict[str, Any] = {
