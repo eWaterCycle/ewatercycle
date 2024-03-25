@@ -15,6 +15,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 ### Changed
 - Internal changes to DefaultForcing: variables are no longer attributes of the class, but are stored under a "filenames" (dict) attribute ([#393](https://github.com/eWaterCycle/ewatercycle/pull/393)).
 - Updated the documentation to reflect the changes in the forcing generation ([#393](https://github.com/eWaterCycle/ewatercycle/pull/393)).
+- Shapefiles used for generating forcing are now always copied to the output folder, to allow determination of the area to convert mm water depth to m^3 of discharge. ([#393](https://github.com/eWaterCycle/ewatercycle/pull/393)).
 
 ## [2.0.0] (2023-10-10)
 
