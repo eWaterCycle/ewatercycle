@@ -57,14 +57,23 @@ that are commonly used throughout this documentation.
 - **Parameter Set**: File based collection of parameters for a certain model, resolution, and possibly area.
 - **Model instance**: single running instance of a model, including all data required, and with a current state.
 
+.. toctree::
+   :caption: User Guide
+   :maxdepth: 2
+   :hidden:
+
+   user_guide/00_intro
+   user_guide/01_parameter_sets
+   user_guide/02_forcing
+   user_guide/03_models_obs_analysis
 
 .. toctree::
-  :maxdepth: 2
-  :hidden:
+   :caption: Documentation
+   :maxdepth: 2
+   :hidden:
 
-  user_guide
-  system_setup
-  adding_models
-  plugins
-  infrastructures
-  observations
+   system_setup
+   adding_models
+   plugins
+   infrastructures
+   observations

@@ -1,5 +1,6 @@
 """Run ESMValTool recipes."""
 import logging
+import warnings
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -85,8 +86,22 @@ def run_recipe(recipe: Recipe, output_dir: Path | None = None) -> dict[str, str]
           DataFile('OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc')
 
     """
-    output = _save_and_run_recipe(recipe, output_dir)
-    return _parse_recipe_output(output)
+    # Relax esmvalcore log warnings, otherwise the user is spammed with useless info
+    logging.getLogger("esmvalcore").setLevel(logging.ERROR)
+
+    with warnings.catch_warnings():
+        # Note: the following filterwarnings doesn't seem to work:
+        warnings.filterwarnings(  # Not relevant for end users.
+            action="ignore",
+            message="Thank you for trying out the new ESMValCore API",
+        )
+        warnings.filterwarnings(  # Hide Iris warning (upstream issue)
+            action="ignore",
+            message="Saving to netcdf with legacy-style attribute",
+        )
+
+        output = _save_and_run_recipe(recipe, output_dir)
+        return _parse_recipe_output(output)
 
 
 def _save_and_run_recipe(recipe: Recipe, output_dir: Path | None) -> RecipeOutput:

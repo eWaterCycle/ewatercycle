@@ -21,8 +21,8 @@ class Dataset(BaseModel):
     # TODO add min max
     start_year: int | None = None
     end_year: int | None = None
-    ensemble: str | list[str] | None = None
-    exp: str | list[str] | None = None
+    ensemble: str | None = None
+    exp: str | None = None
     mip: str | None = None
     realm: str | None = None
     shift: str | None = None

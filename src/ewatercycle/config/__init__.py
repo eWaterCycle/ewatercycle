@@ -260,9 +260,11 @@ class Configuration(BaseModel):
     def _save_to_stream(self, stream: TextIO):
         yaml = YAML(typ="safe")
         # TODO make paths in parameter_sets relative again
-        # TODO use self.dict() instead of ugly py>json>py>yaml chain,
+        # TODO use self.model_dump() instead of ugly py>json>py>yaml chain,
         # tried but returns PosixPath values, which YAML library can not represent
-        json_string = self.json(exclude={"ewatercycle_config"}, exclude_none=True)
+        json_string = self.model_dump_json(
+            exclude={"ewatercycle_config"}, exclude_none=True
+        )
         yaml_object = yaml.load(json_string)
         yaml.dump(yaml_object, stream)
 
@@ -294,7 +296,7 @@ class Configuration(BaseModel):
         Args:
             other: The other configuration object.
         """
-        for key in self.dict().keys():
+        for key in self.model_dump().keys():
             setattr(self, key, getattr(other, key))
 
 

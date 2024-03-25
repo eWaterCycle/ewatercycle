@@ -1,4 +1,5 @@
 from configparser import ConfigParser
+from copy import copy
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, Optional, Tuple, Union
@@ -135,6 +136,77 @@ def fit_extents_to_grid(extents, step=0.1, offset=0.05, ndigits=2) -> Dict[str, 
         "end_longitude": fit(extents["end_longitude"], offset),
         "end_latitude": fit(extents["end_latitude"], offset),
     }
+
+
+def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
+    """Merge the separate output datasets from an ESMValTool recipe into one dataset.
+
+    ESMValTool has bad management of floating point precision in coordinates. Every
+    CMORized file can have different rounding errors in the values of its coordinates.
+    This will prevent easy merging with xarray's open_mfdataset, or combine_by_coords.
+    By rounding to the 7th decimal place, more than sufficient precision is preserved
+    ('waldo-on-a-page' precision)[1], while solving the floating point inprecision
+    issue.
+
+    References:
+        [1] Randall Monroe, 2019. xkcd: Coordinate Precision. https://xkcd.com/2170/
+    """
+    TOLERANCE = 1e-7
+    datasets = copy(datasets)
+
+    # First check that the coordinates all line up before merging.
+    for coord in ["lat", "lon"]:
+        coords = [ds[coord].to_numpy() for ds in datasets]
+        if len(set([c.size for c in coords])) > 1:
+            msg = f"The coordinate '{coord}' is not of the same size in every dataset."
+            raise ValueError(msg)
+        all_coords = np.array(coords)
+        if not np.all((all_coords - all_coords.mean(axis=0)) < TOLERANCE):
+            msg = f"Coordinate {coord} deviates more than {TOLERANCE}. Merging failed."
+            raise ValueError(msg)
+
+    removed = {
+        "lat_bnds": False,
+        "lon_bnds": False,
+    }
+    for i in range(len(datasets)):
+        # Bounds are not aligned, and can be missing in derived vars,
+        #  so we remove all except the first lat/lon bounds we encounter.
+        for coord in ["lat_bnds", "lon_bnds"]:
+            if coord in datasets[i]:
+                if removed[coord]:
+                    datasets[i] = datasets[i].drop_vars(coord)
+                removed[coord] = True
+
+        # xr.align doesn't work for lumped forcing. this works for both lumped and dist:
+        for coord in ["lat", "lon"]:
+            datasets[i][coord] = datasets[0][coord]
+
+        # the time coordinates are messed up for some files, see:
+        #   https://github.com/eWaterCycle/infra/issues/157
+        #   the following is a workaround.
+        if "time_bnds" in datasets[i] and xr.infer_freq(datasets[i]["time"]) == "D":
+            datasets[i]["time"] = datasets[i]["time_bnds"].isel(
+                bnds=0
+            ) + np.timedelta64(12, "h")
+            datasets[i] = datasets[i].drop_vars("time_bnds")
+
+        # A "height" coordinate can be present, which will result in conflicts.
+        #   Instead, we move it to the variable's attributes.
+        if "height" in datasets[i].variables:
+            data_vars = list(datasets[i].data_vars)
+            if "time_bnds" in data_vars:
+                data_vars.remove("time_bnds")
+            var = data_vars[0]
+            datasets[i][var].attrs.update(
+                {
+                    "height": float(datasets[i]["height"]),
+                    "height_units": datasets[i]["height"].attrs["units"],
+                }
+            )
+            datasets[i] = datasets[i].drop_vars(("height",))
+
+    return xr.combine_by_coords(datasets, combine_attrs="drop_conflicts")  # type: ignore[return-value]
 
 
 def to_absolute_path(

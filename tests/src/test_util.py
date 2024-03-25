@@ -9,6 +9,7 @@ from ewatercycle.util import (
     find_closest_point,
     fit_extents_to_grid,
     get_time,
+    merge_esvmaltool_datasets,
     reindex,
     to_absolute_path,
 )
@@ -184,3 +185,13 @@ class TestFitExtents2Map:
     def test_defaults(self, extents, expected):
         result = fit_extents_to_grid(extents)
         assert result == expected
+
+
+def test_merge_esmvaltool_datasets():
+    files = list((Path(__file__).parent / "esmvaltool" / "files").glob("*.nc"))
+    datasets = [xr.open_dataset(file) for file in files]
+    ds = merge_esvmaltool_datasets(datasets)
+    for var in ["tas", "pr", "rsds"]:
+        assert not ds[var].mean(dim=["lat", "lon"]).isnull().any("time")
+
+    assert "height" in ds["tas"].attrs

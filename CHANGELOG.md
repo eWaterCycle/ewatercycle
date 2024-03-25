@@ -6,6 +6,17 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+### Added
+- Added new forcing classes ([#393](https://github.com/eWaterCycle/ewatercycle/pull/393)):
+  - LumpedUserForcing, DistributedUserForcing - have the variable names as an argument, as well as an optional post-processor that can derive addition variables from the downloaded data.
+  - LumpedMakkinkForcing, DistributedMakkinkForcing - based on the UserForcing: selects the required variables and computes the Makkink potential evaporation.
+- The available models are now stored in `ewatercycle.models.sources`, just like the different forcing sources ([#393](https://github.com/eWaterCycle/ewatercycle/pull/393)).
+
+### Changed
+- Internal changes to DefaultForcing: variables are no longer attributes of the class, but are stored under a "filenames" (dict) attribute ([#393](https://github.com/eWaterCycle/ewatercycle/pull/393)).
+- Updated the documentation to reflect the changes in the forcing generation ([#393](https://github.com/eWaterCycle/ewatercycle/pull/393)).
+- Shapefiles used for generating forcing are now always copied to the output folder, to allow determination of the area to convert mm water depth to m^3 of discharge. ([#393](https://github.com/eWaterCycle/ewatercycle/pull/393)).
+
 ## [2.0.0] (2023-10-10)
 
 ### Breaking changes
