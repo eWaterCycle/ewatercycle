@@ -437,7 +437,7 @@ class ContainerizedModel(eWaterCycleModel):
     def version(self) -> str:
         return self.bmi_image.version
 
-    def _make_bmi_instance(self) -> bmipy.Bmi:
+    def _make_bmi_instance(self) -> OptionalDestBmi:
         if self.parameter_set:
             self._additional_input_dirs.append(str(self.parameter_set.directory))
         if self.forcing:
