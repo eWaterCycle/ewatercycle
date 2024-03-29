@@ -9,6 +9,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 ### Added
 - Added the `input_var_names` property to the eWaterCycle model class, to accompany the existing `output_var_names` property ([#403](https://github.com/eWaterCycle/ewatercycle/pull/403)).
 - Added the `var_units` method to the eWaterCycle model class, to mirror PyMT ([#403](https://github.com/eWaterCycle/ewatercycle/pull/403)).
+- Added specification of the expected time units from the model's BMI to the documentation ([#403](https://github.com/eWaterCycle/ewatercycle/pull/403)).
 
 ### Changed
 - Updated the model documentation to link to the eWaterCycleModel API docs, and to make it a bit more clear that it is build on top of BMI ([#403](https://github.com/eWaterCycle/ewatercycle/pull/403)).
