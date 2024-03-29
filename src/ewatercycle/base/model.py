@@ -327,6 +327,15 @@ class eWaterCycleModel(BaseModel, abc.ABC):
         return self._bmi.get_output_var_names()
 
     @property
+    def input_var_names(self) -> Iterable[str]:
+        """List of a model's input variables."""
+        return self._bmi.get_input_var_names()
+
+    def var_units(self, name: str) -> str:
+        """Return the given variable's units."""
+        return self._bmi.get_var_units(name)
+
+    @property
     def start_time_as_isostr(self) -> str:
         """Start time of the model.
 
@@ -437,7 +446,7 @@ class ContainerizedModel(eWaterCycleModel):
     def version(self) -> str:
         return self.bmi_image.version
 
-    def _make_bmi_instance(self) -> bmipy.Bmi:
+    def _make_bmi_instance(self) -> OptionalDestBmi:
         if self.parameter_set:
             self._additional_input_dirs.append(str(self.parameter_set.directory))
         if self.forcing:
