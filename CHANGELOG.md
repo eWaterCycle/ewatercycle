@@ -6,6 +6,9 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+### Added
+- Added the `input_var_names` property to the eWaterCycle model class, to accompany the existing `output_var_names` property.
+- Added the `var_units` method to the eWaterCycle model class, to mirror PyMT.
 
 ## [2.1.0] (2024-03-25)
 
