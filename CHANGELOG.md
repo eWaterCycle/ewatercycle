@@ -6,6 +6,8 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+## Changed
+- If a model plugin raises an exception during the loading of the model entry points, a more clear exception is raised which guides the users on how to solve the error ([#404](https://github.com/eWaterCycle/ewatercycle/pull/404)).
 
 ## [2.1.0] (2024-03-25)
 
