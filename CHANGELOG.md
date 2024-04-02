@@ -6,8 +6,14 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
-## Changed
+### Added
+- Added the `input_var_names` property to the eWaterCycle model class, to accompany the existing `output_var_names` property ([#403](https://github.com/eWaterCycle/ewatercycle/pull/403)).
+- Added the `var_units` method to the eWaterCycle model class, to mirror PyMT ([#403](https://github.com/eWaterCycle/ewatercycle/pull/403)).
+- Added a note on the time units that eWaterCycle expectes models to provide to the documentation ([#403](https://github.com/eWaterCycle/ewatercycle/pull/403)).
+
+### Changed
 - If a model plugin raises an exception during the loading of the model entry points, a more clear exception is raised which guides the users on how to solve the error ([#404](https://github.com/eWaterCycle/ewatercycle/pull/404)).
+- Updated the model documentation to link to the eWaterCycleModel API docs, and to make it a bit more clear that it is build on top of BMI ([#403](https://github.com/eWaterCycle/ewatercycle/pull/403)).
 
 ## [2.1.0] (2024-03-25)
 
