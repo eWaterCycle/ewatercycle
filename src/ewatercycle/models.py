@@ -20,13 +20,24 @@ registered in the :py:data:`ewatercycle.models`
 `entry point group <https://packaging.python.org/en/latest/specifications/entry-points/>`_.
 """
 
-from importlib.metadata import entry_points
+from importlib.metadata import entry_points, packages_distributions
 from typing import Type
 
 from ewatercycle import shared
 from ewatercycle.base.model import eWaterCycleModel
 
 _model_entrypoints = entry_points(group="ewatercycle.models")  # /NOSONAR
+
+
+def get_package_name(module_name: str) -> str:
+    """Get the (pip) package name from a module name.
+
+    Note: falls back to [unknown] if the lookup fails.
+    """
+    if module_name in packages_distributions():
+        return packages_distributions()[module_name][0]
+    return "[unknown]"
+
 
 # Expose as "from ewatercycle.models import Model" for backward compatibility
 for _model in _model_entrypoints:
@@ -39,7 +50,7 @@ for _model in _model_entrypoints:
             "You can report the issue on the model's github repository, "
             "or on https://github.com/eWaterCycle/ewatercycle/issues\n"
             "In the meantime, you can try uninstalling the plugin with:\n"
-            f"    pip uninstall {_model.value.split('.')[0]}"
+            f"    pip uninstall {get_package_name(_model.value.split('.')[0])}"
         )
         raise ImportError(msg) from e
 
