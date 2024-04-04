@@ -89,6 +89,17 @@ class TestWithSetup:
 
         assert mocked_model.time == pytest.approx(3.0)
 
+    def test_var_units(self, mocked_model: eWaterCycleModel):
+        assert mocked_model.var_units("plate_surface__temperature") == "K"
+
+    def test_input_var_names(self, mocked_model: eWaterCycleModel):
+        assert mocked_model.input_var_names == ()
+
+    def test_output_var_names(self, mocked_model: eWaterCycleModel):
+        result = mocked_model.output_var_names
+
+        assert result == ("plate_surface__temperature",)
+
     def test_time(self, mocked_model: eWaterCycleModel):
         result = mocked_model.time
 
@@ -144,11 +155,6 @@ class TestWithSetup:
         result = mocked_model.time_units
 
         assert result == "days since 1970-01-01"
-
-    def test_output_var_names(self, mocked_model: eWaterCycleModel):
-        result = mocked_model.output_var_names
-
-        assert result == ("plate_surface__temperature",)
 
     def test_get_value(self, mocked_model: eWaterCycleModel):
         result = mocked_model.get_value("plate_surface__temperature")
