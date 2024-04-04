@@ -63,7 +63,7 @@ and should be implemented:
 
 Note that for ``get_time_units()`` eWaterCycle expects are more specific string than the BMI specification.
 The output should be formatted in the form of ``<time_units> since <reference_time>``, for example: ``seconds since 1970-01-01 00:00:00.0 +0000``.
-More information on the format of the units can be found on the `cftime documentation <https://unidata.github.io/cftime/api.html#cftime.num2date>`_. 
+More information on the format of the units can be found on the `cftime documentation <https://unidata.github.io/cftime/api.html#cftime.num2date>`_.
 
 .. _eWaterCycle plugin:
 
