@@ -82,7 +82,7 @@ def get_shapefiles(directory: Path, basin_id: str):
     combined_shapefile_path = output_path / "combined.shp"
     if not combined_shapefile_path.is_file():
         with zipfile.ZipFile(zip_path) as myzip:
-            myzip.extractall()
+            myzip.extractall(path=output_path)
 
     shape = output_path/ f'{basin_id}.shp'
     gdf = gpd.read_file(combined_shapefile_path)
