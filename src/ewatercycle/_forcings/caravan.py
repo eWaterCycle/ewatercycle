@@ -59,7 +59,7 @@ class Caravan(DefaultForcing):
             end_time=end_time,
             shape=Path(shape),
             filenames={
-                var: Path(directory) / f'{basin_id}_{start_time}_{end_time}_{var}' for var in variables
+                var: f'{basin_id}_{start_time}_{end_time}_{var}.nc' for var in variables
             }
         )
         forcing.save()
@@ -82,7 +82,7 @@ def get_shapefiles(directory: Path, basin_id: str):
     combined_shapefile_path = output_path / "combined.shp"
     if not combined_shapefile_path.is_file():
         with zipfile.ZipFile(zip_path) as myzip:
-            myzip.extractall(path=output_path)
+            myzip.extractall(path=directory)
 
     shape = output_path/ f'{basin_id}.shp'
     gdf = gpd.read_file(combined_shapefile_path)
