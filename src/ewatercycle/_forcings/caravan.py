@@ -76,8 +76,8 @@ def get_shapefiles(directory: Path, basin_id: str):
     zip_path = directory / 'shapefiles.zip'
     output_path = directory / 'shapefiles'
 
-    if not output_path.is_file():
-        wget.download(shape_file_url, out=str(output_path))
+    if not zip_path.is_file():
+        wget.download(shape_file_url, out=str(zip_path))
 
     combined_shapefile_path = output_path / "combined.shp"
     if not combined_shapefile_path.is_file():
