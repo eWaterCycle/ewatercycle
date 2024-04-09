@@ -51,7 +51,7 @@ class Caravan(DefaultForcing):
             ds_basin_time[var].to_netcdf(Path(directory) / f'{basin_id}_{start_time}_{end_time}_{var}.nc')
 
         if shape is None:
-            shape = get_shapefiles(directory)
+            shape = get_shapefiles(directory, basin_id)
 
         forcing = cls(
             directory=Path(directory),
@@ -71,7 +71,7 @@ class LumpedCaravanForcing(Caravan, LumpedUserForcing):  # type: ignore[misc]
 
 
 
-def get_shapefiles(directory: Path, basin_id):
+def get_shapefiles(directory: Path, basin_id: str):
     shape_file_url = "https://data.4tu.nl/file/ca13056c-c347-4a27-b320-930c2a4dd207/bbe94526-cf1a-4b96-8155-244f20094719"
     zip_path = directory / 'shapefiles.zip'
     output_path = directory / 'shapefiles'
