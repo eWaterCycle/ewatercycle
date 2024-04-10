@@ -55,7 +55,7 @@ class Caravan(DefaultForcing):
 
         shape_obj = shapereader.Reader(shape)
         centre = next(shape_obj.geometries()).centroid
-        ds.coords.update({'lat': centre.y,
+        ds_basin_time.coords.update({'lat': centre.y,
                           'lon': centre.x
                           })
 
