@@ -151,6 +151,6 @@ def get_shapefiles(directory: Path, basin_id: str):
 def crop_ds(ds: xr.Dataset, start_time: str, end_time:str):
     get_time(start_time), get_time(end_time) # if utc, remove Z to parse to np.dt64
     start, end  = np.datetime64(start_time[:-1]), np.datetime64(end_time[:-1])
-    ds = ds.isel(time=(ds['time'].to_array() >= start) & (ds['time'].to_array() <= end))
+    ds = ds.isel(time=(ds['time'].to_numpy() >= start) & (ds['time'].to_numpy() <= end))
     return ds
 
