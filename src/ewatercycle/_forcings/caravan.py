@@ -68,7 +68,7 @@ class Caravan(DefaultForcing):
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
         if shape is None:
-            shape = get_shapefiles(directory, basin_id)
+            shape = get_shapefiles(Path(directory), basin_id)
 
         shape_obj = shapereader.Reader(shape)
         centre = next(shape_obj.geometries()).centroid
@@ -77,14 +77,14 @@ class Caravan(DefaultForcing):
                                      })
         ds_basin_time = ds_basin_time.drop_vars('basin_id')
         if variables == ():
-            variables = (ds.data_vars.keys())
+            variables = (ds_basin_time.data_vars.keys())
 
         # TODO: Check if this is per NetCDF convention
-        variables = list(set(variables).difference(set(PROPERTY_VARS)))
-        properties = list(set(variables).intersection(set(PROPERTY_VARS)))
+        variables = tuple(set(variables).difference(set(PROPERTY_VARS)))
+        properties = tuple(set(variables).intersection(set(PROPERTY_VARS)))
 
         for prop in properties:
-            ds_basin.coords.update({prop: ds_basin[prop].to_numpy()})
+            ds_basin_time.coords.update({prop: ds_basin_time[prop].to_numpy()})
 
         for var in variables:
             ds_basin_time[var].to_netcdf(Path(directory) / f'{basin_id}_{start_time}_{end_time}_{var}.nc')
@@ -106,17 +106,15 @@ class LumpedCaravanForcing(Caravan, LumpedUserForcing):  # type: ignore[misc]
     ...
 
 
-
 def get_shapefiles(directory: Path, basin_id: str):
-    """retrieves shapefiles from openDAP"""
-
+    """Retrieves shapefiles from data 4TU."""
     zip_path = directory / 'shapefiles.zip'
     output_path = directory / 'shapefiles'
 
     if not zip_path.is_file():
         timeout = 300
         try:
-            r = requests.get(SHAPEFILE_URL, timeout=timeout)
+            result = requests.get(SHAPEFILE_URL, timeout=timeout)
         except requests.exceptions.Timeout:
             msg = (
             f"Issue connecting to {SHAPEFILE_URL} after {timeout}s"
@@ -124,7 +122,7 @@ def get_shapefiles(directory: Path, basin_id: str):
             raise RuntimeError(msg)
 
         with zip_path.open('wb') as fin:
-            fin.write(r.content)
+            fin.write(result.content)
 
     combined_shapefile_path = output_path / "combined.shp"
     if not combined_shapefile_path.is_file():
@@ -173,8 +171,7 @@ def get_shapefiles(directory: Path, basin_id: str):
 
 
 def crop_ds(ds: xr.Dataset, start_time: str, end_time:str):
+    """Crops dataset based on time."""
     get_time(start_time), get_time(end_time) # if utc, remove Z to parse to np.dt64
     start, end  = np.datetime64(start_time[:-1]), np.datetime64(end_time[:-1])
-    ds = ds.isel(time=(ds['time'].to_numpy() >= start) & (ds['time'].to_numpy() <= end))
-    return ds
-
+    return ds.isel(time=(ds['time'].to_numpy() >= start) & (ds['time'].to_numpy() <= end))
