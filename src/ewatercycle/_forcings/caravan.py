@@ -13,9 +13,11 @@ from zipp import zipfile
 from ewatercycle.base.forcing import DefaultForcing, LumpedUserForcing
 from ewatercycle.util import get_time
 
-
+OPENDAP_URL = "https://opendap.4tu.nl/thredds/dodsC/data2/djht/ca13056c-c347-4a27-b320-930c2a4dd207/1/"
+SHAPEFILE_URL = "https://data.4tu.nl/file/ca13056c-c347-4a27-b320-930c2a4dd207/bbe94526-cf1a-4b96-8155-244f20094719"
 class Caravan(DefaultForcing):
-    """Forcing object which retrieves part of the caravan dataset stored on the OpenDAP server"""
+    """Forcing object which retrieves part of the
+    caravan dataset stored on the OpenDAP server."""
 
     @classmethod
     def retrieve(cls: Type["Caravan"],
@@ -36,24 +38,32 @@ class Caravan(DefaultForcing):
             basin_id: Caravan basin_id
             directory: Directory in which forcing should be written.
                 If not given will create timestamped directory.
-            variables: Variables which are needed for model, if not specified will default to all (not recommended)
-            shape: (Optional) Path to a shape file. If none is specified, will be downloaded automatically.
+            variables: Variables which are needed for model,
+                if not specified will default to all (not recommended)
+            shape: (Optional) Path to a shape file.
+                If none is specified, will be downloaded automatically.
             **kwargs
         """
         dataset = basin_id.split('_')[0]
         ds = xr.open_dataset(
-            f"https://opendap.4tu.nl/thredds/dodsC/data2/djht/ca13056c-c347-4a27-b320-930c2a4dd207/1/{dataset}.nc")
+            f"{OPENDAP_URL}{dataset}.nc")
         ds_basin = ds.sel(basin_id=basin_id.encode())
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
+
+        if shape is None:
+            shape = get_shapefiles(directory, basin_id)
+
+        shape_obj = shapereader.Reader(shape)
+        centre = next(shape_obj.geometries()).centroid
+        ds.coords.update({'lat': centre.y,
+                          'lon': centre.x
+                          })
 
         if variables == ():
             variables = (ds.data_vars.keys())
 
         for var in variables:
             ds_basin_time[var].to_netcdf(Path(directory) / f'{basin_id}_{start_time}_{end_time}_{var}.nc')
-
-        if shape is None:
-            shape = get_shapefiles(directory, basin_id)
 
         forcing = cls(
             directory=Path(directory),
@@ -74,13 +84,22 @@ class LumpedCaravanForcing(Caravan, LumpedUserForcing):  # type: ignore[misc]
 
 
 def get_shapefiles(directory: Path, basin_id: str):
-    shape_file_url = "https://data.4tu.nl/file/ca13056c-c347-4a27-b320-930c2a4dd207/bbe94526-cf1a-4b96-8155-244f20094719"
+    """retrieves shapefiles from openDAP"""
+
     zip_path = directory / 'shapefiles.zip'
     output_path = directory / 'shapefiles'
 
     if not zip_path.is_file():
-        r = requests.get(shape_file_url)
-        with open(zip_path, 'wb') as fin:
+        timeout = 300
+        try:
+            r = requests.get(SHAPEFILE_URL, timeout=timeout)
+        except requests.exceptions.Timeout:
+            msg = (
+            f"Issue connecting to {SHAPEFILE_URL} after {timeout}s"
+            )
+            raise RuntimeError(msg)
+
+        with zip_path.open('wb') as fin:
             fin.write(r.content)
 
     combined_shapefile_path = output_path / "combined.shp"
@@ -96,7 +115,7 @@ def get_shapefiles(directory: Path, basin_id: str):
         list_records.append(record.attributes['gauge_id'])
 
     df = pd.DataFrame(data=list_records, index=range(len(list_records)), columns=['basin_id'])
-    n = df[df['basin_id'] == basin_id].index.values[0]
+    basin_index = df[df['basin_id'] == basin_id].index.array[0]
 
     with fiona.open(
         combined_shapefile_path
@@ -114,7 +133,7 @@ def get_shapefiles(directory: Path, basin_id: str):
         ) as dst:
             for i, feat in enumerate(src):
                 # kind of clunky but it works: select filtered polygon
-                if i == n:
+                if i == basin_index:
                     geom = feat.geometry
                     assert geom.type == "Polygon"
 
@@ -130,8 +149,8 @@ def get_shapefiles(directory: Path, basin_id: str):
 
 
 def crop_ds(ds: xr.Dataset, start_time: str, end_time:str):
-    start_time_dt, end_time_dt = get_time(start_time), get_time(end_time) # if utc, remove Z to parse to np.dt64
+    get_time(start_time), get_time(end_time) # if utc, remove Z to parse to np.dt64
     start, end  = np.datetime64(start_time[:-1]), np.datetime64(end_time[:-1])
-    ds = ds.isel(time=(ds['time'].values >= start) & (ds['time'].values <= end))
+    ds = ds.isel(time=(ds['time'].to_array() >= start) & (ds['time'].to_array() <= end))
     return ds
 
