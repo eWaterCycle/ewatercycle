@@ -56,6 +56,7 @@ class Caravan(DefaultForcing):
     .. code-block:: python
 
         from pathlib import Path
+        from rich import print
         from ewatercycle.forcing import sources
 
         path = Path.cwd()
@@ -69,9 +70,24 @@ class Caravan(DefaultForcing):
                                                                   directory = forcing_path / "Camels",
                                                                   basin_id = f"camels_0{HRU_id}"
                                                                 )
+        which gives somthing like:
 
+        .. code-block:: python
 
-
+            LumpedCaravanForcing(
+                start_time='1997-08-01T00:00:00Z',
+                end_time='2005-09-01T00:00:00Z',
+                directory=PosixPath('/home/davidhaasnoot/eWaterCycle-WSL-WIP/Forcing/Camels'),
+                shape=PosixPath('/home/davidhaasnoot/eWaterCycle-WSL-WIP/Forcing/Camels/shapefiles/camels_01022500.shp'),
+                filenames={
+                    'tasmax': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tasmax.nc',
+                    'tasmin': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tasmin.nc',
+                    'evspsblpot': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_evspsblpot.nc',
+                    'pr': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_pr.nc',
+                    'tas': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tas.nc',
+                    'Q': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_Q.nc'
+                }
+            )
     """
 
     @classmethod
