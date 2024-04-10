@@ -13,11 +13,28 @@ from zipp import zipfile
 from ewatercycle.base.forcing import DefaultForcing, LumpedUserForcing
 from ewatercycle.util import get_time
 
-OPENDAP_URL = "https://opendap.4tu.nl/thredds/dodsC/data2/djht/ca13056c-c347-4a27-b320-930c2a4dd207/1/"
-SHAPEFILE_URL = "https://data.4tu.nl/file/ca13056c-c347-4a27-b320-930c2a4dd207/bbe94526-cf1a-4b96-8155-244f20094719"
+COMMON_URL = "ca13056c-c347-4a27-b320-930c2a4dd207"
+OPENDAP_URL = f"https://opendap.4tu.nl/thredds/dodsC/data2/djht/{COMMON_URL}/1/"
+SHAPEFILE_URL = f"https://data.4tu.nl/file/{COMMON_URL}/bbe94526-cf1a-4b96-8155-244f20094719"
+
+PROPERTY_VARS = ['timezone',
+                 'name',
+                 'country',
+                 'lat',
+                 'lon',
+                 'area',
+                 'p_mean',
+                 'pet_mean',
+                 'aridity',
+                 'frac_snow',
+                 'moisture_index',
+                 'seasonality',
+                 'high_prec_freq',
+                 'high_prec_dur',
+                 'low_prec_freq',
+                 'low_prec_dur']
 class Caravan(DefaultForcing):
-    """Forcing object which retrieves part of the
-    caravan dataset stored on the OpenDAP server."""
+    """Retrieves specified part of the caravan dataset from the OpenDAP server."""
 
     @classmethod
     def retrieve(cls: Type["Caravan"],
@@ -56,11 +73,18 @@ class Caravan(DefaultForcing):
         shape_obj = shapereader.Reader(shape)
         centre = next(shape_obj.geometries()).centroid
         ds_basin_time.coords.update({'lat': centre.y,
-                                    'lon': centre.x
+                                     'lon': centre.x
                                      })
-
+        ds_basin_time = ds_basin_time.drop_vars('basin_id')
         if variables == ():
             variables = (ds.data_vars.keys())
+
+        # TODO: Check if this is per NetCDF convention
+        variables = list(set(variables).difference(set(PROPERTY_VARS)))
+        properties = list(set(variables).intersection(set(PROPERTY_VARS)))
+
+        for prop in properties:
+            ds_basin.coords.update({prop: ds_basin[prop].to_numpy()})
 
         for var in variables:
             ds_basin_time[var].to_netcdf(Path(directory) / f'{basin_id}_{start_time}_{end_time}_{var}.nc')
