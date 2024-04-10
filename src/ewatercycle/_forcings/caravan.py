@@ -80,8 +80,8 @@ class Caravan(DefaultForcing):
             variables = (ds_basin_time.data_vars.keys())
 
         # TODO: Check if this is per NetCDF convention
+        properties = tuple(set(variables).intersection(set(PROPERTY_VARS)))
         variables = tuple(set(variables).difference(set(PROPERTY_VARS)))
-        properties = tuple(set(variables).union(set(PROPERTY_VARS)))
 
         for prop in properties:
             ds_basin_time.coords.update({prop: ds_basin_time[prop].to_numpy()})
