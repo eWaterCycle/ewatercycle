@@ -33,8 +33,28 @@ PROPERTY_VARS = ['timezone',
                  'high_prec_dur',
                  'low_prec_freq',
                  'low_prec_dur']
+
+RENAME_ERA5 = {'total_precipitation_sum':'pr',
+                'potential_evaporation_sum':'evspsblpot',
+                 'temperature_2m_mean': 'tas',
+                 'temperature_2m_min': 'tasmin',
+                 'temperature_2m_max': 'tasmax',
+                 'streamflow':'Q'}
 class Caravan(DefaultForcing):
-    """Retrieves specified part of the caravan dataset from the OpenDAP server."""
+    """Retrieves specified part of the caravan dataset from the OpenDAP server.
+
+    Examples:
+
+    The caravan dataset is an already prepared set by Frederik Kratzert,
+    (see https://doi.org/10.1038/s41597-023-01975-w).
+
+    This retrieves it from the OpenDAP server of 4TU,
+    (see https://doi.org/10.4121/bf0eaf7c-f2fa-46f6-b8cd-77ad939dd350.v4).
+
+    ... py
+
+
+    """
 
     @classmethod
     def retrieve(cls: Type["Caravan"],
@@ -70,21 +90,29 @@ class Caravan(DefaultForcing):
         if shape is None:
             shape = get_shapefiles(Path(directory), basin_id)
 
-        shape_obj = shapereader.Reader(shape)
-        centre = next(shape_obj.geometries()).centroid
-        ds_basin_time.coords.update({'lat': centre.y,
-                                     'lon': centre.x
-                                     })
-        ds_basin_time = ds_basin_time.drop_vars('basin_id')
+        if 'lat' not in variables and 'lon' not in variables:
+            shape_obj = shapereader.Reader(shape)
+            centre = next(shape_obj.geometries()).centroid
+            ds_basin_time.coords.update({'lat': centre.y,
+                                         'lon': centre.x
+                                         })
         if variables == ():
             variables = (ds_basin_time.data_vars.keys())
 
-        # TODO: Check if this is per NetCDF convention
+        # only return the properties which are also in property vars
         properties = tuple(set(variables).intersection(set(PROPERTY_VARS)))
-        variables = tuple(set(variables).difference(set(PROPERTY_VARS)))
+        variables = tuple(
+            set(variables).difference(set(PROPERTY_VARS)).intersection(
+              set(RENAME_ERA5.keys())
+            )) # only take the vars also in Rename dict
 
         for prop in properties:
             ds_basin_time.coords.update({prop: ds_basin_time[prop].to_numpy()})
+
+        ds_basin_time = ds_basin_time.rename(RENAME_ERA5)
+
+        for temp in ['tas','tasmin','tasmax']:
+            ds_basin_time[temp].attrs.update({'height':'2m'})
 
         for var in variables:
             ds_basin_time[var].to_netcdf(Path(directory) / f'{basin_id}_{start_time}_{end_time}_{var}.nc')
