@@ -51,7 +51,25 @@ class Caravan(DefaultForcing):
     This retrieves it from the OpenDAP server of 4TU,
     (see https://doi.org/10.4121/bf0eaf7c-f2fa-46f6-b8cd-77ad939dd350.v4).
 
-    ... py
+    This can be done by specifying the
+
+    .. code-block:: python
+
+        from pathlib import Path
+        from ewatercycle.forcing import sources
+
+        path = Path.cwd()
+        forcing_path = path / "Forcing"
+        experiment_start_date = "1997-08-01T00:00:00Z"
+        experiment_end_date = "2005-09-01T00:00:00Z"
+        HRU_id = 1022500
+
+        camels_forcing = sources['LumpedCaravanForcing'].retrieve(start_time = experiment_start_date,
+                                                                  end_time = experiment_end_date,
+                                                                  directory = forcing_path / "Camels",
+                                                                  basin_id = f"camels_0{HRU_id}"
+                                                                )
+
 
 
     """
@@ -76,7 +94,7 @@ class Caravan(DefaultForcing):
             directory: Directory in which forcing should be written.
                 If not given will create timestamped directory.
             variables: Variables which are needed for model,
-                if not specified will default to all (not recommended)
+                if not specified will default to all.
             shape: (Optional) Path to a shape file.
                 If none is specified, will be downloaded automatically.
             **kwargs
@@ -110,6 +128,7 @@ class Caravan(DefaultForcing):
             ds_basin_time.coords.update({prop: ds_basin_time[prop].to_numpy()})
 
         ds_basin_time = ds_basin_time.rename(RENAME_ERA5)
+        variables = ([RENAME_ERA5[var] for var in variables])
 
         for temp in ['tas','tasmin','tasmax']:
             ds_basin_time[temp].attrs.update({'height':'2m'})
