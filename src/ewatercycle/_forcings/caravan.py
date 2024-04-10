@@ -81,7 +81,7 @@ class Caravan(DefaultForcing):
 
         # TODO: Check if this is per NetCDF convention
         variables = tuple(set(variables).difference(set(PROPERTY_VARS)))
-        properties = tuple(set(variables).intersection(set(PROPERTY_VARS)))
+        properties = tuple(set(variables).union(set(PROPERTY_VARS)))
 
         for prop in properties:
             ds_basin_time.coords.update({prop: ds_basin_time[prop].to_numpy()})
@@ -112,7 +112,7 @@ def get_shapefiles(directory: Path, basin_id: str):
     output_path = directory / 'shapefiles'
 
     if not zip_path.is_file():
-        timeout = 300
+        timeout = 30
         try:
             result = requests.get(SHAPEFILE_URL, timeout=timeout)
         except requests.exceptions.Timeout:
