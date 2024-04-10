@@ -1,15 +1,17 @@
 import xarray as xr
 import numpy as np
-import geopandas as gpd
+import pandas as pd
+from cartopy.io import shapereader
+import fiona
 
 from pathlib import Path
 from typing import Type
 
-import wget
+import requests
 from zipp import zipfile
 
 from ewatercycle.base.forcing import DefaultForcing, LumpedUserForcing
-from ewatercycle.util import  get_time
+from ewatercycle.util import get_time
 
 
 class Caravan(DefaultForcing):
@@ -77,18 +79,54 @@ def get_shapefiles(directory: Path, basin_id: str):
     output_path = directory / 'shapefiles'
 
     if not zip_path.is_file():
-        wget.download(shape_file_url, out=str(zip_path))
+        r = requests.get(shape_file_url)
+        with open(zip_path, 'wb') as fin:
+            fin.write(r.content)
 
     combined_shapefile_path = output_path / "combined.shp"
     if not combined_shapefile_path.is_file():
         with zipfile.ZipFile(zip_path) as myzip:
             myzip.extractall(path=directory)
 
-    shape = output_path/ f'{basin_id}.shp'
-    gdf = gpd.read_file(combined_shapefile_path)
-    gdf[gdf['gauge_id'] == basin_id].to_file(shape)
+    shape_path = output_path/ f'{basin_id}.shp'
 
-    return shape
+    shape_obj = shapereader.Reader(combined_shapefile_path)
+    list_records = []
+    for record in shape_obj.records():
+        list_records.append(record.attributes['gauge_id'])
+
+    df = pd.DataFrame(data=list_records, index=range(len(list_records)), columns=['basin_id'])
+    n = df[df['basin_id'] == basin_id].index.values[0]
+
+    with fiona.open(
+        combined_shapefile_path
+    ) as src:
+        dst_schema = src.schema  # Copy the source schema
+        # Create a sink for processed features with the same format and
+        # coordinate reference system as the source.
+        with fiona.open(
+            shape_path,
+            mode="w",
+            layer=basin_id,
+            crs=src.crs,
+            driver="ESRI Shapefile",
+            schema=dst_schema,
+        ) as dst:
+            for i, feat in enumerate(src):
+                # kind of clunky but it works: select filtered polygon
+                if i == n:
+                    geom = feat.geometry
+                    assert geom.type == "Polygon"
+
+                    # Add the signed area of the polygon and a timestamp
+                    # to the feature properties map.
+                    props = fiona.Properties.from_dict(
+                        **feat.properties,
+                    )
+
+                    dst.write(fiona.Feature(geometry=geom, properties=props))
+
+    return shape_path
 
 
 def crop_ds(ds: xr.Dataset, start_time: str, end_time:str):
