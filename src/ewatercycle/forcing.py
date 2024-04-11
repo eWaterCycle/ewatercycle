@@ -3,12 +3,10 @@ from importlib.metadata import entry_points
 from typing import Any, Type
 
 from ewatercycle import shared
+from ewatercycle._forcings.caravan import LumpedCaravanForcing
 from ewatercycle._forcings.makkink import (
     DistributedMakkinkForcing,
     LumpedMakkinkForcing,
-)
-from ewatercycle._forcings.caravan import (
-    LumpedCaravanForcing,
 )
 from ewatercycle.base.forcing import (
     DefaultForcing,
@@ -68,7 +66,7 @@ _forcings: dict[str, Any] = {
     "LumpedUserForcing": LumpedUserForcing,
     "DistributedMakkinkForcing": DistributedMakkinkForcing,
     "LumpedMakkinkForcing": LumpedMakkinkForcing,
-    "LumpedCaravanForcing":LumpedCaravanForcing
+    "LumpedCaravanForcing": LumpedCaravanForcing,
 }
 _forcings.update(
     {

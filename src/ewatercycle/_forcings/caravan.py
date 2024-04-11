@@ -1,45 +1,58 @@
-import xarray as xr
-import numpy as np
-import pandas as pd
-from cartopy.io import shapereader
-import fiona
-
+import shutil
+import tempfile
+import zipfile
 from pathlib import Path
 from typing import Type
 
+import fiona
+import numpy as np
+import pandas as pd
 import requests
-from zipp import zipfile
+import xarray as xr
+from cartopy.io import shapereader
 
 from ewatercycle.base.forcing import DefaultForcing, LumpedUserForcing
 from ewatercycle.util import get_time
 
 COMMON_URL = "ca13056c-c347-4a27-b320-930c2a4dd207"
 OPENDAP_URL = f"https://opendap.4tu.nl/thredds/dodsC/data2/djht/{COMMON_URL}/1/"
-SHAPEFILE_URL = f"https://data.4tu.nl/file/{COMMON_URL}/bbe94526-cf1a-4b96-8155-244f20094719"
+SHAPEFILE_URL = (
+    f"https://data.4tu.nl/file/{COMMON_URL}/bbe94526-cf1a-4b96-8155-244f20094719"
+)
 
-PROPERTY_VARS = ['timezone',
-                 'name',
-                 'country',
-                 'lat',
-                 'lon',
-                 'area',
-                 'p_mean',
-                 'pet_mean',
-                 'aridity',
-                 'frac_snow',
-                 'moisture_index',
-                 'seasonality',
-                 'high_prec_freq',
-                 'high_prec_dur',
-                 'low_prec_freq',
-                 'low_prec_dur']
+PROPERTY_VARS = [
+    "timezone",
+    "name",
+    "country",
+    "lat",
+    "lon",
+    "area",
+    "p_mean",
+    "pet_mean",
+    "aridity",
+    "frac_snow",
+    "moisture_index",
+    "seasonality",
+    "high_prec_freq",
+    "high_prec_dur",
+    "low_prec_freq",
+    "low_prec_dur",
+]
 
-RENAME_ERA5 = {'total_precipitation_sum':'pr',
-                'potential_evaporation_sum':'evspsblpot',
-                 'temperature_2m_mean': 'tas',
-                 'temperature_2m_min': 'tasmin',
-                 'temperature_2m_max': 'tasmax',
-                 'streamflow':'Q'}
+RENAME_ERA5 = {
+    "total_precipitation_sum": "pr",
+    "potential_evaporation_sum": "evspsblpot",
+    "temperature_2m_mean": "tas",
+    "temperature_2m_min": "tasmin",
+    "temperature_2m_max": "tasmax",
+    "streamflow": "Q",
+}
+
+
+class CaravanForcing(Caravan, LumpedUserForcing):  # type: ignore[misc]
+    ...
+
+
 class Caravan(DefaultForcing):
     """Retrieves specified part of the caravan dataset from the OpenDAP server.
 
@@ -91,14 +104,16 @@ class Caravan(DefaultForcing):
     """
 
     @classmethod
-    def retrieve(cls: Type["Caravan"],
-                 start_time: str,
-                 end_time: str,
-                 basin_id: str,
-                 directory: str | Path,
-                 variables: tuple[str, ...] = (),
-                 shape: str | Path | None = None,
-                 **kwargs) -> "Caravan":
+    def retrieve(
+        cls: Type["Caravan"],
+        start_time: str,
+        end_time: str,
+        basin_id: str,
+        directory: str | Path,
+        variables: tuple[str, ...] = (),
+        shape: str | Path | None = None,
+        **kwargs,
+    ) -> "Caravan":
         """Retrieve caravan for a model.
 
         Args:
@@ -115,42 +130,37 @@ class Caravan(DefaultForcing):
                 If none is specified, will be downloaded automatically.
             **kwargs
         """
-        dataset = basin_id.split('_')[0]
-        ds = xr.open_dataset(
-            f"{OPENDAP_URL}{dataset}.nc")
+        dataset = basin_id.split("_")[0]
+        ds = xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
         ds_basin = ds.sel(basin_id=basin_id.encode())
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
         if shape is None:
             shape = get_shapefiles(Path(directory), basin_id)
 
-        if 'lat' not in variables and 'lon' not in variables:
-            shape_obj = shapereader.Reader(shape)
-            centre = next(shape_obj.geometries()).centroid
-            ds_basin_time.coords.update({'lat': centre.y,
-                                         'lon': centre.x
-                                         })
         if variables == ():
-            variables = (ds_basin_time.data_vars.keys())
+            variables = ds_basin_time.data_vars.keys()
 
         # only return the properties which are also in property vars
         properties = tuple(set(variables).intersection(set(PROPERTY_VARS)))
-        variables = tuple(
-            set(variables).difference(set(PROPERTY_VARS)).intersection(
-              set(RENAME_ERA5.keys())
-            )) # only take the vars also in Rename dict
+        non_property_vars = set(variables) - properties
+        variable_names = non_property_vars.intersection(
+            RENAME_ERA5.keys()
+        )  # only take the vars also in Rename dict
 
         for prop in properties:
             ds_basin_time.coords.update({prop: ds_basin_time[prop].to_numpy()})
 
         ds_basin_time = ds_basin_time.rename(RENAME_ERA5)
-        variables = ([RENAME_ERA5[var] for var in variables])
+        variables = [RENAME_ERA5[var] for var in variable_names]
 
-        for temp in ['tas','tasmin','tasmax']:
-            ds_basin_time[temp].attrs.update({'height':'2m'})
+        for temp in ["tas", "tasmin", "tasmax"]:
+            ds_basin_time[temp].attrs.update({"height": "2m"})
 
         for var in variables:
-            ds_basin_time[var].to_netcdf(Path(directory) / f'{basin_id}_{start_time}_{end_time}_{var}.nc')
+            ds_basin_time[var].to_netcdf(
+                Path(directory) / f"{basin_id}_{start_time}_{end_time}_{var}.nc"
+            )
 
         forcing = cls(
             directory=Path(directory),
@@ -158,53 +168,56 @@ class Caravan(DefaultForcing):
             end_time=end_time,
             shape=Path(shape),
             filenames={
-                var: f'{basin_id}_{start_time}_{end_time}_{var}.nc' for var in variables
-            }
+                var: f"{basin_id}_{start_time}_{end_time}_{var}.nc" for var in variables
+            },
         )
         forcing.save()
         return forcing
 
 
-class LumpedCaravanForcing(Caravan, LumpedUserForcing):  # type: ignore[misc]
-    ...
-
-
 def get_shapefiles(directory: Path, basin_id: str):
     """Retrieves shapefiles from data 4TU."""
-    zip_path = directory / 'shapefiles.zip'
-    output_path = directory / 'shapefiles'
+    zip_path = directory / "shapefiles.zip"
+    output_path = directory / "shapefiles"
+    shape_path = directory / f"{basin_id}.shp"
 
-    if not zip_path.is_file():
-        timeout = 30
-        try:
-            result = requests.get(SHAPEFILE_URL, timeout=timeout)
-        except requests.exceptions.Timeout:
-            msg = (
-            f"Issue connecting to {SHAPEFILE_URL} after {timeout}s"
-            )
-            raise RuntimeError(msg)
+    if not shape_path.is_file():
+        combined_shapefile_path = output_path / "combined.shp"
+        if not combined_shapefile_path.is_file():
+            timeout = 300
+            try:
+                with requests.get(SHAPEFILE_URL, timeout=timeout) as response:
+                    with tempfile.TemporaryFile() as f:
+                        shutil.copyfileobj(response.raw, f)
+                        f.seek(0)
+                        with zipfile.ZipFile(f) as z:
+                            z.extractall(directory)
 
-        with zip_path.open('wb') as fin:
-            fin.write(result.content)
+            except requests.exceptions.Timeout:
+                msg = f"Issue connecting to {SHAPEFILE_URL} after {timeout}s"
+                raise RuntimeError(msg)
 
-    combined_shapefile_path = output_path / "combined.shp"
-    if not combined_shapefile_path.is_file():
-        with zipfile.ZipFile(zip_path) as myzip:
-            myzip.extractall(path=directory)
+        extract_basin_shapefile(basin_id, combined_shapefile_path, shape_path)
 
-    shape_path = output_path/ f'{basin_id}.shp'
+    return shape_path
 
+
+def extract_basin_shapefile(
+    basin_id: str,
+    combined_shapefile_path: Path,
+    shape_path: Path,
+) -> None:
     shape_obj = shapereader.Reader(combined_shapefile_path)
     list_records = []
     for record in shape_obj.records():
-        list_records.append(record.attributes['gauge_id'])
+        list_records.append(record.attributes["gauge_id"])
 
-    df = pd.DataFrame(data=list_records, index=range(len(list_records)), columns=['basin_id'])
-    basin_index = df[df['basin_id'] == basin_id].index.array[0]
+    df = pd.DataFrame(
+        data=list_records, index=range(len(list_records)), columns=["basin_id"]
+    )
+    basin_index = df[df["basin_id"] == basin_id].index.array[0]
 
-    with fiona.open(
-        combined_shapefile_path
-    ) as src:
+    with fiona.open(combined_shapefile_path) as src:
         dst_schema = src.schema  # Copy the source schema
         # Create a sink for processed features with the same format and
         # coordinate reference system as the source.
@@ -230,11 +243,11 @@ def get_shapefiles(directory: Path, basin_id: str):
 
                     dst.write(fiona.Feature(geometry=geom, properties=props))
 
-    return shape_path
 
-
-def crop_ds(ds: xr.Dataset, start_time: str, end_time:str):
+def crop_ds(ds: xr.Dataset, start_time: str, end_time: str):
     """Crops dataset based on time."""
-    get_time(start_time), get_time(end_time) # if utc, remove Z to parse to np.dt64
-    start, end  = np.datetime64(start_time[:-1]), np.datetime64(end_time[:-1])
-    return ds.isel(time=(ds['time'].to_numpy() >= start) & (ds['time'].to_numpy() <= end))
+    get_time(start_time), get_time(end_time)  # if utc, remove Z to parse to np.dt64
+    start, end = np.datetime64(start_time[:-1]), np.datetime64(end_time[:-1])
+    return ds.isel(
+        time=(ds["time"].to_numpy() >= start) & (ds["time"].to_numpy() <= end)
+    )
