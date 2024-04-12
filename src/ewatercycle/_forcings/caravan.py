@@ -11,7 +11,7 @@ import requests
 import xarray as xr
 from cartopy.io import shapereader
 
-from ewatercycle.base.forcing import DefaultForcing, LumpedUserForcing
+from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.util import get_time
 
 COMMON_URL = "ca13056c-c347-4a27-b320-930c2a4dd207"
@@ -49,7 +49,7 @@ RENAME_ERA5 = {
 }
 
 
-class CaravanForcing(DefaultForcing, LumpedUserForcing):
+class CaravanForcing(DefaultForcing):
     """Retrieves specified part of the caravan dataset from the OpenDAP server.
 
     Examples:
@@ -110,7 +110,7 @@ class CaravanForcing(DefaultForcing, LumpedUserForcing):
 
     @classmethod
     def retrieve(
-        cls: Type["Caravan"],
+        cls: Type["CaravanForcing"],
         start_time: str,
         end_time: str,
         basin_id: str,
@@ -118,7 +118,7 @@ class CaravanForcing(DefaultForcing, LumpedUserForcing):
         variables: tuple[str, ...] = (),
         shape: str | Path | None = None,
         **kwargs,
-    ) -> "Caravan":
+    ) -> "CaravanForcing":
         """Retrieve caravan for a model.
 
         Args:
