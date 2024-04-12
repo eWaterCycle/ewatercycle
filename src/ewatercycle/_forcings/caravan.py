@@ -49,11 +49,7 @@ RENAME_ERA5 = {
 }
 
 
-class CaravanForcing(Caravan, LumpedUserForcing):  # type: ignore[misc]
-    ...
-
-
-class Caravan(DefaultForcing):
+class CaravanForcing(DefaultForcing, LumpedUserForcing):
     """Retrieves specified part of the caravan dataset from the OpenDAP server.
 
     Examples:
@@ -104,6 +100,15 @@ class Caravan(DefaultForcing):
     """
 
     @classmethod
+    def generate(cls):
+        """ "Not Implemented"""
+        msg = (
+            "Caravan doesn't generate forcing, instead retrieves prepared forcing."
+            "Use the `retrieve` function instead"
+        )
+        raise NotImplementedError(msg)
+
+    @classmethod
     def retrieve(
         cls: Type["Caravan"],
         start_time: str,
@@ -142,7 +147,7 @@ class Caravan(DefaultForcing):
             variables = ds_basin_time.data_vars.keys()
 
         # only return the properties which are also in property vars
-        properties = tuple(set(variables).intersection(set(PROPERTY_VARS)))
+        properties = set(variables).intersection(PROPERTY_VARS)
         non_property_vars = set(variables) - properties
         variable_names = non_property_vars.intersection(
             RENAME_ERA5.keys()
