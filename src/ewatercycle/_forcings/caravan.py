@@ -182,7 +182,7 @@ class CaravanForcing(DefaultForcing):
 
 def get_shapefiles(directory: Path, basin_id: str):
     """Retrieves shapefiles from data 4TU."""
-    zip_path = directory / "shapefiles.zip"
+    zip_path = directory / 'shapefiles.zip'
     output_path = directory / "shapefiles"
     shape_path = directory / f"{basin_id}.shp"
 
@@ -192,15 +192,15 @@ def get_shapefiles(directory: Path, basin_id: str):
             timeout = 300
             try:
                 with requests.get(SHAPEFILE_URL, timeout=timeout) as response:
-                    with tempfile.TemporaryFile() as f:
-                        shutil.copyfileobj(response.raw, f)
-                        f.seek(0)
-                        with zipfile.ZipFile(f) as z:
-                            z.extractall(directory)
+                    with zip_path.open('wb') as fin:
+                        fin.write(response.content)
 
             except requests.exceptions.Timeout:
                 msg = f"Issue connecting to {SHAPEFILE_URL} after {timeout}s"
                 raise RuntimeError(msg)
+
+            with zipfile.ZipFile(zip_path) as myzip:
+                myzip.extractall(path=directory)
 
         extract_basin_shapefile(basin_id, combined_shapefile_path, shape_path)
 
