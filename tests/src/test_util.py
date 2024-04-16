@@ -189,6 +189,7 @@ class TestFitExtents2Map:
 
 def test_merge_esmvaltool_datasets():
     files = list((Path(__file__).parent / "esmvaltool" / "files").glob("*.nc"))
+    print(files)
     datasets = [xr.open_dataset(file) for file in files]
     ds = merge_esvmaltool_datasets(datasets)
     for var in ["tas", "pr", "rsds"]:
