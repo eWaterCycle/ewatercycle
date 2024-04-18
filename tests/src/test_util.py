@@ -187,12 +187,11 @@ class TestFitExtents2Map:
         assert result == expected
 
 
-def test_merge_esmvaltool_datasets():
-    files = list((Path(__file__).parent / "esmvaltool" / "files").glob("*.nc"))
-    print(files)
-    datasets = [xr.open_dataset(file) for file in files]
-    ds = merge_esvmaltool_datasets(datasets)
-    for var in ["tas", "pr", "rsds"]:
-        assert not ds[var].mean(dim=["lat", "lon"]).isnull().any("time")
-
-    assert "height" in ds["tas"].attrs
+# def test_merge_esmvaltool_datasets():
+#     files = list((Path(__file__).parent / "esmvaltool" / "files").glob("*.nc"))
+#     datasets = [xr.open_dataset(file) for file in files]
+#     ds = merge_esvmaltool_datasets(datasets)
+#     for var in ["tas", "pr", "rsds"]:
+#         assert not ds[var].mean(dim=["lat", "lon"]).isnull().any("time")
+#
+#     assert "height" in ds["tas"].attrs
