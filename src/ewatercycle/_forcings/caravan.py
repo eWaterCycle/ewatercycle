@@ -1,13 +1,12 @@
 import shutil
-import tempfile
 import zipfile
+import urllib3
 from pathlib import Path
 from typing import Type
 
 import fiona
 import numpy as np
 import pandas as pd
-import requests
 import xarray as xr
 from cartopy.io import shapereader
 
@@ -74,29 +73,30 @@ class CaravanForcing(DefaultForcing):
         experiment_end_date = "2005-09-01T00:00:00Z"
         HRU_id = 1022500
 
-        camels_forcing = sources['LumpedCaravanForcing'].retrieve(start_time = experiment_start_date,
-                                                                  end_time = experiment_end_date,
-                                                                  directory = forcing_path / "Camels",
-                                                                  basin_id = f"camels_0{HRU_id}"
+        camels_forcing = sources['LumpedCaravanForcing'].retrieve(
+                                    start_time = experiment_start_date,
+                                    end_time = experiment_end_date,
+                                    directory = forcing_path / "Camels",
+                                    basin_id = f"camels_0{HRU_id}"
                                                                 )
         which gives somthing like:
 
-        .. code-block:: python
+    .. code-block:: python
 
-            LumpedCaravanForcing(
-                start_time='1997-08-01T00:00:00Z',
-                end_time='2005-09-01T00:00:00Z',
-                directory=PosixPath('/home/davidhaasnoot/eWaterCycle-WSL-WIP/Forcing/Camels'),
-                shape=PosixPath('/home/davidhaasnoot/eWaterCycle-WSL-WIP/Forcing/Camels/shapefiles/camels_01022500.shp'),
-                filenames={
-                    'tasmax': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tasmax.nc',
-                    'tasmin': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tasmin.nc',
-                    'evspsblpot': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_evspsblpot.nc',
-                    'pr': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_pr.nc',
-                    'tas': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tas.nc',
-                    'Q': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_Q.nc'
-                }
-            )
+        LumpedCaravanForcing(
+        start_time='1997-08-01T00:00:00Z',
+        end_time='2005-09-01T00:00:00Z',
+        directory=PosixPath('/home/davidhaasnoot/eWaterCycle-WSL-WIP/Forcing/Camels'),
+        shape=PosixPath('/home/davidhaasnoot/eWaterCycle-WSL-WIP/Forcing/Camels/shapefiles/camels_01022500.shp'),
+        filenames={
+            'tasmax': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tasmax.nc',
+            'tasmin': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tasmin.nc',
+            'evspsblpot': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_evspsblpot.nc',
+            'pr': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_pr.nc',
+            'tas': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tas.nc',
+            'Q': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_Q.nc'
+        }
+        )
     """
 
     @classmethod
@@ -157,7 +157,7 @@ class CaravanForcing(DefaultForcing):
             ds_basin_time.coords.update({prop: ds_basin_time[prop].to_numpy()})
 
         ds_basin_time = ds_basin_time.rename(RENAME_ERA5)
-        variables = [RENAME_ERA5[var] for var in variable_names]
+        variables = tuple([RENAME_ERA5[var] for var in variable_names])
 
         for temp in ["tas", "tasmin", "tasmax"]:
             ds_basin_time[temp].attrs.update({"height": "2m"})
@@ -182,24 +182,21 @@ class CaravanForcing(DefaultForcing):
 
 def get_shapefiles(directory: Path, basin_id: str):
     """Retrieves shapefiles from data 4TU."""
-    zip_path = directory / 'shapefiles.zip'
+    zip_path = directory / "shapefiles.zip"
     output_path = directory / "shapefiles"
     shape_path = directory / f"{basin_id}.shp"
 
     if not shape_path.is_file():
         combined_shapefile_path = output_path / "combined.shp"
         if not combined_shapefile_path.is_file():
-            timeout = 300
-            try:
-                with requests.get(SHAPEFILE_URL, timeout=timeout) as response:
-                    with zip_path.open('wb') as fin:
-                        fin.write(response.content)
+            timeout = urllib3.Timeout(connect=10.0, read=300)
+            http = urllib3.PoolManager(timeout=timeout)
+            with http.request('GET', SHAPEFILE_URL,
+                              preload_content=False) as r, zip_path.open(
+                    'wb') as out_file:
+                shutil.copyfileobj(r, out_file)
 
-            except requests.exceptions.Timeout:
-                msg = f"Issue connecting to {SHAPEFILE_URL} after {timeout}s"
-                raise RuntimeError(msg)
-
-            with zipfile.ZipFile(zip_path) as myzip:
+        with zipfile.ZipFile(zip_path) as myzip:
                 myzip.extractall(path=directory)
 
         extract_basin_shapefile(basin_id, combined_shapefile_path, shape_path)
