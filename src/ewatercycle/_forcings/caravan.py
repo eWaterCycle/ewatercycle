@@ -1,12 +1,12 @@
 import shutil
 import zipfile
-import urllib3
 from pathlib import Path
 from typing import Type
 
 import fiona
 import numpy as np
 import pandas as pd
+import urllib3
 import xarray as xr
 from cartopy.io import shapereader
 
@@ -191,13 +191,13 @@ def get_shapefiles(directory: Path, basin_id: str):
         if not combined_shapefile_path.is_file():
             timeout = urllib3.Timeout(connect=10.0, read=300)
             http = urllib3.PoolManager(timeout=timeout)
-            with http.request('GET', SHAPEFILE_URL,
-                              preload_content=False) as r, zip_path.open(
-                    'wb') as out_file:
+            with http.request(
+                "GET", SHAPEFILE_URL, preload_content=False
+            ) as r, zip_path.open("wb") as out_file:
                 shutil.copyfileobj(r, out_file)
 
         with zipfile.ZipFile(zip_path) as myzip:
-                myzip.extractall(path=directory)
+            myzip.extractall(path=directory)
 
         extract_basin_shapefile(basin_id, combined_shapefile_path, shape_path)
 
