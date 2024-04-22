@@ -10,6 +10,14 @@ from ewatercycle._forcings.makkink import (
     LumpedMakkinkForcing,
     derive_e_pot,
 )
+
+from ewatercycle._forcings.caravan import (
+    CaravanForcing,
+    get_shapefiles,
+    extract_basin_shapefile,
+    crop_ds,
+)
+
 from ewatercycle.base.forcing import (
     FORCING_YAML,
     DistributedUserForcing,
@@ -270,3 +278,56 @@ def test_integration_makkink_forcing(sample_shape, recipe_output):
             .isnull()
             .any("time")
         )
+
+@pytest.fixture
+def mock_retrieve():
+    with mock.patch("xarray.Dataset") as mock_class:
+        test_file = Path(__file__).parent / "forcing_files" / "test_caravan_files.nc"
+        mock_class.return_value = xr.open_dataset(test_file)
+        yield mock_class
+
+def test_retrieve_caravan_forcing(tmp_path: Path):
+    vars = (
+        "timezone",
+        "name",
+        "country",
+        "lat",
+        "lon",
+        "area",
+        "p_mean",
+        "pet_mean",
+        "aridity",
+        "frac_snow",
+        "moisture_index",
+        "seasonality",
+        "high_prec_freq",
+        "high_prec_dur",
+        "low_prec_freq",
+        "low_prec_dur",
+        'total_precipitation_sum',
+        'potential_evaporation_sum',
+        'temperature_2m_mean',
+        'temperature_2m_min',
+        'temperature_2m_max',
+        'streamflow',
+    )
+    basin_id = "camels_03439000"
+    test_files_dir = Path(__file__).parent / "forcing_files"
+    tmp_camels_dir = tmp_path / "camels"
+    copytree(test_files_dir, tmp_camels_dir)
+    caravan_forcing = CaravanForcing.retrieve(
+        start_time="1981-01-01T00:00:00Z",
+        end_time="1981-03-01T00:00:00Z",
+        directory= tmp_camels_dir,
+        basin_id = basin_id,
+        variables = vars,
+
+    )
+    caravan_forcing.save()
+    ds = caravan_forcing.to_xarray()
+    content = list(ds.data_vars.keys())
+    expected = ['Q', 'evspsblpot', 'pr', 'tas', 'tasmax', 'tasmin']
+    assert content == expected
+
+
+

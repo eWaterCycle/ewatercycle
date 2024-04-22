@@ -162,9 +162,12 @@ class CaravanForcing(DefaultForcing):
         for temp in ["tas", "tasmin", "tasmax"]:
             ds_basin_time[temp].attrs.update({"height": "2m"})
 
+        start_time_name = start_time[:10]
+        end_time_name = end_time[:10]
+
         for var in variables:
             ds_basin_time[var].to_netcdf(
-                Path(directory) / f"{basin_id}_{start_time}_{end_time}_{var}.nc"
+                Path(directory) / f"{basin_id}_{start_time_name}_{end_time_name}_{var}.nc"
             )
 
         forcing = cls(
@@ -173,14 +176,14 @@ class CaravanForcing(DefaultForcing):
             end_time=end_time,
             shape=Path(shape),
             filenames={
-                var: f"{basin_id}_{start_time}_{end_time}_{var}.nc" for var in variables
+                var: f"{basin_id}_{start_time_name}_{end_time_name}_{var}.nc" for var in variables
             },
         )
         forcing.save()
         return forcing
 
 
-def get_shapefiles(directory: Path, basin_id: str):
+def get_shapefiles(directory: Path, basin_id: str) -> Path:
     """Retrieves shapefiles from data 4TU."""
     zip_path = directory / "shapefiles.zip"
     output_path = directory / "shapefiles"
@@ -205,10 +208,10 @@ def get_shapefiles(directory: Path, basin_id: str):
 
 
 def extract_basin_shapefile(
-    basin_id: str,
-    combined_shapefile_path: Path,
-    shape_path: Path,
-) -> None:
+                            basin_id: str,
+                            combined_shapefile_path: Path,
+                            shape_path: Path,
+                            ) -> None:
     shape_obj = shapereader.Reader(combined_shapefile_path)
     list_records = []
     for record in shape_obj.records():
@@ -246,7 +249,7 @@ def extract_basin_shapefile(
                     dst.write(fiona.Feature(geometry=geom, properties=props))
 
 
-def crop_ds(ds: xr.Dataset, start_time: str, end_time: str):
+def crop_ds(ds: xr.Dataset, start_time: str, end_time: str) -> xr.Dataset:
     """Crops dataset based on time."""
     get_time(start_time), get_time(end_time)  # if utc, remove Z to parse to np.dt64
     start, end = np.datetime64(start_time[:-1]), np.datetime64(end_time[:-1])
