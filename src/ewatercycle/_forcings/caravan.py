@@ -47,10 +47,8 @@ RENAME_ERA5 = {
     "streamflow": "Q",
 }
 
-
 class CaravanForcing(DefaultForcing):
     """Retrieves specified part of the caravan dataset from the OpenDAP server.
-
     Examples:
 
     The caravan dataset is an already prepared set by Frederik Kratzert,
@@ -89,9 +87,12 @@ class CaravanForcing(DefaultForcing):
         directory=PosixPath('/home/davidhaasnoot/eWaterCycle-WSL-WIP/Forcing/Camels'),
         shape=PosixPath('/home/davidhaasnoot/eWaterCycle-WSL-WIP/Forcing/Camels/shapefiles/camels_01022500.shp'),
         filenames={
-            'tasmax': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tasmax.nc',
-            'tasmin': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tasmin.nc',
-            'evspsblpot': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_evspsblpot.nc',
+            'tasmax':
+             'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tasmax.nc',
+            'tasmin':
+            'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tasmin.nc',
+            'evspsblpot':
+            'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_evspsblpot.nc',
             'pr': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_pr.nc',
             'tas': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tas.nc',
             'Q': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_Q.nc'
@@ -101,7 +102,7 @@ class CaravanForcing(DefaultForcing):
 
     @classmethod
     def generate(cls):
-        """ "Not Implemented"""
+        """Not Implemented."""
         msg = (
             "Caravan doesn't generate forcing, instead retrieves prepared forcing."
             "Use the `retrieve` function instead"
@@ -167,7 +168,8 @@ class CaravanForcing(DefaultForcing):
 
         for var in variables:
             ds_basin_time[var].to_netcdf(
-                Path(directory) / f"{basin_id}_{start_time_name}_{end_time_name}_{var}.nc"
+                Path(directory)
+                / f"{basin_id}_{start_time_name}_{end_time_name}_{var}.nc"
             )
 
         forcing = cls(
@@ -176,7 +178,8 @@ class CaravanForcing(DefaultForcing):
             end_time=end_time,
             shape=Path(shape),
             filenames={
-                var: f"{basin_id}_{start_time_name}_{end_time_name}_{var}.nc" for var in variables
+                var: f"{basin_id}_{start_time_name}_{end_time_name}_{var}.nc"
+                for var in variables
             },
         )
         forcing.save()
@@ -184,7 +187,7 @@ class CaravanForcing(DefaultForcing):
 
 
 def get_shapefiles(directory: Path, basin_id: str) -> Path:
-    """Retrieves shapefiles from data 4TU."""
+    """Retrieve shapefiles from data 4TU.nl ."""
     zip_path = directory / "shapefiles.zip"
     output_path = directory / "shapefiles"
     shape_path = directory / f"{basin_id}.shp"
@@ -208,10 +211,11 @@ def get_shapefiles(directory: Path, basin_id: str) -> Path:
 
 
 def extract_basin_shapefile(
-                            basin_id: str,
-                            combined_shapefile_path: Path,
-                            shape_path: Path,
-                            ) -> None:
+    basin_id: str,
+    combined_shapefile_path: Path,
+    shape_path: Path,
+) -> None:
+    """Extract single polygon from multipolygon shapefile."""
     shape_obj = shapereader.Reader(combined_shapefile_path)
     list_records = []
     for record in shape_obj.records():
