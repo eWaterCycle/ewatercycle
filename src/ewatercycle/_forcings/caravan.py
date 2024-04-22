@@ -47,6 +47,7 @@ RENAME_ERA5 = {
     "streamflow": "Q",
 }
 
+
 class CaravanForcing(DefaultForcing):
     """Retrieves specified part of the caravan dataset from the OpenDAP server.
     Examples:
