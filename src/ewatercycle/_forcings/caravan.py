@@ -138,7 +138,7 @@ class CaravanForcing(DefaultForcing):
             **kwargs
         """
         dataset = basin_id.split("_")[0]
-        ds = xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
+        ds = get_dataset(dataset)
         ds_basin = ds.sel(basin_id=basin_id.encode())
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
@@ -178,7 +178,7 @@ class CaravanForcing(DefaultForcing):
             start_time=start_time,
             end_time=end_time,
             shape=Path(shape),
-            filenames={
+                filenames={
                 var: f"{basin_id}_{start_time_name}_{end_time_name}_{var}.nc"
                 for var in variables
             },
@@ -186,6 +186,9 @@ class CaravanForcing(DefaultForcing):
         forcing.save()
         return forcing
 
+
+def get_dataset(dataset):
+    return xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
 
 def get_shapefiles(directory: Path, basin_id: str) -> Path:
     """Retrieve shapefiles from data 4TU.nl ."""

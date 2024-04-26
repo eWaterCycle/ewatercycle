@@ -280,13 +280,13 @@ def test_integration_makkink_forcing(sample_shape, recipe_output):
 
 @pytest.fixture
 def mock_retrieve():
-    with mock.patch("xarray.Dataset") as mock_class:
-        test_file = Path(__file__).parent / "forcing_files" / "test_caravan_files.nc"
+    with mock.patch("ewatercycle._forcings.caravan.get_dataset") as mock_class:
+        test_file = Path(__file__).parent / "forcing_files" / "test_caravan_file.nc"
         mock_class.return_value = xr.open_dataset(test_file)
         yield mock_class
 
 
-def test_retrieve_caravan_forcing(tmp_path: Path):
+def test_retrieve_caravan_forcing(tmp_path: Path, mock_retrieve: mock.MagicMock):
     vars = (
         "timezone",
         "name",
@@ -327,3 +327,5 @@ def test_retrieve_caravan_forcing(tmp_path: Path):
     content = list(ds.data_vars.keys())
     expected = ["Q", "evspsblpot", "pr", "tas", "tasmax", "tasmin"]
     assert content == expected
+    mock_retrieve.assert_called_once_with(basin_id.split('_')[0])
+
