@@ -9,7 +9,7 @@ repos:
       - id: debug-statements
       - id: end-of-file-fixer
         exclude:
-             (?x)^(
+          (?x)^(
                  tests/src/base/forcing_files/camels_03439000.*
               )$
       - id: trailing-whitespace
