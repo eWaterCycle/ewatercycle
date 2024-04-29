@@ -178,7 +178,7 @@ class CaravanForcing(DefaultForcing):
             start_time=start_time,
             end_time=end_time,
             shape=Path(shape),
-                filenames={
+            filenames={
                 var: f"{basin_id}_{start_time_name}_{end_time_name}_{var}.nc"
                 for var in variables
             },
@@ -189,6 +189,7 @@ class CaravanForcing(DefaultForcing):
 
 def get_dataset(dataset):
     return xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
+
 
 def get_shapefiles(directory: Path, basin_id: str) -> Path:
     """Retrieve shapefiles from data 4TU.nl ."""
