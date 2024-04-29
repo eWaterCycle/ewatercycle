@@ -197,8 +197,16 @@ def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
             data_vars = list(datasets[i].data_vars)
             for bnd in ("lat_bnds", "lon_bnds", "time_bnds"):
                 if bnd in data_vars:
-                    data_vars.remove("time_bnds")
-            var = data_vars[0]
+                    data_vars.remove(bnd)
+            if len(data_vars) == 1:
+                var = data_vars[0]
+            else:
+                msg = (
+                    "More than one variable found in dataset. \n"
+                    "This routine can only handle a single data variable per dataset\n"
+                )
+                raise ValueError(msg)
+
             datasets[i][var].attrs.update(
                 {
                     "height": float(datasets[i]["height"]),
