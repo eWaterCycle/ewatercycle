@@ -152,7 +152,7 @@ def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
         [1] Randall Monroe, 2019. xkcd: Coordinate Precision. https://xkcd.com/2170/
     """
     TOLERANCE = 1e-7
-    datasets = copy(datasets)
+    datasets = [ds.copy(deep=True) for ds in datasets]
 
     # First check that the coordinates all line up before merging.
     for coord in ["lat", "lon"]:
@@ -195,8 +195,9 @@ def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
         #   Instead, we move it to the variable's attributes.
         if "height" in datasets[i].variables:
             data_vars = list(datasets[i].data_vars)
-            if "time_bnds" in data_vars:
-                data_vars.remove("time_bnds")
+            for bnd in ("lat_bnds", "lon_bnds", "time_bnds"):
+                if bnd in data_vars:
+                    data_vars.remove("time_bnds")
             var = data_vars[0]
             datasets[i][var].attrs.update(
                 {
