@@ -114,7 +114,6 @@ class CaravanForcing(DefaultForcing):
         directory: str,
         variables: tuple[str, ...] = (),
         shape: str | Path | None = None,
-        dataset: str | Dataset | dict = "unused",
         **kwargs,
     ) -> "CaravanForcing":
         """Retrieve caravan for a model.
@@ -130,10 +129,9 @@ class CaravanForcing(DefaultForcing):
                 if not specified will default to all.
             shape: (Optional) Path to a shape file.
                 If none is specified, will be downloaded automatically.
-            dataset: Unused
 
             **kwargs:
-                basin_id: str containing the wanted basin_id. Data sets can be explored
+                basin_id (str): containing the wanted basin_id. Data sets can be explored
                 using `CaravanForcing.get_dataset` or `CaravanForcing.get_basin_id`
                 More explanation in the example notebook mentioned above.
 
@@ -146,7 +144,7 @@ class CaravanForcing(DefaultForcing):
             raise KeyError(msg)
         basin_id = kwargs["basin_id"]
 
-        dataset = basin_id.split("_")[0]
+        dataset: str = basin_id.split("_")[0]
         ds = get_dataset(dataset)
         ds_basin = ds.sel(basin_id=basin_id.encode())
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
