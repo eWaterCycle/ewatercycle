@@ -113,7 +113,7 @@ class CaravanForcing(DefaultForcing):
         end_time: str,
         directory: str,
         variables: tuple[str, ...] = (),
-        shape: str | Path = "Leave to download automatically",
+        shape: str | Path | None = None,
         dataset: str | Dataset | dict = "unused",
         **kwargs,
     ) -> "CaravanForcing":

@@ -320,7 +320,7 @@ def test_retrieve_caravan_forcing(tmp_path: Path, mock_retrieve: mock.MagicMock)
         start_time="1981-01-01T00:00:00Z",
         end_time="1981-03-01T00:00:00Z",
         directory=str(tmp_camels_dir),
-        dataset=basin_id,
+        basin_id=basin_id,
         variables=vars,
     )
     caravan_forcing.save()
