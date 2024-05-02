@@ -4,7 +4,14 @@ from unittest import mock
 
 import pytest
 import xarray as xr
+from cartopy.io import shapereader
 
+from ewatercycle._forcings.caravan import (
+    CaravanForcing,
+    crop_ds,
+    extract_basin_shapefile,
+    get_shapefiles,
+)
 from ewatercycle._forcings.makkink import (
     DistributedMakkinkForcing,
     LumpedMakkinkForcing,
@@ -270,3 +277,71 @@ def test_integration_makkink_forcing(sample_shape, recipe_output):
             .isnull()
             .any("time")
         )
+
+
+@pytest.fixture
+def mock_retrieve():
+    with mock.patch("ewatercycle._forcings.caravan.get_dataset") as mock_class:
+        test_file = Path(__file__).parent / "forcing_files" / "test_caravan_file.nc"
+        mock_class.return_value = xr.open_dataset(test_file)
+        yield mock_class
+
+
+def test_retrieve_caravan_forcing(tmp_path: Path, mock_retrieve: mock.MagicMock):
+    vars = (
+        "timezone",
+        "name",
+        "country",
+        "lat",
+        "lon",
+        "area",
+        "p_mean",
+        "pet_mean",
+        "aridity",
+        "frac_snow",
+        "moisture_index",
+        "seasonality",
+        "high_prec_freq",
+        "high_prec_dur",
+        "low_prec_freq",
+        "low_prec_dur",
+        "total_precipitation_sum",
+        "potential_evaporation_sum",
+        "temperature_2m_mean",
+        "temperature_2m_min",
+        "temperature_2m_max",
+        "streamflow",
+    )
+    basin_id = "camels_03439000"
+    test_files_dir = Path(__file__).parent / "forcing_files"
+    tmp_camels_dir = tmp_path / "camels"
+    copytree(test_files_dir, tmp_camels_dir)
+    caravan_forcing = CaravanForcing.generate(
+        start_time="1981-01-01T00:00:00Z",
+        end_time="1981-03-01T00:00:00Z",
+        directory=str(tmp_camels_dir),
+        basin_id=basin_id,
+        variables=vars,
+    )
+    caravan_forcing.save()
+    ds = caravan_forcing.to_xarray()
+    content = list(ds.data_vars.keys())
+    expected = ["Q", "evspsblpot", "pr", "tas", "tasmax", "tasmin"]
+    assert content == expected
+    mock_retrieve.assert_called_once_with(basin_id.split("_")[0])
+
+
+def test_extract_basin_shapefile(tmp_path: Path):
+    basin_id = "camels_01022500"
+    test_files_dir = Path(__file__).parent / "forcing_files"
+    tmp_camels_dir = tmp_path / "camels"
+    copytree(test_files_dir, tmp_camels_dir)
+    extracted_shape_file_dir = tmp_camels_dir / f"{basin_id}.shp"
+    combined_shape_file_dir = tmp_camels_dir / "test_extract_basin_shapefile_data.shp"
+    extract_basin_shapefile(basin_id, combined_shape_file_dir, extracted_shape_file_dir)
+
+    shape_obj = shapereader.Reader(extracted_shape_file_dir)
+    records = [rec for rec in shape_obj.records()]
+
+    assert len(records) == 1
+    assert records[0].attributes["gauge_id"] == basin_id

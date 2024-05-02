@@ -8,6 +8,10 @@ repos:
       - id: check-merge-conflict
       - id: debug-statements
       - id: end-of-file-fixer
+        exclude:
+          (?x)^(
+                 tests/src/base/forcing_files/camels_03439000.*
+              )$
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
   - repo: https://github.com/adrienverge/yamllint

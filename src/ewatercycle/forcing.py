@@ -3,6 +3,7 @@ from importlib.metadata import entry_points
 from typing import Any, Type
 
 from ewatercycle import shared
+from ewatercycle._forcings.caravan import CaravanForcing
 from ewatercycle._forcings.makkink import (
     DistributedMakkinkForcing,
     LumpedMakkinkForcing,
@@ -65,6 +66,7 @@ _forcings: dict[str, Any] = {
     "LumpedUserForcing": LumpedUserForcing,
     "DistributedMakkinkForcing": DistributedMakkinkForcing,
     "LumpedMakkinkForcing": LumpedMakkinkForcing,
+    "CaravanForcing": CaravanForcing,
 }
 _forcings.update(
     {
