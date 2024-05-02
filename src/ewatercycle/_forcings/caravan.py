@@ -102,16 +102,7 @@ class CaravanForcing(DefaultForcing):
     """
 
     @classmethod
-    def generate(cls):
-        """Not Implemented."""
-        msg = (
-            "Caravan doesn't generate forcing, instead retrieves prepared forcing."
-            "Use the `retrieve` function instead"
-        )
-        raise NotImplementedError(msg)
-
-    @classmethod
-    def retrieve(
+    def generate(
         cls: Type["CaravanForcing"],
         start_time: str,
         end_time: str,
