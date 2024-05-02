@@ -169,7 +169,9 @@ class CaravanForcing(DefaultForcing):
         start_time_name = start_time[:10]
         end_time_name = end_time[:10]
 
+        history_attrs = ds_basin_time.attrs
         for var in variables:
+            ds_basin_time[var].attrs.update(history_attrs)
             ds_basin_time[var].to_netcdf(
                 Path(directory)
                 / f"{basin_id}_{start_time_name}_{end_time_name}_{var}.nc"
