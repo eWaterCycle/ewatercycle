@@ -99,6 +99,10 @@ class CaravanForcing(DefaultForcing):
             'Q': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_Q.nc'
         }
         )
+
+
+    More in depth notebook van be found here:
+    https://gist.github.com/Daafip/ac1b030eb5563a76f4d02175f2716fd7
     """
 
     @classmethod
