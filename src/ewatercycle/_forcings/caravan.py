@@ -133,7 +133,9 @@ class CaravanForcing(DefaultForcing):
             dataset: Unused
 
             **kwargs:
-                basin_id: str containing the wanted basin_id.
+                basin_id: str containing the wanted basin_id. Data sets can be explored
+                using `CaravanForcing.get_dataset` or `CaravanForcing.get_basin_id`
+                More explanation in the example notebook mentioned above.
 
         """
         basin_id = kwargs["basin_id"]
@@ -190,8 +192,40 @@ class CaravanForcing(DefaultForcing):
         return forcing
 
 
-def get_dataset(dataset):
+def get_dataset(dataset) -> xr.Dataset:
+    """Opens specified dataset from data.4tu.nl OPeNDAP server.
+        Args:
+            dataset (str): name of dataset, choose from:
+                'camels',
+                'camelsaus',
+                'camelsbr',
+                'camelscl',
+                'camelsgb',
+                'hysets',
+                'lamah'
+    """
     return xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
+
+
+def get_basin_id(dataset) -> list[str]:
+    """Gets a list of all the basin ids in provided dataset
+    Args:
+        dataset (str): name of dataset, choose from:
+            'camels',
+            'camelsaus',
+            'camelsbr',
+            'camelscl',
+            'camelsgb',
+            'hysets',
+            'lamah'
+
+    Note:
+        a zip with shapefiles is available at
+        https://doi.org/10.4121/ca13056c-c347-4a27-b320-930c2a4dd207.v1 which also
+        allows exploration of the dataset. 
+    """
+    return [val.decode() for val in get_dataset(dataset).basin_id.values]
+
 
 
 def get_shapefiles(directory: Path, basin_id: str) -> Path:
