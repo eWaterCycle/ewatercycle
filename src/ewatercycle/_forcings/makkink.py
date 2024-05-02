@@ -14,8 +14,14 @@ from ewatercycle.util import merge_esvmaltool_datasets
 
 def derive_e_pot(recipe_output: dict) -> tuple[str, ...]:
     """Derive the Makkink PET from the ESMValTool recipe output."""
-    ds_tas = xr.open_dataset(Path(recipe_output["directory"]) / recipe_output["tas"])
-    ds_rsds = xr.open_dataset(Path(recipe_output["directory"]) / recipe_output["rsds"])
+    ds_tas = xr.open_dataset(
+        Path(recipe_output["directory"]) / recipe_output["tas"],
+        chunks="auto",
+    )
+    ds_rsds = xr.open_dataset(
+        Path(recipe_output["directory"]) / recipe_output["rsds"],
+        chunks="auto",
+    )
     # We need to make sure the coordinates line up. Floating point errors from
     #  ESMValTool mess with this:
     ds = merge_esvmaltool_datasets([ds_tas, ds_rsds])

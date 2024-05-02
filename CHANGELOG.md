@@ -10,11 +10,15 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 - Added the `input_var_names` property to the eWaterCycle model class, to accompany the existing `output_var_names` property ([#403](https://github.com/eWaterCycle/ewatercycle/pull/403)).
 - Added the `var_units` method to the eWaterCycle model class, to mirror PyMT ([#403](https://github.com/eWaterCycle/ewatercycle/pull/403)).
 - Added a note on the time units that eWaterCycle expects models to provide to the documentation ([#403](https://github.com/eWaterCycle/ewatercycle/pull/403)).
-- Added LumpedCaravan forcing, allows retrival of single basin from 4tu.nl rather than downloading the whole dataset. ([#407](https://github.com/eWaterCycle/ewatercycle/pull/407))
+- Added LumpedCaravan forcing, which allows for the retrieval of single basins from the Caravan dataset, rather than downloading the whole dataset ([#407](https://github.com/eWaterCycle/ewatercycle/pull/407)).
 
 ### Changed
 - If a model plugin raises an exception during the loading of the model entry points, a more clear exception is raised which guides the users on how to solve the error ([#404](https://github.com/eWaterCycle/ewatercycle/pull/404)).
 - Updated the model documentation to link to the eWaterCycleModel API docs, and to make it a bit more clear that it is build on top of BMI ([#403](https://github.com/eWaterCycle/ewatercycle/pull/403)).
+- Dask has been explicitly added to the ewatercycle package dependencies. The package already depended on it through ESMValTool ([#410](https://github.com/eWaterCycle/ewatercycle/pull/410)).
+
+### Fixed
+- Fixed an issue related to the `.to_xarray()` method of the generic forcing classes. This method should now be more robust ([#410](https://github.com/eWaterCycle/ewatercycle/pull/410)).
 
 ## [2.1.0] (2024-03-25)
 

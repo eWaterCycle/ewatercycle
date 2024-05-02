@@ -138,6 +138,9 @@ class CaravanForcing(DefaultForcing):
                 More explanation in the example notebook mentioned above.
 
         """
+        if "basin_id" not in kwargs:
+            msg = "You have to specify a basin ID to be able to generate forcing from Caravan."
+            raise InputError(msg)
         basin_id = kwargs["basin_id"]
 
         dataset = basin_id.split("_")[0]

@@ -127,7 +127,7 @@ have a look at the [contribution guidelines](CONTRIBUTING.md).
 
 ## License
 
-Copyright (c) 2018, Netherlands eScience Center & Delft University of
+Copyright (c) 2018 - 2024, Netherlands eScience Center & Delft University of
 Technology
 
 Apache Software License 2.0

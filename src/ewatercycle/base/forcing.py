@@ -267,7 +267,7 @@ class DefaultForcing(BaseModel):
             raise ValueError(msg)
         fpaths = [self.directory / filename for _, filename in self.filenames.items()]
 
-        datasets = [xr.open_dataset(fpath) for fpath in fpaths]
+        datasets = [xr.open_dataset(fpath, chunks="auto") for fpath in fpaths]
         return merge_esvmaltool_datasets(datasets)
 
     def variables(self) -> tuple[str, ...]:
