@@ -187,11 +187,26 @@ class TestFitExtents2Map:
         assert result == expected
 
 
-def test_merge_esmvaltool_datasets():
+@pytest.fixture(scope="function")
+def esmvaltool_output() -> list[xr.Dataset]:
     files = list((Path(__file__).parent / "esmvaltool" / "files").glob("*.nc"))
-    datasets = [xr.open_dataset(file) for file in files]
-    ds = merge_esvmaltool_datasets(datasets)
+    return [xr.open_dataset(file, chunks="auto") for file in files]
+
+
+def test_merge_esmvaltool_datasets(esmvaltool_output):
+    ds = merge_esvmaltool_datasets(esmvaltool_output)
     for var in ["tas", "pr", "rsds"]:
         assert not ds[var].mean(dim=["lat", "lon"]).isnull().any("time")
 
     assert "height" in ds["tas"].attrs
+    assert "lat_bnds" in ds  # ensure bounds are present
+    assert "lon_bnds" in ds
+    assert ds["tas"].chunks is not None  # ensure that it's a dask array
+
+
+def test_merge_datasets_multivar(esmvaltool_output):
+    for i in range(len(esmvaltool_output)):
+        if "tas" in esmvaltool_output[i]:  # tas has height attribute
+            esmvaltool_output[i]["second_var"] = esmvaltool_output[i]["tas"] + 1
+    with pytest.raises(ValueError, match="More than one variable found in dataset"):
+        merge_esvmaltool_datasets(esmvaltool_output)
