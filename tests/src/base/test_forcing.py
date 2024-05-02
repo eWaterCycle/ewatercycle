@@ -315,13 +315,12 @@ def test_retrieve_caravan_forcing(tmp_path: Path, mock_retrieve: mock.MagicMock)
     basin_id = "camels_03439000"
     test_files_dir = Path(__file__).parent / "forcing_files"
     tmp_camels_dir = tmp_path / "camels"
-    tmp_camels_dir.mkdir(exist_ok=True)
     copytree(test_files_dir, tmp_camels_dir)
     caravan_forcing = CaravanForcing.generate(
         start_time="1981-01-01T00:00:00Z",
         end_time="1981-03-01T00:00:00Z",
-        directory=tmp_camels_dir,
-        basin_id=basin_id,
+        directory=str(tmp_camels_dir),
+        dataset=basin_id,
         variables=vars,
     )
     caravan_forcing.save()
@@ -331,17 +330,18 @@ def test_retrieve_caravan_forcing(tmp_path: Path, mock_retrieve: mock.MagicMock)
     assert content == expected
     mock_retrieve.assert_called_once_with(basin_id.split("_")[0])
 
+
 def test_extract_basin_shapefile(tmp_path: Path):
     basin_id = "camels_01022500"
-    test_files_dir = (Path(__file__).parent / "forcing_files" /
-                                               "test_extract_basin_shapefile_data.shp")
+    test_files_dir = Path(__file__).parent / "forcing_files"
     tmp_camels_dir = tmp_path / "camels"
-    tmp_camels_dir.mkdir(exist_ok=True)
-    tmp_camels_dir = tmp_camels_dir / f"{basin_id}.shp"
-    extract_basin_shapefile(basin_id, test_files_dir, tmp_camels_dir)
+    copytree(test_files_dir, tmp_camels_dir)
+    extracted_shape_file_dir = tmp_camels_dir / f"{basin_id}.shp"
+    combined_shape_file_dir = tmp_camels_dir / "test_extract_basin_shapefile_data.shp"
+    extract_basin_shapefile(basin_id, combined_shape_file_dir, extracted_shape_file_dir)
 
-    shape_obj = shapereader.Reader(tmp_camels_dir)
+    shape_obj = shapereader.Reader(extracted_shape_file_dir)
     records = [rec for rec in shape_obj.records()]
 
     assert len(records) == 1
-    assert records[0].attributes['gauge_id'] == basin_id
+    assert records[0].attributes["gauge_id"] == basin_id
