@@ -11,6 +11,7 @@ import xarray as xr
 from cartopy.io import shapereader
 
 from ewatercycle.base.forcing import DefaultForcing
+from ewatercycle.esmvaltool.schema import Dataset
 from ewatercycle.util import get_time
 
 COMMON_URL = "ca13056c-c347-4a27-b320-930c2a4dd207"
@@ -106,14 +107,14 @@ class CaravanForcing(DefaultForcing):
     """
 
     @classmethod
-    def generate(
+    def generate(  # type: ignore[override]
         cls: Type["CaravanForcing"],
         start_time: str,
         end_time: str,
-        basin_id: str,
-        directory: str | Path,
+        directory: str,
         variables: tuple[str, ...] = (),
-        shape: str | Path | None = None,
+        shape: str | Path = "Leave to download automatically",
+        dataset: str | Dataset | dict = "unused",
         **kwargs,
     ) -> "CaravanForcing":
         """Retrieve caravan for a model.
@@ -123,15 +124,21 @@ class CaravanForcing(DefaultForcing):
                 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: nd time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
-            basin_id: Caravan basin_id
             directory: Directory in which forcing should be written.
                 If not given will create timestamped directory.
             variables: Variables which are needed for model,
                 if not specified will default to all.
             shape: (Optional) Path to a shape file.
                 If none is specified, will be downloaded automatically.
-            **kwargs
+            dataset: Unused
+
+            **kwargs:
+                basin_id: str containing the wanted basin_id.
+
         """
+        assert type(dataset) == str
+        basin_id = kwargs["basin_id"]
+
         dataset = basin_id.split("_")[0]
         ds = get_dataset(dataset)
         ds_basin = ds.sel(basin_id=basin_id.encode())
