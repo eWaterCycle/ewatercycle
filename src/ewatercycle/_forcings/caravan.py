@@ -136,7 +136,6 @@ class CaravanForcing(DefaultForcing):
                 basin_id: str containing the wanted basin_id.
 
         """
-        assert type(dataset) == str
         basin_id = kwargs["basin_id"]
 
         dataset = basin_id.split("_")[0]
