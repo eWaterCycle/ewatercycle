@@ -99,19 +99,14 @@ class CaravanForcing(DefaultForcing):
             'Q': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_Q.nc'
         }
         )
+
+
+    More in depth notebook van be found here:
+    https://gist.github.com/Daafip/ac1b030eb5563a76f4d02175f2716fd7
     """
 
     @classmethod
-    def generate(cls):
-        """Not Implemented."""
-        msg = (
-            "Caravan doesn't generate forcing, instead retrieves prepared forcing."
-            "Use the `retrieve` function instead"
-        )
-        raise NotImplementedError(msg)
-
-    @classmethod
-    def retrieve(
+    def generate(
         cls: Type["CaravanForcing"],
         start_time: str,
         end_time: str,
