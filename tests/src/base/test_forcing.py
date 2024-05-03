@@ -281,7 +281,9 @@ def test_integration_makkink_forcing(sample_shape, recipe_output):
 
 @pytest.fixture
 def mock_retrieve():
-    with mock.patch("ewatercycle._forcings.caravan.CaravanForcing.get_dataset") as mock_class:
+    with mock.patch(
+        "ewatercycle._forcings.caravan.CaravanForcing.get_dataset"
+    ) as mock_class:
         test_file = Path(__file__).parent / "forcing_files" / "test_caravan_file.nc"
         mock_class.return_value = xr.open_dataset(test_file)
         yield mock_class
