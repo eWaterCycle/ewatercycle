@@ -1,8 +1,7 @@
 import unittest
 from pathlib import Path
 from shutil import copytree
-from unittest import mock
-from unittest import TestCase
+from unittest import TestCase, mock
 
 import pytest
 import xarray as xr
@@ -334,7 +333,10 @@ def test_retrieve_caravan_forcing(tmp_path: Path, mock_retrieve: mock.MagicMock)
     assert content == expected
     mock_retrieve.assert_called_once_with(basin_id.split("_")[0])
 
-def test_retrieve_caravan_forcing_empty_vars(tmp_path: Path, mock_retrieve: mock.MagicMock):
+
+def test_retrieve_caravan_forcing_empty_vars(
+    tmp_path: Path, mock_retrieve: mock.MagicMock
+):
     basin_id = "camels_03439000"
     test_files_dir = Path(__file__).parent / "forcing_files"
     tmp_camels_dir = tmp_path / "camels"
@@ -352,19 +354,24 @@ def test_retrieve_caravan_forcing_empty_vars(tmp_path: Path, mock_retrieve: mock
     assert content == expected
     mock_retrieve.assert_called_once_with(basin_id.split("_")[0])
 
-def test_retrieve_caravan_forcing_no_basin_id(tmp_path: Path, mock_retrieve: mock.MagicMock):
+
+def test_retrieve_caravan_forcing_no_basin_id(
+    tmp_path: Path, mock_retrieve: mock.MagicMock
+):
     test_files_dir = Path(__file__).parent / "forcing_files"
     tmp_camels_dir = tmp_path / "camels"
     copytree(test_files_dir, tmp_camels_dir)
 
     msg = (
-        "You have to specify a basin ID to be able to generate forcing from"
-        " Caravan.")
+        "You have to specify a basin ID to be able to generate forcing from" " Caravan."
+    )
     with pytest.raises(ValueError, match=msg):
         CaravanForcing.generate(
             start_time="1981-01-01T00:00:00Z",
             end_time="1981-03-01T00:00:00Z",
-            directory=str(tmp_camels_dir))
+            directory=str(tmp_camels_dir),
+        )
+
 
 def test_extract_basin_shapefile(tmp_path: Path):
     basin_id = "camels_01022500"
@@ -380,5 +387,3 @@ def test_extract_basin_shapefile(tmp_path: Path):
 
     assert len(records) == 1
     assert records[0].attributes["gauge_id"] == basin_id
-
-
