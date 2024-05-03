@@ -242,12 +242,11 @@ def get_shapefiles(directory: Path, basin_id: str) -> Path:
     zip_path = directory / "shapefiles.zip"
     output_path = directory / "shapefiles"
     shape_path = directory / f"{basin_id}.shp"
+    combined_shapefile_path = output_path / "combined.shp"
 
     if not shape_path.is_file():
-        combined_shapefile_path = output_path / "combined.shp"
         if not combined_shapefile_path.is_file():
-            timeout = urllib3.Timeout(connect=10.0, read=300)
-            http = urllib3.PoolManager(timeout=timeout)
+            http = urllib3.PoolManager(timeout=urllib3.Timeout(connect=10.0, read=300))
             with http.request(
                 "GET", SHAPEFILE_URL, preload_content=False
             ) as r, zip_path.open("wb") as out_file:
