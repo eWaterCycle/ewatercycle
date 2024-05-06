@@ -4,14 +4,12 @@ from pathlib import Path
 from typing import Type
 
 import fiona
-import numpy as np
 import pandas as pd
 import urllib3
 import xarray as xr
 from cartopy.io import shapereader
 
 from ewatercycle.base.forcing import DefaultForcing
-from ewatercycle.esmvaltool.schema import Dataset
 from ewatercycle.util import get_time
 
 COMMON_URL = "ca13056c-c347-4a27-b320-930c2a4dd207"
@@ -107,6 +105,45 @@ class CaravanForcing(DefaultForcing):
     """
 
     @classmethod
+    def get_dataset(cls: Type["CaravanForcing"], dataset: str) -> xr.Dataset:
+        """Opens specified dataset from data.4tu.nl OPeNDAP server.
+
+        Args:
+            dataset (str): name of dataset, choose from:
+                'camels',
+                'camelsaus',
+                'camelsbr',
+                'camelscl',
+                'camelsgb',
+                'hysets',
+                'lamah'
+        """
+        return xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
+
+    @classmethod
+    def get_basin_id(cls: Type["CaravanForcing"], dataset: str) -> list[str]:
+        """Gets a list of all the basin ids in provided dataset
+        Args:
+            dataset (str): name of dataset, choose from:
+                'camels',
+                'camelsaus',
+                'camelsbr',
+                'camelscl',
+                'camelsgb',
+                'hysets',
+                'lamah'
+
+        Note:
+            https://www.ewatercycle.org/caravan-map/ contains online a set of
+            interactive maps which allows exploration of the available catchments and
+            also contains the needed basin_ids.
+            Alternatively, a zip with shapefiles is available at
+            https://doi.org/10.4121/ca13056c-c347-4a27-b320-930c2a4dd207.v1 which also
+            allows exploration of the dataset.
+        """
+        return [val.decode() for val in cls.get_dataset(dataset).basin_id.values]
+
+    @classmethod
     def generate(  # type: ignore[override]
         cls: Type["CaravanForcing"],
         start_time: str,
@@ -114,7 +151,6 @@ class CaravanForcing(DefaultForcing):
         directory: str,
         variables: tuple[str, ...] = (),
         shape: str | Path | None = None,
-        dataset: str | Dataset | dict = "unused",
         **kwargs,
     ) -> "CaravanForcing":
         """Retrieve caravan for a model.
@@ -130,28 +166,32 @@ class CaravanForcing(DefaultForcing):
                 if not specified will default to all.
             shape: (Optional) Path to a shape file.
                 If none is specified, will be downloaded automatically.
-            dataset: Unused
 
-            **kwargs:
-                basin_id: str containing the wanted basin_id. Data sets can be explored
-                using `CaravanForcing.get_dataset` or `CaravanForcing.get_basin_id`
-                More explanation in the example notebook mentioned above.
-
+        Kwargs:
+            basin_id: The ID of the desired basin. Data sets can be explored using
+                `CaravanForcing.get_dataset(dataset_name)` or
+                `CaravanForcing.get_basin_id(dataset_name)` where `dataset_name` is the
+                name of a dataset in Caravan (for example, "camels" or "camelsgb").
+                For more information do `help(CaravanForcing.get_basin_id)` or see
+                https://www.ewatercycle.org/caravan-map/.
         """
         if "basin_id" not in kwargs:
-            msg = "You have to specify a basin ID to be able to generate forcing from Caravan."
-            raise InputError(msg)
-        basin_id = kwargs["basin_id"]
+            msg = (
+                "You have to specify a basin ID to be able to generate forcing from"
+                " Caravan."
+            )
+            raise ValueError(msg)
+        basin_id = str(kwargs["basin_id"])
 
-        dataset = basin_id.split("_")[0]
-        ds = get_dataset(dataset)
+        dataset: str = basin_id.split("_")[0]
+        ds = cls.get_dataset(dataset)
         ds_basin = ds.sel(basin_id=basin_id.encode())
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
         if shape is None:
             shape = get_shapefiles(Path(directory), basin_id)
 
-        if variables == ():
+        if len(variables) == 0:
             variables = ds_basin_time.data_vars.keys()
 
         # only return the properties which are also in property vars
@@ -195,53 +235,16 @@ class CaravanForcing(DefaultForcing):
         return forcing
 
 
-def get_dataset(dataset) -> xr.Dataset:
-    """Opens specified dataset from data.4tu.nl OPeNDAP server.
-        Args:
-            dataset (str): name of dataset, choose from:
-                'camels',
-                'camelsaus',
-                'camelsbr',
-                'camelscl',
-                'camelsgb',
-                'hysets',
-                'lamah'
-    """
-    return xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
-
-
-def get_basin_id(dataset) -> list[str]:
-    """Gets a list of all the basin ids in provided dataset
-    Args:
-        dataset (str): name of dataset, choose from:
-            'camels',
-            'camelsaus',
-            'camelsbr',
-            'camelscl',
-            'camelsgb',
-            'hysets',
-            'lamah'
-
-    Note:
-        a zip with shapefiles is available at
-        https://doi.org/10.4121/ca13056c-c347-4a27-b320-930c2a4dd207.v1 which also
-        allows exploration of the dataset. 
-    """
-    return [val.decode() for val in get_dataset(dataset).basin_id.values]
-
-
-
 def get_shapefiles(directory: Path, basin_id: str) -> Path:
     """Retrieve shapefiles from data 4TU.nl ."""
     zip_path = directory / "shapefiles.zip"
     output_path = directory / "shapefiles"
     shape_path = directory / f"{basin_id}.shp"
+    combined_shapefile_path = output_path / "combined.shp"
 
     if not shape_path.is_file():
-        combined_shapefile_path = output_path / "combined.shp"
         if not combined_shapefile_path.is_file():
-            timeout = urllib3.Timeout(connect=10.0, read=300)
-            http = urllib3.PoolManager(timeout=timeout)
+            http = urllib3.PoolManager(timeout=urllib3.Timeout(connect=10.0, read=300))
             with http.request(
                 "GET", SHAPEFILE_URL, preload_content=False
             ) as r, zip_path.open("wb") as out_file:
@@ -300,8 +303,8 @@ def extract_basin_shapefile(
 
 def crop_ds(ds: xr.Dataset, start_time: str, end_time: str) -> xr.Dataset:
     """Crops dataset based on time."""
-    get_time(start_time), get_time(end_time)  # if utc, remove Z to parse to np.dt64
-    start, end = np.datetime64(start_time[:-1]), np.datetime64(end_time[:-1])
+    start = pd.Timestamp(get_time(start_time)).tz_convert(None)
+    end = pd.Timestamp(get_time(end_time)).tz_convert(None)
     return ds.isel(
         time=(ds["time"].to_numpy() >= start) & (ds["time"].to_numpy() <= end)
     )
