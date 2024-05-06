@@ -437,11 +437,11 @@ Download observation data
 
 Observation data is needed to calculate metrics of the model performance or plot a hydrograph . The
 ewatercycle package can use `Global Runoff Data Centre
-(GRDC) <https://www.bafg.de/GRDC>`__ or `U.S. Geological Survey Water
+(GRDC) <https://grdc.bafg.de/>`__ or `U.S. Geological Survey Water
 Services (USGS) <https://waterservices.usgs.gov/>`__ data.
 
 The GRDC daily data files can be ordered at
-https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/riverdischarge_node.html.
+https://grdc.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/riverdischarge_node.html.
 
 The GRDC files should be stored in ``ewatercycle.CFG.grdc_location``
 directory.

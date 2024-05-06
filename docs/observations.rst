@@ -12,4 +12,4 @@ The Discharge timestamp is corrected to the UTC timezone. Units are converted fr
 GRDC
 ----
 
-The `Global Runoff Data Centre <https://www.bafg.de/GRDC/EN/Home/homepage_node.html>`_ provides discharge data for a large number of stations around the world. In eWaterCycle we support GRDC data. This is not downloaded automatically, but required to be present on the infrastructure where the eWaterCycle platform is deployed. By special permission from GRDC our own instance contains data from the ArcticHYCOS and GCOS/GTN-H, GTN-R projects.
+The `Global Runoff Data Centre <https://grdc.bafg.de/>`_ provides discharge data for a large number of stations around the world. In eWaterCycle we support GRDC data. This is not downloaded automatically, but required to be present on the infrastructure where the eWaterCycle platform is deployed. By special permission from GRDC our own instance contains data from the ArcticHYCOS and GCOS/GTN-H, GTN-R projects.
