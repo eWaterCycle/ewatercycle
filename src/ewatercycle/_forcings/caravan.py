@@ -303,8 +303,8 @@ def extract_basin_shapefile(
 
 def crop_ds(ds: xr.Dataset, start_time: str, end_time: str) -> xr.Dataset:
     """Crops dataset based on time."""
-    start = pd.Timestamp(get_time(start_time))
-    end = pd.Timestamp(get_time(end_time))
+    start = pd.Timestamp(get_time(start_time)).tz_convert(None)
+    end = pd.Timestamp(get_time(end_time)).tz_convert(None)
     return ds.isel(
         time=(ds["time"].to_numpy() >= start) & (ds["time"].to_numpy() <= end)
     )
