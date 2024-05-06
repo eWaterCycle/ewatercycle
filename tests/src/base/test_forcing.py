@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 from shutil import copytree
-from unittest import TestCase, mock
+from unittest import mock
 
 import pytest
 import xarray as xr
@@ -362,9 +362,7 @@ def test_retrieve_caravan_forcing_no_basin_id(
     tmp_camels_dir = tmp_path / "camels"
     copytree(test_files_dir, tmp_camels_dir)
 
-    msg = (
-        "You have to specify a basin ID to be able to generate forcing from" " Caravan."
-    )
+    msg = "You have to specify a basin ID to be able to generate forcing from Caravan."
     with pytest.raises(ValueError, match=msg):
         CaravanForcing.generate(
             start_time="1981-01-01T00:00:00Z",

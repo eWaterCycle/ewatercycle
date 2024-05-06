@@ -4,14 +4,12 @@ from pathlib import Path
 from typing import Type
 
 import fiona
-import numpy as np
 import pandas as pd
 import urllib3
 import xarray as xr
 from cartopy.io import shapereader
 
 from ewatercycle.base.forcing import DefaultForcing
-from ewatercycle.esmvaltool.schema import Dataset
 from ewatercycle.util import get_time
 
 COMMON_URL = "ca13056c-c347-4a27-b320-930c2a4dd207"
@@ -305,8 +303,8 @@ def extract_basin_shapefile(
 
 def crop_ds(ds: xr.Dataset, start_time: str, end_time: str) -> xr.Dataset:
     """Crops dataset based on time."""
-    start = pd.Timestamp(start_time[:-1])
-    end = pd.Timestamp(end_time[:-1])
+    start = pd.Timestamp(get_time(start_time))
+    end = pd.Timestamp(get_time(end_time))
     return ds.isel(
         time=(ds["time"].to_numpy() >= start) & (ds["time"].to_numpy() <= end)
     )
