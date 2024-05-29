@@ -209,7 +209,7 @@ class CaravanForcing(DefaultForcing):
 
         for temp in ["tas", "tasmin", "tasmax"]:
             ds_basin_time[temp].attrs.update({"height": "2m"})
-            #convert units to Kelvin for compatiabillity with NetCDF-CF conventions
+            #convert units to Kelvin for compatibility with CMOR MIP table units
             if (ds_basin[temp].attrs["unit"]) == "°C":
                 ds_basin[temp].values = ds_basin[temp].values + 273.15
                 ds_basin[temp].attrs["unit"] = "°K"
