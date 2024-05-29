@@ -210,11 +210,15 @@ class CaravanForcing(DefaultForcing):
         for temp in ["tas", "tasmin", "tasmax"]:
             ds_basin_time[temp].attrs.update({"height": "2m"})
             #convert units to Kelvin for compatiabillity with NetCDF-CF conventions
-            ds_basin_time[temp].pint.to(a=temp, u = "K")
+            if (ds_basin[temp].attrs["unit"]) == "°C":
+                ds_basin[temp].values = ds_basin[temp].values + 273.15
+                ds_basin[temp].attrs["unit"] = "°K"
         
         for var in ["evspsblpot", "pr"]:
             #convert units to kg m-2 s-1 for compatiabillity with NetCDF-CF conventions
-            ds_basin_time[var].pint.to(a=var, u = "kg m-2 s-1")
+            if (ds_basin[var].attrs["unit"]) == "mm":
+                ds_basin[var].values = ds_basin[temp].values / (1000 * 86400) #NOTE THAT THIS CONVERSION ASSUMES DAILY DATA
+                ds_basin[var].attrs["unit"] = "kg m-2 s-1"
 
         start_time_name = start_time[:10]
         end_time_name = end_time[:10]
