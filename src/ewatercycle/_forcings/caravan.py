@@ -217,7 +217,7 @@ class CaravanForcing(DefaultForcing):
         for var in ["evspsblpot", "pr"]:
             #convert units to kg m-2 s-1 for compatiabillity with NetCDF-CF conventions
             if (ds_basin[var].attrs["unit"]) == "mm":
-                ds_basin[var].values = ds_basin[temp].values / (86400) #NOTE THAT THIS CONVERSION ASSUMES DAILY DATA
+                ds_basin[var].values = ds_basin[temp].values / (86400)  # mm/day --> kg m-2 s-1
                 ds_basin[var].attrs["unit"] = "kg m-2 s-1"
 
         start_time_name = start_time[:10]
