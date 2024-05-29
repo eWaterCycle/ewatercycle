@@ -209,6 +209,12 @@ class CaravanForcing(DefaultForcing):
 
         for temp in ["tas", "tasmin", "tasmax"]:
             ds_basin_time[temp].attrs.update({"height": "2m"})
+            #convert units to Kelvin for compatiabillity with NetCDF-CF conventions
+            ds_basin_time[temp].pint.to(a=temp, u = "K")
+        
+        for var in ["evspsblpot", "pr"]:
+            #convert units to kg m-2 s-1 for compatiabillity with NetCDF-CF conventions
+            ds_basin_time[var].pint.to(a=var, u = "kg m-2 s-1")
 
         start_time_name = start_time[:10]
         end_time_name = end_time[:10]
