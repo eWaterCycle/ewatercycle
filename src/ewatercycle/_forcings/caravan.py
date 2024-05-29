@@ -212,7 +212,7 @@ class CaravanForcing(DefaultForcing):
             #convert units to Kelvin for compatibility with CMOR MIP table units
             if (ds_basin[temp].attrs["unit"]) == "°C":
                 ds_basin[temp].values = ds_basin[temp].values + 273.15
-                ds_basin[temp].attrs["unit"] = "°K"
+                ds_basin[temp].attrs["unit"] = "K"
         
         for var in ["evspsblpot", "pr"]:
             #convert units to kg m-2 s-1 for compatiabillity with NetCDF-CF conventions
