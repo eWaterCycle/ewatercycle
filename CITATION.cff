@@ -51,6 +51,11 @@ authors:
     given-names: Jerom
     orcid: "https://orcid.org/0000-0003-0157-4818"
   -
+    affiliation: "Delft University of Technology"
+    family-names: Haasnoot
+    given-names: David
+    orcid: "https://orcid.org/0009-0002-4838-8350"
+  -
     affiliation: "Netherlands eScience Center"
     family-names: van Werkhoven
     given-names: Ben
