@@ -13,7 +13,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 - `input_var_names` property to the eWaterCycle model class, to accompany the existing `output_var_names` property ([#403](https://github.com/eWaterCycle/ewatercycle/pull/403)).
 - `var_units` method to the eWaterCycle model class, to mirror PyMT ([#403](https://github.com/eWaterCycle/ewatercycle/pull/403)).
 - A note on the time units that eWaterCycle expects models to provide to the documentation ([#403](https://github.com/eWaterCycle/ewatercycle/pull/403)).
-- LumpedCaravan forcing, which allows for the retrieval of single basins from the Caravan dataset, rather than downloading the whole dataset ([#407](https://github.com/eWaterCycle/ewatercycle/pull/407)).
+- CaravanForcing, which allows for the retrieval of single basins from the [Caravan](https://zenodo.org/records/7944025) dataset, rather than downloading the whole dataset ([#407](https://github.com/eWaterCycle/ewatercycle/pull/407)).
 
 ### Changed
 - If a model plugin raises an exception during the loading of the model entry points, a more clear exception is raised which guides the users on how to solve the error ([#404](https://github.com/eWaterCycle/ewatercycle/pull/404)).
