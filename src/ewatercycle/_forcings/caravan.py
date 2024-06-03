@@ -207,8 +207,18 @@ class CaravanForcing(DefaultForcing):
         ds_basin_time = ds_basin_time.rename(RENAME_ERA5)
         variables = tuple([RENAME_ERA5[var] for var in variable_names])
 
+        # convert units to Kelvin for compatibility with CMOR MIP table units
         for temp in ["tas", "tasmin", "tasmax"]:
             ds_basin_time[temp].attrs.update({"height": "2m"})
+            if (ds_basin_time[temp].attrs["unit"]) == "°C":
+                ds_basin_time[temp].values = ds_basin_time[temp].values + 273.15
+                ds_basin_time[temp].attrs["unit"] = "K"
+
+        for var in ["evspsblpot", "pr"]:
+            if (ds_basin_time[var].attrs["unit"]) == "mm":
+                # mm/day --> kg m-2 s-1
+                ds_basin_time[var].values = ds_basin_time[var].values / (86400)
+                ds_basin_time[var].attrs["unit"] = "kg m-2 s-1"
 
         start_time_name = start_time[:10]
         end_time_name = end_time[:10]
