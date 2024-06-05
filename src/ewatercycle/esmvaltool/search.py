@@ -15,7 +15,16 @@ def search_esgf(
     extended_mip_tables: bool = False,
     verbose: bool = False,
 ) -> dict[str, set[str]]:
-    """Search through ESGF for datasets fitting your requirements.
+    """Search through ESGF using ESMValTool to find datasets fitting your requirements.
+
+    As different models require different inputs for their forcing generation, this
+    module helps you find which CMIP models (and their ensembles) have the required
+    variables stored on the `Earth System Grid Federation (ESGF).
+    <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/quickstart/find_data.html#cmip-data>`_
+
+    More informations on ESMValTool's search functionality can be found `here
+    <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/api/esmvalcore.esgf.html>`_
+
 
     Examples:
 
@@ -23,6 +32,7 @@ def search_esgf(
     (the ones required for wflow), for the ssp585 scenario.
 
     .. code-block:: python
+
         from ewatercycle.esmvaltool.search import search esgf
 
         search_esgf(
@@ -35,6 +45,7 @@ def search_esgf(
     Gives something like:
 
     .. code-block:: python
+
         {
             'MPI-ESM1-2-HR': {'r1i1p1f1', 'r2i1p1f1'},
             'MPI-ESM1-2-LR': {'r10i1p1f1', 'r11i1p1f1', ...  'r9i1p1f1'},
@@ -59,7 +70,7 @@ def search_esgf(
 
     Returns:
         A dictionary with the dataset name as key, and the valid ensemble member names
-            in a set as items.
+        in a set as items.
     """
     if CFG["search_esgf"] != "always":
         msg = (
