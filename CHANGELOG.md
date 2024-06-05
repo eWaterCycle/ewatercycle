@@ -6,6 +6,8 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+### Added
+- `ewatercycle.esmvaltool.search.search_esgf` can now be used to find climate model ensembles on ESGF that have the required input variables for generating forcing data ([#422](https://github.com/eWaterCycle/ewatercycle/pull/422)).
 
 ## [2.1.1] (2024-06-03)
 
