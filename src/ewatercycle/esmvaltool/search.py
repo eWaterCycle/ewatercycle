@@ -1,4 +1,5 @@
 """Search ESGF for datasets with ESMValTool."""
+import warnings
 from itertools import compress
 from typing import Literal
 
@@ -12,8 +13,7 @@ def search_esgf(
     frequency: Literal["hr", "3hr", "day"],
     variables: list[str],
     extended_mip_tables: bool = False,
-    use_cache: bool = True,
-    verbose: bool = True,
+    verbose: bool = False,
 ) -> dict[str, set[str]]:
     """Search through ESGF for datasets fitting your requirements.
 
@@ -30,9 +30,6 @@ def search_esgf(
             experiment="ssp585",
             frequency="day",
             variables=["pr", "tas", "rsdt", "orog"],
-            extended_mip_tables=False,
-            use_cache=True,
-            verbose=False,
         )
 
     Gives something like:
@@ -57,21 +54,23 @@ def search_esgf(
         extended_mip_tables (optional): If you want to use extended MIP tables.
             These tables are probably not relevant for most hydrology usecases and can
             make the search slower. Defaults to False.
-        use_cache (optional): If the local ESGF cache should be used. Make search
-            results a lot faster, but can result in missing datasets, or datasets which
-            are currently not on ESGF if your cache is out of date. Defaults to True.
         verbose (optional): If the results should be printed in a verbose way, to aid
-            in your search experience. Defaults to True.
+            in your search experience. Defaults to False.
 
     Returns:
         A dictionary with the dataset name as key, and the valid ensemble member names
             in a set as items.
     """
-    # Would be nicer to do this with a context manager...
-    if use_cache:
-        CFG["search_esgf"] = "always"
-    else:
-        CFG["search_esgf"] = "when_missing"
+    if CFG["search_esgf"] != "always":
+        msg = (
+            "The ESMValTool configuration option 'search_esgf' is not set to 'always'\n"
+            "this can lead to retrieving only subsets of the data you are interested "
+            "in.\n"
+            "To set the configuration to always search on ESGF, do:\n"
+            "    from esmvalcore.config import CFG\n"
+            "    CFG['search_esgf'] = 'always'\n"
+        )
+        warnings.warn(msg, category=UserWarning)
 
     datasets = _query_esgf(
         activity=activity, experiment=experiment, variables=variables, verbose=verbose
@@ -144,9 +143,8 @@ def _query_esgf(
         )
         datasets_var = list(dataset_query.from_files())
 
-        print(f"Found {len(datasets_var)} results for short name: {var}")
-
         if len(datasets_var) > 0 and verbose:
+            print(f"Found {len(datasets_var)} results for short name: {var}")
             print("\n showing the first one.")
             print(datasets_var[0])
 
@@ -172,7 +170,7 @@ def _get_mip_tables(
     """
     always_include: tuple[str, ...] = ("fx",)  # So orog is compatible with any freq.
     mip_tables = {
-        "hr": ("E1hr"),
+        "hr": ("E1hr",),
         "3hr": ("3hr", "CF3hr", "E3hr"),
         "day": ("day", "Eday", "CFday"),
     }
@@ -189,8 +187,8 @@ def _get_mip_tables(
         raise ValueError(msg)
 
     if extended:
-        return mip_tables[freq] + always_include + extended_mip_tables[freq]
-    return mip_tables[freq] + always_include
+        return mip_tables[freq] + always_include + extended_mip_tables[freq]  # type: ignore
+    return mip_tables[freq] + always_include  # type: ignore
 
 
 def _filter_datasets(
@@ -198,7 +196,7 @@ def _filter_datasets(
     key: str,
     value: str | list[str] | tuple[str, ...],
 ) -> list[Dataset]:
-    """Return only the datasets with certain values for a certain key."""
+    """Return only the datasets with certain values for a certain facet."""
     if isinstance(value, str):
         value = [value]
     valid_datasets = [dataset[key] in value for dataset in datasets]
@@ -206,23 +204,5 @@ def _filter_datasets(
 
 
 def _get_value(datasets: list[Dataset], key: str):
-    """Return the values belonging to a certain key from multiple datasets."""
+    """Return the values belonging to a certain facet from multiple datasets."""
     return [dataset[key] for dataset in datasets]
-
-
-def _get_unique_dicts(dicts: list[dict]):
-    """Get all unique dictionaries from a list.
-
-    Dicts are not hashable, so using `set(dicts)` does not work. By encoding all items
-    as a frozenset we can bypass this (assuming that the items are not dicts
-    themselves).
-
-    Args:
-        dicts: List of dictionaries
-
-    Returns:
-        List of unique dictionaries
-    """
-    return [
-        dict(s) for s in set(frozenset(d.__dict__["facets"].items()) for d in dicts)
-    ]
