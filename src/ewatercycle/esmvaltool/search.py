@@ -8,7 +8,7 @@ from esmvalcore.dataset import Dataset
 
 
 def search_esgf(
-    activity: str,
+    project: str,
     experiment: str,
     frequency: Literal["hr", "3hr", "day"],
     variables: list[str],
@@ -36,7 +36,7 @@ def search_esgf(
         from ewatercycle.esmvaltool.search import search_esgf
 
         search_esgf(
-            activity="ScenarioMIP",
+            project="CMIP6",
             experiment="ssp585",
             frequency="day",
             variables=["pr", "tas", "rsdt", "orog"],
@@ -56,8 +56,8 @@ def search_esgf(
         }
 
     Args:
-        activity: Activity type, for example: 'ScenarioMIP'.
-        experiment: Experiment within the activity. E.g.: 'ssp585'
+        project: Which project to search in. E.g., 'CMIP6'.
+        experiment: The experiment of interest. E.g.: 'ssp585'
         frequency: Which frequency of data are you interested in. Valid inputs are 'hr',
             '3hr', and 'day.
         variables: Which variables are you searching for. Use the short_name definition.
@@ -84,7 +84,7 @@ def search_esgf(
         warnings.warn(msg, category=UserWarning)
 
     datasets = _query_esgf(
-        activity=activity, experiment=experiment, variables=variables, verbose=verbose
+        project=project, experiment=experiment, variables=variables, verbose=verbose
     )
 
     mips = _get_mip_tables(freq=frequency, extended=extended_mip_tables)
@@ -120,7 +120,7 @@ def search_esgf(
 
 
 def _query_esgf(
-    activity: str,
+    project: str,
     experiment: str,
     variables: list[str],
     verbose: bool = False,
@@ -128,8 +128,8 @@ def _query_esgf(
     """Return all datasets on ESGF that match the specified search query.
 
     Args:
-        activity: Activity type, for example: 'ScenarioMIP'.
-        experiment: Experiment within the activity. E.g.: 'ssp585'
+        project: Which project to search in. E.g., 'CMIP6'.
+        experiment: The experiment of interest. E.g.: 'ssp585'
         variables: Which variables are you searching for. Use the short_name definition.
             For example: ['pr', 'tas'].
         verbose (optional): If the results should be printed in a verbose way, to aid
@@ -143,9 +143,9 @@ def _query_esgf(
     for var in variables:
         dataset_query = Dataset(
             short_name=var,
-            activity=activity,
+            activity="*",
             mip="*",
-            project="CMIP6",
+            project=project,
             exp=experiment,
             dataset="*",
             institute="*",

@@ -61,7 +61,7 @@ def mock_esgf_query():
 def test_esgf_search(mock_esgf_query: mock.MagicMock):
     """Integration test with mocked query."""
     result = search.search_esgf(
-        activity="ScenarioMIP",
+        project="CMIP6",
         experiment="ssp585",
         variables=["pr", "tas", "rsds"],
         frequency="day",
@@ -71,7 +71,7 @@ def test_esgf_search(mock_esgf_query: mock.MagicMock):
     assert len(result) == 41  # 41 different models
 
     mock_esgf_query.assert_called_once_with(
-        activity="ScenarioMIP",
+        project="CMIP6",
         experiment="ssp585",
         variables=["pr", "tas", "rsds"],
         verbose=False,
@@ -83,7 +83,7 @@ def test_cfg_warning(mock_esgf_query: mock.MagicMock):
     CFG["search_esgf"] = "when_missing"
     with pytest.warns(UserWarning, match="'search_esgf' is not set to 'always'"):
         search.search_esgf(
-            activity="ScenarioMIP",
+            project="CMIP6",
             experiment="ssp585",
             variables=["pr", "tas", "rsds"],
             frequency="day",
@@ -118,7 +118,7 @@ def mock_different_freqs():
 def test_frequencies(mock_different_freqs, freq, extended, n_results, keys):
     """Tests both the MIP tables and the dataset filtering."""
     datasets = search._query_esgf(
-        activity="ScenarioMIP",
+        project="CMIP6",
         experiment="ssp585",
         variables=[
             "pr",
