@@ -21,6 +21,10 @@ def search_esgf(
     variables stored on the `Earth System Grid Federation (ESGF).
     <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/quickstart/find_data.html#cmip-data>`_
 
+    Do note that although a dataset might be in the MIP tables, the actual node hosting
+    the data could be offline. Node status can be found `here
+    <https://aims2.llnl.gov/nodes>`_.
+
     More informations on ESMValTool's search functionality can be found `here
     <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/api/esmvalcore.esgf.html>`_
 
