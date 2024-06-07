@@ -1,6 +1,5 @@
 """Search ESGF for datasets with ESMValTool."""
 import warnings
-from itertools import compress
 from typing import Literal
 
 from esmvalcore.config import CFG
@@ -215,8 +214,7 @@ def _filter_datasets(
     """Return only the datasets with certain values for a certain facet."""
     if isinstance(value, str):
         value = [value]
-    valid_datasets = [dataset[key] in value for dataset in datasets]
-    return list(compress(datasets, valid_datasets))
+    return [dataset for dataset in datasets if dataset[key] in value]
 
 
 def _get_value(datasets: list[Dataset], key: str):
