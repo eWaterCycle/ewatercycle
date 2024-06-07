@@ -46,12 +46,7 @@ def mock_esgf_query():
 
         import gzip
 
-        serialized = "\n".join(
-            str(query).replace("\n", "").replace("'",'"')
-            for query in query_result
-        )
-        out = serialized.replace("Dataset:", "")
-
+        out = json.dumps([d.facets for d in query_result])
         with gzip.open('query_result.txt.gz', 'wb') as f:
             f.write(out.encode())
     """

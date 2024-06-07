@@ -33,7 +33,7 @@ def search_esgf(
 
     .. code-block:: python
 
-        from ewatercycle.esmvaltool.search import search esgf
+        from ewatercycle.esmvaltool.search import search_esgf
 
         search_esgf(
             activity="ScenarioMIP",
@@ -198,8 +198,8 @@ def _get_mip_tables(
         raise ValueError(msg)
 
     if extended:
-        return mip_tables[freq] + always_include + extended_mip_tables[freq]  # type: ignore
-    return mip_tables[freq] + always_include  # type: ignore
+        return mip_tables[freq] + always_include + extended_mip_tables[freq]
+    return mip_tables[freq] + always_include
 
 
 def _filter_datasets(
