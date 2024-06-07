@@ -34,6 +34,7 @@ def mock_esgf_query():
 
     .. code-block:: python
 
+        from ewatercycle.esmvaltool.search import _query_esgf
         query_result = _query_esgf(
             activity="ScenarioMIP",
             experiment="ssp585",
@@ -45,15 +46,16 @@ def mock_esgf_query():
     .. code-block:: python
 
         import gzip
-
+        import json
         out = json.dumps([d.facets for d in query_result])
         with gzip.open('query_result.txt.gz', 'wb') as f:
             f.write(out.encode())
+
     """
     with mock.patch("ewatercycle.esmvaltool.search._query_esgf") as mock_query:
         with gzip.open(STORED_RESULTS, "rb") as f:
-            content = f.readlines()
-        result = [Dataset(**json.loads(line)) for line in content]
+            content = json.loads(f.readline())
+        result = [Dataset(**entry) for entry in content]
         mock_query.return_value = result
         yield mock_query
 

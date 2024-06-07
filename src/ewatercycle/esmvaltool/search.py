@@ -8,10 +8,10 @@ from esmvalcore.dataset import Dataset
 
 
 def search_esgf(
-    project: str,
     experiment: str,
     frequency: Literal["hr", "3hr", "day"],
     variables: list[str],
+    project: str = "CMIP6",
     extended_mip_tables: bool = False,
     verbose: bool = False,
 ) -> dict[str, set[str]]:
@@ -25,6 +25,12 @@ def search_esgf(
     More informations on ESMValTool's search functionality can be found `here
     <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/api/esmvalcore.esgf.html>`_
 
+    For more information on what valid experiments, frequencies, variables are, see
+    the `CMIP6 controlled vocabulary (CV).
+    <https://wcrp-cmip.github.io/CMIP6_CVs/>`_
+
+    You can also use the ESGF REST API to ask for currently available values, e.g.:
+    https://esgf-node.llnl.gov/esg-search/search?format=application%2Fsolr%2Bjson&project=CMIP6&facets=experiment_id&limit=0
 
     Examples:
 
@@ -36,7 +42,6 @@ def search_esgf(
         from ewatercycle.esmvaltool.search import search_esgf
 
         search_esgf(
-            project="CMIP6",
             experiment="ssp585",
             frequency="day",
             variables=["pr", "tas", "rsdt", "orog"],
@@ -56,12 +61,12 @@ def search_esgf(
         }
 
     Args:
-        project: Which project to search in. E.g., 'CMIP6'.
         experiment: The experiment of interest. E.g.: 'ssp585'
         frequency: Which frequency of data are you interested in. Valid inputs are 'hr',
             '3hr', and 'day.
         variables: Which variables are you searching for. Use the short_name definition.
             For example: ['pr', 'tas'].
+        project: Which project to search in. Defaults to 'CMIP6'.
         extended_mip_tables (optional): If you want to use extended MIP tables.
             These tables are probably not relevant for most hydrology usecases and can
             make the search slower. Defaults to False.
@@ -143,8 +148,8 @@ def _query_esgf(
     for var in variables:
         dataset_query = Dataset(
             short_name=var,
-            activity="*",
-            mip="*",
+            activity="*",  # activity is completely determined by the experiment
+            mip="*",  # only accepts str. Iterating over mips causes error: var has to match mip
             project=project,
             exp=experiment,
             dataset="*",
