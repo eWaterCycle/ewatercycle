@@ -163,7 +163,6 @@ class CaravanForcing(DefaultForcing):
             end_time: nd time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             directory: Directory in which forcing should be written.
-                If not given will create timestamped directory.
             variables: Variables which are needed for model,
                 if not specified will default to all.
             shape: (Optional) Path to a shape file.
