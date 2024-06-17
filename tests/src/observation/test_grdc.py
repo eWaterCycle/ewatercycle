@@ -90,23 +90,21 @@ def expected_results(tmp_path, sample_grdc_file):
 
 def test_get_grdc_data_with_datahome(tmp_path, expected_results):
     expected_data, expected_metadata = expected_results
-    result_data, result_metadata = get_grdc_data(
+    result_data = get_grdc_data(
         "42424242", "2000-01-01T00:00Z", "2000-02-01T00:00Z", data_home=str(tmp_path)
     )
 
-    assert_frame_equal(result_data, expected_data)
-    assert result_metadata == expected_metadata
+    assert_frame_equal(result_data.to_dataframe(), expected_data)
+    assert result_data.attrs == expected_metadata
 
 
 def test_get_grdc_data_with_cfg(expected_results, tmp_path):
     CFG.grdc_location = tmp_path
     expected_data, expected_metadata = expected_results
-    result_data, result_metadata = get_grdc_data(
-        "42424242", "2000-01-01T00:00Z", "2000-02-01T00:00Z"
-    )
+    result_data = get_grdc_data("42424242", "2000-01-01T00:00Z", "2000-02-01T00:00Z")
 
-    assert_frame_equal(result_data, expected_data)
-    assert result_metadata == expected_metadata
+    assert_frame_equal(result_data.to_dataframe(), expected_data)
+    assert result_data.attrs == expected_metadata
 
 
 def test_get_grdc_data_without_file(tmp_path):
@@ -121,11 +119,11 @@ def test_get_grdc_data_without_file(tmp_path):
 
 def test_get_grdc_dat_custom_column_name(expected_results, tmp_path):
     CFG.grdc_location = str(tmp_path)
-    result_data, result_metadata = get_grdc_data(
+    result_data = get_grdc_data(
         "42424242", "2000-01-01T00:00Z", "2000-02-01T00:00Z", column="observation"
     )
 
     expected_default_data, expected_metadata = expected_results
     expected_data = expected_default_data.rename(columns={"streamflow": "observation"})
-    assert_frame_equal(result_data, expected_data)
-    assert result_metadata == expected_metadata
+    assert_frame_equal(result_data.to_dataframe(), expected_data)
+    assert result_data.attrs == expected_metadata

@@ -4,6 +4,7 @@ import os
 from typing import Dict, Optional, Tuple, Union
 
 import pandas as pd
+import xarray as xr
 
 from ewatercycle import CFG
 from ewatercycle.util import get_time, to_absolute_path
@@ -20,7 +21,7 @@ def get_grdc_data(
     parameter: str = "Q",
     data_home: Optional[str] = None,
     column: str = "streamflow",
-) -> Tuple[pd.core.frame.DataFrame, MetaDataType]:
+) -> xr.Dataset:
     """Get river discharge data from Global Runoff Data Centre (GRDC).
 
     Requires the GRDC daily data files in a local directory. The GRDC daily data
@@ -43,17 +44,17 @@ def get_grdc_data(
         column: optional. Name of column in dataframe. Default: "streamflow".
 
     Returns:
-        grdc data in a dataframe and metadata.
+        grdc data in a dataframe with metadata in its attrs.
 
     Examples:
         .. code-block:: python
 
             from ewatercycle.observation.grdc import get_grdc_data
 
-            df, meta = get_grdc_data('6335020',
+            ds = get_grdc_data('6335020',
                                     '2000-01-01T00:00Z',
                                     '2001-01-01T00:00Z')
-            df.describe()
+            ds.describe()
                      streamflow
             count   4382.000000
             mean    2328.992469
@@ -64,7 +65,7 @@ def get_grdc_data(
             75%	    2730.000000
             max	   11300.000000
 
-            meta
+            ds.attrs
             {'grdc_file_name': '/home/myusername/git/eWaterCycle/ewatercycle/6335020_Q_Day.Cmd.txt',
             'id_from_grdc': 6335020,
             'file_generation_date': '2019-03-27',
@@ -121,7 +122,11 @@ def get_grdc_data(
     # Shpw info about data
     _log_metadata(metadata)
 
-    return df, metadata
+    ds = df.to_xarray()
+    ds[column].attrs["units"] = metadata.pop("units", None)
+    ds[column].attrs["long_name"] = metadata.pop("dataSetContent", None)
+    ds.attrs = metadata
+    return ds
 
 
 def _grdc_read(grdc_station_path, start, end, column):

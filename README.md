@@ -93,7 +93,7 @@ cfg_file, cfg_dir = model.setup(
 
 model.initialize(cfg_file)
 
-observations_df, station_info = ewatercycle.observation.grdc.get_grdc_data(
+observations_ds = ewatercycle.observation.grdc.get_grdc_data(
     station_id=4147380,
     start_time=model.start_time_as_isostr,
     end_time=model.end_time_as_isostr,
@@ -112,7 +112,7 @@ while (model.time < model.end_time):
     timestamps.append(model.time_as_datetime.date())
 simulated_discharge_df = pd.DataFrame({'simulated': simulated_discharge}, index=pd.to_datetime(timestamps))
 
-ewatercycle.analysis.hydrograph(simulated_discharge_df.join(observations_df), reference='observation')
+ewatercycle.analysis.hydrograph(simulated_discharge_df.join(observations_ds.to_dataframe()), reference='observation')
 
 model.finalize()
 ```

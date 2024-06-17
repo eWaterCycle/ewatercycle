@@ -23,6 +23,7 @@ def get_usgs_data(
 
     Returns:
         Xarray dataset with the streamflow data
+        with unit and other metadata in the variable and global attributes.
 
     Examples:
 
