@@ -64,10 +64,9 @@ def expected_results(tmp_path, sample_grdc_file):
         index=[datetime(2000, 1, 1), datetime(2000, 1, 2), datetime(2000, 1, 3)],
     )
     data.index.rename("time", inplace=True)
-    metadata = {
+    global_metadata = {
         "altitude_masl": 8.0,
         "country_code": "NA",
-        "dataSetContent": "MEAN DAILY DISCHARGE (Q)",
         "file_generation_date": "2000-02-02",
         "grdc_catchment_area_in_km2": 4242.0,
         "grdc_file_name": str(tmp_path / sample_grdc_file),
@@ -80,31 +79,36 @@ def expected_results(tmp_path, sample_grdc_file):
         "river_name": "SOME RIVER",
         "station_name": "SOME",
         "time_series": "2000-01 - 2000-01",
-        "units": "m³/s",
         "UserEndTime": "2000-02-01T00:00Z",
         "UserStartTime": "2000-01-01T00:00Z",
         "nrMissingData": 1,
     }
-    return data, metadata
+    var_metadata = {
+        "long_name": "MEAN DAILY DISCHARGE (Q)",
+        "units": "m³/s",
+    }
+    return data, global_metadata, var_metadata
 
 
 def test_get_grdc_data_with_datahome(tmp_path, expected_results):
-    expected_data, expected_metadata = expected_results
+    expected_data, expected_metadata, expected_var_metadata = expected_results
     result_data = get_grdc_data(
         "42424242", "2000-01-01T00:00Z", "2000-02-01T00:00Z", data_home=str(tmp_path)
     )
 
     assert_frame_equal(result_data.to_dataframe(), expected_data)
     assert result_data.attrs == expected_metadata
+    assert result_data["streamflow"].attrs == expected_var_metadata
 
 
 def test_get_grdc_data_with_cfg(expected_results, tmp_path):
     CFG.grdc_location = tmp_path
-    expected_data, expected_metadata = expected_results
+    expected_data, expected_metadata, expected_var_metadata = expected_results
     result_data = get_grdc_data("42424242", "2000-01-01T00:00Z", "2000-02-01T00:00Z")
 
     assert_frame_equal(result_data.to_dataframe(), expected_data)
     assert result_data.attrs == expected_metadata
+    assert result_data["streamflow"].attrs == expected_var_metadata
 
 
 def test_get_grdc_data_without_file(tmp_path):
@@ -123,7 +127,8 @@ def test_get_grdc_dat_custom_column_name(expected_results, tmp_path):
         "42424242", "2000-01-01T00:00Z", "2000-02-01T00:00Z", column="observation"
     )
 
-    expected_default_data, expected_metadata = expected_results
+    expected_default_data, expected_metadata, expected_var_metadata = expected_results
     expected_data = expected_default_data.rename(columns={"streamflow": "observation"})
     assert_frame_equal(result_data.to_dataframe(), expected_data)
     assert result_data.attrs == expected_metadata
+    assert result_data["observation"].attrs == expected_var_metadata
