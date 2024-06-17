@@ -71,17 +71,18 @@ class CaravanForcing(DefaultForcing):
         experiment_end_date = "2005-09-01T00:00:00Z"
         HRU_id = 1022500
 
-        camels_forcing = sources['LumpedCaravanForcing'].retrieve(
+        camels_forcing = sources['CaravanForcing'].generate(
                                     start_time = experiment_start_date,
                                     end_time = experiment_end_date,
                                     directory = forcing_path / "Camels",
                                     basin_id = f"camels_0{HRU_id}"
                                                                 )
-        which gives somthing like:
+
+    which gives something like:
 
     .. code-block:: python
 
-        LumpedCaravanForcing(
+        CaravanForcing(
         start_time='1997-08-01T00:00:00Z',
         end_time='2005-09-01T00:00:00Z',
         directory=PosixPath('/home/davidhaasnoot/eWaterCycle-WSL-WIP/Forcing/Camels'),
