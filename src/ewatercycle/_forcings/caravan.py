@@ -62,7 +62,6 @@ class CaravanForcing(DefaultForcing):
     .. code-block:: python
 
         from pathlib import Path
-        from rich import print
         from ewatercycle.forcing import sources
 
         path = Path.cwd()
