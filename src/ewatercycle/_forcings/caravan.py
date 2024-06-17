@@ -66,7 +66,8 @@ class CaravanForcing(DefaultForcing):
         from ewatercycle.forcing import sources
 
         path = Path.cwd()
-        forcing_path = path / "Forcing"
+        forcing_path = path / "Forcing" / "Camels"
+        forcing_path.mkdir(parents=True, exist_ok=True)
         experiment_start_date = "1997-08-01T00:00:00Z"
         experiment_end_date = "2005-09-01T00:00:00Z"
         HRU_id = 1022500
@@ -74,7 +75,7 @@ class CaravanForcing(DefaultForcing):
         camels_forcing = sources['CaravanForcing'].generate(
                                     start_time = experiment_start_date,
                                     end_time = experiment_end_date,
-                                    directory = forcing_path / "Camels",
+                                    directory = forcing_path,
                                     basin_id = f"camels_0{HRU_id}"
                                                                 )
 
