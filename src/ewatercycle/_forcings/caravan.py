@@ -13,7 +13,8 @@ from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.util import get_time
 
 COMMON_URL = "ca13056c-c347-4a27-b320-930c2a4dd207"
-OPENDAP_URL = f"https://opendap.4tu.nl/thredds/dodsC/data2/djht/{COMMON_URL}/1/"
+VERSION = "2"
+OPENDAP_URL = f"https://opendap.4tu.nl/thredds/dodsC/data2/djht/{COMMON_URL}/{VERSION}/"
 SHAPEFILE_URL = (
     f"https://data.4tu.nl/file/{COMMON_URL}/bbe94526-cf1a-4b96-8155-244f20094719"
 )
@@ -174,6 +175,16 @@ class CaravanForcing(DefaultForcing):
                 name of a dataset in Caravan (for example, "camels" or "camelsgb").
                 For more information do `help(CaravanForcing.get_basin_id)` or see
                 https://www.ewatercycle.org/caravan-map/.
+            data_source: The ID of the data source to be used. For some datasets multiple
+                datasources are available. currently this is only implemented for the
+                (basins in the) "camels" (ie. camels US) dataset. If "data_sources" is not
+                specified, it defaults to b'era5_land' (the default for caravan). Options for 
+                Camels are:
+                    - b'nldas'
+                    - b'maurer'
+                    - b'daymet'
+                See the documentation of Camels for details on the differences between these
+                data sources: https://dx.doi.org/10.5065/D6MW2F4D
         """
         if "basin_id" not in kwargs:
             msg = (
@@ -182,10 +193,16 @@ class CaravanForcing(DefaultForcing):
             )
             raise ValueError(msg)
         basin_id = str(kwargs["basin_id"])
+        
+        if "data_source" not in kwargs
+            date_source = b'era5_land'
+        elif:
+            date_source = str(kwargs["data_source"])
 
         dataset: str = basin_id.split("_")[0]
         ds = cls.get_dataset(dataset)
-        ds_basin = ds.sel(basin_id=basin_id.encode())
+        ds_data_source = ds.sel(data_source = date_source.encode())
+        ds_basin = ds_data_source.sel(basin_id=basin_id.encode())
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
         if shape is None:
@@ -210,15 +227,15 @@ class CaravanForcing(DefaultForcing):
         for temp in ["tas", "tasmin", "tasmax"]:
             ds_basin_time[temp].attrs.update({"height": "2m"})
             #convert units to Kelvin for compatiabillity with NetCDF-CF conventions
-            if (ds_basin[temp].attrs["unit"]) == "°C":
-                ds_basin[temp].values = ds_basin[temp].values + 273.15
-                ds_basin[temp].attrs["unit"] = "°K"
+            if (ds_basin_time[temp].attrs["unit"]) == "°C":
+                ds_basin_time[temp].values = ds_basin_time[temp].values + 273.15
+                ds_basin_time[temp].attrs["unit"] = "°K"
         
         for var in ["evspsblpot", "pr"]:
             #convert units to kg m-2 s-1 for compatiabillity with NetCDF-CF conventions
-            if (ds_basin[var].attrs["unit"]) == "mm":
-                ds_basin[var].values = ds_basin[temp].values / (86400) #NOTE THAT THIS CONVERSION ASSUMES DAILY DATA
-                ds_basin[var].attrs["unit"] = "kg m-2 s-1"
+            if (ds_basin_time[var].attrs["unit"]) == "mm":
+                ds_basin_time[var].values = ds_basin_time[var].values / (86400) #NOTE THAT THIS CONVERSION ASSUMES DAILY DATA
+                ds_basin_time[var].attrs["unit"] = "kg m-2 s-1"
 
         start_time_name = start_time[:10]
         end_time_name = end_time[:10]
