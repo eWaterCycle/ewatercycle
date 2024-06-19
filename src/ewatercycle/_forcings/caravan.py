@@ -194,10 +194,15 @@ class CaravanForcing(DefaultForcing):
             raise ValueError(msg)
         basin_id = str(kwargs["basin_id"])
         
-        if "data_source" not in kwargs
-            date_source = b'era5_land'
-        elif:
+        if "data_source" not in kwargs:
+            date_source = 'era5_land'
+        elif kwargs["data_source"] in ['era5_land', 'nldas', 'maurer', 'daymet']:
             date_source = str(kwargs["data_source"])
+        else: 
+            msg = (
+                "If 'data_source' is provided it needs to be one of: 'era5_land', 'nldas', 'maurer', 'daymet'"
+            )
+            raise ValueError(msg)
 
         dataset: str = basin_id.split("_")[0]
         ds = cls.get_dataset(dataset)
