@@ -195,9 +195,9 @@ class CaravanForcing(DefaultForcing):
         basin_id = str(kwargs["basin_id"])
         
         if "data_source" not in kwargs:
-            date_source = 'era5_land'
+            data_source = 'era5_land'
         elif kwargs["data_source"] in ['era5_land', 'nldas', 'maurer', 'daymet']:
-            date_source = str(kwargs["data_source"])
+            data_source = str(kwargs["data_source"])
         else: 
             msg = (
                 "If 'data_source' is provided it needs to be one of: 'era5_land', 'nldas', 'maurer', 'daymet'"
@@ -206,7 +206,7 @@ class CaravanForcing(DefaultForcing):
 
         dataset: str = basin_id.split("_")[0]
         ds = cls.get_dataset(dataset)
-        ds_data_source = ds.sel(data_source = date_source.encode())
+        ds_data_source = ds.sel(data_source = data_source.encode())
         ds_basin = ds_data_source.sel(basin_id=basin_id.encode())
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
@@ -226,7 +226,12 @@ class CaravanForcing(DefaultForcing):
         for prop in properties:
             ds_basin_time.coords.update({prop: ds_basin_time[prop].to_numpy()})
 
-        ds_basin_time = ds_basin_time.rename(RENAME_ERA5)
+        if data_source == 'era5_land':
+            for key,var in set(RENAME_ERA5.values()).intersection(ds_basin_time.data_vars.keys()):
+                ds_basin_time = ds_basin_time.drop_vars(var)
+    
+            ds_basin_time = ds_basin_time.rename(RENAME_ERA5)
+
         variables = tuple([RENAME_ERA5[var] for var in variable_names])
 
         for temp in ["tas", "tasmin", "tasmax"]:
