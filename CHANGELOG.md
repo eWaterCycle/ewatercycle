@@ -9,6 +9,15 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 ### Added
 - `ewatercycle.esmvaltool.search.search_esgf` can now be used to find climate model ensembles on ESGF that have the required input variables for generating forcing data ([#422](https://github.com/eWaterCycle/ewatercycle/pull/422)).
 
+### Fixed
+
+- `get_usgs_data()` throws error ([#414](https://github.com/eWaterCycle/ewatercycle/issues/414))
+- get_usgs_data and get_grdc_data both return xarray.Dataset ([#253](https://github.com/eWaterCycle/ewatercycle/issues/253))
+
+### Removed
+
+- Caching mechanism from `get_usgs_data()` ([#240](https://github.com/eWaterCycle/ewatercycle/issues/240))
+
 ## [2.1.1] (2024-06-03)
 
 ### Added
