@@ -35,7 +35,7 @@ def get_usgs_data(
         Coordinates:
           * time        (time) datetime64[ns] 2000-01-04T05:00:00 ... 2000-12-23T04:00:00
         Data variables:
-            Streamflow  (time) float32 8.296758 10.420501 ... 10.647034 11.694747
+            streamflow  (time) float32 8.296758 10.420501 ... 10.647034 11.694747
         Attributes:
             title:      USGS Data from streamflow data
             station:    Little Beaver Creek near East Liverpool OH
