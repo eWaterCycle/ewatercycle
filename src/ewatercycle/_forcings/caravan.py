@@ -62,26 +62,27 @@ class CaravanForcing(DefaultForcing):
     .. code-block:: python
 
         from pathlib import Path
-        from rich import print
         from ewatercycle.forcing import sources
 
         path = Path.cwd()
-        forcing_path = path / "Forcing"
+        forcing_path = path / "Forcing" / "Camels"
+        forcing_path.mkdir(parents=True, exist_ok=True)
         experiment_start_date = "1997-08-01T00:00:00Z"
         experiment_end_date = "2005-09-01T00:00:00Z"
         HRU_id = 1022500
 
-        camels_forcing = sources['LumpedCaravanForcing'].retrieve(
+        camels_forcing = sources['CaravanForcing'].generate(
                                     start_time = experiment_start_date,
                                     end_time = experiment_end_date,
-                                    directory = forcing_path / "Camels",
+                                    directory = forcing_path,
                                     basin_id = f"camels_0{HRU_id}"
                                                                 )
-        which gives somthing like:
+
+    which gives something like:
 
     .. code-block:: python
 
-        LumpedCaravanForcing(
+        CaravanForcing(
         start_time='1997-08-01T00:00:00Z',
         end_time='2005-09-01T00:00:00Z',
         directory=PosixPath('/home/davidhaasnoot/eWaterCycle-WSL-WIP/Forcing/Camels'),
@@ -161,7 +162,6 @@ class CaravanForcing(DefaultForcing):
             end_time: nd time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             directory: Directory in which forcing should be written.
-                If not given will create timestamped directory.
             variables: Variables which are needed for model,
                 if not specified will default to all.
             shape: (Optional) Path to a shape file.
