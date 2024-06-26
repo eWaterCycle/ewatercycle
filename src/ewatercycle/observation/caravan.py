@@ -30,8 +30,8 @@ def get_caravan_data(
                 'YYYY-MM-DDTHH:MM:SSZ'.
 
     Returns:
-        Xarray dataset with the streamflow data
-        with unit and other metadata in the variable and global attributes.
+        Xarray dataset with the streamflow data in the variable 'streamflow'.
+        The basin and gauge meta data is available on the basin_id dimension.
 
     Examples:
 
