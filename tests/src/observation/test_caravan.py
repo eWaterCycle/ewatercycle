@@ -63,14 +63,14 @@ def test_get_caravan_data(mock_retrieve):
                 },
                 "lat": {"dims": (), "attrs": {}, "data": 35.14333},
                 "lon": {"dims": (), "attrs": {}, "data": -82.82472},
-                "area": {"dims": (), "attrs": {}, "data": 177.99471516630686},
+                "area": {"dims": (), "attrs": {}, "data": 177.99471},
                 "streamflow": {
                     "dims": ("time",),
                     "attrs": {
                         "unit": "mm/d",
                         "long_name": "Observed streamflow",
                     },
-                    "data": [1.100000023841858, 1.059999942779541, 1.0299999713897705],
+                    "data": [2.266e-06, 2.184e-06, 2.122e-06],
                 },
             },
         }

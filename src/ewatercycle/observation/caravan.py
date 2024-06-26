@@ -65,6 +65,11 @@ def get_caravan_data(
     ds = CaravanForcing.get_dataset(dataset)
     ds_basin = ds.sel(basin_id=basin_id.encode())
     ds_basin_time = crop_ds(ds_basin, start_time, end_time)
+    # convert mm/d to m3/s using the area of the basin
+    ds_basin_time["streamflow"] = (
+        ds_basin_time["streamflow"] * ds_basin_time["area"] / 1000 / 86400
+    )
+    ds_basin_time["streamflow"].attrs["unit"] = "m3/s"
     return ds_basin_time[
         ["timezone", "name", "country", "lat", "lon", "area", "streamflow"]
     ]
