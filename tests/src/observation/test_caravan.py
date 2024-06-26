@@ -50,6 +50,20 @@ def test_get_caravan_data(mock_retrieve):
             },
             "dims": {"time": 3},
             "data_vars": {
+                "timezone": {"dims": (), "attrs": {}, "data": b"America/New_York"},
+                "name": {
+                    "dims": (),
+                    "attrs": {},
+                    "data": b"FRENCH BROAD RIVER AT ROSMAN, NC",
+                },
+                "country": {
+                    "dims": (),
+                    "attrs": {},
+                    "data": b"United States of America",
+                },
+                "lat": {"dims": (), "attrs": {}, "data": 35.14333},
+                "lon": {"dims": (), "attrs": {}, "data": -82.82472},
+                "area": {"dims": (), "attrs": {}, "data": 177.99471516630686},
                 "streamflow": {
                     "dims": ("time",),
                     "attrs": {
@@ -57,7 +71,7 @@ def test_get_caravan_data(mock_retrieve):
                         "long_name": "Observed streamflow",
                     },
                     "data": [1.100000023841858, 1.059999942779541, 1.0299999713897705],
-                }
+                },
             },
         }
     )
