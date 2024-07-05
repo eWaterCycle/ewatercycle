@@ -12,7 +12,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 ### Fixed
 
 - `get_usgs_data()` throws error ([#414](https://github.com/eWaterCycle/ewatercycle/issues/414))
-- get_usgs_data and get_grdc_data both return xarray.Dataset ([#253](https://github.com/eWaterCycle/ewatercycle/issues/253))
+- `get_usgs_data()` and 1get_grdc_data()` both return xarray.Dataset ([#253](https://github.com/eWaterCycle/ewatercycle/issues/253))
 
 ### Removed
 
