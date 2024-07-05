@@ -19,3 +19,4 @@ Caravan
 
 The `Caravan <https://doi.org/10.1038/s41597-023-01975-w>`_ dataset contains river discharge for each of its basins.
 Observations can be retrieved using the :py:func:`ewatercycle.observation.caravan.get_caravan_data` function.
+Basins can be found on the `Caravan map <https://www.ewatercycle.org/caravan-map/>`.
