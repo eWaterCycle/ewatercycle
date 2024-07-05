@@ -60,7 +60,7 @@ YYYY-MM-DD;hh:mm; Value
 @pytest.fixture
 def expected_results(tmp_path, sample_grdc_file):
     data = pd.DataFrame(
-        {"streamflow": [123.0, 456.0, np.NaN]},
+        {"streamflow": [123.0, 456.0, np.nan]},
         index=[datetime(2000, 1, 1), datetime(2000, 1, 2), datetime(2000, 1, 3)],
     )
     data.index.rename("time", inplace=True)
