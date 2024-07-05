@@ -309,3 +309,16 @@ def test_get_grdc_data_from_nc(sample_nc_file, expected_results: xr.Dataset):
         "42424242", "2000-01-01T00:00Z", "2000-02-01T00:00Z", data_home=sample_nc_file
     )
     assert_allclose(result_data, expected_results)
+
+
+def test_get_grdc_data_from_nc_missing_and_no_txtfile(tmp_path, sample_nc_file):
+    with pytest.raises(
+        ValueError,
+        match="The grdc station 42424243 is not in the .*/GRDC-Daily.nc file and .*/42424243_Q_Day.Cmd.txt does not exist!",
+    ):
+        get_grdc_data(
+            "42424243",
+            "2000-01-01T00:00Z",
+            "2000-02-01T00:00Z",
+            data_home=str(tmp_path),
+        )
