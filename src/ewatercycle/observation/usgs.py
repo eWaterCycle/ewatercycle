@@ -80,20 +80,22 @@ def get_usgs_data(
 
     Examples:
 
-    >>> from ewatercycle.observation.usgs import get_usgs_data
-    >>> data = get_usgs_data('03109500', '2000-01-01T00:00:00Z', '2000-12-31T00:00:00Z')
-    >>> data
-        <xarray.Dataset>
+        To get observations from the Little Beaver Creek.
+
+        >>> from ewatercycle.observation.usgs import get_usgs_data
+        >>> data = get_usgs_data('03109500', '2000-01-01T00:00:00Z', '2000-12-31T00:00:00Z')
+        >>> data
+        <xarray.Dataset> Size: 96kB
         Dimensions:     (time: 8032)
         Coordinates:
-          * time        (time) datetime64[ns] 2000-01-04T05:00:00 ... 2000-12-23T04:00:00
+          * time        (time) datetime64[ns] 64kB 2000-01-04T05:00:00 ... 2000-12-23...
         Data variables:
-            streamflow  (time) float32 8.296758 10.420501 ... 10.647034 11.694747
+            streamflow  (time) float32 32kB 8.297 10.42 17.58 ... 8.552 10.65 11.69
         Attributes:
             title:      USGS Data from streamflow data
             station:    Little Beaver Creek near East Liverpool OH
             stationid:  03109500
-            location:   (40.6758974, -80.5406244)
+            location:   (np.float64(40.6758974), np.float64(-80.5406244))
     """  # noqa: E501
     wml_data = _download_usgs_data(station_id, start_time, end_time)
     return _xml_to_xarray(wml_data)
