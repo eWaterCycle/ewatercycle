@@ -1,14 +1,66 @@
-from datetime import datetime
-
+"""Module to retrieve river discharge data from the USGS REST web service."""
 import numpy as np
 import pandas as pd
 import xarray as xr
 from pyoos.collectors.usgs.usgs_rest import UsgsRest
 from pyoos.parsers.waterml import WaterML11ToPaegan
 
+from ewatercycle.util import get_time
+
+
+def _xml_to_xarray(waterml_data: str) -> xr.Dataset:
+    # Convert the raw data to an xarray
+    data = WaterML11ToPaegan(waterml_data).feature
+
+    # We expect only 1 station
+    if len(data.elements) == 0:
+        raise ValueError("Data does not contain any station data")
+
+    station = data.elements[0]
+
+    # Unit conversion from cubic feet per second to cubic meter per second
+    values = np.array(
+        [float(point.members[0]["value"]) / 35.315 for point in station.elements],
+        dtype=np.float32,
+    )
+    # Convert the time to a numpy array of datetime64 without timezone
+    times = pd.to_datetime([point.time for point in station.elements]).to_numpy(
+        dtype="datetime64[ns]"
+    )
+    attrs = {"units": "m3/s"}
+
+    # Create the xarray dataset
+    ds = xr.Dataset({"streamflow": (["time"], values, attrs)}, coords={"time": times})
+
+    # Set some nice attributes
+    ds.attrs["title"] = "USGS Data from streamflow data"
+    ds.attrs["station"] = station.name
+    ds.attrs["stationid"] = station.get_uid()
+    ds.attrs["location"] = (station.location.y, station.location.x)
+
+    return ds
+
+
+def _download_usgs_data(
+    station_id: str,
+    start_time: str,
+    end_time: str,
+):
+    discharge_parameter = "00060"
+    collector = UsgsRest()
+    collector.filter(
+        start=get_time(start_time),
+        end=get_time(end_time),
+        variables=[discharge_parameter],
+        features=[station_id],
+    )
+    return collector.raw()
+
 
 def get_usgs_data(
-    station_id: str, start_date: str, end_date: str, parameter: str = "00060"
+    station_id: str,
+    start_time: str,
+    end_time: str,
 ) -> xr.Dataset:
     """Get river discharge data from the USGS REST web service.
 
@@ -17,9 +69,10 @@ def get_usgs_data(
 
     Args:
         station_id: The station id to get
-        start_date: String for start date in the format: 'YYYY-MM-dd', e.g. '1980-01-01'
-        end_date: String for start date in the format: 'YYYY-MM-dd', e.g. '2018-12-31'
-        parameter: The parameter code to get, e.g. ('00060') discharge, cubic feet per second
+        start_time: Start time of model in UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
+        end_time: End time of model in  UTC and ISO format string e.g.
+            'YYYY-MM-DDTHH:MM:SSZ'.
 
     Returns:
         Xarray dataset with the streamflow data
@@ -28,7 +81,7 @@ def get_usgs_data(
     Examples:
 
     >>> from ewatercycle.observation.usgs import get_usgs_data
-    >>> data = get_usgs_data('03109500', '2000-01-01', '2000-12-31')
+    >>> data = get_usgs_data('03109500', '2000-01-01T00:00:00Z', '2000-12-31T00:00:00Z')
     >>> data
         <xarray.Dataset>
         Dimensions:     (time: 8032)
@@ -42,46 +95,5 @@ def get_usgs_data(
             stationid:  03109500
             location:   (40.6758974, -80.5406244)
     """  # noqa: E501
-
-    collector = UsgsRest()
-    collector.filter(
-        start=datetime.strptime(start_date, "%Y-%m-%d"),
-        end=datetime.strptime(end_date, "%Y-%m-%d"),
-        variables=[parameter],
-        features=[station_id],
-    )
-    wml_data = collector.raw()
-    collector.clear()
-
-    # Convert the raw data to an xarray
-    data = WaterML11ToPaegan(wml_data).feature
-
-    # We expect only 1 station
-    if len(data.elements) == 0:
-        raise ValueError("Data does not contain any station data")
-    else:
-        station = data.elements[0]
-
-        # Unit conversion from cubic feet to cubic meter per second
-        values = np.array(
-            [float(point.members[0]["value"]) / 35.315 for point in station.elements],
-            dtype=np.float32,
-        )
-        times = pd.to_datetime([point.time for point in station.elements])
-
-        attrs = {
-            "units": "cubic meters per second",
-        }
-
-        # Create the xarray dataset
-        ds = xr.Dataset(
-            {"streamflow": (["time"], values, attrs)}, coords={"time": times}
-        )
-
-        # Set some nice attributes
-        ds.attrs["title"] = "USGS Data from streamflow data"
-        ds.attrs["station"] = station.name
-        ds.attrs["stationid"] = station.get_uid()
-        ds.attrs["location"] = (station.location.y, station.location.x)
-
-        return ds
+    wml_data = _download_usgs_data(station_id, start_time, end_time)
+    return _xml_to_xarray(wml_data)
