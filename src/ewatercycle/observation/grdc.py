@@ -101,7 +101,6 @@ def get_grdc_data(
 
     # Read the NetCDF file
     nc_file = data_path / "GRDC-Daily.nc"
-    station_not_in_nc = False
     if nc_file.exists():
         ds = xr.open_dataset(nc_file)
         if int(station_id) in ds["id"]:
@@ -110,12 +109,11 @@ def get_grdc_data(
                 time=slice(get_time(start_time).date(), get_time(end_time).date()),
             )
             return ds.rename({"runoff_mean": column})
-        station_not_in_nc = True
 
     # Read the text data
     raw_file = data_path / f"{station_id}_Q_Day.Cmd.txt"
     if not raw_file.exists():
-        if nc_file.exists() and station_not_in_nc:
+        if nc_file.exists():
             raise ValueError(
                 f"The grdc station {station_id} is not in the {nc_file} file and {raw_file} does not exist!"  # noqa: E501
             )
