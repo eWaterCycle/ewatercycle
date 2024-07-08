@@ -81,7 +81,7 @@ This section is for maintainers of the package.
 1. Checkout ``HEAD`` of ``main`` branch with ``git checkout main`` and ``git pull``.
 2. Determine what new version (major, minor or patch) to use. Package uses `semantic versioning <https://semver.org>`_.
 3. Run ``bump2version <major|minor|patch>`` to update version in package files.
-4. Update CHANGELOG.md with changes between current and new version.
+4. Update CHANGELOG.md with changes between current and new version. (Don't forget to also update the links at the bottom of the file)
 5. Make sure pre-commit hooks are green for all files by running ``pre-commit run --all-files``.
 6. Commit & push changes to GitHub.
 7. Wait for [GitHub

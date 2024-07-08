@@ -333,6 +333,10 @@ def test_retrieve_caravan_forcing(tmp_path: Path, mock_retrieve: mock.MagicMock)
     assert content == expected
     mock_retrieve.assert_called_once_with(basin_id.split("_")[0])
 
+    assert caravan_forcing.to_xarray()["evspsblpot"].attrs["unit"] == "kg m-2 s-1"
+    assert caravan_forcing.to_xarray()["pr"].attrs["unit"] == "kg m-2 s-1"
+    assert caravan_forcing.to_xarray()["tas"].attrs["unit"] == "K"
+
 
 def test_retrieve_caravan_forcing_empty_vars(
     tmp_path: Path, mock_retrieve: mock.MagicMock

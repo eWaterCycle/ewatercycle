@@ -63,26 +63,27 @@ class CaravanForcing(DefaultForcing):
     .. code-block:: python
 
         from pathlib import Path
-        from rich import print
         from ewatercycle.forcing import sources
 
         path = Path.cwd()
-        forcing_path = path / "Forcing"
+        forcing_path = path / "Forcing" / "Camels"
+        forcing_path.mkdir(parents=True, exist_ok=True)
         experiment_start_date = "1997-08-01T00:00:00Z"
         experiment_end_date = "2005-09-01T00:00:00Z"
         HRU_id = 1022500
 
-        camels_forcing = sources['LumpedCaravanForcing'].retrieve(
+        camels_forcing = sources['CaravanForcing'].generate(
                                     start_time = experiment_start_date,
                                     end_time = experiment_end_date,
-                                    directory = forcing_path / "Camels",
+                                    directory = forcing_path,
                                     basin_id = f"camels_0{HRU_id}"
                                                                 )
-        which gives somthing like:
+
+    which gives something like:
 
     .. code-block:: python
 
-        LumpedCaravanForcing(
+        CaravanForcing(
         start_time='1997-08-01T00:00:00Z',
         end_time='2005-09-01T00:00:00Z',
         directory=PosixPath('/home/davidhaasnoot/eWaterCycle-WSL-WIP/Forcing/Camels'),
@@ -162,7 +163,6 @@ class CaravanForcing(DefaultForcing):
             end_time: nd time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             directory: Directory in which forcing should be written.
-                If not given will create timestamped directory.
             variables: Variables which are needed for model,
                 if not specified will default to all.
             shape: (Optional) Path to a shape file.
@@ -227,24 +227,24 @@ class CaravanForcing(DefaultForcing):
             ds_basin_time.coords.update({prop: ds_basin_time[prop].to_numpy()})
 
         if data_source == 'era5_land':
-            for key,var in set(RENAME_ERA5.values()).intersection(ds_basin_time.data_vars.keys()):
+            for _, var in set(RENAME_ERA5.values()).intersection(ds_basin_time.data_vars.keys()):
                 ds_basin_time = ds_basin_time.drop_vars(var)
     
             ds_basin_time = ds_basin_time.rename(RENAME_ERA5)
 
         variables = tuple([RENAME_ERA5[var] for var in variable_names])
 
+        # convert units to Kelvin for compatibility with CMOR MIP table units
         for temp in ["tas", "tasmin", "tasmax"]:
             ds_basin_time[temp].attrs.update({"height": "2m"})
-            #convert units to Kelvin for compatiabillity with NetCDF-CF conventions
             if (ds_basin_time[temp].attrs["unit"]) == "°C":
                 ds_basin_time[temp].values = ds_basin_time[temp].values + 273.15
-                ds_basin_time[temp].attrs["unit"] = "°K"
-        
+                ds_basin_time[temp].attrs["unit"] = "K"
+
         for var in ["evspsblpot", "pr"]:
-            #convert units to kg m-2 s-1 for compatiabillity with NetCDF-CF conventions
             if (ds_basin_time[var].attrs["unit"]) == "mm":
-                ds_basin_time[var].values = ds_basin_time[var].values / (86400) #NOTE THAT THIS CONVERSION ASSUMES DAILY DATA
+                # mm/day --> kg m-2 s-1
+                ds_basin_time[var].values = ds_basin_time[var].values / (86400)
                 ds_basin_time[var].attrs["unit"] = "kg m-2 s-1"
 
         start_time_name = start_time[:10]
