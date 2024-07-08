@@ -196,18 +196,29 @@ class CaravanForcing(DefaultForcing):
         
         if "data_source" not in kwargs:
             data_source = 'era5_land'
-        elif kwargs["data_source"] in ['era5_land', 'nldas', 'maurer', 'daymet']:
+        elif kwargs["data_source"] in ['era5_land', 'nldas', 'maurer', 'daymet']:         
             data_source = str(kwargs["data_source"])
         else: 
             msg = (
-                "If 'data_source' is provided it needs to be one of: 'era5_land', 'nldas', 'maurer', 'daymet'"
+                "If 'data_source' is provided it needs to be one of: 'era5_land', "
+                "'nldas', 'maurer', 'daymet'"
             )
             raise ValueError(msg)
-
+    
         dataset: str = basin_id.split("_")[0]
         ds = cls.get_dataset(dataset)
-        ds_data_source = ds.sel(data_source = data_source.encode())
-        ds_basin = ds_data_source.sel(basin_id=basin_id.encode())
+    
+        if dataset != "camels":
+            if data_source != "era5_land":
+                msg = (
+                    "Alternative data sources are only implemented for the camels "
+                    "(USA) dataset"
+                )
+                raise ValueError(msg)
+        else:
+            ds = ds.sel(data_source=data_source.encode())
+
+        ds_basin = ds.sel(basin_id=basin_id.encode())
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
         if shape is None:
@@ -227,9 +238,11 @@ class CaravanForcing(DefaultForcing):
             ds_basin_time.coords.update({prop: ds_basin_time[prop].to_numpy()})
 
         if data_source == 'era5_land':
-            for _, var in set(RENAME_ERA5.values()).intersection(ds_basin_time.data_vars.keys()):
-                ds_basin_time = ds_basin_time.drop_vars(var)
-    
+            duplicate_vars = set(RENAME_ERA5.values()).intersection(
+                ds_basin_time.data_vars
+            )
+
+            ds_basin_time = ds_basin_time.drop_vars(duplicate_vars)
             ds_basin_time = ds_basin_time.rename(RENAME_ERA5)
 
         variables = tuple([RENAME_ERA5[var] for var in variable_names])
