@@ -250,7 +250,8 @@ Everthing listed at [2.0.0](2.0.0), but without the adding models part.
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.1.1...HEAD
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.2.0...HEAD
+[2.2.9]: https://github.com/eWaterCycle/ewatercycle/compare/2.1.1...2.2.9
 [2.1.1]: https://github.com/eWaterCycle/ewatercycle/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/eWaterCycle/ewatercycle/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/eWaterCycle/ewatercycle/compare/2.0.0b2...2.0.0
