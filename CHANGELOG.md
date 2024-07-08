@@ -6,6 +6,8 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+### [2.2.0] (2024-07-08)
+
 ### Added
 - `ewatercycle.esmvaltool.search.search_esgf` can now be used to find climate model ensembles on ESGF that have the required input variables for generating forcing data ([#422](https://github.com/eWaterCycle/ewatercycle/pull/422)).
 - `ewatercycle.observation.caravan.get_caravan_data()` ([#432](https://github.com/eWaterCycle/ewatercycle/issues/432))
@@ -13,7 +15,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 ### Fixed
 
 - `get_usgs_data()` throws error ([#414](https://github.com/eWaterCycle/ewatercycle/issues/414))
-- `get_usgs_data()` and 1get_grdc_data()` both return xarray.Dataset ([#253](https://github.com/eWaterCycle/ewatercycle/issues/253))
+- `get_usgs_data()` and `get_grdc_data()` both return xarray.Dataset ([#253](https://github.com/eWaterCycle/ewatercycle/issues/253))
 
 ### Removed
 
