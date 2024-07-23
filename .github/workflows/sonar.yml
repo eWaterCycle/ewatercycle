@@ -16,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: environment.yml
+          environment-file: conda-lock.yml
           cache-environment: true
           init-shell: bash
       - name: Install dependencies
