@@ -25,6 +25,9 @@ jobs:
           pip3 install -e .[dev]
       - name: Run pre commit hooks like linters and black formatter
         uses: pre-commit/action@v2.0.3
+      - name: Check typings with mypy
+        run: mypy
+        shell: bash -l {0}
       - name: Tests with coverage
         run: |
           pytest --cov --cov-report term --cov-report xml \

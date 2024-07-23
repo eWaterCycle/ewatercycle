@@ -192,7 +192,7 @@ class CaravanForcing(DefaultForcing):
             shape = get_shapefiles(Path(directory), basin_id)
 
         if len(variables) == 0:
-            variables = ds_basin_time.data_vars.keys()
+            variables = ds_basin_time.data_vars.keys()  # type: ignore[assignment]
 
         # only return the properties which are also in property vars
         properties = set(variables).intersection(PROPERTY_VARS)

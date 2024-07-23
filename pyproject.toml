@@ -1,9 +1,95 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ewatercycle"
+version = "2.2.0"
+description = "A Python package for running and validating a hydrology model"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [
+    { name = "Stefan Verhoeven", email = "s.verhoeven@esciencecenter.nl" },
 ]
-build-backend = "setuptools.build_meta"
+keywords = [
+    "BMI",
+    "FAIR",
+    "Geoscience",
+    "ewatercycle",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Topic :: Scientific/Engineering :: Hydrology",
+    "Typing :: Typed",
+]
+dependencies = [
+    "bmipy",
+    "cftime>=1.6.2",
+    "dask",
+    "esmvaltool>=2.4.0",
+    "Fiona",
+    "gitdir",
+    "grpc4bmi>=0.4.0",
+    "grpcio",
+    "hydrostats",
+    "matplotlib>=3.5.0",
+    "numpy",
+    "pandas",
+    "pydantic>=2",
+    "pyoos",
+    "python-dateutil",
+    "ruamel.yaml",
+    "scipy",
+    "Shapely",
+    "xarray",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black[jupyter]",
+    "build",
+    "bump2version",
+    "deepdiff",
+    "ipython",
+    "isort",
+    "mypy",
+    "nbsphinx",
+    "pre-commit>=2.15.0",
+    "pycodestyle",
+    "pytest",
+    "pytest-cov",
+    "pytest-runner",
+    "recommonmark",
+    "rich",
+    "sphinx",
+    "sphinx-autoapi",
+    "sphinx-copybutton",
+    "sphinx-rtd-theme",
+    "twine",
+    "types-python-dateutil",
+    "types-PyYAML",
+    "types-requests",
+]
+
+[project.urls]
+"Bug Tracker" = "https://github.com/eWaterCycle/ewatercycle/issues"
+Documentation = "https://ewatercycle.readthedocs.io/"
+Homepage = "https://www.ewatercycle.org/"
+"Source Code" = "https://github.com/eWaterCycle/ewatercycle"
+
+[tool.hatch.build]
+exclude = [
+  "tests", "docs"
+]
 
 [tool.isort]
 profile = "black"
@@ -17,3 +103,20 @@ max-line-length = "88"
 
 [tool.pydocstyle]
 convention = "google"
+
+[tool.coverage.run]
+branch = true
+parallel = true
+
+[tool.coverage.paths]
+source = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+warn_unused_ignores = true
+check_untyped_defs = true
+files = ["src"]
