@@ -105,9 +105,11 @@ max-line-length = "88"
 convention = "google"
 
 [tool.coverage.run]
-source= "src"
 branch = true
 parallel = true
+
+[tool.coverage.paths]
+source = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
