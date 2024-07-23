@@ -380,13 +380,13 @@ class BmiProxy(Bmi):
     def get_input_item_count(self) -> int:
         return self.origin.get_input_item_count()
 
-    def get_input_var_names(self) -> Tuple[str, ...]:
+    def get_input_var_names(self) -> Tuple[str, ...]:  # type: ignore[override]
         return self.origin.get_input_var_names()
 
     def get_output_item_count(self) -> int:
         return self.origin.get_output_item_count()
 
-    def get_output_var_names(self) -> Tuple[str, ...]:
+    def get_output_var_names(self) -> Tuple[str, ...]:  # type: ignore[override]
         return self.origin.get_output_var_names()
 
     def get_start_time(self) -> float:

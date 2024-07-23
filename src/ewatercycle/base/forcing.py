@@ -453,7 +453,7 @@ class _GenericForcing(DefaultForcing):
         )
 
 
-class GenericDistributedForcing(_GenericForcing, DistributedUserForcing):  # type: ignore[misc]
+class GenericDistributedForcing(_GenericForcing, DistributedUserForcing):
     """Generic forcing data for a distributed model.
 
     Examples:
@@ -536,7 +536,7 @@ class GenericDistributedForcing(_GenericForcing, DistributedUserForcing):  # typ
     ...
 
 
-class GenericLumpedForcing(_GenericForcing, LumpedUserForcing):  # type: ignore[misc]
+class GenericLumpedForcing(_GenericForcing, LumpedUserForcing):
     """Generic forcing data for a lumped model.
 
     Example:
