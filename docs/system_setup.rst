@@ -36,7 +36,7 @@ installer <https://docs.conda.io/en/latest/miniconda.html>`__.
 
 After conda is installed you can install the software dependencies with
 a `conda environment
-file <https://github.com/eWaterCycle/ewatercycle/blob/main//conda-lock.yml>`__.
+file <https://github.com/eWaterCycle/ewatercycle/blob/main/conda-lock.yml>`__.
 
 .. code:: shell
 
