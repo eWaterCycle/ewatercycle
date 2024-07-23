@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ewatercycle"
-dynamic = ["version"]
+version = "2.2.0"
 description = "A Python package for running and validating a hydrology model"
 readme = "README.md"
 license = "Apache-2.0"
@@ -86,19 +86,6 @@ Documentation = "https://ewatercycle.readthedocs.io/"
 Homepage = "https://www.ewatercycle.org/"
 "Source Code" = "https://github.com/eWaterCycle/ewatercycle"
 
-[tool.hatch.version]
-path = "ewatercycle/__init__.py"
-
-[tool.hatch.build.targets.wheel]
-packages = [
-    " src/ewatercycle",
-]
-
-[tool.hatch.build.targets.sdist]
-include = [
-    "/ src",
-]
-
 [tool.isort]
 profile = "black"
 multi_line_output = 3
@@ -111,3 +98,16 @@ max-line-length = "88"
 
 [tool.pydocstyle]
 convention = "google"
+
+[tool.coverage.run]
+source= "src"
+branch = true
+parallel = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+files = ["src", "tests"]
