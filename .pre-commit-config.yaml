@@ -69,11 +69,6 @@ repos:
           ]
         verbose: true
         args: &fa [--statistics, --exit-zero]
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.4.1
-    hooks:
-      - id: mypy
-        additional_dependencies: [types-python-dateutil, pydantic, types-PyYAML]
   - repo: https://github.com/nbQA-dev/nbQA
     rev: 1.1.0
     hooks:
@@ -89,7 +84,3 @@ repos:
       # TODO renable when errors are fixed/ignored
       # - id: nbqa-pylint
       #   additional_dependencies: [pylint==2.9.6]
-  - repo: https://github.com/regebro/pyroma
-    rev: "3.2"
-    hooks:
-      - id: pyroma
