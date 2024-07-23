@@ -79,6 +79,7 @@ your pull request.
 This section is for maintainers of the package.
 
 1. Checkout ``HEAD`` of ``main`` branch with ``git checkout main`` and ``git pull``.
+1. Create a new lock files with ``conda-lock -f pyproject.toml``.
 2. Determine what new version (major, minor or patch) to use. Package uses `semantic versioning <https://semver.org>`_.
 3. Run ``bump2version <major|minor|patch>`` to update version in package files.
 4. Update CHANGELOG.md with changes between current and new version. (Don't forget to also update the links at the bottom of the file)

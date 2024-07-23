@@ -5,6 +5,53 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "ewatercycle"
+version = '2.2.0'
+dependencies= [
+    'Fiona',
+    'Shapely',
+    'bmipy',
+    'cftime>=1.6.2',
+    'gitdir',
+    'grpc4bmi>=0.4.0',
+    'grpcio',
+    'hydrostats',
+    'matplotlib>=3.5.0',
+    'numpy',
+    'pandas',
+    'pydantic>=2',
+    'pyoos',
+    'python-dateutil',
+    'ruamel.yaml',
+    'scipy',
+    'xarray',
+    'dask'
+]
+
+[tool.conda-lock]
+#default-non-conda-source = "pip"
+channels = [
+    'conda-forge'
+]
+platforms = [
+    'linux-64',
+    'osx-arm64'
+    # nothing provides cdo >=1.9.7 needed by esmvaltool-python-2.3.0-pyhd8ed1ab_0
+    # 'win-64',
+    # nothing provides cdo >=1.9.7 needed by esmvaltool-python-2.3.0-pyhd8ed1ab_0
+    # 'linux-aarch64',  # aka arm64, use for Docker on Apple Silicon
+]
+
+[tool.conda-lock.dependencies]
+python = ">=3.11"
+esmvaltool-python = ">=2.11"
+# Following dependencies are not available on conda-forge
+gitdir = {source = 'pypi'}
+grpc4bmi = {source = 'pypi'}
+# Install self
+#ewatercycle = {source = 'pypi'}
+
 [tool.isort]
 profile = "black"
 multi_line_output = 3
