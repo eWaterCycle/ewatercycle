@@ -66,11 +66,11 @@ class Makkink(DefaultForcing):
         )
 
 
-class LumpedMakkinkForcing(Makkink, LumpedUserForcing):  # type: ignore[misc]
+class LumpedMakkinkForcing(Makkink, LumpedUserForcing):
     ...
 
 
-class DistributedMakkinkForcing(Makkink, DistributedUserForcing):  # type: ignore[misc]
+class DistributedMakkinkForcing(Makkink, DistributedUserForcing):
     ...
 
 

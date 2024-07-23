@@ -139,7 +139,7 @@ class eWaterCycleModel(BaseModel, abc.ABC):
         myparameters = dict(list(self.parameters))
         myparameters.update(**kwargs)
         with cfg_file.open(mode="w") as file:
-            yaml.dump({k: v for k, v in myparameters}, file)
+            yaml.dump({k: v for k, v in myparameters.items()}, file)
 
         return cfg_file
 

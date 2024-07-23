@@ -2,7 +2,7 @@
 
 import logging
 import os
-from typing import Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import pandas as pd
 import xarray as xr
@@ -270,7 +270,7 @@ def _grdc_metadata_reader(grdc_station_path, all_lines):
     # https://github.com/edwinkost/discharge_analysis_IWMI
 
     # initiating a dictionary that will contain all GRDC attributes:
-    attribute_grdc = {}
+    attribute_grdc: dict[str, Any] = {}
 
     # split the content of the file into several lines
     all_lines = all_lines.replace("\r", "")

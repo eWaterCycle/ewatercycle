@@ -87,6 +87,11 @@ Documentation = "https://ewatercycle.readthedocs.io/"
 Homepage = "https://www.ewatercycle.org/"
 "Source Code" = "https://github.com/eWaterCycle/ewatercycle"
 
+[tool.hatch.build]
+exclude = [
+  "tests", "docs"
+]
+
 [tool.conda-lock]
 #default-non-conda-source = "pip"
 channels = [
@@ -132,4 +137,6 @@ testpaths = ["tests"]
 [tool.mypy]
 plugins = ["pydantic.mypy"]
 ignore_missing_imports = true
-files = ["src", "tests"]
+warn_unused_ignores = true
+check_untyped_defs = true
+files = ["src"]

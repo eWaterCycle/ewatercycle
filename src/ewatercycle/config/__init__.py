@@ -268,7 +268,7 @@ class Configuration(BaseModel):
         yaml_object = yaml.load(json_string)
         yaml.dump(yaml_object, stream)
 
-    def save_to_file(self, config_file: os.PathLike[str] | str | None = None) -> None:
+    def save_to_file(self, config_file: os.PathLike[str] | str | None = None) -> str:
         """Write conf object to a file.
 
         Args:
@@ -276,6 +276,9 @@ class Configuration(BaseModel):
                 If not given then will try to use `self.ewatercycle_config`
                 location and if `self.ewatercycle_config` is not set then will use
                 the location in users home directory.
+
+        Returns:
+            Path to the file where the configuration was saved to.
         """
         # Exclude own path from dump
         old_config_file = self.ewatercycle_config
@@ -289,6 +292,7 @@ class Configuration(BaseModel):
             self._save_to_stream(f)
 
         logger.info(f"Config written to {config_file}")
+        return str(config_file)
 
     def overwrite(self, other: "Configuration"):
         """Overwrite own fields by the ones of the other configuration object.
