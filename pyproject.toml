@@ -35,7 +35,8 @@ dependencies = [
     "bmipy",
     "cftime>=1.6.2",
     "dask",
-    "esmvaltool>=2.4.0",
+    # esmvaltool is not here as it is installed with conda-lock
+    # otherwise installation fails on esmpy
     "Fiona",
     "gitdir",
     "grpc4bmi>=0.4.0",
@@ -86,30 +87,6 @@ Documentation = "https://ewatercycle.readthedocs.io/"
 Homepage = "https://www.ewatercycle.org/"
 "Source Code" = "https://github.com/eWaterCycle/ewatercycle"
 
-[project]
-name = "ewatercycle"
-version = '2.2.0'
-dependencies= [
-    'Fiona',
-    'Shapely',
-    'bmipy',
-    'cftime>=1.6.2',
-    'gitdir',
-    'grpc4bmi>=0.4.0',
-    'grpcio',
-    'hydrostats',
-    'matplotlib>=3.5.0',
-    'numpy',
-    'pandas',
-    'pydantic>=2',
-    'pyoos',
-    'python-dateutil',
-    'ruamel.yaml',
-    'scipy',
-    'xarray',
-    'dask'
-]
-
 [tool.conda-lock]
 #default-non-conda-source = "pip"
 channels = [
@@ -130,8 +107,6 @@ esmvaltool-python = ">=2.11"
 # Following dependencies are not available on conda-forge
 gitdir = {source = 'pypi'}
 grpc4bmi = {source = 'pypi'}
-# Install self
-#ewatercycle = {source = 'pypi'}
 
 [tool.isort]
 profile = "black"
