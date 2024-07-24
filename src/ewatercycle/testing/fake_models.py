@@ -1,4 +1,5 @@
 """Fake BMI models."""
+
 from unittest.mock import Mock
 
 import numpy as np

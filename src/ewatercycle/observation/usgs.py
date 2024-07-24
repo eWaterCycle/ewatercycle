@@ -1,4 +1,5 @@
 """Module to retrieve river discharge data from the USGS REST web service."""
+
 import numpy as np
 import pandas as pd
 import xarray as xr

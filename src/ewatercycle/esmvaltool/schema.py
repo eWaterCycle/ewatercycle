@@ -5,6 +5,7 @@ on the ESMValTool recipe schema at
 https://github.com/ESMValGroup/ESMValCore/blob/main/esmvalcore/_recipe/recipe_schema.yml
 .
 """
+
 from io import StringIO
 from pathlib import Path
 from typing import Any, Literal, TypedDict

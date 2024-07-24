@@ -1,4 +1,5 @@
 """__repr__ and friends helper."""
+
 # Code copied from
 # https://github.com/pydantic/pydantic/blob/3b3f400991ea2958c7492e4cdbfeb3d85dd48969/pydantic/_internal/_repr.py
 import typing

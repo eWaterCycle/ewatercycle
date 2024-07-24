@@ -25,6 +25,7 @@ A config file can be generated with:
 See `ESMValTool configuring docs <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/quickstart/configure.html#user-configuration-file>`_
 for more information.
 """
+
 import logging
 import shutil
 import warnings

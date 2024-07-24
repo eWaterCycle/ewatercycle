@@ -1,4 +1,5 @@
 """Forcing module of eWaterCycle. Contains the forcing sources."""
+
 from importlib.metadata import entry_points
 from typing import Any, Type
 

@@ -2,6 +2,7 @@
 
 The recipes can be used to generate forcings.
 """
+
 import logging
 from pathlib import Path
 from typing import Literal, Sequence

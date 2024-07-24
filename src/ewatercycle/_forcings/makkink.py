@@ -66,12 +66,10 @@ class Makkink(DefaultForcing):
         )
 
 
-class LumpedMakkinkForcing(Makkink, LumpedUserForcing):
-    ...
+class LumpedMakkinkForcing(Makkink, LumpedUserForcing): ...
 
 
-class DistributedMakkinkForcing(Makkink, DistributedUserForcing):
-    ...
+class DistributedMakkinkForcing(Makkink, DistributedUserForcing): ...
 
 
 def et_makkink(tas: xr.DataArray, rsds: xr.DataArray) -> xr.DataArray:

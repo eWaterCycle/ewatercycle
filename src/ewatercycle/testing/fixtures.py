@@ -2,6 +2,7 @@
 
 To use fixtures importe them in `conftest.py` file.
 """
+
 from pathlib import Path
 
 import pytest
