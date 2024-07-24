@@ -92,19 +92,27 @@ channels = [
 ]
 platforms = [
     'linux-64',
-    'osx-arm64'
-    # nothing provides cdo >=1.9.7 needed by esmvaltool-python-2.3.0-pyhd8ed1ab_0
+    'osx-64',
+    'osx-arm64',
+    # Unable to support win-64 as not all esmvaltool deps are available for that platform
     # 'win-64',
-    # nothing provides cdo >=1.9.7 needed by esmvaltool-python-2.3.0-pyhd8ed1ab_0
+    # Unable to support linux-aarch64 as not all esmvaltool deps are available for that platform
     # 'linux-aarch64',  # aka arm64, use for Docker on Apple Silicon
 ]
 
 [tool.conda-lock.dependencies]
-python = ">=3.11"
 esmvaltool-python = ">=2.11"
-# Following dependencies are not available on conda-forge, so install from pypi
-gitdir = {source = 'pypi'}
+# grpc4bmi is not available on conda-forge, so we use the pypi version
+# The grpc4bmi dependencies are not locked
+# As workaround grpc4bmi deps are listed here as conda deps
+# TODO publish grpc4bmi on conda-forge
 grpc4bmi = {source = 'pypi'}
+grpcio = '*'
+grpcio-reflection = '*'
+grpcio-status = '*'
+protobuf = '>=4,<5'
+packaging = '*'
+typeguard = '*'
 
 [tool.isort]
 profile = "black"
