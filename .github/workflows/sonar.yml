@@ -27,8 +27,10 @@ jobs:
       # TODO we should run non-ruff hooks from pre-commit here?
       - name: Lint
         run: ruff check --output-format=github .
+        shell: bash -l {0}
       - name: Check format
         run: ruff format --check
+        shell: bash -l {0}
       - name: Check typings with mypy
         run: mypy
         shell: bash -l {0}
