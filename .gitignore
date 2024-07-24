@@ -32,3 +32,4 @@ docs/autoapi
 __pycache__
 
 .ruff-cache
+.venv
