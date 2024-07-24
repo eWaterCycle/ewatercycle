@@ -83,7 +83,7 @@ This section is for maintainers of the package.
 1. Checkout ``HEAD`` of ``main`` branch with ``git checkout main`` and ``git pull``.
 2. If dependencies have changed then create a new [conda lock](https://conda.github.io/conda-lock/) file with ``conda-lock lock -f pyproject.toml``.
 3. Determine what new version (major, minor or patch) to use. Package uses `semantic versioning <https://semver.org>`_.
-4. Run ``bump2version <major|minor|patch>`` to update version in package files.
+4. Set new version in ``pyproject.toml`` file in project section.
 5. Update CHANGELOG.md with changes between current and new version. (Don't forget to also update the links at the bottom of the file)
 6. Make sure pre-commit hooks are green for all files by running ``pre-commit run --all-files``.
 7. Commit & push changes to GitHub.

@@ -1,2 +1,4 @@
 """Version of ewatercycle package."""
-__version__ = "2.2.0"
+from importlib.metadata import version
+
+__version__ = version(__package__)

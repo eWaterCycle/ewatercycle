@@ -15,9 +15,9 @@
 version: 1
 metadata:
   content_hash:
-    linux-64: 015a173d10c297be8c5fd877aa33ab475949bead31bbdb757643e5f458dcac7b
-    osx-64: c6bc4132b9fc4029aedf651efd4005a2f6a4a5a87d6c80abb53dd33e168ede3d
-    osx-arm64: 1ffcb97a9cf31096d7bfa8a260b0424c58b717d54536e4b92ccb2c19b4398130
+    linux-64: 9ab9bc9e0b619f1496e3a95de4284bd3d986a9b0884e878ce1f728673b41ef0c
+    osx-64: c761125668d406f765c031f6d46c11a44b6d3c01efcbd84636c4d0c709707b38
+    osx-arm64: 84de5f7688b27ff66ea425e97ed4c6770d338ca03f14306f78e58e59b0139f76
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -1957,42 +1957,6 @@ package:
     sha256: 816f929193a614b9a663e76e4267994ad99d04812b8a8e513e957d750deb4b04
   category: main
   optional: false
-- name: bump2version
-  version: 1.0.1
-  manager: conda
-  platform: linux-64
-  dependencies:
-    python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/bump2version-1.0.1-pyh9f0ad1d_0.tar.bz2
-  hash:
-    md5: 1b3fd56f54baa99e3c9967caf279f66f
-    sha256: c3cf2e47b0aee001025ad29061222b552a60362ec9febd355c5eb4d3a06beef8
-  category: dev
-  optional: true
-- name: bump2version
-  version: 1.0.1
-  manager: conda
-  platform: osx-64
-  dependencies:
-    python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/bump2version-1.0.1-pyh9f0ad1d_0.tar.bz2
-  hash:
-    md5: 1b3fd56f54baa99e3c9967caf279f66f
-    sha256: c3cf2e47b0aee001025ad29061222b552a60362ec9febd355c5eb4d3a06beef8
-  category: dev
-  optional: true
-- name: bump2version
-  version: 1.0.1
-  manager: conda
-  platform: osx-arm64
-  dependencies:
-    python: ''
-  url: https://conda.anaconda.org/conda-forge/noarch/bump2version-1.0.1-pyh9f0ad1d_0.tar.bz2
-  hash:
-    md5: 1b3fd56f54baa99e3c9967caf279f66f
-    sha256: c3cf2e47b0aee001025ad29061222b552a60362ec9febd355c5eb4d3a06beef8
-  category: dev
-  optional: true
 - name: bzip2
   version: 1.0.8
   manager: conda
@@ -3921,48 +3885,6 @@ package:
   hash:
     md5: 43afe5ab04e35e17ba28649471dd7364
     sha256: 328a6a379f9bdfd0230e51de291ce858e6479411ea4b0545fb377c71662ef3e2
-  category: dev
-  optional: true
-- name: deepdiff
-  version: 7.0.1
-  manager: conda
-  platform: linux-64
-  dependencies:
-    ordered-set: '>=4.1.0,<4.2.0'
-    orjson: ''
-    python: '>=3.8'
-  url: https://conda.anaconda.org/conda-forge/noarch/deepdiff-7.0.1-pyhd8ed1ab_0.conda
-  hash:
-    md5: 3135304fe21f0244ed79f4094387f80d
-    sha256: 90b377f43227dae2024b6c4481f18254cd06241d929bec278a55af3d91978cc4
-  category: dev
-  optional: true
-- name: deepdiff
-  version: 7.0.1
-  manager: conda
-  platform: osx-64
-  dependencies:
-    orjson: ''
-    python: '>=3.8'
-    ordered-set: '>=4.1.0,<4.2.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/deepdiff-7.0.1-pyhd8ed1ab_0.conda
-  hash:
-    md5: 3135304fe21f0244ed79f4094387f80d
-    sha256: 90b377f43227dae2024b6c4481f18254cd06241d929bec278a55af3d91978cc4
-  category: dev
-  optional: true
-- name: deepdiff
-  version: 7.0.1
-  manager: conda
-  platform: osx-arm64
-  dependencies:
-    orjson: ''
-    python: '>=3.8'
-    ordered-set: '>=4.1.0,<4.2.0'
-  url: https://conda.anaconda.org/conda-forge/noarch/deepdiff-7.0.1-pyhd8ed1ab_0.conda
-  hash:
-    md5: 3135304fe21f0244ed79f4094387f80d
-    sha256: 90b377f43227dae2024b6c4481f18254cd06241d929bec278a55af3d91978cc4
   category: dev
   optional: true
 - name: defusedxml
@@ -14703,85 +14625,6 @@ package:
     sha256: 567a9677258cdd03484e3045255bf10a9d8f1031c5030ef83f1fdc1a1ad6f401
   category: main
   optional: false
-- name: ordered-set
-  version: 4.1.0
-  manager: conda
-  platform: linux-64
-  dependencies:
-    python: '>=3.7'
-  url: https://conda.anaconda.org/conda-forge/noarch/ordered-set-4.1.0-pyhd8ed1ab_0.tar.bz2
-  hash:
-    md5: 9a8714decb3967b290263817e876d8a9
-    sha256: 78d92f848a6b4a89148dfa1f6e65c0b75e8f3a267b6401be38fb3401853b4afa
-  category: dev
-  optional: true
-- name: ordered-set
-  version: 4.1.0
-  manager: conda
-  platform: osx-64
-  dependencies:
-    python: '>=3.7'
-  url: https://conda.anaconda.org/conda-forge/noarch/ordered-set-4.1.0-pyhd8ed1ab_0.tar.bz2
-  hash:
-    md5: 9a8714decb3967b290263817e876d8a9
-    sha256: 78d92f848a6b4a89148dfa1f6e65c0b75e8f3a267b6401be38fb3401853b4afa
-  category: dev
-  optional: true
-- name: ordered-set
-  version: 4.1.0
-  manager: conda
-  platform: osx-arm64
-  dependencies:
-    python: '>=3.7'
-  url: https://conda.anaconda.org/conda-forge/noarch/ordered-set-4.1.0-pyhd8ed1ab_0.tar.bz2
-  hash:
-    md5: 9a8714decb3967b290263817e876d8a9
-    sha256: 78d92f848a6b4a89148dfa1f6e65c0b75e8f3a267b6401be38fb3401853b4afa
-  category: dev
-  optional: true
-- name: orjson
-  version: 3.10.6
-  manager: conda
-  platform: linux-64
-  dependencies:
-    __glibc: '>=2.17,<3.0.a0'
-    libgcc-ng: '>=12'
-    python: '>=3.12,<3.13.0a0'
-    python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/orjson-3.10.6-py312hf008fa9_0.conda
-  hash:
-    md5: 31f78eb9758c9f704bab1cb12ca00b48
-    sha256: b75eeeec4078a9982cbcfb3bffc926786e48d94b992bafab51faa3a9a87f675b
-  category: dev
-  optional: true
-- name: orjson
-  version: 3.10.6
-  manager: conda
-  platform: osx-64
-  dependencies:
-    __osx: '>=10.13'
-    python: '>=3.12,<3.13.0a0'
-    python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/orjson-3.10.6-py312ha47ea1c_0.conda
-  hash:
-    md5: 3a2e6c380d2c0384fec0787c3d798c1b
-    sha256: 475de3998436f77aacc6637b385ade6e66bdff3e4acd5c42a4cb5c2990988ba3
-  category: dev
-  optional: true
-- name: orjson
-  version: 3.10.6
-  manager: conda
-  platform: osx-arm64
-  dependencies:
-    __osx: '>=11.0'
-    python: '>=3.12,<3.13.0a0'
-    python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/orjson-3.10.6-py312h552d48e_0.conda
-  hash:
-    md5: 21760e944229763111736e60171cea00
-    sha256: 5376ecebfa5c3a0a7a616bb750cab77b2adf43057385b06b530b495fa90a3c47
-  category: dev
-  optional: true
 - name: owslib
   version: 0.31.0
   manager: conda
@@ -20687,8 +20530,8 @@ package:
   hash:
     md5: 5844808ffab9ebdb694585b50ba02a96
     sha256: 4cd48aba7cd026d17e86886af48d0d2ebc67ed36f87f6534f4b67138f5a5a58f
-  category: main
-  optional: false
+  category: dev
+  optional: true
 - name: tomli
   version: 2.0.1
   manager: conda
@@ -20699,8 +20542,8 @@ package:
   hash:
     md5: 5844808ffab9ebdb694585b50ba02a96
     sha256: 4cd48aba7cd026d17e86886af48d0d2ebc67ed36f87f6534f4b67138f5a5a58f
-  category: main
-  optional: false
+  category: dev
+  optional: true
 - name: tomli
   version: 2.0.1
   manager: conda
@@ -20711,8 +20554,8 @@ package:
   hash:
     md5: 5844808ffab9ebdb694585b50ba02a96
     sha256: 4cd48aba7cd026d17e86886af48d0d2ebc67ed36f87f6534f4b67138f5a5a58f
-  category: main
-  optional: false
+  category: dev
+  optional: true
 - name: toolz
   version: 0.12.1
   manager: conda
