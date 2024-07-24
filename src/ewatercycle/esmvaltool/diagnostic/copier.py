@@ -4,7 +4,6 @@ import logging
 import shutil
 from pathlib import Path
 
-
 try:
     from esmvaltool.diag_scripts.shared import (
         ProvenanceLogger,
@@ -12,9 +11,9 @@ try:
         run_diagnostic,
     )
 except ImportError as e:
-    from ewatercycle.esmvaltool.missing import no_esmvaltool_found
+    from ewatercycle.esmvaltool.missing import ESMValToolNotFoundError
 
-    no_esmvaltool_found(e)
+    raise ESMValToolNotFoundError() from e
 
 logger = logging.getLogger(Path(__file__).name)
 

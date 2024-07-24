@@ -7,9 +7,9 @@ try:
     from esmvalcore.config import CFG
     from esmvalcore.dataset import Dataset
 except ImportError as e:
-    from ewatercycle.esmvaltool.missing import no_esmvaltool_found
+    from ewatercycle.esmvaltool.missing import ESMValToolNotFoundError
 
-    no_esmvaltool_found(e)
+    raise ESMValToolNotFoundError() from e
 
 
 def search_esgf(

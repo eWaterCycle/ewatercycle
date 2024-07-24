@@ -10,9 +10,9 @@ try:
     from esmvalcore.experimental.recipe import Recipe as ESMValToolRecipe
     from esmvalcore.experimental.recipe_output import DataFile, ImageFile, RecipeOutput
 except ImportError as e:
-    from ewatercycle.esmvaltool.missing import no_esmvaltool_found
+    from ewatercycle.esmvaltool.missing import ESMValToolNotFoundError
 
-    no_esmvaltool_found(e)
+    raise ESMValToolNotFoundError() from e
 
 
 from ewatercycle.esmvaltool.schema import Recipe
