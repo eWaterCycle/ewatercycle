@@ -75,7 +75,6 @@ dev = [
     "sphinx-autoapi",
     "sphinx-copybutton",
     "sphinx-rtd-theme",
-    "twine",
     "types-python-dateutil",
     "types-PyYAML",
     "types-requests",
