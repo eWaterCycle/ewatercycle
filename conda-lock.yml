@@ -15,9 +15,9 @@
 version: 1
 metadata:
   content_hash:
-    linux-64: bc831c15a723d6eb6c46fce70c165b294da62d5d30a432072ee11b923fb3803e
-    osx-arm64: a3e03e8949c4309b11fce4969f218d2cc56f56a88f962fee05239fee55222b50
-    osx-64: 262825aba13d2e37ece9b7cf672077c503e2f00730966cf4331e2e36f07fa4b7
+    linux-64: 73cbfc037223b5f67e6367f5dccdacc9281d2045ff388756109a03812763c055
+    osx-arm64: 6baa76092b22dd00d6db68908ef2c51f318ef94083ea6cf6522f40124b7a4d39
+    osx-64: 20b1c6153910bf54c7ca8659c095464db45ad00b455aefd1e099b3d7a09e5eb2
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -20430,45 +20430,45 @@ package:
   category: main
   optional: false
 - name: tifffile
-  version: 2024.7.21
+  version: 2024.7.24
   manager: conda
   platform: linux-64
   dependencies:
     imagecodecs: '>=2023.8.12'
     numpy: '>=1.19.2'
     python: '>=3.10'
-  url: https://conda.anaconda.org/conda-forge/noarch/tifffile-2024.7.21-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/tifffile-2024.7.24-pyhd8ed1ab_0.conda
   hash:
-    md5: 8788450bcfa8f24f7d2e231351a58938
-    sha256: 54fb685663e052221c38e68d49784f6ea27467ac3a3b41edf37309044b24aea9
+    md5: 5e59c23bd7626e83acf61657cf0512e9
+    sha256: e31137890b9677a0c7f6f8961970a4c052d2bb0f75de80d5a89c95d89e82ad68
   category: main
   optional: false
 - name: tifffile
-  version: 2024.7.21
+  version: 2024.7.24
   manager: conda
   platform: osx-64
   dependencies:
     python: '>=3.10'
     numpy: '>=1.19.2'
     imagecodecs: '>=2023.8.12'
-  url: https://conda.anaconda.org/conda-forge/noarch/tifffile-2024.7.21-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/tifffile-2024.7.24-pyhd8ed1ab_0.conda
   hash:
-    md5: 8788450bcfa8f24f7d2e231351a58938
-    sha256: 54fb685663e052221c38e68d49784f6ea27467ac3a3b41edf37309044b24aea9
+    md5: 5e59c23bd7626e83acf61657cf0512e9
+    sha256: e31137890b9677a0c7f6f8961970a4c052d2bb0f75de80d5a89c95d89e82ad68
   category: main
   optional: false
 - name: tifffile
-  version: 2024.7.21
+  version: 2024.7.24
   manager: conda
   platform: osx-arm64
   dependencies:
     python: '>=3.10'
     numpy: '>=1.19.2'
     imagecodecs: '>=2023.8.12'
-  url: https://conda.anaconda.org/conda-forge/noarch/tifffile-2024.7.21-pyhd8ed1ab_0.conda
+  url: https://conda.anaconda.org/conda-forge/noarch/tifffile-2024.7.24-pyhd8ed1ab_0.conda
   hash:
-    md5: 8788450bcfa8f24f7d2e231351a58938
-    sha256: 54fb685663e052221c38e68d49784f6ea27467ac3a3b41edf37309044b24aea9
+    md5: 5e59c23bd7626e83acf61657cf0512e9
+    sha256: e31137890b9677a0c7f6f8961970a4c052d2bb0f75de80d5a89c95d89e82ad68
   category: main
   optional: false
 - name: tiledb

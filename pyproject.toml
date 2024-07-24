@@ -48,6 +48,7 @@ dependencies = [
     "ruamel.yaml",
     "Shapely",
     "xarray",
+    "fsspec",
 ]
 
 [project.optional-dependencies]
