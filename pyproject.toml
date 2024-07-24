@@ -34,13 +34,10 @@ classifiers = [
 dependencies = [
     "bmipy",
     "cftime>=1.6.2",
-    "dask",
-    # esmvaltool is not here as it is installed with conda-lock
-    # otherwise installation fails on esmpy
+    # esmvalcore is not here as it is installed with conda-lock
+    # otherwise pip installation fails on esmpy
     "Fiona",
-    "gitdir",
     "grpc4bmi>=0.4.0",
-    "grpcio",
     "hydrostats",
     "matplotlib>=3.5.0",
     "numpy",
@@ -49,7 +46,6 @@ dependencies = [
     "pyoos",
     "python-dateutil",
     "ruamel.yaml",
-    "scipy",
     "Shapely",
     "xarray",
 ]
@@ -57,7 +53,6 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "black[jupyter]",
-    "build",
     "bump2version",
     "deepdiff",
     "ipython",
