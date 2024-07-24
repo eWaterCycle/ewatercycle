@@ -49,6 +49,7 @@ dependencies = [
     "Shapely",
     "xarray",
     "fsspec",
+    'cartopy',
 ]
 
 [project.optional-dependencies]
