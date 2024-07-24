@@ -15,9 +15,9 @@
 version: 1
 metadata:
   content_hash:
-    linux-64: ec938b23035fceadd6b8ca4c2e12e6a85310a2abc94385c7126a168fda7746cd
-    osx-64: fe5535b0f2cf9ff7059f174a9144131202ec34247cb67d0ca070ca1e7e5cf04b
-    osx-arm64: e42c615d24b0fd28724f67a1ee5e2c8e52d12d6129f70de6e0b565a99493faa3
+    linux-64: 3da69d9a146ef80958229a771078729062b39e89ffea0ca569868fe07d1b6749
+    osx-64: d4109f5ba3aa1b232f9f49ce106683a954d341df07f3320c8e249dc1e1b26dd1
+    osx-arm64: c8e3723b0d83d1d0ca3774d25fbe90819800576c955a9dcb510f80dccaa79429
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -9253,7 +9253,7 @@ package:
   category: main
   optional: false
 - name: libcurl
-  version: 8.8.0
+  version: 8.9.0
   manager: conda
   platform: linux-64
   dependencies:
@@ -9261,47 +9261,47 @@ package:
     libgcc-ng: '>=12'
     libnghttp2: '>=1.58.0,<2.0a0'
     libssh2: '>=1.11.0,<2.0a0'
-    libzlib: '>=1.2.13,<2.0a0'
+    libzlib: '>=1.3.1,<2.0a0'
     openssl: '>=3.3.1,<4.0a0'
     zstd: '>=1.5.6,<1.6.0a0'
-  url: https://conda.anaconda.org/conda-forge/linux-64/libcurl-8.8.0-hca28451_1.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/libcurl-8.9.0-hdb1bdb2_0.conda
   hash:
-    md5: b8afb3e3cb3423cc445cf611ab95fdb0
-    sha256: 6b5b64cdcdb643368ebe236de07eedee99b025bb95129bbe317c46e5bdc693f3
+    md5: 5badfbdb2688d8aaca7bd3c98d557b97
+    sha256: ff97a3160117385649e1b7e8b84fefb3561fceae09bb48d2bfdf37bc2b6bfdc9
   category: main
   optional: false
 - name: libcurl
-  version: 8.8.0
+  version: 8.9.0
   manager: conda
   platform: osx-64
   dependencies:
     krb5: '>=1.21.3,<1.22.0a0'
     libnghttp2: '>=1.58.0,<2.0a0'
     libssh2: '>=1.11.0,<2.0a0'
-    libzlib: '>=1.2.13,<2.0a0'
+    libzlib: '>=1.3.1,<2.0a0'
     openssl: '>=3.3.1,<4.0a0'
     zstd: '>=1.5.6,<1.6.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-64/libcurl-8.8.0-hf9fcc65_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/libcurl-8.9.0-hfcf2730_0.conda
   hash:
-    md5: 11711bab5306a6534797a68b3c4c2bed
-    sha256: 25e2b044e6978f1714a4b2844f34a45fc8a0c60185db8d332906989d70b65927
+    md5: 861e66c46985b6eadd97c73ac77d1a07
+    sha256: 1e2c6482eb7753589d66dfe9997e1916611bcce387dfde55cd7d9f595fe84b72
   category: main
   optional: false
 - name: libcurl
-  version: 8.8.0
+  version: 8.9.0
   manager: conda
   platform: osx-arm64
   dependencies:
     krb5: '>=1.21.3,<1.22.0a0'
     libnghttp2: '>=1.58.0,<2.0a0'
     libssh2: '>=1.11.0,<2.0a0'
-    libzlib: '>=1.2.13,<2.0a0'
+    libzlib: '>=1.3.1,<2.0a0'
     openssl: '>=3.3.1,<4.0a0'
     zstd: '>=1.5.6,<1.6.0a0'
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/libcurl-8.8.0-h7b6f9a7_1.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/libcurl-8.9.0-hfd8ffcc_0.conda
   hash:
-    md5: e9580b0bb247a2ccf937b16161478f19
-    sha256: 9da82a9bd72e9872941da32be54543076c92dbeb2aba688a1c24adbc1c699e64
+    md5: 32cee38aa05c3812c8e9d61a2077409b
+    sha256: ba011ec32dec44a19f810a7df05f333f6f6619a93a5a213575493f03abc8e851
   category: main
   optional: false
 - name: libcxx
@@ -18771,8 +18771,8 @@ package:
   hash:
     md5: eae80145f63aa04a02dda456d4883b46
     sha256: 6bd24bc823863bb568ffe0ebdfb506d4413d94d15b478b12a0b223d9373f531e
-  category: main
-  optional: false
+  category: dev
+  optional: true
 - name: scipy
   version: 1.14.0
   manager: conda
@@ -18792,8 +18792,8 @@ package:
   hash:
     md5: 9899db3cf8965c3aecab3daf5227d3eb
     sha256: 259651aa3966f9735aab2b3ee9c25d4fa93914484e9b757c0b6fda87bac78a0f
-  category: main
-  optional: false
+  category: dev
+  optional: true
 - name: scipy
   version: 1.14.0
   manager: conda
@@ -18813,8 +18813,8 @@ package:
   hash:
     md5: 6c8c8842ce810d963e032c6595153ef5
     sha256: f07e8b093a3ee2990b373a3764a66a07af52be37a54c56040d9a30bcc68a3050
-  category: main
-  optional: false
+  category: dev
+  optional: true
 - name: seaborn
   version: 0.13.2
   manager: conda

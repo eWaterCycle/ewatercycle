@@ -63,6 +63,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "pytest-runner",
+    "scipy",
     "recommonmark",
     "rich",
     "sphinx",
