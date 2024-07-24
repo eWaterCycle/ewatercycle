@@ -1,4 +1,3 @@
-import unittest
 from pathlib import Path
 from shutil import copytree
 from unittest import mock
@@ -9,9 +8,7 @@ from cartopy.io import shapereader
 
 from ewatercycle._forcings.caravan import (
     CaravanForcing,
-    crop_ds,
     extract_basin_shapefile,
-    get_shapefiles,
 )
 from ewatercycle._forcings.makkink import (
     DistributedMakkinkForcing,

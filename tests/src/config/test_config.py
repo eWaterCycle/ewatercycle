@@ -67,7 +67,7 @@ def test_load_from_file_bad_path_returns_eror_with_config_file_in_loc(tmp_path):
     config_file = tmp_path / "ewatercycle.yaml"
     config_file.write_text(
         dedent(
-            f"""\
+            """\
         grdc_location: /a/directory/that/does/not/exist
         """
         )

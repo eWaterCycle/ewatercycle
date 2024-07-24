@@ -1,5 +1,4 @@
 from configparser import ConfigParser
-from copy import copy
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, Optional, Tuple, Union
@@ -129,7 +128,10 @@ def fit_extents_to_grid(extents, step=0.1, offset=0.05, ndigits=2) -> Dict[str, 
     Returns:
         Dict with `start_longitude`, `start_latitude`, `end_longitude`, `end_latitude`
     """
-    fit = lambda v, offset: round((round(v / step) * step) + offset, ndigits)
+
+    def fit(v, offset):
+        return round((round(v / step) * step) + offset, ndigits)
+
     return {
         "start_longitude": fit(extents["start_longitude"], -offset),
         "start_latitude": fit(extents["start_latitude"], -offset),

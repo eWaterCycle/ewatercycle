@@ -26,6 +26,8 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: GIS",
     "Topic :: Scientific/Engineering :: Hydrology",
@@ -54,13 +56,10 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "black[jupyter]",
     "ipython",
-    "isort",
     "mypy",
     "nbsphinx",
     "pre-commit>=2.15.0",
-    "pycodestyle",
     "pytest",
     "pytest-cov",
     "pytest-runner",
@@ -74,6 +73,7 @@ dev = [
     "types-PyYAML",
     "types-requests",
     "tomli",
+    "ruff",
 ]
 
 [project.urls]
@@ -115,19 +115,6 @@ protobuf = '>=4,<5'
 packaging = '*'
 typeguard = '*'
 
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-
-[tool.pylint.messages_control]
-disable = "C0330, C0326"
-
-[tool.pylint.format]
-max-line-length = "88"
-
-[tool.pydocstyle]
-convention = "google"
-
 [tool.coverage.run]
 branch = true
 parallel = true
@@ -144,3 +131,10 @@ ignore_missing_imports = true
 warn_unused_ignores = true
 check_untyped_defs = true
 files = ["src"]
+
+[tool.ruff]
+target-version = "py310"
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

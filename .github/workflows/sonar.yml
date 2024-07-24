@@ -24,8 +24,9 @@ jobs:
         shell: bash -l {0}
         run: |
           pip3 install -e .[dev]
-      - name: Run pre commit hooks like linters and black formatter
-        uses: pre-commit/action@v2.0.3
+      # TODO we should run non-ruff hooks from pre-commit here?
+      - name: Run Ruff
+        run: ruff check --output-format=github .
       - name: Check typings with mypy
         run: mypy
         shell: bash -l {0}

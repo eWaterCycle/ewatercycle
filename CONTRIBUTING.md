@@ -86,18 +86,19 @@ This section is for maintainers of the package.
 4. Set new version in ``pyproject.toml`` file in project section.
 5. Update CHANGELOG.md with changes between current and new version. (Don't forget to also update the links at the bottom of the file)
 6. Make sure pre-commit hooks are green for all files by running ``pre-commit run --all-files``.
-7. Commit & push changes to GitHub.
-8. Wait for [GitHub
+7. Make sure types are correct by running ``mypy``.
+8. Commit & push changes to GitHub.
+9. Wait for [GitHub
     actions](https://github.com/eWaterCycle/ewatercycle/actions?query=branch%3Amain+)
     to be completed and green.
 
-9. Create a [GitHub release](https://github.com/eWaterCycle/ewatercycle/releases/new)
+10. Create a [GitHub release](https://github.com/eWaterCycle/ewatercycle/releases/new)
 
     - Use version as title and tag version.
     - As description use intro text from README.md (to give context to
         Zenodo record) and changes from CHANGELOG.md
 
-10. Verify
+11. Verify
 
     1. Has [new Zenodo
         record](https://zenodo.org/search?page=1&size=20&q=ewatercycle)
@@ -110,4 +111,4 @@ This section is for maintainers of the package.
     4. Can new version be installed with pip using
         `pip3 install ewatercycle==<new version>`?
 
-11. Celebrate
+12. Celebrate

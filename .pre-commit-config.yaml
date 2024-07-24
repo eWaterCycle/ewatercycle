@@ -19,69 +19,11 @@ repos:
     hooks:
       - id: yamllint
         exclude: conda-lock.yml
-  - repo: https://github.com/psf/black
-    rev: "22.3.0"
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.4
     hooks:
-      - id: black-jupyter
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-  # TODO renable when errors are fixed/ignored
-  # - repo: https://github.com/pycqa/pylint
-  #   rev: "v2.9.6"
-  #   hooks:
-  #     - id: pylint
-  # TODO renable when errors are fixed/ignored
-  - repo: https://github.com/pycqa/flake8
-    rev: "3.9.2"
-    hooks:
-      - id: flake8
-        additional_dependencies:
-          &fd [
-            flake8-annotations-complexity,
-            flake8-bandit,
-            flake8-blind-except,
-            flake8-bugbear,
-            flake8-builtins,
-            flake8-cognitive-complexity,
-            flake8-comprehensions,
-            flake8-docstrings,
-            flake8-eradicate,
-            flake8-executable,
-            flake8-expression-complexity,
-            flake8-if-expr,
-            flake8-implicit-str-concat,
-            flake8-logging-format,
-            flake8-pathlib,
-            flake8-print,
-            flake8-pytest,
-            flake8-pytest-style,
-            # flake8-quotes,  # conflicts with blacks double quote preference
-            flake8-raise,
-            flake8-return,
-            flake8-typing-imports,
-            flake8-variables-names,
-            flake8==3.9.2,
-            pandas-vet,
-            pep8-naming,
-            # wemake-python-styleguide,  # conflicts with black
-            yesqa,
-          ]
-        verbose: true
-        args: &fa [--statistics, --exit-zero]
-  - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.1.0
-    hooks:
-      - id: nbqa-isort
-        additional_dependencies: [isort==5.11.2]
-      - id: nbqa-mypy
-        additional_dependencies: [mypy==1.1.1, types-python-dateutil, pydantic]
-      # TODO renable when errors are fixed/ignored
-      - id: nbqa-flake8
-        additional_dependencies: *fd
-        args: *fa
-        verbose: true
-      # TODO renable when errors are fixed/ignored
-      # - id: nbqa-pylint
-      #   additional_dependencies: [pylint==2.9.6]
+      - id: ruff
+        types_or: [python, pyi, jupyter]
+        args: [--fix]
+      - id: ruff-format
+        types_or: [python, pyi, jupyter]
