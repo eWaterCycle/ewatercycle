@@ -53,8 +53,10 @@ The sections below outline the steps in each case.
     repository (follow the instructions
     [here](https://help.github.com/articles/configuring-a-remote-for-a-fork/)
     and [here](https://help.github.com/articles/syncing-a-fork/));
-4. install the package in editable mode and its dependencies with
-    `pip3 install -e .[dev]`;
+4. install package main and dev dependencies in a conda environment with
+    `conda-lock install -n ewatercycle` and activate it with `conda activate ewatercycle`;
+4. install the package in editable mode with
+    `pip3 install -e .`;
 4. make sure pre commit hook is installed by running `pre-commit install`, causes linting and formatting to be applied during commit;
 5. make sure the existing tests still work by running `pytest`;
 6. make sure the existing documentation can still by generated without
