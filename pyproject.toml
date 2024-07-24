@@ -93,7 +93,6 @@ exclude = [
 ]
 
 [tool.conda-lock]
-#default-non-conda-source = "pip"
 channels = [
     'conda-forge'
 ]
@@ -109,7 +108,7 @@ platforms = [
 [tool.conda-lock.dependencies]
 python = ">=3.11"
 esmvaltool-python = ">=2.11"
-# Following dependencies are not available on conda-forge
+# Following dependencies are not available on conda-forge, so install from pypi
 gitdir = {source = 'pypi'}
 grpc4bmi = {source = 'pypi'}
 

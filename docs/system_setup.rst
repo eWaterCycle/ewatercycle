@@ -42,7 +42,7 @@ file <https://github.com/eWaterCycle/ewatercycle/blob/main/conda-lock.yml>`__.
 
     wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/conda-lock.yml
     conda install mamba conda-lock -n base -c conda-forge -y
-    conda-lock -n ewatercycle
+    conda-lock install --no-dev -n ewatercycle
     conda activate ewatercycle
 
 Do not forget that any terminal or Jupyter kernel should activate the conda environment before the eWaterCycle Python package can be used.

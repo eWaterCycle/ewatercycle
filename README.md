@@ -37,7 +37,7 @@ install those dependencies:
 ```shell
 wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/conda-lock.yml
 conda install mamba conda-lock -n base -c conda-forge -y
-conda-lock install -n ewatercycle
+conda-lock install --no-dev -n ewatercycle
 conda activate ewatercycle
 ```
 
