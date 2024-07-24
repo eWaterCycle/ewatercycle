@@ -1,9 +1,15 @@
 """Search ESGF for datasets with ESMValTool."""
+
 import warnings
 from typing import Literal
 
-from esmvalcore.config import CFG
-from esmvalcore.dataset import Dataset
+try:
+    from esmvalcore.config import CFG
+    from esmvalcore.dataset import Dataset
+except ImportError as e:
+    from ewatercycle.esmvaltool.missing import no_esmvaltool_found
+
+    no_esmvaltool_found(e)
 
 
 def search_esgf(

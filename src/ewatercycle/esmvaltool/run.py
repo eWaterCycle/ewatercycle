@@ -1,12 +1,19 @@
 """Run ESMValTool recipes."""
+
 import logging
 import warnings
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from esmvalcore.config import CFG, Session
-from esmvalcore.experimental.recipe import Recipe as ESMValToolRecipe
-from esmvalcore.experimental.recipe_output import DataFile, ImageFile, RecipeOutput
+try:
+    from esmvalcore.config import CFG, Session
+    from esmvalcore.experimental.recipe import Recipe as ESMValToolRecipe
+    from esmvalcore.experimental.recipe_output import DataFile, ImageFile, RecipeOutput
+except ImportError as e:
+    from ewatercycle.esmvaltool.missing import no_esmvaltool_found
+
+    no_esmvaltool_found(e)
+
 
 from ewatercycle.esmvaltool.schema import Recipe
 

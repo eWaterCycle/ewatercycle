@@ -1,13 +1,20 @@
 """ESMValTool diagnostic script that copies the preprocessing output to the diagnostic output."""
+
 import logging
 import shutil
 from pathlib import Path
 
-from esmvaltool.diag_scripts.shared import (
-    ProvenanceLogger,
-    get_diagnostic_filename,
-    run_diagnostic,
-)
+
+try:
+    from esmvaltool.diag_scripts.shared import (
+        ProvenanceLogger,
+        get_diagnostic_filename,
+        run_diagnostic,
+    )
+except ImportError as e:
+    from ewatercycle.esmvaltool.missing import no_esmvaltool_found
+
+    no_esmvaltool_found(e)
 
 logger = logging.getLogger(Path(__file__).name)
 
