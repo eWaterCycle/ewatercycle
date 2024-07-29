@@ -29,7 +29,8 @@ def add_to_config(parameter_set: ParameterSet):
 def _abbreviate(path: Path):
     try:
         if CFG.parameterset_dir is None:
-            raise ValueError("Can not abbreviate path without CFG.parameterset_dir")
+            msg = "Can not abbreviate path without CFG.parameterset_dir"
+            raise ValueError(msg)
         return path.relative_to(CFG.parameterset_dir)
     except ValueError:
         return path
@@ -48,12 +49,13 @@ def available_parameter_sets(
     """
     all_parameter_sets = CFG.parameter_sets
     if not all_parameter_sets:
-        raise ValueError(
+        msg = (
             f"No parameter sets defined in {CFG.ewatercycle_config}. Use "
             "`ewatercycle.parameter_sets.download_example_parameter_sets()` to download"
             " examples or define your own or ask whoever setup the ewatercycle "
             "system to do it."
         )
+        raise ValueError(msg)
         # TODO explain somewhere how to add new parameter sets
     filtered = {
         name: ps
@@ -61,13 +63,14 @@ def available_parameter_sets(
         if (target_model is None or ps.target_model == target_model)
     }
     if not filtered:
-        raise ValueError(
+        msg = (
             f"No parameter sets defined for {target_model} model in "
             f"{CFG.ewatercycle_config}. Use  "
             "`ewatercycle.parareter_sets.download_example_parameter_sets` to download "
             "examples or define your own or ask whoever setup the ewatercycle "
             "system to do it."
         )
+        raise ValueError(msg)
     return filtered
 
 
@@ -112,9 +115,10 @@ def download_example_parameter_sets(skip_existing=True):
         config_file = CFG.save_to_file()
         logger.info(f"Saved parameter sets to configuration file {config_file}")
     except OSError as e:
-        raise OSError(
+        msg = (
             f"Failed to write parameter sets to configuration file. "
             f"Manually save content below to {USER_HOME_CONFIG} "
             f"or {SYSTEM_CONFIG} file: {linesep}"
             f"{CFG.dump_to_yaml()}"
-        ) from e
+        )
+        raise OSError(msg) from e

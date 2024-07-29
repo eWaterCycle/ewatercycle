@@ -64,19 +64,21 @@ class eWaterCycleModel(BaseModel, abc.ABC):
         target_model = self.parameter_set.target_model.lower()
         model_name = self.__class__.__name__.lower()
         if model_name != target_model:
-            raise ValueError(
+            msg = (
                 f"Parameter set has wrong target model, "
                 f"expected {target_model} got {model_name}"
             )
+            raise ValueError(msg)
 
         version = self.version
         ps_versions = self.parameter_set.supported_model_versions
         if version and ps_versions and version not in ps_versions:
-            raise ValueError(
+            msg = (
                 f"Parameter set '{self.parameter_set.name}' not compatible"
                 f" with this model version.\nModel version: {version}. "
                 f"Compatible versions: {ps_versions}"
             )
+            raise ValueError(msg)
 
         return self
 

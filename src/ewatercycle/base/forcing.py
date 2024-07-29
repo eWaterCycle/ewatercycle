@@ -186,16 +186,17 @@ class DefaultForcing(BaseModel):
     @classmethod
     def _build_recipe(
         cls,
-        start_time: datetime,
-        end_time: datetime,
-        shape: Path,
-        dataset: Dataset | str | dict,
-        variables: tuple[str, ...] = (),
-        **model_specific_options,
+        start_time: datetime,  # noqa: ARG003
+        end_time: datetime,  # noqa: ARG003
+        shape: Path,  # noqa: ARG003
+        dataset: Dataset | str | dict,  # noqa: ARG003
+        variables: tuple[str, ...] = (),  # noqa: ARG003
+        **model_specific_options,  # noqa: ARG003
     ) -> Recipe:
         # TODO do we want an implementation here?
         # If so how is it different from GenericDistributedForcing?
-        raise NotImplementedError("No default recipe available.")
+        msg = "No default recipe available."
+        raise NotImplementedError(msg)
 
     @classmethod
     def _run_recipe(
@@ -209,7 +210,8 @@ class DefaultForcing(BaseModel):
         """Export forcing data for later use."""
         yaml = YAML()
         if self.directory is None:
-            raise ValueError("Cannot save forcing without directory.")
+            msg = "Cannot save forcing without directory."
+            raise ValueError(msg)
         target = self.directory / FORCING_YAML
         # We want to make the yaml and its parent movable,
         # so the directory should not be included in the yaml file
@@ -243,10 +245,11 @@ class DefaultForcing(BaseModel):
         yaml = YAML(typ="safe")
 
         if not meta.exists():
-            raise FileNotFoundError(
+            msg = (
                 f"Forcing file {meta} not found. "
                 f"Perhaps you want to use {cls.__name__}(...)?"
             )
+            raise FileNotFoundError(msg)
         metadata = meta.read_text()
         # Workaround for legacy forcing files having !PythonClass tag.
         # Remove it so ewatercycle.forcing.source[<forcing name>].load(dir) works.

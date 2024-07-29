@@ -42,10 +42,11 @@ def download_github_repo(
 
     https_response = urlopen(zip_url)
     if https_response.status != 200:
-        raise ConnectionError(
+        msg = (
             f"HTTP error {https_response.status}\n"
             f"Attempted to connect to URL: {zip_url}"
         )
+        raise ConnectionError(msg)
 
     with ZipFile(BytesIO(https_response.read())) as zipfile:
         main_folder = f"{repo}-{branch}"
@@ -198,10 +199,11 @@ class ParameterSet(BaseModel):
             )
             return None
         if self.downloader is None:
-            raise ValueError(
+            msg = (
                 f"Cannot download parameter set {self.name} "
                 "because no downloader is defined."
             )
+            raise ValueError(msg)
         logger.info(
             f"Downloading example parameter set {self.name} to {self.directory}..."
         )

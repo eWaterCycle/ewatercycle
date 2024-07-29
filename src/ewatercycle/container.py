@@ -34,7 +34,8 @@ def _parse_docker_url(docker_url):
     match = pattern.search(docker_url)
 
     if not match:
-        raise ValueError(f"Unable to parse docker url: {docker_url}")
+        msg = f"Unable to parse docker url: {docker_url}"
+        raise ValueError(msg)
 
     repository = match.group("repository")
     image = match.group("image")
@@ -191,7 +192,8 @@ def start_container(
             delay,
         )
     else:
-        raise ValueError(f"Unknown container technology: {CFG.container_engine}")
+        msg = f"Unknown container technology: {CFG.container_engine}"
+        raise ValueError(msg)
 
     for wrapper in wrappers:
         bmi = wrapper(bmi)
@@ -237,12 +239,13 @@ def start_apptainer_container(
             delay=delay,
         )
     except FutureTimeoutError as exc:
-        raise TimeoutError(
+        msg = (
             "Couldn't spawn container within allocated time limit "
             f"({timeout} seconds). You may try pulling the docker image with"
             f" `apptainer build {image_fn} "
             f"docker://{image.docker_url}` and then try again."
-        ) from exc
+        )
+        raise TimeoutError(msg) from exc
 
 
 def start_docker_container(
@@ -281,11 +284,12 @@ def start_docker_container(
     except FutureTimeoutError as exc:
         # https://github.com/eWaterCycle/grpc4bmi/issues/95
         # https://github.com/eWaterCycle/grpc4bmi/issues/100
-        raise TimeoutError(
+        msg = (
             "Couldn't spawn container within allocated time limit "
             f"({timeout} seconds). You may try pulling the docker image with"
             f" `docker pull {image}` and then try again."
-        ) from exc
+        )
+        raise TimeoutError(msg) from exc
 
 
 class BmiFromOrigin(Protocol):

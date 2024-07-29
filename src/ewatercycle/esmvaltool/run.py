@@ -157,7 +157,8 @@ def _parse_recipe_output(recipe_output: RecipeOutput) -> dict[str, str]:
     first_diagnostic_output = list(recipe_output.values())[0]
     output_files = first_diagnostic_output.files
     if not output_files:
-        raise ValueError("No recipe output files found")
+        msg = "No recipe output files found"
+        raise ValueError(msg)
     forcing_files = {}
     for output_file in output_files:
         var_name = output_file.path.stem

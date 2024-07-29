@@ -98,7 +98,8 @@ class RecipeBuilder:
         """
         # TODO de-duplicate preprocessors
         if self._recipe.datasets is None or len(self._recipe.datasets) == 0:
-            raise ValueError("Recipe has no dataset")
+            msg = "Recipe has no dataset"
+            raise ValueError(msg)
         return self._recipe
 
     def description(self, description: str) -> "RecipeBuilder":
@@ -138,9 +139,8 @@ class RecipeBuilder:
         elif isinstance(dataset, dict):
             dataset = Dataset(**dataset)
         if not isinstance(dataset, Dataset):
-            raise ValueError(
-                f"dataset must be a Dataset, str or dict, got {type(dataset)}"
-            )
+            msg = f"dataset must be a Dataset, str or dict, got {type(dataset)}"
+            raise ValueError(msg)
         self._recipe.datasets = [dataset]
         return self
 
@@ -178,7 +178,8 @@ class RecipeBuilder:
     @property
     def _preprocessors(self):
         if self._recipe.preprocessors is None:
-            raise ValueError("Recipe has no preprocessors")
+            msg = "Recipe has no preprocessors"
+            raise ValueError(msg)
         return self._recipe.preprocessors
 
     def regrid(self, scheme: str, target_grid: TargetGrid) -> "RecipeBuilder":
@@ -270,7 +271,8 @@ class RecipeBuilder:
     @property
     def _diagnostic(self) -> Diagnostic:
         if self._recipe.diagnostics is None:
-            raise ValueError("Recipe has no diagnostics")
+            msg = "Recipe has no diagnostics"
+            raise ValueError(msg)
         return self._recipe.diagnostics[DIAGNOSTIC_NAME]
 
     def add_variables(self, variables: Sequence[str]) -> "RecipeBuilder":
@@ -316,7 +318,8 @@ class RecipeBuilder:
         # Each variable needs its own single preprocessor
         preprocessor_name = self._add_preprocessor(variable, units, stats)
         if self._diagnostic.variables is None:
-            raise ValueError("Recipe has no variables")
+            msg = "Recipe has no variables"
+            raise ValueError(msg)
         if mip is None:
             mip = self._mip
         if start_year is None:
@@ -367,7 +370,8 @@ class RecipeBuilder:
             arguments: Arguments to pass to the script.
         """
         if self._diagnostic.scripts is None:
-            raise ValueError("Recipe has no scripts")
+            msg = "Recipe has no scripts"
+            raise ValueError(msg)
         self._diagnostic.scripts[SCRIPT_NAME] = Script(script=script, **arguments or {})
         return self
 

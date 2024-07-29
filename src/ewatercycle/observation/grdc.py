@@ -92,13 +92,15 @@ def get_grdc_data(
     elif CFG.grdc_location:
         data_path = to_absolute_path(CFG.grdc_location)
     else:
-        raise ValueError(
+        msg = (
             "Provide the grdc path using `data_home` argument"
             "or using `grdc_location` in ewatercycle configuration file."
         )
+        raise ValueError(msg)
 
     if not data_path.exists():
-        raise ValueError(f"The grdc directory {data_path} does not exist!")
+        msg = f"The grdc directory {data_path} does not exist!"
+        raise ValueError(msg)
 
     # Read the NetCDF file
     nc_file = data_path / "GRDC-Daily.nc"
@@ -115,11 +117,11 @@ def get_grdc_data(
     raw_file = data_path / f"{station_id}_Q_Day.Cmd.txt"
     if not raw_file.exists():
         if nc_file.exists():
-            raise ValueError(
-                f"The grdc station {station_id} is not in the {nc_file} file and {raw_file} does not exist!"  # noqa: E501
-            )
+            msg = f"The grdc station {station_id} is not in the {nc_file} file and {raw_file} does not exist!"  # noqa: E501
+            raise ValueError(msg)
         else:
-            raise ValueError(f"The grdc file {raw_file} does not exist!")
+            msg = f"The grdc file {raw_file} does not exist!"
+            raise ValueError(msg)
 
     # Convert the raw data to an dataframe
     metadata, df = _grdc_read(

@@ -46,7 +46,8 @@ def find_closest_point(
     dx = np.diff(grid_longitudes_array).max() * 111  # (1 degree ~ 111km)
     dy = np.diff(grid_latitudes_array).max() * 111  # (1 degree ~ 111km)
     if distance > max(dx, dy) * 2:
-        raise ValueError(f"Point {point_longitude, point_latitude} outside model grid.")
+        msg = f"Point {point_longitude, point_latitude} outside model grid."
+        raise ValueError(msg)
 
     return int(idx_lon), int(idx_lat)
 
@@ -89,10 +90,11 @@ def get_time(time_iso: str) -> datetime:
     """
     time = parse(time_iso)
     if not time.tzname() == "UTC":
-        raise ValueError(
+        msg = (
             "The time is not in UTC. The ISO format for a UTC time "
             "is 'YYYY-MM-DDTHH:MM:SSZ'"
         )
+        raise ValueError(msg)
     return time
 
 
@@ -259,9 +261,8 @@ def to_absolute_path(
             try:
                 pathlike.relative_to(parent)
             except ValueError as e:
-                raise ValueError(
-                    f"Input path {input_path} is not a subpath of parent {parent}"
-                ) from e
+                msg = f"Input path {input_path} is not a subpath of parent {parent}"
+                raise ValueError(msg) from e
 
     return pathlike.expanduser().resolve(strict=must_exist)
 
@@ -294,11 +295,12 @@ def reindex(source_file: str, var_name: str, mask_file: str, target_file: str):
             try:
                 indexers = {"y": mask["y"].values, "x": mask["x"].values}
             except KeyError as err:
-                raise ValueError(
+                msg = (
                     "Bad naming of dimensions in source_file and mask_file."
                     "The dimensions should be either (x, y), or (lon, lat), "
                     "or (longitude, latitude)."
-                ) from err
+                )
+                raise ValueError(msg) from err
 
     reindexed_data = data.reindex(
         indexers,

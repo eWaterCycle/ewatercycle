@@ -137,7 +137,7 @@ target-version = "py310"
 extend-include = ["*.ipynb"]
 
 [tool.ruff.lint]
-select = ["A", "ARG", "B", "C", "D", "DTZ", "E", "F"]
+select = ["A", "ARG", "B", "C", "D", "DTZ", "E", "EM", "F"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*" = [

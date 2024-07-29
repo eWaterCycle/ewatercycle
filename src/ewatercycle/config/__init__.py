@@ -239,7 +239,8 @@ class Configuration(BaseModel):
         """
         path = to_absolute_path(str(filename))
         if not path.exists():
-            raise FileNotFoundError(f"Cannot find: `{filename}")
+            msg = f"Cannot find: `{filename}"
+            raise FileNotFoundError(msg)
 
         newconfig = Configuration._load_user_config(path)
         self.overwrite(newconfig)
@@ -314,7 +315,8 @@ def _read_config_file(config_file: Union[os.PathLike, str]) -> dict:
     """Read config user file and store settings in a dictionary."""
     config_file = to_absolute_path(str(config_file))
     if not config_file.exists():
-        raise IOError(f"Config file `{config_file}` does not exist.")
+        msg = f"Config file `{config_file}` does not exist."
+        raise IOError(msg)
 
     with open(config_file, "r") as file:
         yaml = YAML(typ="safe")

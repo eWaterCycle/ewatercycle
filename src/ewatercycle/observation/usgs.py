@@ -15,7 +15,8 @@ def _xml_to_xarray(waterml_data: str) -> xr.Dataset:
 
     # We expect only 1 station
     if len(data.elements) == 0:
-        raise ValueError("Data does not contain any station data")
+        msg = "Data does not contain any station data"
+        raise ValueError(msg)
 
     station = data.elements[0]
 
