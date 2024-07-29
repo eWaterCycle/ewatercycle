@@ -149,15 +149,15 @@ def fit_extents_to_grid(extents, step=0.1, offset=0.05, ndigits=2) -> Dict[str, 
 
 def _check_coordinates_line_up(datasets: list[xr.Dataset]):
     # First check that the coordinates all line up before merging.
-    TOLERANCE = 1e-7
+    tolerance = 1e-7
     for coord in ["lat", "lon"]:
         coords = [ds[coord].to_numpy() for ds in datasets]
         if len({c.size for c in coords}) > 1:
             msg = f"The coordinate '{coord}' is not of the same size in every dataset."
             raise ValueError(msg)
         all_coords = np.array(coords)
-        if not np.all((all_coords - all_coords.mean(axis=0)) < TOLERANCE):
-            msg = f"Coordinate {coord} deviates more than {TOLERANCE}. Merging failed."
+        if not np.all((all_coords - all_coords.mean(axis=0)) < tolerance):
+            msg = f"Coordinate {coord} deviates more than {tolerance}. Merging failed."
             raise ValueError(msg)
 
 

@@ -35,7 +35,8 @@ logger = logging.getLogger(__name__)
 ISO_TIMEFMT = r"%Y-%m-%dT%H:%M:%SZ"
 
 
-class eWaterCycleModel(BaseModel, abc.ABC):
+# TODO name model class with CapWords convention
+class eWaterCycleModel(BaseModel, abc.ABC):  # noqa: N801
     """Base functionality for eWaterCycle models.
 
     Children need to specify how to make their BMI instance: in a container or

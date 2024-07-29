@@ -141,14 +141,18 @@ select = [
     "A", "ARG", "B", "C", "D", "DTZ", "E", "EM", "F",
     # TODO enable FBT and factor out booleans args to seperate functions
     # "FBT",
-    "I",
+    "I", "ICN", "ISC", "N",
     "RUF"
+]
+ignore = [
+    # Conflicts with formatting
+    "ISC001",
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*" = [
-    # Fixtures can be unused, undocumented, wide, tz less
-    "ARG", "D", "E501", "DTZ001"
+    # Fixtures can be unused, undocumented, wide, tz less, relaxed func naming
+    "ARG", "D", "E501", "DTZ001", "N802"
 ]
 "docs/**/*.ipynb" = [
     # Allow wide lines in notebooks

@@ -12,12 +12,12 @@ import numpy as np
 from bmipy import Bmi
 
 
-class SomeException(Exception):
+class SomeError(Exception):
     pass
 
 
 class FailingModel(Bmi):
-    def __init__(self, exc=SomeException()):
+    def __init__(self, exc=SomeError()):
         self.exc = exc
 
     def initialize(self, filename):
