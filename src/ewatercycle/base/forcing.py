@@ -349,6 +349,7 @@ class DistributedUserForcing(DefaultForcing):
         shape: Path,
         dataset: Dataset | str | dict,
         variables: tuple[str, ...] = (),
+        **model_specific_options,  # noqa: ARG003
     ):
         return build_generic_distributed_forcing_recipe(
             # TODO allow finer selection then a whole year.
@@ -419,6 +420,7 @@ class LumpedUserForcing(DistributedUserForcing):
         shape: Path,
         dataset: Dataset | str | dict,
         variables: tuple[str, ...] = (),
+        **model_specific_options,  # noqa: ARG003
     ):
         return build_generic_lumped_forcing_recipe(
             # TODO allow finer selection then a whole year.
