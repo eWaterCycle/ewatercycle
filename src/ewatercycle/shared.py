@@ -1,7 +1,6 @@
 from abc import abstractmethod
 from collections.abc import Mapping
-
-from importlib_metadata import EntryPoint
+from importlib.metadata import EntryPoint
 
 
 class Sources(Mapping):
