@@ -1,4 +1,6 @@
 """Fake BMI models."""
+# To adhere to the BMI standard, we have arguments that are not used.
+# ruff: noqa: ARG002
 
 from unittest.mock import Mock
 

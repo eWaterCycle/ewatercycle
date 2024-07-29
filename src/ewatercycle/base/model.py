@@ -118,7 +118,7 @@ class eWaterCycleModel(BaseModel, abc.ABC):
 
         return str(self._cfg_file), str(self._cfg_dir)
 
-    def _make_cfg_dir(self, cfg_dir: Optional[str] = None, **kwargs) -> Path:
+    def _make_cfg_dir(self, cfg_dir: Optional[str] = None) -> Path:
         if cfg_dir is not None:
             cfg_path = to_absolute_path(cfg_dir)
         else:
