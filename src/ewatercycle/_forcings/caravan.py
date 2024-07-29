@@ -13,7 +13,8 @@ from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.util import get_time
 
 COMMON_URL = "ca13056c-c347-4a27-b320-930c2a4dd207"
-OPENDAP_URL = f"https://opendap.4tu.nl/thredds/dodsC/data2/djht/{COMMON_URL}/1/"
+VERSION = "2"
+OPENDAP_URL = f"https://opendap.4tu.nl/thredds/dodsC/data2/djht/{COMMON_URL}/{VERSION}/"
 SHAPEFILE_URL = (
     f"https://data.4tu.nl/file/{COMMON_URL}/bbe94526-cf1a-4b96-8155-244f20094719"
 )
@@ -174,6 +175,16 @@ class CaravanForcing(DefaultForcing):
                 name of a dataset in Caravan (for example, "camels" or "camelsgb").
                 For more information do `help(CaravanForcing.get_basin_id)` or see
                 https://www.ewatercycle.org/caravan-map/.
+            data_source: The ID of the data source to be used. For some datasets multiple
+                datasources are available. currently this is only implemented for the
+                (basins in the) "camels" (ie. camels US) dataset. If "data_sources" is not
+                specified, it defaults to b'era5_land' (the default for caravan). Options for 
+                Camels are:
+                    - b'nldas'
+                    - b'maurer'
+                    - b'daymet'
+                See the documentation of Camels for details on the differences between these
+                data sources: https://dx.doi.org/10.5065/D6MW2F4D
         """
         if "basin_id" not in kwargs:
             msg = (
@@ -182,9 +193,31 @@ class CaravanForcing(DefaultForcing):
             )
             raise ValueError(msg)
         basin_id = str(kwargs["basin_id"])
-
+        
+        if "data_source" not in kwargs:
+            data_source = 'era5_land'
+        elif kwargs["data_source"] in ['era5_land', 'nldas', 'maurer', 'daymet']:         
+            data_source = str(kwargs["data_source"])
+        else: 
+            msg = (
+                "If 'data_source' is provided it needs to be one of: 'era5_land', "
+                "'nldas', 'maurer', 'daymet'"
+            )
+            raise ValueError(msg)
+    
         dataset: str = basin_id.split("_")[0]
         ds = cls.get_dataset(dataset)
+    
+        if dataset != "camels":
+            if data_source != "era5_land":
+                msg = (
+                    "Alternative data sources are only implemented for the camels "
+                    "(USA) dataset"
+                )
+                raise ValueError(msg)
+        else:
+            ds = ds.sel(data_source=data_source.encode())
+
         ds_basin = ds.sel(basin_id=basin_id.encode())
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
@@ -204,7 +237,14 @@ class CaravanForcing(DefaultForcing):
         for prop in properties:
             ds_basin_time.coords.update({prop: ds_basin_time[prop].to_numpy()})
 
-        ds_basin_time = ds_basin_time.rename(RENAME_ERA5)
+        if data_source == 'era5_land':
+            duplicate_vars = set(RENAME_ERA5.values()).intersection(
+                ds_basin_time.data_vars
+            )
+
+            ds_basin_time = ds_basin_time.drop_vars(duplicate_vars)
+            ds_basin_time = ds_basin_time.rename(RENAME_ERA5)
+
         variables = tuple([RENAME_ERA5[var] for var in variable_names])
 
         # convert units to Kelvin for compatibility with CMOR MIP table units
