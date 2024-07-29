@@ -288,7 +288,7 @@ def mock_retrieve():
 
 
 def test_retrieve_caravan_forcing(tmp_path: Path, mock_retrieve: mock.MagicMock):
-    vars = (
+    variables = (
         "timezone",
         "name",
         "country",
@@ -321,7 +321,7 @@ def test_retrieve_caravan_forcing(tmp_path: Path, mock_retrieve: mock.MagicMock)
         end_time="1981-03-01T00:00:00Z",
         directory=str(tmp_camels_dir),
         basin_id=basin_id,
-        variables=vars,
+        variables=variables,
     )
     caravan_forcing.save()
     ds = caravan_forcing.to_xarray()
