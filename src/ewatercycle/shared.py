@@ -1,6 +1,5 @@
 from abc import abstractmethod
 from collections.abc import Mapping
-
 from importlib.metadata import EntryPoint
 
 
