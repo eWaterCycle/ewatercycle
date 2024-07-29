@@ -55,8 +55,6 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "black[jupyter]",
-    "bump2version",
-    "deepdiff",
     "ipython",
     "isort",
     "mypy",
@@ -75,6 +73,7 @@ dev = [
     "types-python-dateutil",
     "types-PyYAML",
     "types-requests",
+    "tomli",
 ]
 
 [project.urls]
