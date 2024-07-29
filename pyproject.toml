@@ -141,6 +141,7 @@ select = [
     "A", "ARG", "B", "C", "D", "DTZ", "E", "EM", "F",
     # TODO enable FBT and factor out booleans args to seperate functions
     # "FBT",
+    "I",
     "RUF"
 ]
 
@@ -156,3 +157,6 @@ select = [
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["ewatercycle"]
