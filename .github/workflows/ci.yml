@@ -10,16 +10,13 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10"]
-      fail-fast: false
-    name: Run tests in conda environment ${{ matrix.python-version }}
+    name: Run tests in conda environment
     steps:
       - uses: actions/checkout@v3
       - uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: environment.yml
+          environment-file: conda-lock.yml
+          environment-name: ci
           cache-environment: true
           init-shell: bash
       - name: Install dependencies

@@ -6,6 +6,11 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+## Changed
+
+- Use [conda-lock](https://conda.github.io/conda-lock/) to install reproducible conda dependencies. Instead of loosely pinned environment.yml ([#442](https://github.com/eWaterCycle/ewatercycle/pull/442))
+- Esmvaltool is no longer a Python dependency, but a conda dependency ([#442](https://github.com/eWaterCycle/ewatercycle/pull/442))
+
 ### [2.2.0] (2024-07-08)
 
 ### Added

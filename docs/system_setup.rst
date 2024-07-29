@@ -36,13 +36,13 @@ installer <https://docs.conda.io/en/latest/miniconda.html>`__.
 
 After conda is installed you can install the software dependencies with
 a `conda environment
-file <https://github.com/eWaterCycle/ewatercycle/blob/main/environment.yml>`__.
+file <https://github.com/eWaterCycle/ewatercycle/blob/main/conda-lock.yml>`__.
 
 .. code:: shell
 
-    wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/environment.yml
-    conda install mamba -n base -c conda-forge -y
-    mamba env create --file environment.yml
+    wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/conda-lock.yml
+    conda install mamba conda-lock -n base -c conda-forge -y
+    conda-lock install --no-dev -n ewatercycle
     conda activate ewatercycle
 
 Do not forget that any terminal or Jupyter kernel should activate the conda environment before the eWaterCycle Python package can be used.

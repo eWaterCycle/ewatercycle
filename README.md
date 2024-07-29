@@ -35,9 +35,9 @@ generate forcing data. It is preferred to create a Conda environment to
 install those dependencies:
 
 ```shell
-wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/environment.yml
-conda install mamba -n base -c conda-forge -y
-mamba env create --file environment.yml
+wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/conda-lock.yml
+conda install mamba conda-lock -n base -c conda-forge -y
+conda-lock install --no-dev -n ewatercycle
 conda activate ewatercycle
 ```
 

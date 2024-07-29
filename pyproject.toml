@@ -34,12 +34,10 @@ classifiers = [
 dependencies = [
     "bmipy",
     "cftime>=1.6.2",
-    "dask",
-    "esmvaltool>=2.4.0",
+    # esmvalcore is not here as it is installed with conda-lock
+    # otherwise pip installation fails on esmpy
     "Fiona",
-    "gitdir",
     "grpc4bmi>=0.4.0",
-    "grpcio",
     "hydrostats",
     "matplotlib>=3.5.0",
     "numpy",
@@ -48,15 +46,15 @@ dependencies = [
     "pyoos",
     "python-dateutil",
     "ruamel.yaml",
-    "scipy",
     "Shapely",
     "xarray",
+    "fsspec",
+    'cartopy',
 ]
 
 [project.optional-dependencies]
 dev = [
     "black[jupyter]",
-    "build",
     "bump2version",
     "deepdiff",
     "ipython",
@@ -89,6 +87,34 @@ Homepage = "https://www.ewatercycle.org/"
 exclude = [
   "tests", "docs"
 ]
+
+[tool.conda-lock]
+channels = [
+    'conda-forge'
+]
+platforms = [
+    'linux-64',
+    'osx-64',
+    'osx-arm64',
+    # Unable to support win-64 as not all esmvaltool deps are available for that platform
+    # 'win-64',
+    # Unable to support linux-aarch64 as not all esmvaltool deps are available for that platform
+    # 'linux-aarch64',  # aka arm64, use for Docker on Apple Silicon
+]
+
+[tool.conda-lock.dependencies]
+esmvaltool-python = ">=2.11"
+# grpc4bmi is not available on conda-forge, so we use the pypi version
+# The grpc4bmi dependencies are not locked
+# As workaround grpc4bmi deps are listed here as conda deps
+# TODO publish grpc4bmi on conda-forge
+grpc4bmi = {source = 'pypi'}
+grpcio = '*'
+grpcio-reflection = '*'
+grpcio-status = '*'
+protobuf = '>=4,<5'
+packaging = '*'
+typeguard = '*'
 
 [tool.isort]
 profile = "black"
