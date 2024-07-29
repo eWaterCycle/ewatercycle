@@ -382,7 +382,7 @@ def test_extract_basin_shapefile(tmp_path: Path):
     extract_basin_shapefile(basin_id, combined_shape_file_dir, extracted_shape_file_dir)
 
     shape_obj = shapereader.Reader(extracted_shape_file_dir)
-    records = [rec for rec in shape_obj.records()]
+    records = list(shape_obj.records())
 
     assert len(records) == 1
     assert records[0].attributes["gauge_id"] == basin_id

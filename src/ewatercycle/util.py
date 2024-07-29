@@ -140,6 +140,44 @@ def fit_extents_to_grid(extents, step=0.1, offset=0.05, ndigits=2) -> Dict[str, 
     }
 
 
+def _check_coordinates_line_up(datasets: list[xr.Dataset]):
+    # First check that the coordinates all line up before merging.
+    TOLERANCE = 1e-7
+    for coord in ["lat", "lon"]:
+        coords = [ds[coord].to_numpy() for ds in datasets]
+        if len({c.size for c in coords}) > 1:
+            msg = f"The coordinate '{coord}' is not of the same size in every dataset."
+            raise ValueError(msg)
+        all_coords = np.array(coords)
+        if not np.all((all_coords - all_coords.mean(axis=0)) < TOLERANCE):
+            msg = f"Coordinate {coord} deviates more than {TOLERANCE}. Merging failed."
+            raise ValueError(msg)
+
+
+def _move_height_to_attrs(ds: xr.Dataset) -> xr.Dataset:
+    data_vars = list(ds.data_vars)
+    for bnd in ("lat_bnds", "lon_bnds", "time_bnds"):
+        if bnd in data_vars:
+            data_vars.remove(bnd)
+    if len(data_vars) == 1:
+        var = data_vars[0]
+    else:
+        msg = (
+            "More than one variable found in dataset. \n"
+            "This routine can only handle a single data variable per dataset\n"
+        )
+        raise ValueError(msg)
+
+    ds[var].attrs.update(
+        {
+            "height": float(ds["height"]),
+            "height_units": ds["height"].attrs["units"],
+        }
+    )
+    ds = ds.drop_vars(("height",))
+    return ds
+
+
 def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
     """Merge the separate output datasets from an ESMValTool recipe into one dataset.
 
@@ -153,19 +191,10 @@ def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
     References:
         [1] Randall Monroe, 2019. xkcd: Coordinate Precision. https://xkcd.com/2170/
     """
-    TOLERANCE = 1e-7
+
     datasets = [ds.copy(deep=True) for ds in datasets]
 
-    # First check that the coordinates all line up before merging.
-    for coord in ["lat", "lon"]:
-        coords = [ds[coord].to_numpy() for ds in datasets]
-        if len(set([c.size for c in coords])) > 1:
-            msg = f"The coordinate '{coord}' is not of the same size in every dataset."
-            raise ValueError(msg)
-        all_coords = np.array(coords)
-        if not np.all((all_coords - all_coords.mean(axis=0)) < TOLERANCE):
-            msg = f"Coordinate {coord} deviates more than {TOLERANCE}. Merging failed."
-            raise ValueError(msg)
+    _check_coordinates_line_up(datasets)
 
     removed = {
         "lat_bnds": False,
@@ -196,26 +225,7 @@ def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
         # A "height" coordinate can be present, which will result in conflicts.
         #   Instead, we move it to the variable's attributes.
         if "height" in datasets[i].variables:
-            data_vars = list(datasets[i].data_vars)
-            for bnd in ("lat_bnds", "lon_bnds", "time_bnds"):
-                if bnd in data_vars:
-                    data_vars.remove(bnd)
-            if len(data_vars) == 1:
-                var = data_vars[0]
-            else:
-                msg = (
-                    "More than one variable found in dataset. \n"
-                    "This routine can only handle a single data variable per dataset\n"
-                )
-                raise ValueError(msg)
-
-            datasets[i][var].attrs.update(
-                {
-                    "height": float(datasets[i]["height"]),
-                    "height_units": datasets[i]["height"].attrs["units"],
-                }
-            )
-            datasets[i] = datasets[i].drop_vars(("height",))
+            datasets[i] = _move_height_to_attrs(datasets[i])
 
     return xr.combine_by_coords(datasets, combine_attrs="drop_conflicts")  # type: ignore[return-value]
 

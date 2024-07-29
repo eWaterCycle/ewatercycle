@@ -260,7 +260,7 @@ def _grdc_read(grdc_station_path, start, end, column):
     return metadata, grdc_station_select
 
 
-def _grdc_metadata_reader(grdc_station_path, all_lines):
+def _grdc_metadata_reader(grdc_station_path, all_lines):  # noqa: C901
     # Initiating a dictionary that will contain all GRDC attributes.
     # This function is based on earlier work by Rolf Hut.
     # https://github.com/RolfHut/GRDC2NetCDF/blob/master/GRDC2NetCDF.py

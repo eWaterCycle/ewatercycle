@@ -104,8 +104,8 @@ def search_esgf(
     mips = _get_mip_tables(freq=frequency, extended=extended_mip_tables)
     datasets = _filter_datasets(datasets, "mip", mips)
 
-    dataset_names = set([dataset["dataset"] for dataset in datasets])
-    unique_ensemble_members = set([dataset["ensemble"] for dataset in datasets])
+    dataset_names = {dataset["dataset"] for dataset in datasets}
+    unique_ensemble_members = {dataset["ensemble"] for dataset in datasets}
 
     valid_datasets: list[Dataset] = []
     # Iterate through every dataset (i.e. model)
@@ -119,17 +119,17 @@ def search_esgf(
             output_short_names = _get_value(selected_ensemble, "short_name")
 
             # Check if this model ensemble has all required variables
-            if all([var in output_short_names for var in variables]):
+            if all(var in output_short_names for var in variables):
                 valid_datasets.extend(selected_ensemble)
 
     valid_dataset_names = _get_value(valid_datasets, "dataset")
-    valid_ensembles: dict[str, set[str]] = dict()
+    valid_ensembles: dict[str, set[str]] = {}
     for name in valid_dataset_names:
         ensembles = _get_value(
             _filter_datasets(valid_datasets, "dataset", str(name)),
             "ensemble",
         )
-        valid_ensembles[str(name)] = set(str(ens) for ens in ensembles)
+        valid_ensembles[str(name)] = {str(ens) for ens in ensembles}
     return valid_ensembles
 
 
@@ -152,7 +152,7 @@ def _query_esgf(
     Returns:
         List of ESMValTool 'Dataset' objects that match the search query.
     """
-    datasets = list()
+    datasets: list[Dataset] = []
 
     for var in variables:
         dataset_query = Dataset(

@@ -105,7 +105,7 @@ def test_reindex(tmp_path):
         },
         dims=["longitude", "latitude"],
         name="tas",
-        attrs=dict(units="degC"),
+        attrs={"units": "degC"},
     )
     expected_source.to_netcdf(f"{tmp_path}/tas.nc")
     expected_mask = xr.DataArray(

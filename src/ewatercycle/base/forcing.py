@@ -273,7 +273,7 @@ class DefaultForcing(BaseModel):
 
     def variables(self) -> tuple[str, ...]:
         """Return the names of the variables. Shorthand for self.filenames.keys()"""
-        return tuple([key for key in self.filenames])
+        return tuple(self.filenames)
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__

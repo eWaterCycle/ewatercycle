@@ -1,6 +1,7 @@
+from collections.abc import ItemsView
 from datetime import datetime
 from pathlib import Path
-from typing import Type
+from typing import Any, Type
 from unittest.mock import patch
 
 import numpy as np
@@ -401,3 +402,18 @@ class TestParameterSetValidation:
             match="Parameter set 'test' not compatible with this model version.",
         ):
             VersionedMockModel(mybmi=mocked_bmi, parameter_set=parameter_set)
+
+
+class TestWithParameters:
+    def test_setup_cfg_file_content(self, mocked_bmi: Bmi, tmp_path: Path):
+        class ParameterizedMockModel(MockModel):
+            @property
+            def parameters(self) -> ItemsView[str, Any]:
+                return {"parameter1": 42, "parameter2": "foo"}.items()
+
+        model = ParameterizedMockModel(mybmi=mocked_bmi)
+        model.setup(cfg_dir=str(tmp_path))
+
+        expected = "parameter1: 42\nparameter2: foo"
+        result = (tmp_path / "config.yaml").read_text().strip()
+        assert result == expected
