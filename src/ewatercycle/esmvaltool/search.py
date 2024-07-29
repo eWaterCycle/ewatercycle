@@ -95,7 +95,7 @@ def search_esgf(
             "    from esmvalcore.config import CFG\n"
             "    CFG['search_esgf'] = 'always'\n"
         )
-        warnings.warn(msg, category=UserWarning)
+        warnings.warn(msg, category=UserWarning, stacklevel=2)
 
     datasets = _query_esgf(
         project=project, experiment=experiment, variables=variables, verbose=verbose

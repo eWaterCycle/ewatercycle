@@ -44,7 +44,7 @@ def test_download_already_exists_but_skipped(example, tmp_path: Path, caplog):
     # Make a mock downloader to assert it is not called
     #  mocking the property is not possible, as the object has to be initiated first
     def mock_downloader(_):
-        assert False, ".downloader should not be called."
+        assert False, ".downloader should not be called."  # noqa: B011
 
     example.downloader = mock_downloader
 

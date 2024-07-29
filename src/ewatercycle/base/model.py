@@ -237,7 +237,7 @@ class eWaterCycleModel(BaseModel, abc.ABC):
         grid_lat, grid_lon, shape = self.get_latlon_grid(name)
 
         indices = []
-        for point_lon, point_lat in zip(lon, lat):
+        for point_lon, point_lat in zip(lon, lat, strict=False):
             idx_lon, idx_lat = find_closest_point(
                 grid_lon, grid_lat, point_lon, point_lat
             )

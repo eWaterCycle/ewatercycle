@@ -79,7 +79,7 @@ class TestWithSetup:
         mocked_model.finalize()
 
         with pytest.raises(AttributeError, match="has no attribute '_bmi'"):
-            mocked_model.bmi
+            mocked_model.bmi  # noqa: B018
         mocked_bmi.mock.finalize.assert_called_once_with()
 
     def test_update(self, mocked_model: eWaterCycleModel):

@@ -195,12 +195,14 @@ class Configuration(BaseModel):
                 if not ps.directory.exists():
                     warnings.warn(
                         f"Parameter set {ps.name} loaded in config but "
-                        f"{ps.directory} does not seem to exist."
+                        f"{ps.directory} does not seem to exist.",
+                        stacklevel=2,
                     )
                 if not ps.config.exists():
                     warnings.warn(
                         f"Parameter set {ps.name} loaded in config but "
-                        f"{ps.config} does not seem to exist."
+                        f"{ps.config} does not seem to exist.",
+                        stacklevel=2,
                     )
         return self
 
