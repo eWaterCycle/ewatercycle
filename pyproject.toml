@@ -141,8 +141,9 @@ select = [
     "A", "ARG", "B", "C", "D", "DTZ", "E", "EM", "F",
     # TODO enable FBT and factor out booleans args to seperate functions
     # "FBT",
-    "I", "ICN", "ISC", "N",
-    "RUF"
+    "I", "ICN", "ISC", "N", "PLC", "PLE", "PLR", "PLW", "Q",
+    "RUF",
+    "S", "T","TID", "UP", "W", "YTT"
 ]
 ignore = [
     # Conflicts with formatting
