@@ -27,7 +27,7 @@ def example(setup_config, tmp_path: Path):
     ps_config.write_text("some config")
     ps = ParameterSet(  # TODO CHECK WITH PETER/STEFAN
         name="firstexample",
-        # config_url="https://github.com/mymodelorg/mymodelrepo/raw/master/mymodelexample/config.ini",  # noqa: E501
+        # config_url="https://github.com/mymodelorg/mymodelrepo/raw/master/mymodelexample/config.ini",
         # datafiles_url="https://github.com/mymodelorg/mymodelrepo/trunk/mymodelexample",
         directory=Path("mymodelexample"),
         config=Path("config.ini"),

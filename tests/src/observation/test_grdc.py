@@ -52,7 +52,7 @@ def sample_grdc_file(tmp_path):
 YYYY-MM-DD;hh:mm; Value
 2000-01-01;--:--;    123.000
 2000-01-02;--:--;    456.000
-2000-01-03;--:--;    -999.000"""  # noqa: E800
+2000-01-03;--:--;    -999.000"""
     with fn.open("w", encoding="cp1252") as f:
         f.write(body)
     return fn

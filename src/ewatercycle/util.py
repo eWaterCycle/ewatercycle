@@ -109,7 +109,7 @@ def get_extents(shapefile: Any, pad=0) -> Dict[str, float]:
         Dict with `start_longitude`, `start_latitude`, `end_longitude`, `end_latitude`
     """
     shape = fiona.open(to_absolute_path(shapefile))
-    x0, y0, x1, y1 = [geometry.shape(p["geometry"]).bounds for p in shape][0]
+    x0, y0, x1, y1 = next(geometry.shape(p["geometry"]).bounds for p in shape)
     x0 = round((x0 - pad), 1)
     y0 = round((y0 - pad), 1)
     x1 = round((x1 + pad), 1)
