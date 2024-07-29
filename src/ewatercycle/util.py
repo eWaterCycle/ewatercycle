@@ -1,3 +1,5 @@
+"""Utility functions for the eWaterCycle package."""
+
 from configparser import ConfigParser
 from datetime import datetime
 from pathlib import Path
@@ -18,7 +20,7 @@ def find_closest_point(
 ) -> Tuple[int, int]:
     """Find closest grid cell to a point based on Geographical distances.
 
-    args:
+    Args:
         grid_longitudes: 1d array of model grid longitudes in degrees
         grid_latitudes: 1d array of model grid latitudes in degrees
         point_longitude: longitude in degrees of target coordinate
@@ -56,10 +58,12 @@ def geographical_distances(
     lat_vectors: np.ndarray,
     radius=6373.0,
 ) -> np.ndarray:
-    """It uses Spherical Earth projected to a plane formula:
+    """Calculate geographical distances.
+
+    It uses Spherical Earth projected to a plane formula:
     https://en.wikipedia.org/wiki/Geographical_distance
 
-    args:
+    Args:
         point_longitude: longitude in degrees of target coordinate
         point_latitude: latitude in degrees of target coordinate
         lon_vectors: 1d array of longitudes in degrees
@@ -191,7 +195,6 @@ def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
     References:
         [1] Randall Monroe, 2019. xkcd: Coordinate Precision. https://xkcd.com/2170/
     """
-
     datasets = [ds.copy(deep=True) for ds in datasets]
 
     _check_coordinates_line_up(datasets)
@@ -263,8 +266,9 @@ def to_absolute_path(
 
 
 def reindex(source_file: str, var_name: str, mask_file: str, target_file: str):
-    """Conform the input file onto the indexes of a mask file, writing the
-    results to the target file.
+    """Conform the input file onto the indexes of a mask file.
+
+    Writing the results to the target file.
 
     Args:
         source_file: Input string path of the file that needs to be reindexed.
@@ -314,9 +318,11 @@ def reindex(source_file: str, var_name: str, mask_file: str, target_file: str):
 
 
 class CaseConfigParser(ConfigParser):
-    """Case sensitive config parser
+    """Case sensitive config parser.
+
     See https://stackoverflow.com/questions/1611799/preserve-case-in-configparser
     """
 
     def optionxform(self, optionstr):
+        """Do not convert option names to lowercase."""
         return optionstr

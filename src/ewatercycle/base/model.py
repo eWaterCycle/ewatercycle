@@ -52,6 +52,7 @@ class eWaterCycleModel(BaseModel, abc.ABC):
 
     @property
     def version(self) -> str:
+        """Version of the model."""
         return ""
 
     @model_validator(mode="after")
@@ -231,6 +232,7 @@ class eWaterCycleModel(BaseModel, abc.ABC):
         """Convert lat/lon values to index.
 
         Args:
+            name: Name of variable
             lat: Latitudinal value
             lon: Longitudinal value
         """
@@ -416,6 +418,7 @@ class LocalModel(eWaterCycleModel):
 
     @property
     def version(self) -> str:
+        """Version of the model package."""
         return getattr(inspect.getmodule(self), "__version__", "")
 
     def _make_bmi_instance(self):
@@ -444,6 +447,7 @@ class ContainerizedModel(eWaterCycleModel):
 
     @property
     def version(self) -> str:
+        """Version of the container image."""
         return self.bmi_image.version
 
     def _make_bmi_instance(self) -> OptionalDestBmi:

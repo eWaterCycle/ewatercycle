@@ -18,8 +18,10 @@ class Representation:
     # (this is not a docstring to avoid adding a docstring to classes which inherit from Representation)
 
     def __repr_args__(self) -> ReprArgs:
-        """
+        """Reusable helper for __repr__ and __pretty__.
+
         Returns the attributes to show in __str__, __repr__, and __pretty__ this is generally overridden.
+
         Can either return:
         * name - value pairs, e.g.: `[('foo_name', 'foo'), ('bar_name', ['b', 'a', 'r'])]`
         * or, just values, e.g.: `[(None, 'foo'), (None, ['b', 'a', 'r'])]`
@@ -29,9 +31,7 @@ class Representation:
         return [(a, v) for a, v in attrs if v is not None]
 
     def __repr_name__(self) -> str:
-        """
-        Name of the instance's class, used in __repr__.
-        """
+        """Name of the instance's class, used in __repr__."""
         return self.__class__.__name__
 
     def __repr_str__(self, join_str: str) -> str:
@@ -42,7 +42,8 @@ class Representation:
     def __pretty__(
         self, fmt: typing.Callable[[Any], Any], **kwargs: Any
     ) -> typing.Generator[Any, None, None]:
-        """
+        """Formatter for devtools.
+
         Used by devtools (https://python-devtools.helpmanual.io/) to provide a human-readable representations of objects
         """
         yield self.__repr_name__() + "("
@@ -57,13 +58,15 @@ class Representation:
         yield ")"
 
     def __str__(self) -> str:
+        """The default implementation of __str__ just calls __repr."""
         return self.__repr_str__(" ")
 
     def __repr__(self) -> str:
+        """The default implementation of __repr__ just calls __str__."""
         return f'{self.__repr_name__()}({self.__repr_str__(", ")})'
 
     def __rich_repr__(self) -> RichReprResult:
-        """Get fields for Rich library"""
+        """Get fields for Rich library."""
         for name, field_repr in self.__repr_args__():
             if name is None:
                 yield field_repr

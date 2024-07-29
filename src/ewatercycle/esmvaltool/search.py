@@ -42,7 +42,6 @@ def search_esgf(
     https://esgf-node.llnl.gov/esg-search/search?format=application%2Fsolr%2Bjson&project=CMIP6&facets=experiment_id&limit=0
 
     Examples:
-
     To find all model ensembles which have the "pr", "tas", "rsdt" and "orog" variables
     (the ones required for wflow), for the ssp585 scenario.
 
@@ -186,7 +185,7 @@ def _get_mip_tables(
 
     Args:
         freq: Desired frequency. 'hr', '3hr' or 'day'.
-        extended_mip_tables (optional): If you want to use extended MIP tables.
+        extended (optional): If you want to use extended MIP tables.
             These tables are probably not relevant for most hydrology usecases and can
             make the search slower. Defaults to False.
 

@@ -22,7 +22,6 @@ class ForcingSources(shared.Sources):
     """Dictionary filled with available forcing sources.
 
     Examples:
-
         List all available forcing sources:
 
         >>> from ewatercycle.forcing import sources

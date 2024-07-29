@@ -12,16 +12,19 @@ from ewatercycle.config import Configuration
 
 
 def rhine_shape() -> Path:
+    """Return the path to the Rhine shapefile."""
     return Path(__file__).parent / "data" / "Rhine" / "Rhine.shp"
 
 
 @pytest.fixture
 def sample_shape():
+    """Return the path to a sample shape."""
     return str(rhine_shape())
 
 
 @pytest.fixture
 def mocked_config(tmp_path: Path):
+    """Create a mocked configuration."""
     parameterset_dir = tmp_path / "psr"
     parameterset_dir.mkdir()
     config = Configuration(

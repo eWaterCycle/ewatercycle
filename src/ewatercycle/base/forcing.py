@@ -137,6 +137,7 @@ class DefaultForcing(BaseModel):
             postprocessor: A custom post-processor that can, e.g., derive additional
                 variables based on the ESMValTool recipe output. Must return
                 the names & filenames of the variables it derived.
+            model_specific_options: Subclass specific options.
         """
         recipe = cls._build_recipe(
             dataset=dataset,
@@ -272,10 +273,14 @@ class DefaultForcing(BaseModel):
         return merge_esvmaltool_datasets(datasets)
 
     def variables(self) -> tuple[str, ...]:
-        """Return the names of the variables. Shorthand for self.filenames.keys()"""
+        """Return the names of the variables.
+
+        Shorthand for self.filenames.keys()
+        """
         return tuple(self.filenames)
 
     def __eq__(self, other):
+        """Check if two Forcing objects are equal."""
         return self.__dict__ == other.__dict__
 
     def __getitem__(self, key: str) -> Path:
@@ -291,7 +296,6 @@ class DistributedUserForcing(DefaultForcing):
     """Forcing object with user-specified downloaded variables and postprocessing.
 
     Examples:
-
     To generate forcing from ERA5 for the Rhine catchment for 2000-2001, retrieving
     the 'pr', 'tas' and 'rsds' variables, and applying the Makkink evaporation
     postprocessor.
@@ -362,7 +366,6 @@ class LumpedUserForcing(DistributedUserForcing):
     """Forcing object with user-specified downloaded variables and postprocessing.
 
     Examples:
-
     To generate lumped forcing from ERA5 for the Rhine catchment for 2000-2001,
     retrieving the 'pr', 'tas' and 'rsds' variables, and applying the Makkink
     evaporation postprocessor.
@@ -456,7 +459,6 @@ class GenericDistributedForcing(_GenericForcing, DistributedUserForcing):
     """Generic forcing data for a distributed model.
 
     Examples:
-
         To generate forcing from ERA5 for the Rhine catchment for 2000-2001:
 
         .. code-block:: python
@@ -539,7 +541,6 @@ class GenericLumpedForcing(_GenericForcing, LumpedUserForcing):
     """Generic forcing data for a lumped model.
 
     Example:
-
         To generate forcing from ERA5 for the Rhine catchment for 2000-2001:
 
         .. code-block:: python

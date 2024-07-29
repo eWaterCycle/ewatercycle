@@ -1,3 +1,5 @@
+"""Analysis methods for eWaterCycle."""
+
 import os
 from typing import Optional, Tuple, Union
 
@@ -73,7 +75,7 @@ def hydrograph(
     **kwargs:
         Options to pass to the matplotlib plotting function
 
-    Returns
+    Returns:
     -------
     fig : `matplotlib.figure.Figure`
     ax, ax_tbl : tuple of `matplotlib.axes.Axes`

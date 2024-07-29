@@ -57,7 +57,6 @@ def run_recipe(recipe: Recipe, output_dir: Path | None = None) -> dict[str, str]
         and a key called directory with value the parent directory of the file names.
 
     Example:
-
         To run a recipe that generates a distributed forcing dataset:
 
         >>> from ewatercycle.testing.fixtures import rhine_shape

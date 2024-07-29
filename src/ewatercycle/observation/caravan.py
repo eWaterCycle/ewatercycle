@@ -34,7 +34,6 @@ def get_caravan_data(
         The basin and gauge meta data is available on the basin_id dimension.
 
     Examples:
-
         To get observations from the French Broad River at Rosman in the USA.
 
         >>> from ewatercycle.observation.caravan import get_caravan_data
@@ -56,7 +55,8 @@ def get_caravan_data(
             lon         float64 8B ...
             area        float64 8B ...
             streamflow  (time) float32 12B ...
-        Attributes:
+
+    Attributes:
             history:        Wed Mar 27 16:11:00 2024: /usr/bin/ncap2 -s time=double(t...
             NCO:            netCDF Operators version 5.0.6 (Homepage = http://nco.sf....
             _NCProperties:  version=2,netcdf=4.8.1,hdf5=1.10.7

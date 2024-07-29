@@ -1,3 +1,5 @@
+"""Parameter set module for eWaterCycle."""
+
 import shutil
 from io import BytesIO
 from logging import getLogger
@@ -57,7 +59,6 @@ class GitHubDownloader(BaseModel):
     """Download and extract a Github repository.
 
     Examples:
-
         * https://github.com/ec-jrc/lisflood-usecases/tree/master/LF_lat_lon_UseCase
 
     """
@@ -72,6 +73,7 @@ class GitHubDownloader(BaseModel):
     "Subfolder within the github repo to extract. E.g. 'src/ewatercycle/base'."
 
     def __call__(self, directory: Path):
+        """Download and unpack the Github repository."""
         with TemporaryDirectory() as tmpdir_name:
             tmpdir = Path(tmpdir_name)
             download_github_repo(
@@ -93,9 +95,16 @@ class GitHubDownloader(BaseModel):
 
 
 class ZenodoDownloader(BaseModel):
+    """Download and extract a Zenodo archive.
+
+    Args:
+        doi: DOI of Zenodo record. For example '10.5281/zenodo.1045339'.
+    """
+
     doi: str
 
     def __call__(self, directory: Path):
+        """Download and unpack the Zenodo archive file."""
         raise NotImplementedError
         # extract record id from doi
         # 10.5281/zenodo.7949784
@@ -113,6 +122,7 @@ class ArchiveDownloader(BaseModel):
     url: HttpUrl
 
     def __call__(self, directory: Path):
+        """Download and unpack the archive file."""
         with fsspec.open(self.url, "rb") as file:
             unpack_archive(file, directory)
 
@@ -125,7 +135,6 @@ class ParameterSet(BaseModel):
     :py:class:`~ewatercycle.base.model.AbstractModel`.
 
     Example:
-
         >>> from ewatercycle.base import ParameterSet
         >>> parameter_set = ParameterSet(name='test', directory='test_dir', config='test_dir/config.yaml')
         >>> from ewatercycle.models import Wflow
@@ -246,7 +255,6 @@ class ParameterSet(BaseModel):
             **kwargs: See :py:class:`ParameterSet` for other arguments.
 
         Example:
-
             >>> from ewatercycle.base import ParameterSet
             >>> url = ''
             >>> parameter_set = ParameterSet.from_archive_url(url)
@@ -257,8 +265,10 @@ class ParameterSet(BaseModel):
 
     def make_absolute(self, parameterset_dir: Path) -> "ParameterSet":
         """Make self.directory and self.config absolute paths.
+
         Args:
             parameterset_dir: Directory to which relative paths should be made absolute.
+
         Returns:
             self
         """

@@ -78,7 +78,8 @@ def get_grdc_data(
                 river_name           <U11 44B 'RHINE RIVER'
                 station_name         <U6 24B 'LOBITH'
                 timezone             float32 4B ...
-            Attributes:
+
+    Attributes:
                 title:          Mean daily discharge (Q)
                 Conventions:    CF-1.7
                 references:     grdc.bafg.de

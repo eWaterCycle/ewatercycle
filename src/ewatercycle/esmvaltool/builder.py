@@ -33,7 +33,6 @@ class RecipeBuilder:
     """Builder for ESMValTool recipes tailored to generate forcings.
 
     Example:
-
         To create a recipe from ERA5 dataset and the Rhine basin:
 
         .. code-block:: python
@@ -73,6 +72,7 @@ class RecipeBuilder:
     _mip: str = "day"
 
     def __init__(self) -> None:
+        """Initialize the recipe builder."""
         self._recipe = Recipe(
             documentation=Documentation(
                 description="",
@@ -185,7 +185,7 @@ class RecipeBuilder:
         """Regrid the data from the dataset to a different grid.
 
         Args:
-            schema: Regridding scheme to use. See
+            scheme: Regridding scheme to use. See
                 https://docs.esmvaltool.org/projects/ESMValCore/en/latest/recipes/recipe_file.html#regrid
             target_grid: Target grid to regrid to.
         """

@@ -1,4 +1,7 @@
 """Container utilities."""
+# ruff: noqa: D102
+# ruff: noqa: D102
+# ruff: noqa: D107
 
 import re
 from pathlib import Path
@@ -160,7 +163,6 @@ def start_container(
         which wraps the container <grpc4bmi.bmi_grpc_client.BmiClient>`.
 
     Example:
-
         Given CFG.container_engine == docker a marrmot container can be started with::
 
             from ewatercycle.container import start_container
@@ -298,7 +300,6 @@ class BmiProxy(Bmi):
         origin: the BMI object to proxy
 
     Example:
-
     To overwrite the `get_value` method of a BMI class, you can use the following
 
     >>> class MyBmi(BmiProxy):

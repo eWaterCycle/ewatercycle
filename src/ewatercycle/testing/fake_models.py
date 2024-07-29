@@ -3,6 +3,9 @@
 # To adhere to the BMI standard, we have arguments that are not used.
 # ruff: noqa: ARG002
 # ruff: noqa: B008
+# ruff: noqa: D101
+# ruff: noqa: D102
+# ruff: noqa: D107
 from unittest.mock import Mock
 
 import numpy as np

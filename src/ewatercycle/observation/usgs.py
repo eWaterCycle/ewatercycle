@@ -80,7 +80,6 @@ def get_usgs_data(
         with unit and other metadata in the variable and global attributes.
 
     Examples:
-
         To get observations from the Little Beaver Creek.
 
         >>> from ewatercycle.observation.usgs import get_usgs_data

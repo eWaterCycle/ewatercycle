@@ -1,7 +1,6 @@
 """Collection of models available in eWaterCycle.
 
 Examples:
-
     To instantiate a model:
 
     >>> from ewatercycle.models import Wflow
@@ -58,8 +57,7 @@ for _model in _model_entrypoints:
 class ModelSources(shared.Sources):
     """Dictionary filled with available models.
 
-        Examples:
-
+    Examples:
             Get a nice overview of the available models:
 
             >>> from ewatercycle.models import sources

@@ -1,4 +1,4 @@
-"""Config
+"""Config.
 
 Configuration of eWaterCycle is done via the
 :py:class:`~eWaterCycle.config.Configuration` object. The global configuration can be
@@ -167,6 +167,7 @@ class Configuration(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def singularity_dir_is_deprecated(cls, data: Any) -> Any:
+        """Deprecate singularity_dir field."""
         if data.get("singularity_dir", None) is not None:
             file = data.get("ewatercycle_config", "in-memory object")
             warnings.warn(
@@ -254,7 +255,7 @@ class Configuration(BaseModel):
         self.overwrite(newconfig)
 
     def dump_to_yaml(self) -> str:
-        """Dumps YAML formatted string of Config object"""
+        """Dumps YAML formatted string of Config object."""
         stream = StringIO()
         self._save_to_stream(stream)
         return stream.getvalue()

@@ -1,3 +1,5 @@
+"""Module to manage parameter sets."""
+
 from importlib.metadata import entry_points
 from logging import getLogger
 from os import linesep

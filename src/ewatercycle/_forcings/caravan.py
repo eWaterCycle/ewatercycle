@@ -49,8 +49,8 @@ RENAME_ERA5 = {
 
 class CaravanForcing(DefaultForcing):
     """Retrieves specified part of the caravan dataset from the OpenDAP server.
-    Examples:
 
+    Examples:
     The caravan dataset is an already prepared set by Frederik Kratzert,
     (see https://doi.org/10.1038/s41597-023-01975-w).
 
@@ -123,7 +123,8 @@ class CaravanForcing(DefaultForcing):
 
     @classmethod
     def get_basin_id(cls: Type["CaravanForcing"], dataset: str) -> list[str]:
-        """Gets a list of all the basin ids in provided dataset
+        """Gets a list of all the basin ids in provided dataset.
+
         Args:
             dataset (str): name of dataset, choose from:
                 'camels',
@@ -166,14 +167,13 @@ class CaravanForcing(DefaultForcing):
                 if not specified will default to all.
             shape: (Optional) Path to a shape file.
                 If none is specified, will be downloaded automatically.
-
-        Kwargs:
-            basin_id: The ID of the desired basin. Data sets can be explored using
-                `CaravanForcing.get_dataset(dataset_name)` or
-                `CaravanForcing.get_basin_id(dataset_name)` where `dataset_name` is the
-                name of a dataset in Caravan (for example, "camels" or "camelsgb").
-                For more information do `help(CaravanForcing.get_basin_id)` or see
-                https://www.ewatercycle.org/caravan-map/.
+            kwargs: Additional keyword arguments.
+                basin_id: The ID of the desired basin. Data sets can be explored using
+                    `CaravanForcing.get_dataset(dataset_name)` or
+                    `CaravanForcing.get_basin_id(dataset_name)` where `dataset_name` is the
+                    name of a dataset in Caravan (for example, "camels" or "camelsgb").
+                    For more information do `help(CaravanForcing.get_basin_id)` or see
+                    https://www.ewatercycle.org/caravan-map/.
         """
         if "basin_id" not in kwargs:
             msg = (

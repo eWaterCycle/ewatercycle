@@ -10,6 +10,7 @@ class ESMValToolNotFoundError(ImportError):
     """Exception raised when ESMValTool or ESMValCore packages are not found."""
 
     def __init__(self):
+        """Initialize the exception."""
         msg = dedent(
             """\
             ESMValTool or ESMValCore packages have not been found.
