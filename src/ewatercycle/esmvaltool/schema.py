@@ -126,7 +126,7 @@ class Recipe(BaseModel):
 
 
 class ClimateStatistics(BaseModel):
-    """Arguments for the :py:func:`~esmvalcore.preprocessor.climate_statistics` preprocessor."""
+    """Arguments of :py:func:`~esmvalcore.preprocessor.climate_statistics`."""
 
     operator: Literal["mean", "std", "min", "max", "median", "sum"] = "mean"
     period: Literal["hour", "day", "month", "year"] = "day"
@@ -148,4 +148,4 @@ TargetGrid = TypedDict(
         "step_latitude": float,
     },
 )
-"""Type for target_grid argument for the :py:func:`~esmvalcore.preprocessor.regrid` preprocessor."""
+"""Type of target_grid argument of :py:func:`~esmvalcore.preprocessor.regrid`."""

@@ -136,7 +136,9 @@ class ParameterSet(BaseModel):
 
     Example:
         >>> from ewatercycle.base import ParameterSet
-        >>> parameter_set = ParameterSet(name='test', directory='test_dir', config='test_dir/config.yaml')
+        >>> parameter_set = ParameterSet(name='test',
+        >>>                              directory='test_dir',
+        >>>                              config='test_dir/config.yaml')
         >>> from ewatercycle.models import Wflow
         >>> model = Wflow(parameter_set=parameter_set)
     """

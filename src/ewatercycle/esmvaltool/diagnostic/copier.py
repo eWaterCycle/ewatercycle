@@ -1,4 +1,4 @@
-"""ESMValTool diagnostic script that copies the preprocessing output to the diagnostic output."""
+"""Diagnostic that copies the preprocessing output to the diagnostic output."""
 
 import logging
 import shutil

@@ -137,7 +137,10 @@ class Configuration(BaseModel):
     """
 
     grdc_location: ExpandedDirectoryPath = Path(".")
-    """Where can GRDC observation files (<station identifier>_Q_Day.Cmd.txt) be found."""
+    """Where can GRDC observation files be found.
+
+    Assumes file names like <station identifier>_Q_Day.Cmd.txt
+    """
     container_engine: ContainerEngine = "docker"
     """Which container engine is used to run the hydrological models."""
     apptainer_dir: ExpandedDirectoryPath = Path(".")

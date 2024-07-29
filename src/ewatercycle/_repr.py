@@ -12,19 +12,21 @@ RichReprResult = typing.Iterable[
 
 
 class Representation:
-    # Mixin to provide `__str__`, `__repr__`, and `__pretty__` and `__rich_repr__` methods.
+    # Mixin to provide `__str__`, `__repr__`, and `__pretty__`
+    # and `__rich_repr__` methods.
     # `__pretty__` is used by [devtools](https://python-devtools.helpmanual.io/).
     # `__rich_repr__` is used by [rich](https://rich.readthedocs.io/en/stable/pretty.html).
-    # (this is not a docstring to avoid adding a docstring to classes which inherit from Representation)
+    # (this is not a docstring to avoid adding a docstring
+    # to classes which inherit from Representation)
 
     def __repr_args__(self) -> ReprArgs:
         """Reusable helper for __repr__ and __pretty__.
 
-        Returns the attributes to show in __str__, __repr__, and __pretty__ this is generally overridden.
-
         Can either return:
-        * name - value pairs, e.g.: `[('foo_name', 'foo'), ('bar_name', ['b', 'a', 'r'])]`
-        * or, just values, e.g.: `[(None, 'foo'), (None, ['b', 'a', 'r'])]`
+        * name - value pairs, for example
+            `[('foo_name', 'foo'), ('bar_name', ['b', 'a', 'r'])]`
+        * or, just values, for example
+             `[(None, 'foo'), (None, ['b', 'a', 'r'])]`
         """
         attrs_names = self.__dict__.keys()
         attrs = ((s, getattr(self, s)) for s in attrs_names)
@@ -44,7 +46,8 @@ class Representation:
     ) -> typing.Generator[Any, None, None]:
         """Formatter for devtools.
 
-        Used by devtools (https://python-devtools.helpmanual.io/) to provide a human-readable representations of objects
+        Used by devtools (https://python-devtools.helpmanual.io/) to
+        provide a human-readable representations of objects.
         """
         yield self.__repr_name__() + "("
         yield 1

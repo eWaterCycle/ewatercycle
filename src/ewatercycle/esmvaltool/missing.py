@@ -15,7 +15,8 @@ class ESMValToolNotFoundError(ImportError):
             """\
             ESMValTool or ESMValCore packages have not been found.
 
-            Likely because ewatercycle dependencies are not installed in a conda environment.
+            Likely because ewatercycle dependencies are not installed
+            in a conda environment.
 
             Please install ewatercycle with:
 

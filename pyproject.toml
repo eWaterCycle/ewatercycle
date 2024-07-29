@@ -137,12 +137,16 @@ target-version = "py310"
 extend-include = ["*.ipynb"]
 
 [tool.ruff.lint]
-select = ["A", "ARG", "B", "C", "D", "E4", "E7", "E9", "F"]
+select = ["A", "ARG", "B", "C", "D", "E", "F"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*" = [
-    # Fixtures can be unused and undocumented
-    "ARG", "D"
+    # Fixtures can be unused, undocumented, wide
+    "ARG", "D", "E501"
+]
+"docs/**/*.ipynb" = [
+    # Allow wide lines in notebooks
+    "E501"
 ]
 
 [tool.ruff.lint.pydocstyle]

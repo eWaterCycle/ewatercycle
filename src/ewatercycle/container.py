@@ -158,7 +158,9 @@ def start_container(
         :py:class:`Bmi object
         which wraps the container <grpc4bmi.bmi_grpc_client.BmiClient>`,
         has :py:class:`memoization <grpc4bmi.bmi_memoized.MemoizedBmi>` and
-        has :py:class:`optional dest arguments <grpc4bmi.bmi_optionaldest.OptionalDestBmi>`.
+        has
+        :py:class:`optional dest arguments <grpc4bmi.bmi_optionaldest.OptionalDestBmi>`
+        .
         When no wrappers are used then returns the :py:class:`Bmi object
         which wraps the container <grpc4bmi.bmi_grpc_client.BmiClient>`.
 

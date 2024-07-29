@@ -157,7 +157,8 @@ def _query_esgf(
         dataset_query = Dataset(
             short_name=var,
             activity="*",  # activity is completely determined by the experiment
-            mip="*",  # only accepts str. Iterating over mips causes error: var has to match mip
+            mip="*",  # only accepts str.
+            # Iterating over mips causes error: var has to match mip
             project=project,
             exp=experiment,
             dataset="*",

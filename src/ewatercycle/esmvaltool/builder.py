@@ -202,7 +202,8 @@ class RecipeBuilder:
 
         Args:
             file: Path to shapefile.
-            crop: Crop data to shapefile extent. Otherwise data outside shapefile extent is set to NaN.
+            crop: Crop data to shapefile extent.
+                Otherwise data outside shapefile extent is set to NaN.
             decomposed: Decompose shapefile into separate polygons.
         """
         self._preprocessors[SPATIAL_PREPROCESSOR_NAME]["extract_shape"] = {

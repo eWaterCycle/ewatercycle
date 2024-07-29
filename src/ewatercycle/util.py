@@ -124,7 +124,8 @@ def fit_extents_to_grid(extents, step=0.1, offset=0.05, ndigits=2) -> Dict[str, 
     """Get lat/lon extents fitted to a grid.
 
     Args:
-        extents: Dict with `start_longitude`, `start_latitude`, `end_longitude`, `end_latitude`
+        extents: Dict with `start_longitude`, `start_latitude`,
+            `end_longitude`, `end_latitude`
         step: Distance between to grid cells
         offset: Offset to pad with after rounding extent to step.
         ndigits: Number of digits to return

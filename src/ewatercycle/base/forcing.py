@@ -5,7 +5,8 @@ Configuring ESMValTool
 
 .. _esmvaltool-configuring:
 
-To download data from ESFG via ESMValTool you will need a ~/.esmvaltool/config-user.yml file with something like:
+To download data from ESFG via ESMValTool you will need
+a ~/.esmvaltool/config-user.yml file with something like:
 
 .. code-block:: yaml
 

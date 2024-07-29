@@ -151,7 +151,7 @@ def get_grdc_data(
                 "Conventions": "CF-1.7",
                 "references": "grdc.bafg.de",
                 "institution": "GRDC",
-                "history": f"Converted from {raw_file.name} of {metadata['file_generation_date']} to netcdf by eWaterCycle Python package",
+                "history": f"Converted from {raw_file.name} of {metadata['file_generation_date']} to netcdf by eWaterCycle Python package",  # noqa: E501
                 "missing_value": "-999.000",
             },
             "data_vars": {
