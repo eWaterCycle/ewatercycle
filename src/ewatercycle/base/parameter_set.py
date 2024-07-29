@@ -6,7 +6,6 @@ from logging import getLogger
 from pathlib import Path
 from shutil import unpack_archive
 from tempfile import TemporaryDirectory
-from typing import Optional, Set
 from urllib.request import urlopen
 from zipfile import ZipFile
 
@@ -23,7 +22,7 @@ def download_github_repo(
     repo: str,
     branch: str,
     download_dir: Path,
-    subfolder: Optional[str] = None,
+    subfolder: str | None = None,
 ) -> None:
     """Download a Github repository .zip file, and extract (a subfolder) to a directory.
 
@@ -40,7 +39,7 @@ def download_github_repo(
     """
     zip_url = f"https://github.com/{org}/{repo}/archive/refs/heads/{branch}.zip"
 
-    https_response = urlopen(zip_url)
+    https_response = urlopen(zip_url)  # noqa: S310
     if https_response.status != 200:
         msg = (
             f"HTTP error {https_response.status}\n"
@@ -70,7 +69,7 @@ class GitHubDownloader(BaseModel):
     "Repository name (e.g, 'ewatercycle')"
     branch: str
     "Branch name (e.g., 'main')"
-    subfolder: Optional[str] = None
+    subfolder: str | None = None
     "Subfolder within the github repo to extract. E.g. 'src/ewatercycle/base'."
 
     def __call__(self, directory: Path):
@@ -108,13 +107,10 @@ class ZenodoDownloader(BaseModel):
         """Download and unpack the Zenodo archive file."""
         raise NotImplementedError
         # extract record id from doi
-        # 10.5281/zenodo.7949784
-        # record_id = self.doi.split(".")[-1]
         # TODO Zenodo entry can have multiple files,
         # how to select the correct one? Pick first
         # TODO construct download url
-        # url = 'https://zenodo.org/record/7949784/files/trixi-framework/Trixi.jl-v0.5.24.zip?download=1'
-        # ArchiveDownloader(url=url)(directory)  # pyright: ignore
+        # https://zenodo.org/record/7949784/files/trixi-framework/Trixi.jl-v0.5.24.zip?download=1
 
 
 class ArchiveDownloader(BaseModel):
@@ -163,7 +159,7 @@ class ParameterSet(BaseModel):
     """
     target_model: str = "generic"
     """Name of model that parameter set can work with."""
-    supported_model_versions: Set[str] = set()
+    supported_model_versions: set[str] = set()
     """Set of model versions that are compatible with this parameter set.
 
     If not set then parameter set compability check silently passes."""
@@ -197,7 +193,7 @@ class ParameterSet(BaseModel):
                 f"Directory {self.directory} for parameter set {self.name}"
                 f" already exists and download is not forced, skipping download."
             )
-            return None
+            return
         if self.downloader is None:
             msg = (
                 f"Cannot download parameter set {self.name} "
@@ -209,11 +205,11 @@ class ParameterSet(BaseModel):
         )
         self.downloader(self.directory)
         logger.info("Download complete.")
-        return None
+        return
 
     @classmethod
     def from_github(
-        cls, org: str, repo: str, branch: str, subfolder: Optional[str] = None, **kwargs
+        cls, org: str, repo: str, branch: str, subfolder: str | None = None, **kwargs
     ):
         """Create a parameter set from a GitHub repository.
 
@@ -235,7 +231,7 @@ class ParameterSet(BaseModel):
             repo=repo,
             branch=branch,
             subfolder=subfolder,
-        )  # pyright: ignore
+        )
         return ParameterSet(downloader=downloader, **kwargs)
 
     @classmethod
@@ -264,7 +260,7 @@ class ParameterSet(BaseModel):
             >>> parameter_set = ParameterSet.from_archive_url(url)
         """
         kwargs.pop("downloader", None)
-        downloader = ArchiveDownloader(url=url)  # pyright: ignore
+        downloader = ArchiveDownloader(url=url)
         return ParameterSet(downloader=downloader, **kwargs)
 
     def make_absolute(self, parameterset_dir: Path) -> "ParameterSet":

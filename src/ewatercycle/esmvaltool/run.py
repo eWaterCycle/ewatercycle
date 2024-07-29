@@ -12,7 +12,7 @@ try:
 except ImportError as e:
     from ewatercycle.esmvaltool.missing import ESMValToolNotFoundError
 
-    raise ESMValToolNotFoundError() from e
+    raise ESMValToolNotFoundError from e
 
 
 from ewatercycle.esmvaltool.schema import Recipe

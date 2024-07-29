@@ -13,7 +13,7 @@ try:
 except ImportError as e:
     from ewatercycle.esmvaltool.missing import ESMValToolNotFoundError
 
-    raise ESMValToolNotFoundError() from e
+    raise ESMValToolNotFoundError from e
 
 logger = logging.getLogger(Path(__file__).name)
 
@@ -38,7 +38,7 @@ def main(cfg):
             "acknow_project",
         ],
     }
-    for input_file in input_data.keys():
+    for input_file in input_data:
         input_path = Path(input_file)
         outfile = get_diagnostic_filename(input_path.stem, cfg, input_path.suffix[1:])
         logger.info("Copying %s to %s", input_file, outfile)

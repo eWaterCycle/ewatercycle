@@ -1,5 +1,6 @@
 """Search ESGF for datasets with ESMValTool."""
 
+import logging
 import warnings
 from typing import Literal
 
@@ -9,7 +10,10 @@ try:
 except ImportError as e:
     from ewatercycle.esmvaltool.missing import ESMValToolNotFoundError
 
-    raise ESMValToolNotFoundError() from e
+    raise ESMValToolNotFoundError from e
+
+
+logger = logging.getLogger(__name__)
 
 
 def search_esgf(
@@ -169,9 +173,9 @@ def _query_esgf(
         datasets_var = list(dataset_query.from_files())
 
         if len(datasets_var) > 0 and verbose:
-            print(f"Found {len(datasets_var)} results for short name: {var}")
-            print("\n showing the first one.")
-            print(datasets_var[0])
+            logger.warning(f"Found {len(datasets_var)} results for short name: {var}")
+            logger.warning("\n showing the first one.")
+            logger.warning(datasets_var[0])
 
         datasets.extend(datasets_var)
 

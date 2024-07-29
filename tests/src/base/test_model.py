@@ -1,7 +1,7 @@
 from collections.abc import ItemsView
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Type
+from typing import Any
 from unittest.mock import patch
 
 import numpy as np
@@ -29,12 +29,12 @@ class MockModel(eWaterCycleModel):
         return OptionalDestBmi(self.mybmi)
 
 
-@fixture
+@fixture()
 def mocked_bmi():
     return DummyModelWith2DRectilinearGrid()
 
 
-@fixture
+@fixture()
 def mocked_model(mocked_config, mocked_bmi):
     return MockModel(mybmi=mocked_bmi)
 
@@ -269,11 +269,11 @@ class TestWithSetup:
         # Check that data and coords are aligned
         assert result.sel(
             longitude=0.2, latitude=1.2, time=datetime(1970, 1, 1)
-        ).values.tolist() == pytest.approx(6.6)
+        ).to_numpy().tolist() == pytest.approx(6.6)
 
 
 class DummyLocalModel(LocalModel):
-    bmi_class: Type[Bmi] = DummyModelWith2DRectilinearGrid
+    bmi_class: type[Bmi] = DummyModelWith2DRectilinearGrid
 
 
 # bit ugly to have version here,
@@ -282,7 +282,7 @@ __version__ = "1.2.3"
 
 
 class TestLocalModel:
-    @fixture
+    @fixture()
     def model(self):
         return DummyLocalModel()
 

@@ -7,14 +7,14 @@ from ewatercycle.base.parameter_set import ParameterSet
 
 
 class TestDefaults:
-    @pytest.fixture
+    @pytest.fixture()
     def mocked_ps_config(self, tmp_path):
         CFG.parameterset_dir = tmp_path
         config = tmp_path / "mymockedconfig.ini"
         config.write_text("Something")
         return config
 
-    @pytest.fixture
+    @pytest.fixture()
     def parameter_set(self, tmp_path, mocked_ps_config: Path):
         return ParameterSet(
             name="justatest",
@@ -47,7 +47,7 @@ class TestDefaults:
 
 
 class TestOutsideCFG:
-    @pytest.fixture
+    @pytest.fixture()
     def mocked_ps_config(self, tmp_path):
         parameterset_dir = tmp_path / "parameter-sets"
         parameterset_dir.mkdir()
@@ -56,7 +56,7 @@ class TestOutsideCFG:
         config.write_text("Something")
         return config
 
-    @pytest.fixture
+    @pytest.fixture()
     def parameter_set(self, tmp_path, mocked_ps_config: Path):
         return ParameterSet(
             name="justatest",

@@ -4,8 +4,9 @@ The recipes can be used to generate forcings.
 """
 
 import logging
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Literal, Sequence
+from typing import Literal
 
 from ewatercycle.esmvaltool.datasets import DATASETS
 from ewatercycle.esmvaltool.diagnostic import copier
@@ -138,9 +139,6 @@ class RecipeBuilder:
             dataset = DATASETS[dataset]
         elif isinstance(dataset, dict):
             dataset = Dataset(**dataset)
-        if not isinstance(dataset, Dataset):
-            msg = f"dataset must be a Dataset, str or dict, got {type(dataset)}"
-            raise ValueError(msg)
         self._recipe.datasets = [dataset]
         return self
 

@@ -30,9 +30,10 @@ for more information.
 import logging
 import shutil
 import warnings
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Callable, Optional, TypeAlias, TypeVar, Union
+from typing import Annotated, TypeAlias, TypeVar
 
 import xarray as xr
 from pydantic import BaseModel
@@ -51,7 +52,7 @@ logger = logging.getLogger(__name__)
 FORCING_YAML = "ewatercycle_forcing.yaml"
 
 
-def _to_absolute_path(v: Union[str, Path]):
+def _to_absolute_path(v: str | Path):
     """Absolute path validator."""
     return to_absolute_path(v)
 
@@ -82,7 +83,7 @@ class DefaultForcing(BaseModel):
     start_time: str
     end_time: str
     directory: Annotated[Path, AfterValidator(_to_absolute_path)]
-    shape: Optional[Path] = None
+    shape: Path | None = None
     filenames: dict[str, str] = {}  # Default value for backwards compatibility
 
     @model_validator(mode="after")
@@ -202,7 +203,7 @@ class DefaultForcing(BaseModel):
     def _run_recipe(
         cls,
         recipe: Recipe,
-        directory: Optional[Path] = None,
+        directory: Path | None = None,
     ) -> dict[str, str]:
         return run_recipe(recipe, directory)
 
@@ -291,9 +292,8 @@ class DefaultForcing(BaseModel):
         """Allows for easy access to the (absolute) path of a forcing variable file."""
         if key in self.filenames:
             return (self.directory / self.filenames[key]).absolute()
-        else:
-            msg = f"'{key}' is not a valid variable for this forcing object."
-            raise KeyError(msg)
+        msg = f"'{key}' is not a valid variable for this forcing object."
+        raise KeyError(msg)
 
 
 class DistributedUserForcing(DefaultForcing):

@@ -4,10 +4,11 @@ import abc
 import datetime
 import inspect
 import logging
-from collections.abc import ItemsView
+from collections.abc import ItemsView, Iterable
+from contextlib import suppress
 from datetime import timezone
 from pathlib import Path
-from typing import Annotated, Any, Iterable, Optional, Type, cast
+from typing import Annotated, Any, cast
 
 import bmipy
 import numpy as np
@@ -122,7 +123,7 @@ class eWaterCycleModel(BaseModel, abc.ABC):  # noqa: N801
 
         return str(self._cfg_file), str(self._cfg_dir)
 
-    def _make_cfg_dir(self, cfg_dir: Optional[str] = None) -> Path:
+    def _make_cfg_dir(self, cfg_dir: str | None = None) -> Path:
         if cfg_dir is not None:
             cfg_path = to_absolute_path(cfg_dir)
         else:
@@ -149,10 +150,8 @@ class eWaterCycleModel(BaseModel, abc.ABC):  # noqa: N801
 
     def __del__(self):
         """Shutdown bmi before removing self."""
-        try:
+        with suppress(AttributeError):
             del self._bmi
-        except AttributeError:
-            pass
 
     def __repr_args__(self):
         """Pass arguments to repr."""
@@ -417,7 +416,7 @@ class LocalModel(eWaterCycleModel):
     Mostly intended for development purposes.
     """
 
-    bmi_class: Type[bmipy.Bmi]
+    bmi_class: type[bmipy.Bmi]
 
     @property
     def version(self) -> str:

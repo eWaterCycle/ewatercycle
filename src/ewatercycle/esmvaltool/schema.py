@@ -137,15 +137,13 @@ ExtractRegion = dict[
 ]
 """Arguments for the :py:func:`~esmvalcore.preprocessor.extract_region` preprocessor."""
 
-TargetGrid = TypedDict(
-    "TargetGrid",
-    {
-        "start_longitude": float,
-        "end_longitude": float,
-        "start_latitude": float,
-        "end_latitude": float,
-        "step_longitude": float,
-        "step_latitude": float,
-    },
-)
-"""Type of target_grid argument of :py:func:`~esmvalcore.preprocessor.regrid`."""
+
+class TargetGrid(TypedDict):
+    """Type of target_grid argument of :py:func:`~esmvalcore.preprocessor.regrid`."""
+
+    start_longitude: float
+    end_longitude: float
+    start_latitude: float
+    end_latitude: float
+    step_longitude: float
+    step_latitude: float

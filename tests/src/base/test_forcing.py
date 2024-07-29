@@ -232,7 +232,7 @@ filenames:
         assert content == expected
 
 
-@pytest.fixture
+@pytest.fixture()
 def recipe_output(tmp_path: Path) -> dict:
     forcing_dir = Path(__file__).parent.parent / "esmvaltool/files"
     output_dir = tmp_path / "output"
@@ -251,7 +251,7 @@ def test_makkink_derivation(recipe_output):
 
     assert "evspsblpot" in recipe_output
 
-    ds = xr.open_dataset(recipe_output["directory"] / recipe_output["evspsblpot"])  # type: ignore
+    ds = xr.open_dataset(recipe_output["directory"] / recipe_output["evspsblpot"])
     assert not ds["evspsblpot"].mean(dim=["lat", "lon"]).isnull().any("time")
 
 
@@ -277,7 +277,7 @@ def test_integration_makkink_forcing(sample_shape, recipe_output):
         )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_retrieve():
     with mock.patch(
         "ewatercycle._forcings.caravan.CaravanForcing.get_dataset"

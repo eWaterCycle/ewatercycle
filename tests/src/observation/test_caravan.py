@@ -9,7 +9,7 @@ from xarray.testing import assert_allclose
 from ewatercycle.observation.caravan import get_caravan_data
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_retrieve():
     with mock.patch(
         "ewatercycle._forcings.caravan.CaravanForcing.get_dataset"

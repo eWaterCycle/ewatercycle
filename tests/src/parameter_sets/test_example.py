@@ -7,28 +7,25 @@ from ewatercycle import CFG
 from ewatercycle.parameter_sets import ParameterSet
 
 
-@pytest.fixture
+@pytest.fixture()
 def setup_config(tmp_path):
     CFG.parameterset_dir = tmp_path
     CFG.parameter_sets = {}
     CFG.ewatercycle_config = None
     yield CFG
     # Rollback changes made to CFG by tests
-    print(CFG)
     CFG.parameter_sets = {}
     CFG.reload()
 
 
-@pytest.fixture
+@pytest.fixture()
 def example(setup_config, tmp_path: Path):
     ps_dir = tmp_path / "mymodelexample"
     ps_dir.mkdir()
     ps_config = ps_dir / "config.ini"
     ps_config.write_text("some config")
-    ps = ParameterSet(  # TODO CHECK WITH PETER/STEFAN
+    ps = ParameterSet(
         name="firstexample",
-        # config_url="https://github.com/mymodelorg/mymodelrepo/raw/master/mymodelexample/config.ini",
-        # datafiles_url="https://github.com/mymodelorg/mymodelrepo/trunk/mymodelexample",
         directory=Path("mymodelexample"),
         config=Path("config.ini"),
         supported_model_versions={"0.4.2"},

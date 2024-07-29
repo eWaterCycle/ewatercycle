@@ -18,15 +18,13 @@ class Sources(Mapping):
         """Get the entry point, loads it, and returns the object."""
         if isinstance(self._raw_dict[key], EntryPoint):
             return self._raw_dict[key].load()
-        else:
-            return self._raw_dict[key]
+        return self._raw_dict[key]
 
     def __getattr__(self, attr):
         """Access the keys like attributes. E.g. sources.HypeForcing."""
-        if attr in self._raw_dict.keys():
+        if attr in self._raw_dict:
             return self.__getitem__(attr)
-        else:
-            return getattr(self._raw_dict, attr)
+        return getattr(self._raw_dict, attr)
 
     def __iter__(self):
         """Iterate over the keys."""

@@ -4,8 +4,9 @@
 # ruff: noqa: D107
 
 import re
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Any, Iterable, Optional, Protocol, Sequence, Tuple, Union
+from typing import Any, Protocol
 
 import numpy as np
 from bmipy import Bmi
@@ -64,6 +65,8 @@ class ContainerImage(str):
 
     eWatercycle containers typically don't have these issues.
     """
+
+    __slots__ = ()
 
     def _validate(self):
         """Verify image ends with .sif or can parse as docker url."""
@@ -125,9 +128,9 @@ class ContainerImage(str):
 
 
 def start_container(
-    work_dir: Union[str, Path],
+    work_dir: str | Path,
     image: ContainerImage,
-    input_dirs: Optional[Iterable[str]] = None,
+    input_dirs: Iterable[str] | None = None,
     image_port=55555,
     timeout=None,
     delay=0,
@@ -201,10 +204,10 @@ def start_container(
 
 
 def start_apptainer_container(
-    work_dir: Union[str, Path],
+    work_dir: str | Path,
     image: ContainerImage,
     input_dirs: Iterable[str] = (),
-    timeout: Optional[int] = None,
+    timeout: int | None = None,
     delay: int = 0,
 ) -> Bmi:
     """Start Apptainer container with model inside.
@@ -249,7 +252,7 @@ def start_apptainer_container(
 
 
 def start_docker_container(
-    work_dir: Union[str, Path],
+    work_dir: str | Path,
     image: ContainerImage,
     input_dirs: Iterable[str] = (),
     image_port=55555,
@@ -388,13 +391,13 @@ class BmiProxy(Bmi):
     def get_input_item_count(self) -> int:
         return self.origin.get_input_item_count()
 
-    def get_input_var_names(self) -> Tuple[str, ...]:  # type: ignore[override]
+    def get_input_var_names(self) -> tuple[str, ...]:  # type: ignore[override]
         return self.origin.get_input_var_names()
 
     def get_output_item_count(self) -> int:
         return self.origin.get_output_item_count()
 
-    def get_output_var_names(self) -> Tuple[str, ...]:  # type: ignore[override]
+    def get_output_var_names(self) -> tuple[str, ...]:  # type: ignore[override]
         return self.origin.get_output_var_names()
 
     def get_start_time(self) -> float:

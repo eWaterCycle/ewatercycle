@@ -162,7 +162,7 @@ def test_bmi_proxy(orig_model, method_name, method_args, assert_func):
     assert_func(result)
 
 
-@pytest.fixture
+@pytest.fixture()
 def force_apptainer(tmp_path: Path):
     old_engine = CFG.container_engine
     old_dir = CFG.apptainer_dir
@@ -173,7 +173,7 @@ def force_apptainer(tmp_path: Path):
     CFG.apptainer_dir = old_dir
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_bmi_client_apptainer():
     with mock.patch("ewatercycle.container.BmiClientApptainer") as mock_class:
         mock_class.return_value = DummyModelWith2DRectilinearGrid()

@@ -1,9 +1,10 @@
 """Utility functions for the eWaterCycle package."""
 
+from collections.abc import Iterable
 from configparser import ConfigParser
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional, Tuple, Union
+from typing import Any
 
 import fiona
 import numpy as np
@@ -17,7 +18,7 @@ def find_closest_point(
     grid_latitudes: Iterable[float],
     point_longitude: float,
     point_latitude: float,
-) -> Tuple[int, int]:
+) -> tuple[int, int]:
     """Find closest grid cell to a point based on Geographical distances.
 
     Args:
@@ -89,7 +90,7 @@ def get_time(time_iso: str) -> datetime:
     and check if it is in UTC.
     """
     time = parse(time_iso)
-    if not time.tzname() == "UTC":
+    if time.tzname() != "UTC":
         msg = (
             "The time is not in UTC. The ISO format for a UTC time "
             "is 'YYYY-MM-DDTHH:MM:SSZ'"
@@ -98,7 +99,7 @@ def get_time(time_iso: str) -> datetime:
     return time
 
 
-def get_extents(shapefile: Any, pad=0) -> Dict[str, float]:
+def get_extents(shapefile: Any, pad=0) -> dict[str, float]:
     """Get lat/lon extents from shapefile and add padding.
 
     Args:
@@ -122,7 +123,7 @@ def get_extents(shapefile: Any, pad=0) -> Dict[str, float]:
     }
 
 
-def fit_extents_to_grid(extents, step=0.1, offset=0.05, ndigits=2) -> Dict[str, float]:
+def fit_extents_to_grid(extents, step=0.1, offset=0.05, ndigits=2) -> dict[str, float]:
     """Get lat/lon extents fitted to a grid.
 
     Args:
@@ -181,8 +182,7 @@ def _move_height_to_attrs(ds: xr.Dataset) -> xr.Dataset:
             "height_units": ds["height"].attrs["units"],
         }
     )
-    ds = ds.drop_vars(("height",))
-    return ds
+    return ds.drop_vars(("height",))
 
 
 def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
@@ -237,8 +237,8 @@ def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
 
 
 def to_absolute_path(
-    input_path: Union[str, Path],
-    parent: Optional[Path] = None,
+    input_path: str | Path,
+    parent: Path | None = None,
     must_exist: bool = False,
     must_be_in_parent=True,
 ) -> Path:
@@ -284,16 +284,16 @@ def reindex(source_file: str, var_name: str, mask_file: str, target_file: str):
     mask = xr.open_dataset(mask_file)
 
     try:
-        indexers = {"lat": mask["lat"].values, "lon": mask["lon"].values}
+        indexers = {"lat": mask["lat"].to_numpy(), "lon": mask["lon"].to_numpy()}
     except KeyError:
         try:
             indexers = {
-                "latitude": mask["latitude"].values,
-                "longitude": mask["longitude"].values,
+                "latitude": mask["latitude"].to_numpy(),
+                "longitude": mask["longitude"].to_numpy(),
             }
         except KeyError:
             try:
-                indexers = {"y": mask["y"].values, "x": mask["x"].values}
+                indexers = {"y": mask["y"].to_numpy(), "x": mask["x"].to_numpy()}
             except KeyError as err:
                 msg = (
                     "Bad naming of dimensions in source_file and mask_file."

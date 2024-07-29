@@ -94,7 +94,7 @@ def test_cfg_warning(mock_esgf_query: mock.MagicMock):
     CFG["search_esgf"] = "always"
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_different_freqs():
     test_cases = ["day", "CFday", "fx", "E1hr", "E3hr", "AERhr", "E3hrPt", "AERday"]
 

@@ -1,8 +1,9 @@
 """Global Runoff Data Centre module."""
 
 import logging
-import os
-from typing import Any, Dict, Optional, Union
+import warnings
+from pathlib import Path
+from typing import Any
 
 import pandas as pd
 import xarray as xr
@@ -13,14 +14,14 @@ from ewatercycle.util import get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 
-MetaDataType = Dict[str, Union[str, int, float]]
+MetaDataType = dict[str, str | int | float]
 
 
 def get_grdc_data(
     station_id: str,
     start_time: str,
     end_time: str,
-    data_home: Optional[str] = None,
+    data_home: str | None = None,
     column: str = "streamflow",
 ) -> xr.Dataset:
     """Get river discharge data from Global Runoff Data Centre (GRDC).
@@ -119,9 +120,8 @@ def get_grdc_data(
         if nc_file.exists():
             msg = f"The grdc station {station_id} is not in the {nc_file} file and {raw_file} does not exist!"  # noqa: E501
             raise ValueError(msg)
-        else:
-            msg = f"The grdc file {raw_file} does not exist!"
-            raise ValueError(msg)
+        msg = f"The grdc file {raw_file} does not exist!"
+        raise ValueError(msg)
 
     # Convert the raw data to an dataframe
     metadata, df = _grdc_read(
@@ -131,13 +131,13 @@ def get_grdc_data(
         column=column,
     )
 
-    ds = xr.Dataset.from_dict(
+    return xr.Dataset.from_dict(
         {
             "coords": {
                 "time": {
                     "dims": ("time",),
                     "attrs": {"long_name": "time"},
-                    "data": df.index.values,
+                    "data": df.index.to_numpy(),
                 },
                 "id": {
                     "dims": (),
@@ -160,7 +160,7 @@ def get_grdc_data(
                 column: {
                     "dims": ("time",),
                     "attrs": {"units": "m3/s", "long_name": "Mean daily discharge (Q)"},
-                    "data": df[column].values,
+                    "data": df[column].to_numpy(),
                 },
                 "area": {
                     "dims": (),
@@ -226,8 +226,6 @@ def get_grdc_data(
         }
     )
 
-    return ds
-
 
 def _grdc_read(grdc_station_path, start, end, column):
     with grdc_station_path.open("r", encoding="cp1252", errors="ignore") as file:
@@ -255,7 +253,7 @@ def _grdc_read(grdc_station_path, start, end, column):
         {column: grdc_data[" Value"].array},
         index=grdc_data["YYYY-MM-DD"].array,
     )
-    grdc_station_df.index.rename("time", inplace=True)
+    grdc_station_df.index.rename("time", inplace=True)  # noqa: PD002
 
     # Select GRDC station data that matches the forecast results Date
     grdc_station_select = grdc_station_df.loc[start:end]
@@ -281,19 +279,18 @@ def _grdc_metadata_reader(grdc_station_path, all_lines):  # noqa: C901
 
     # get grdc ids (from files) and check their consistency with their
     # file names
-    id_from_file_name = int(
-        os.path.basename(grdc_station_path).split(".")[0].split("_")[0]
-    )
+    id_from_file_name = int(Path(grdc_station_path).name.split(".")[0].split("_")[0])
     id_from_grdc = None
     if id_from_file_name == int(all_lines[8].split(":")[1].strip()):
         id_from_grdc = int(all_lines[8].split(":")[1].strip())
     else:
-        print(
+        warnings.warn(
             "GRDC station "
             + str(id_from_file_name)
             + " ("
             + str(grdc_station_path)
-            + ") is NOT used."
+            + ") is NOT used.",
+            stacklevel=2,
         )
 
     if id_from_grdc is not None:

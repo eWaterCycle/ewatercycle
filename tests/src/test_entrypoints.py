@@ -10,7 +10,7 @@ from ewatercycle.models import sources as model_sources
     ["LumpedMakkinkForcing", "DistributedUserForcing", "GenericDistributedForcing"],
 )
 def test_forcings(forcing_name):
-    assert forcing_name in forcing_sources.keys()
+    assert forcing_name in forcing_sources
 
 
 def test_forcings_getitem():

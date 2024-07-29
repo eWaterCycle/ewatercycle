@@ -3,8 +3,6 @@
 from importlib.metadata import entry_points
 from logging import getLogger
 from os import linesep
-from pathlib import Path
-from typing import Dict, Optional
 
 from ewatercycle.base.parameter_set import ParameterSet
 from ewatercycle.config import CFG, SYSTEM_CONFIG, USER_HOME_CONFIG
@@ -26,19 +24,9 @@ def add_to_config(parameter_set: ParameterSet):
     CFG.parameter_sets[parameter_set.name] = parameter_set
 
 
-def _abbreviate(path: Path):
-    try:
-        if CFG.parameterset_dir is None:
-            msg = "Can not abbreviate path without CFG.parameterset_dir"
-            raise ValueError(msg)
-        return path.relative_to(CFG.parameterset_dir)
-    except ValueError:
-        return path
-
-
 def available_parameter_sets(
-    target_model: Optional[str] = None,
-) -> Dict[str, ParameterSet]:
+    target_model: str | None = None,
+) -> dict[str, ParameterSet]:
     """List available parameter sets on this machine.
 
     Args:
@@ -74,7 +62,7 @@ def available_parameter_sets(
     return filtered
 
 
-def example_parameter_sets() -> Dict[str, ParameterSet]:
+def example_parameter_sets() -> dict[str, ParameterSet]:
     """Lists the available example parameter sets.
 
     They can be downloaded with :py:func:`~download_example_parameter_sets`.
