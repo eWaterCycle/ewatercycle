@@ -177,15 +177,6 @@ nbsphinx_prompt_width = "0"
 nbsphinx_input_prompt = "%s         In:"
 nbsphinx_output_prompt = "%s       Out:"
 
-# Nice formatting of model-specific input parameters
-napoleon_custom_sections = [
-    ("hype", "params_style"),
-    ("lisflood", "params_style"),
-    ("marrmot", "params_style"),
-    ("pcrglobwb", "params_style"),
-    ("wflow", "params_style"),
-]
-
 intersphinx_mapping = {
     "cf_units": ("https://cf-units.readthedocs.io/en/latest/", None),
     "esmvalcore": ("https://docs.esmvaltool.org/projects/esmvalcore/en/latest/", None),
