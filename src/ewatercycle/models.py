@@ -24,7 +24,7 @@ from importlib.metadata import entry_points, packages_distributions
 from ewatercycle import shared
 from ewatercycle.base.model import eWaterCycleModel
 
-_model_entrypoints = entry_points(group="ewatercycle.models")  # /NOSONAR
+_model_entrypoints = entry_points(group="ewatercycle.models")
 
 
 def get_package_name(module_name: str) -> str:
