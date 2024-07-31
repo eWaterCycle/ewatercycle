@@ -41,7 +41,6 @@ and should be implemented:
 * ``get_end_time()``
 * ``get_grid_type()``
 * ``get_grid_rank()``
-.. To convert flat array to xarray or get/set value at coord
 * ``get_grid_shape()``
 * ``get_grid_size()``
 * ``get_grid_x()``
@@ -49,12 +48,10 @@ and should be implemented:
 * ``get_output_var_names()``
 * ``get_start_time()``
 * ``get_time_step()``
-.. To convert time to a datetime object
 * ``get_time_units()``
 * ``get_value_at_indices()``
 * ``get_value()``
 * ``get_var_grid()``
-.. To reserve a correctly sized array for output
 * ``get_var_itemsize()``
 * ``get_var_nbytes()``
 * ``get_var_type()``
