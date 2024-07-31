@@ -150,6 +150,44 @@ def test_reindex(tmp_path):
     assert reindexed_val == expected_val
 
 
+def test_reindex_baddimsname(tmp_path):
+    expected_source = xr.DataArray(
+        data=[[1.0, 2.0], [3.0, 4.0]],
+        coords={
+            "longitude": [19.35, 19.45],
+            "latitude": [-33.05, -33.15],
+            "time": "2014-09-06",
+        },
+        dims=["longitude", "latitude"],
+        name="tas",
+        attrs={"units": "degC"},
+    )
+    expected_source.to_netcdf(f"{tmp_path}/tas.nc")
+    expected_mask = xr.DataArray(
+        data=[
+            [False, True, True, True, True],
+            [False, False, True, True, True],
+            [False, False, True, False, True],
+            [False, False, False, False, False],
+            [False, False, False, False, False],
+        ],
+        coords={
+            "leftright": [19.05, 19.15, 19.25, 19.35, 19.45],
+            "updown": [-33.05, -33.15, -33.25, -33.35, -33.45],
+        },
+    )
+    expected_mask.to_netcdf(f"{tmp_path}/mask.nc")
+    with pytest.raises(
+        ValueError, match="Bad naming of dimensions in source_file and mask_file"
+    ):
+        reindex(
+            f"{tmp_path}/tas.nc",
+            "tas",
+            f"{tmp_path}/mask.nc",
+            f"{tmp_path}/tas_global.nc",
+        )
+
+
 class TestFitExtents2Map:
     @pytest.mark.parametrize(
         "extents, expected",
