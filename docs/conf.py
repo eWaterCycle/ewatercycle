@@ -1,5 +1,4 @@
 # noqa: D100
-# -*- coding: utf-8 -*-
 #
 # ewatercycle documentation build configuration file, created by
 # sphinx-quickstart on Wed Aug 29 15:40:09 2018.
@@ -43,7 +42,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "ewatercycle"
-copyright = "2018, Netherlands eScience Center & Delft University of Technology"  # noqa A001,VNE003
+copyright = "2018, Netherlands eScience Center & Delft University of Technology"  # noqa: A001
 author = "Stefan Verhoeven"
 
 
@@ -57,7 +56,8 @@ def get_version():
     """Get the version from pyproject.toml."""
     # Not using importlib as we do not want to install
     # package during readthdocs build, to keep build quick
-    with open(Path(__file__).parent / "../pyproject.toml", "rb") as f:
+    project = Path(__file__).parent / "../pyproject.toml"
+    with project.open("rb") as f:
         pyproject = tomli.load(f)
         return pyproject["project"]["version"]
 

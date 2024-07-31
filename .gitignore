@@ -30,3 +30,6 @@ docs/examples/ewatercycle.yaml
 docs/autoapi
 
 __pycache__
+
+.ruff-cache
+.venv

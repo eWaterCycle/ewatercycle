@@ -12,7 +12,7 @@ try:
 except ImportError as e:
     from ewatercycle.esmvaltool.missing import ESMValToolNotFoundError
 
-    raise ESMValToolNotFoundError() from e
+    raise ESMValToolNotFoundError from e
 
 
 from ewatercycle.esmvaltool.schema import Recipe
@@ -57,7 +57,6 @@ def run_recipe(recipe: Recipe, output_dir: Path | None = None) -> dict[str, str]
         and a key called directory with value the parent directory of the file names.
 
     Example:
-
         To run a recipe that generates a distributed forcing dataset:
 
         >>> from ewatercycle.testing.fixtures import rhine_shape
@@ -155,10 +154,11 @@ def _parse_recipe_output(recipe_output: RecipeOutput) -> dict[str, str]:
         Dictionary with forcing data variables as keys and file names as values
         and a key called directory with value the parent directory of the file names.
     """
-    first_diagnostic_output = list(recipe_output.values())[0]
+    first_diagnostic_output = list(recipe_output.values())[0]  # noqa: RUF015
     output_files = first_diagnostic_output.files
     if not output_files:
-        raise ValueError("No recipe output files found")
+        msg = "No recipe output files found"
+        raise ValueError(msg)
     forcing_files = {}
     for output_file in output_files:
         var_name = output_file.path.stem
@@ -166,7 +166,7 @@ def _parse_recipe_output(recipe_output: RecipeOutput) -> dict[str, str]:
             # Datafile means ends with .nc
             # Use first variable name from inside file as key
             dataset = output_file.load_xarray()
-            var_name = list(dataset.data_vars.keys())[0]
+            var_name = next(iter(dataset.data_vars.keys()))
             dataset.close()
         elif isinstance(output_file, ImageFile):
             # Skip image files

@@ -24,7 +24,7 @@ def test_hydrograph():
         "reference": pd.Series(np.random.random(ntime) ** 2, index=dti),
     }
 
-    df = pd.DataFrame(discharge)
+    df_q = pd.DataFrame(discharge)
 
     precipitation = {
         "precipitation_a": pd.Series(np.random.random(ntime) / 20, index=dti),
@@ -32,4 +32,4 @@ def test_hydrograph():
     }
 
     df_pr = pd.DataFrame(precipitation)
-    hydrograph(df, reference="reference", precipitation=df_pr, nbars=100)
+    hydrograph(df_q, reference="reference", precipitation=df_pr, nbars=100)

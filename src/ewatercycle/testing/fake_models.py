@@ -1,16 +1,23 @@
 """Fake BMI models."""
+
+# To adhere to the BMI standard, we have arguments that are not used.
+# ruff: noqa: ARG002
+# ruff: noqa: B008
+# ruff: noqa: D101
+# ruff: noqa: D102
+# ruff: noqa: D107
 from unittest.mock import Mock
 
 import numpy as np
 from bmipy import Bmi
 
 
-class SomeException(Exception):
+class SomeError(Exception):
     pass
 
 
 class FailingModel(Bmi):
-    def __init__(self, exc=SomeException()):
+    def __init__(self, exc=SomeError()):
         self.exc = exc
 
     def initialize(self, filename):

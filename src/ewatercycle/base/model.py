@@ -4,10 +4,11 @@ import abc
 import datetime
 import inspect
 import logging
-from collections.abc import ItemsView
+from collections.abc import ItemsView, Iterable
+from contextlib import suppress
 from datetime import timezone
 from pathlib import Path
-from typing import Annotated, Any, Iterable, Optional, Type, cast
+from typing import Annotated, Any, cast
 
 import bmipy
 import numpy as np
@@ -35,7 +36,7 @@ logger = logging.getLogger(__name__)
 ISO_TIMEFMT = r"%Y-%m-%dT%H:%M:%SZ"
 
 
-class eWaterCycleModel(BaseModel, abc.ABC):
+class eWaterCycleModel(BaseModel, abc.ABC):  # noqa: N801
     """Base functionality for eWaterCycle models.
 
     Children need to specify how to make their BMI instance: in a container or
@@ -52,6 +53,7 @@ class eWaterCycleModel(BaseModel, abc.ABC):
 
     @property
     def version(self) -> str:
+        """Version of the model."""
         return ""
 
     @model_validator(mode="after")
@@ -63,19 +65,21 @@ class eWaterCycleModel(BaseModel, abc.ABC):
         target_model = self.parameter_set.target_model.lower()
         model_name = self.__class__.__name__.lower()
         if model_name != target_model:
-            raise ValueError(
+            msg = (
                 f"Parameter set has wrong target model, "
                 f"expected {target_model} got {model_name}"
             )
+            raise ValueError(msg)
 
         version = self.version
         ps_versions = self.parameter_set.supported_model_versions
         if version and ps_versions and version not in ps_versions:
-            raise ValueError(
+            msg = (
                 f"Parameter set '{self.parameter_set.name}' not compatible"
                 f" with this model version.\nModel version: {version}. "
                 f"Compatible versions: {ps_versions}"
             )
+            raise ValueError(msg)
 
         return self
 
@@ -118,7 +122,7 @@ class eWaterCycleModel(BaseModel, abc.ABC):
 
         return str(self._cfg_file), str(self._cfg_dir)
 
-    def _make_cfg_dir(self, cfg_dir: Optional[str] = None, **kwargs) -> Path:
+    def _make_cfg_dir(self, cfg_dir: str | None = None) -> Path:
         if cfg_dir is not None:
             cfg_path = to_absolute_path(cfg_dir)
         else:
@@ -139,16 +143,14 @@ class eWaterCycleModel(BaseModel, abc.ABC):
         myparameters = dict(list(self.parameters))
         myparameters.update(**kwargs)
         with cfg_file.open(mode="w") as file:
-            yaml.dump({k: v for k, v in myparameters.items()}, file)
+            yaml.dump(myparameters, file)
 
         return cfg_file
 
     def __del__(self):
         """Shutdown bmi before removing self."""
-        try:
+        with suppress(AttributeError):
             del self._bmi
-        except AttributeError:
-            pass
 
     def __repr_args__(self):
         """Pass arguments to repr."""
@@ -231,13 +233,14 @@ class eWaterCycleModel(BaseModel, abc.ABC):
         """Convert lat/lon values to index.
 
         Args:
+            name: Name of variable
             lat: Latitudinal value
             lon: Longitudinal value
         """
         grid_lat, grid_lon, shape = self.get_latlon_grid(name)
 
         indices = []
-        for point_lon, point_lat in zip(lon, lat):
+        for point_lon, point_lat in zip(lon, lat, strict=False):
             idx_lon, idx_lat = find_closest_point(
                 grid_lon, grid_lat, point_lon, point_lat
             )
@@ -412,10 +415,11 @@ class LocalModel(eWaterCycleModel):
     Mostly intended for development purposes.
     """
 
-    bmi_class: Type[bmipy.Bmi]
+    bmi_class: type[bmipy.Bmi]
 
     @property
     def version(self) -> str:
+        """Version of the model package."""
         return getattr(inspect.getmodule(self), "__version__", "")
 
     def _make_bmi_instance(self):
@@ -444,6 +448,7 @@ class ContainerizedModel(eWaterCycleModel):
 
     @property
     def version(self) -> str:
+        """Version of the container image."""
         return self.bmi_image.version
 
     def _make_bmi_instance(self) -> OptionalDestBmi:

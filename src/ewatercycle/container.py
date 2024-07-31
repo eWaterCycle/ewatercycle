@@ -1,7 +1,11 @@
 """Container utilities."""
+# ruff: noqa: D102
+# ruff: noqa: D107
+
 import re
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Any, Iterable, Optional, Protocol, Sequence, Tuple, Union
+from typing import Any, Protocol
 
 import numpy as np
 from bmipy import Bmi
@@ -30,7 +34,8 @@ def _parse_docker_url(docker_url):
     match = pattern.search(docker_url)
 
     if not match:
-        raise ValueError(f"Unable to parse docker url: {docker_url}")
+        msg = f"Unable to parse docker url: {docker_url}"
+        raise ValueError(msg)
 
     repository = match.group("repository")
     image = match.group("image")
@@ -59,6 +64,8 @@ class ContainerImage(str):
 
     eWatercycle containers typically don't have these issues.
     """
+
+    __slots__ = ()
 
     def _validate(self):
         """Verify image ends with .sif or can parse as docker url."""
@@ -120,9 +127,9 @@ class ContainerImage(str):
 
 
 def start_container(
-    work_dir: Union[str, Path],
+    work_dir: str | Path,
     image: ContainerImage,
-    input_dirs: Optional[Iterable[str]] = None,
+    input_dirs: Iterable[str] | None = None,
     image_port=55555,
     timeout=None,
     delay=0,
@@ -154,12 +161,13 @@ def start_container(
         :py:class:`Bmi object
         which wraps the container <grpc4bmi.bmi_grpc_client.BmiClient>`,
         has :py:class:`memoization <grpc4bmi.bmi_memoized.MemoizedBmi>` and
-        has :py:class:`optional dest arguments <grpc4bmi.bmi_optionaldest.OptionalDestBmi>`.
+        has
+        :py:class:`optional dest arguments <grpc4bmi.bmi_optionaldest.OptionalDestBmi>`
+        .
         When no wrappers are used then returns the :py:class:`Bmi object
         which wraps the container <grpc4bmi.bmi_grpc_client.BmiClient>`.
 
     Example:
-
         Given CFG.container_engine == docker a marrmot container can be started with::
 
             from ewatercycle.container import start_container
@@ -186,7 +194,8 @@ def start_container(
             delay,
         )
     else:
-        raise ValueError(f"Unknown container technology: {CFG.container_engine}")
+        msg = f"Unknown container technology: {CFG.container_engine}"
+        raise ValueError(msg)
 
     for wrapper in wrappers:
         bmi = wrapper(bmi)
@@ -194,10 +203,10 @@ def start_container(
 
 
 def start_apptainer_container(
-    work_dir: Union[str, Path],
+    work_dir: str | Path,
     image: ContainerImage,
     input_dirs: Iterable[str] = (),
-    timeout: Optional[int] = None,
+    timeout: int | None = None,
     delay: int = 0,
 ) -> Bmi:
     """Start Apptainer container with model inside.
@@ -232,16 +241,17 @@ def start_apptainer_container(
             delay=delay,
         )
     except FutureTimeoutError as exc:
-        raise TimeoutError(
+        msg = (
             "Couldn't spawn container within allocated time limit "
             f"({timeout} seconds). You may try pulling the docker image with"
             f" `apptainer build {image_fn} "
             f"docker://{image.docker_url}` and then try again."
-        ) from exc
+        )
+        raise TimeoutError(msg) from exc
 
 
 def start_docker_container(
-    work_dir: Union[str, Path],
+    work_dir: str | Path,
     image: ContainerImage,
     input_dirs: Iterable[str] = (),
     image_port=55555,
@@ -276,11 +286,12 @@ def start_docker_container(
     except FutureTimeoutError as exc:
         # https://github.com/eWaterCycle/grpc4bmi/issues/95
         # https://github.com/eWaterCycle/grpc4bmi/issues/100
-        raise TimeoutError(
+        msg = (
             "Couldn't spawn container within allocated time limit "
             f"({timeout} seconds). You may try pulling the docker image with"
             f" `docker pull {image}` and then try again."
-        ) from exc
+        )
+        raise TimeoutError(msg) from exc
 
 
 class BmiFromOrigin(Protocol):
@@ -297,7 +308,6 @@ class BmiProxy(Bmi):
         origin: the BMI object to proxy
 
     Example:
-
     To overwrite the `get_value` method of a BMI class, you can use the following
 
     >>> class MyBmi(BmiProxy):
@@ -380,13 +390,13 @@ class BmiProxy(Bmi):
     def get_input_item_count(self) -> int:
         return self.origin.get_input_item_count()
 
-    def get_input_var_names(self) -> Tuple[str, ...]:  # type: ignore[override]
+    def get_input_var_names(self) -> tuple[str, ...]:  # type: ignore[override]
         return self.origin.get_input_var_names()
 
     def get_output_item_count(self) -> int:
         return self.origin.get_output_item_count()
 
-    def get_output_var_names(self) -> Tuple[str, ...]:  # type: ignore[override]
+    def get_output_var_names(self) -> tuple[str, ...]:  # type: ignore[override]
         return self.origin.get_output_var_names()
 
     def get_start_time(self) -> float:

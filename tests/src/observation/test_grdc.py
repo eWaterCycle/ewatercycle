@@ -10,7 +10,7 @@ from ewatercycle import CFG
 from ewatercycle.observation.grdc import get_grdc_data
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_grdc_file(tmp_path):
     fn = tmp_path / "42424242_Q_Day.Cmd.txt"
     # Sample with fictive data, but with same structure as real file
@@ -52,13 +52,13 @@ def sample_grdc_file(tmp_path):
 YYYY-MM-DD;hh:mm; Value
 2000-01-01;--:--;    123.000
 2000-01-02;--:--;    456.000
-2000-01-03;--:--;    -999.000"""  # noqa: E800
+2000-01-03;--:--;    -999.000"""
     with fn.open("w", encoding="cp1252") as f:
         f.write(body)
     return fn
 
 
-@pytest.fixture
+@pytest.fixture()
 def expected_results():
     return xr.Dataset.from_dict(
         {
@@ -165,7 +165,6 @@ def test_get_grdc_data_with_datahome(
         "42424242", "2000-01-01T00:00Z", "2000-02-01T00:00Z", data_home=str(tmp_path)
     )
 
-    print(result_data.to_dict())
     assert_allclose(result_data, expected_results)
 
 
@@ -201,7 +200,7 @@ def test_get_grdc_data_custom_column_name(
     assert_allclose(result_data, expected_data)
 
 
-@pytest.fixture
+@pytest.fixture()
 def sample_nc_file(tmp_path):
     fn = tmp_path / "GRDC-Daily.nc"
     ds = xr.Dataset.from_dict(

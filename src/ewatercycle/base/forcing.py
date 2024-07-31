@@ -5,7 +5,8 @@ Configuring ESMValTool
 
 .. _esmvaltool-configuring:
 
-To download data from ESFG via ESMValTool you will need a ~/.esmvaltool/config-user.yml file with something like:
+To download data from ESFG via ESMValTool you will need
+a ~/.esmvaltool/config-user.yml file with something like:
 
 .. code-block:: yaml
 
@@ -25,12 +26,14 @@ A config file can be generated with:
 See `ESMValTool configuring docs <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/quickstart/configure.html#user-configuration-file>`_
 for more information.
 """
+
 import logging
 import shutil
 import warnings
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Callable, Optional, TypeAlias, TypeVar, Union
+from typing import Annotated, TypeAlias, TypeVar
 
 import xarray as xr
 from pydantic import BaseModel
@@ -49,7 +52,7 @@ logger = logging.getLogger(__name__)
 FORCING_YAML = "ewatercycle_forcing.yaml"
 
 
-def _to_absolute_path(v: Union[str, Path]):
+def _to_absolute_path(v: str | Path):
     """Absolute path validator."""
     return to_absolute_path(v)
 
@@ -80,7 +83,7 @@ class DefaultForcing(BaseModel):
     start_time: str
     end_time: str
     directory: Annotated[Path, AfterValidator(_to_absolute_path)]
-    shape: Optional[Path] = None
+    shape: Path | None = None
     filenames: dict[str, str] = {}  # Default value for backwards compatibility
 
     @model_validator(mode="after")
@@ -136,6 +139,7 @@ class DefaultForcing(BaseModel):
             postprocessor: A custom post-processor that can, e.g., derive additional
                 variables based on the ESMValTool recipe output. Must return
                 the names & filenames of the variables it derived.
+            model_specific_options: Subclass specific options.
         """
         recipe = cls._build_recipe(
             dataset=dataset,
@@ -183,22 +187,23 @@ class DefaultForcing(BaseModel):
     @classmethod
     def _build_recipe(
         cls,
-        start_time: datetime,
-        end_time: datetime,
-        shape: Path,
-        dataset: Dataset | str | dict,
-        variables: tuple[str, ...] = (),
-        **model_specific_options,
+        start_time: datetime,  # noqa: ARG003
+        end_time: datetime,  # noqa: ARG003
+        shape: Path,  # noqa: ARG003
+        dataset: Dataset | str | dict,  # noqa: ARG003
+        variables: tuple[str, ...] = (),  # noqa: ARG003
+        **model_specific_options,  # noqa: ARG003
     ) -> Recipe:
         # TODO do we want an implementation here?
         # If so how is it different from GenericDistributedForcing?
-        raise NotImplementedError("No default recipe available.")
+        msg = "No default recipe available."
+        raise NotImplementedError(msg)
 
     @classmethod
     def _run_recipe(
         cls,
         recipe: Recipe,
-        directory: Optional[Path] = None,
+        directory: Path | None = None,
     ) -> dict[str, str]:
         return run_recipe(recipe, directory)
 
@@ -206,7 +211,8 @@ class DefaultForcing(BaseModel):
         """Export forcing data for later use."""
         yaml = YAML()
         if self.directory is None:
-            raise ValueError("Cannot save forcing without directory.")
+            msg = "Cannot save forcing without directory."
+            raise ValueError(msg)
         target = self.directory / FORCING_YAML
         # We want to make the yaml and its parent movable,
         # so the directory should not be included in the yaml file
@@ -240,10 +246,11 @@ class DefaultForcing(BaseModel):
         yaml = YAML(typ="safe")
 
         if not meta.exists():
-            raise FileNotFoundError(
+            msg = (
                 f"Forcing file {meta} not found. "
                 f"Perhaps you want to use {cls.__name__}(...)?"
             )
+            raise FileNotFoundError(msg)
         metadata = meta.read_text()
         # Workaround for legacy forcing files having !PythonClass tag.
         # Remove it so ewatercycle.forcing.source[<forcing name>].load(dir) works.
@@ -271,26 +278,28 @@ class DefaultForcing(BaseModel):
         return merge_esvmaltool_datasets(datasets)
 
     def variables(self) -> tuple[str, ...]:
-        """Return the names of the variables. Shorthand for self.filenames.keys()"""
-        return tuple([key for key in self.filenames])
+        """Return the names of the variables.
+
+        Shorthand for self.filenames.keys()
+        """
+        return tuple(self.filenames)
 
     def __eq__(self, other):
+        """Check if two Forcing objects are equal."""
         return self.__dict__ == other.__dict__
 
     def __getitem__(self, key: str) -> Path:
         """Allows for easy access to the (absolute) path of a forcing variable file."""
         if key in self.filenames:
             return (self.directory / self.filenames[key]).absolute()
-        else:
-            msg = f"'{key}' is not a valid variable for this forcing object."
-            raise KeyError(msg)
+        msg = f"'{key}' is not a valid variable for this forcing object."
+        raise KeyError(msg)
 
 
 class DistributedUserForcing(DefaultForcing):
     """Forcing object with user-specified downloaded variables and postprocessing.
 
     Examples:
-
     To generate forcing from ERA5 for the Rhine catchment for 2000-2001, retrieving
     the 'pr', 'tas' and 'rsds' variables, and applying the Makkink evaporation
     postprocessor.
@@ -344,7 +353,7 @@ class DistributedUserForcing(DefaultForcing):
         shape: Path,
         dataset: Dataset | str | dict,
         variables: tuple[str, ...] = (),
-        **model_specific_options,
+        **model_specific_options,  # noqa: ARG003
     ):
         return build_generic_distributed_forcing_recipe(
             # TODO allow finer selection then a whole year.
@@ -362,7 +371,6 @@ class LumpedUserForcing(DistributedUserForcing):
     """Forcing object with user-specified downloaded variables and postprocessing.
 
     Examples:
-
     To generate lumped forcing from ERA5 for the Rhine catchment for 2000-2001,
     retrieving the 'pr', 'tas' and 'rsds' variables, and applying the Makkink
     evaporation postprocessor.
@@ -416,7 +424,7 @@ class LumpedUserForcing(DistributedUserForcing):
         shape: Path,
         dataset: Dataset | str | dict,
         variables: tuple[str, ...] = (),
-        **model_specific_options,
+        **model_specific_options,  # noqa: ARG003
     ):
         return build_generic_lumped_forcing_recipe(
             # TODO allow finer selection then a whole year.
@@ -457,7 +465,6 @@ class GenericDistributedForcing(_GenericForcing, DistributedUserForcing):
     """Generic forcing data for a distributed model.
 
     Examples:
-
         To generate forcing from ERA5 for the Rhine catchment for 2000-2001:
 
         .. code-block:: python
@@ -540,7 +547,6 @@ class GenericLumpedForcing(_GenericForcing, LumpedUserForcing):
     """Generic forcing data for a lumped model.
 
     Example:
-
         To generate forcing from ERA5 for the Rhine catchment for 2000-2001:
 
         .. code-block:: python

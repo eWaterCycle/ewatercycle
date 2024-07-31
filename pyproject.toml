@@ -26,6 +26,8 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: GIS",
     "Topic :: Scientific/Engineering :: Hydrology",
@@ -54,13 +56,10 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "black[jupyter]",
     "ipython",
-    "isort",
     "mypy",
     "nbsphinx",
     "pre-commit>=2.15.0",
-    "pycodestyle",
     "pytest",
     "pytest-cov",
     "pytest-runner",
@@ -74,6 +73,7 @@ dev = [
     "types-PyYAML",
     "types-requests",
     "tomli",
+    "ruff",
 ]
 
 [project.urls]
@@ -115,19 +115,6 @@ protobuf = '>=4,<5'
 packaging = '*'
 typeguard = '*'
 
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-
-[tool.pylint.messages_control]
-disable = "C0330, C0326"
-
-[tool.pylint.format]
-max-line-length = "88"
-
-[tool.pydocstyle]
-convention = "google"
-
 [tool.coverage.run]
 branch = true
 parallel = true
@@ -139,8 +126,89 @@ source = ["src"]
 testpaths = ["tests"]
 
 [tool.mypy]
-plugins = ["pydantic.mypy"]
+plugins = ["pydantic.mypy", "numpy.typing.mypy_plugin"]
 ignore_missing_imports = true
 warn_unused_ignores = true
 check_untyped_defs = true
 files = ["src"]
+
+[tool.ruff]
+target-version = "py310"
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint]
+select = [
+    "A",
+    # TODO enable ANN and make code more typed
+    # "ANN",
+    "ARG",
+    "B",
+    "BLE",
+    "C",
+    "D",
+    "DTZ",
+    "E",
+    "EM",
+    "ERA",
+    "F",
+    # TODO enable FBT and factor out booleans args to seperate functions
+    # "FBT",
+    "FURB",
+    "I",
+    "ICN",
+    "ISC",
+    "LOG",
+    "N",
+    # TODO enable NPT and use modern random
+    # "NPY",
+    "PD",
+    "PERF",
+    "PGH",
+    "PLC",
+    "PLE",
+    # TODO enable PLR and make code less complex
+    # "PLR",
+    # TODO enable PT for tests/**
+    # "PT",
+    "PTH",
+    "PLW",
+    "Q",
+    "RET",
+    "RSE",
+    "RUF",
+    "S",
+    "SLOT",
+    "SIM",
+    "T",
+    "TCH",
+    "TID",
+    "TRY",
+    "UP",
+    "W",
+    "YTT"
+]
+ignore = [
+    # Conflicts with formatting
+    "ISC001",
+    # Conflicts with default rules
+    "PLC0414",
+    # Misidentifies xarrary.DataArray as pandas.DataFrame
+    "PD003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*" = [
+    "ARG", "ANN", "D", "E501", "DTZ001", "N802", "S101", "S108", "PLR2004"
+]
+"docs/**/*.ipynb" = [
+    # Allow wide lines in notebooks
+    "E501",
+    # Allow prints
+    "T201",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["ewatercycle"]

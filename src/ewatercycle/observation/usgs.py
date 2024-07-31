@@ -1,4 +1,5 @@
 """Module to retrieve river discharge data from the USGS REST web service."""
+
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -14,7 +15,8 @@ def _xml_to_xarray(waterml_data: str) -> xr.Dataset:
 
     # We expect only 1 station
     if len(data.elements) == 0:
-        raise ValueError("Data does not contain any station data")
+        msg = "Data does not contain any station data"
+        raise ValueError(msg)
 
     station = data.elements[0]
 
@@ -79,7 +81,6 @@ def get_usgs_data(
         with unit and other metadata in the variable and global attributes.
 
     Examples:
-
         To get observations from the Little Beaver Creek.
 
         >>> from ewatercycle.observation.usgs import get_usgs_data
