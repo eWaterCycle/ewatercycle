@@ -1,6 +1,5 @@
 """Container utilities."""
 # ruff: noqa: D102
-# ruff: noqa: D102
 # ruff: noqa: D107
 
 import re
