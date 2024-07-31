@@ -15,9 +15,9 @@
 version: 1
 metadata:
   content_hash:
-    linux-64: f9c37dee9aa0429c3889ecad14678ba5aec814b5956d89ce72e9334b7af5b93a
-    osx-64: 886a694ba28117e3d98a1fadaa184a6b97238933ec816246d37d4615fccd2d89
-    osx-arm64: cc186349a943ee7f5c8a5bd48ad337c3910c3d594f916681ead866a5a0d3d5ad
+    linux-64: f48a06b327ef778c9f7f822602a2182291d3f265f760373fcdedbaed017959bc
+    osx-64: 773b1c883d78a9b816106918fad121e91b1b3b7f1e915e92a61b845e4a2bd628
+    osx-arm64: e587b2c22c5c83a41f842183a445b45cf540180d346e15b4919414e8798db42f
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -19454,6 +19454,51 @@ package:
   hash:
     md5: 736b53813c2b9582b1345462d8ca66e7
     sha256: 61d127c9e32176ac75a24b85c4d1ba3e8cf7e638884331429752a2da6a3ac63a
+  category: dev
+  optional: true
+- name: sphinx-autodoc2
+  version: 0.5.0
+  manager: conda
+  platform: linux-64
+  dependencies:
+    astroid: '>=2.7,<4'
+    python: '>=3.8'
+    tomli: ''
+    typing_extensions: ''
+  url: https://conda.anaconda.org/conda-forge/noarch/sphinx-autodoc2-0.5.0-pyhd8ed1ab_1.conda
+  hash:
+    md5: 45fbd0b3f6f98bb7020ab5c0a40aadb1
+    sha256: 344526e523233cb02c1914d48dd90a2c06a9b5672c3e5956657b0cf97bf830d1
+  category: dev
+  optional: true
+- name: sphinx-autodoc2
+  version: 0.5.0
+  manager: conda
+  platform: osx-64
+  dependencies:
+    typing_extensions: ''
+    tomli: ''
+    python: '>=3.8'
+    astroid: '>=2.7,<4'
+  url: https://conda.anaconda.org/conda-forge/noarch/sphinx-autodoc2-0.5.0-pyhd8ed1ab_1.conda
+  hash:
+    md5: 45fbd0b3f6f98bb7020ab5c0a40aadb1
+    sha256: 344526e523233cb02c1914d48dd90a2c06a9b5672c3e5956657b0cf97bf830d1
+  category: dev
+  optional: true
+- name: sphinx-autodoc2
+  version: 0.5.0
+  manager: conda
+  platform: osx-arm64
+  dependencies:
+    typing_extensions: ''
+    tomli: ''
+    python: '>=3.8'
+    astroid: '>=2.7,<4'
+  url: https://conda.anaconda.org/conda-forge/noarch/sphinx-autodoc2-0.5.0-pyhd8ed1ab_1.conda
+  hash:
+    md5: 45fbd0b3f6f98bb7020ab5c0a40aadb1
+    sha256: 344526e523233cb02c1914d48dd90a2c06a9b5672c3e5956657b0cf97bf830d1
   category: dev
   optional: true
 - name: sphinx-copybutton

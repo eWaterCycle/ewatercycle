@@ -21,7 +21,7 @@ import tomli
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx.ext.autodoc",
+    "autodoc2",
     "sphinx.ext.napoleon",
     "myst_nb",
     "sphinx.ext.intersphinx",
@@ -162,11 +162,7 @@ texinfo_documents = [
     ),
 ]
 
-autodoc_mock_imports = [
-    "cf_units",  # Causes many errors in docs build.
-]
-# Prevent alphabetic sorting of (@data)class attributes/methods
-autodoc_member_order = "bysource"
+autodoc2_packages = ["../src/ewatercycle"]
 
 nb_execution_mode = "off"
 nb_output_stderr = "remove"
