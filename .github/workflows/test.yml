@@ -9,6 +9,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: mamba-org/setup-micromamba@v1
@@ -22,12 +25,12 @@ jobs:
         run: |
           pip3 install -e .[dev]
       - name: Test
-        run: pytest --cov
+        run: pytest --cov --cov-report=xml
         shell: bash -l {0}
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4.0.1
+        uses: codecov/codecov-action@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          use_oidc: true
       # mypy should be in lint workflow,
       # but mypy requires all dependencies to be installed,
       # so we put it here.
