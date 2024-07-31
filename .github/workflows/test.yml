@@ -1,4 +1,4 @@
-name: Python package
+name: Test
 
 on:
   push:
@@ -7,12 +7,10 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
-    name: Run tests in conda environment
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: conda-lock.yml
@@ -22,10 +20,17 @@ jobs:
       - name: Install dependencies
         shell: bash -l {0}
         run: |
-          pip3 install -e .[dev] build
-      - name: Test with pytest
-        run: pytest
+          pip3 install -e .[dev]
+      - name: Test
+        run: pytest --cov
         shell: bash -l {0}
-      - name: Build
-        run: python -m build
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+      # mypy should be in lint workflow,
+      # but mypy requires all dependencies to be installed,
+      # so we put it here.
+      - name: Check typings
+        run: mypy
         shell: bash -l {0}
