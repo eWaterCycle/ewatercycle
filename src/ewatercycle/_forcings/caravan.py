@@ -1,7 +1,6 @@
 import shutil
 import zipfile
 from pathlib import Path
-from typing import Type
 
 import fiona
 import pandas as pd
@@ -49,8 +48,8 @@ RENAME_ERA5 = {
 
 class CaravanForcing(DefaultForcing):
     """Retrieves specified part of the caravan dataset from the OpenDAP server.
-    Examples:
 
+    Examples:
     The caravan dataset is an already prepared set by Frederik Kratzert,
     (see https://doi.org/10.1038/s41597-023-01975-w).
 
@@ -106,7 +105,7 @@ class CaravanForcing(DefaultForcing):
     """
 
     @classmethod
-    def get_dataset(cls: Type["CaravanForcing"], dataset: str) -> xr.Dataset:
+    def get_dataset(cls: type["CaravanForcing"], dataset: str) -> xr.Dataset:
         """Opens specified dataset from data.4tu.nl OPeNDAP server.
 
         Args:
@@ -122,8 +121,9 @@ class CaravanForcing(DefaultForcing):
         return xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
 
     @classmethod
-    def get_basin_id(cls: Type["CaravanForcing"], dataset: str) -> list[str]:
-        """Gets a list of all the basin ids in provided dataset
+    def get_basin_id(cls: type["CaravanForcing"], dataset: str) -> list[str]:
+        """Gets a list of all the basin ids in provided dataset.
+
         Args:
             dataset (str): name of dataset, choose from:
                 'camels',
@@ -142,11 +142,11 @@ class CaravanForcing(DefaultForcing):
             https://doi.org/10.4121/ca13056c-c347-4a27-b320-930c2a4dd207.v1 which also
             allows exploration of the dataset.
         """
-        return [val.decode() for val in cls.get_dataset(dataset).basin_id.values]
+        return [val.decode() for val in cls.get_dataset(dataset).basin_id.to_numpy()]
 
     @classmethod
     def generate(  # type: ignore[override]
-        cls: Type["CaravanForcing"],
+        cls: type["CaravanForcing"],
         start_time: str,
         end_time: str,
         directory: str,
@@ -166,14 +166,14 @@ class CaravanForcing(DefaultForcing):
                 if not specified will default to all.
             shape: (Optional) Path to a shape file.
                 If none is specified, will be downloaded automatically.
-
-        Kwargs:
-            basin_id: The ID of the desired basin. Data sets can be explored using
-                `CaravanForcing.get_dataset(dataset_name)` or
-                `CaravanForcing.get_basin_id(dataset_name)` where `dataset_name` is the
-                name of a dataset in Caravan (for example, "camels" or "camelsgb").
-                For more information do `help(CaravanForcing.get_basin_id)` or see
-                https://www.ewatercycle.org/caravan-map/.
+            kwargs: Additional keyword arguments.
+                basin_id: The ID of the desired basin. Data sets can be explored using
+                    `CaravanForcing.get_dataset(dataset_name)` or
+                    `CaravanForcing.get_basin_id(dataset_name)`
+                    where `dataset_name` is the name of a dataset in Caravan
+                    (for example, "camels" or "camelsgb").
+                    For more information do `help(CaravanForcing.get_basin_id)` or see
+                    https://www.ewatercycle.org/caravan-map/.
         """
         if "basin_id" not in kwargs:
             msg = (
@@ -211,13 +211,13 @@ class CaravanForcing(DefaultForcing):
         for temp in ["tas", "tasmin", "tasmax"]:
             ds_basin_time[temp].attrs.update({"height": "2m"})
             if (ds_basin_time[temp].attrs["unit"]) == "°C":
-                ds_basin_time[temp].values = ds_basin_time[temp].values + 273.15
+                ds_basin_time[temp].values = ds_basin_time[temp].to_numpy() + 273.15
                 ds_basin_time[temp].attrs["unit"] = "K"
 
         for var in ["evspsblpot", "pr"]:
             if (ds_basin_time[var].attrs["unit"]) == "mm":
                 # mm/day --> kg m-2 s-1
-                ds_basin_time[var].values = ds_basin_time[var].values / (86400)
+                ds_basin_time[var].values = ds_basin_time[var].to_numpy() / (86400)
                 ds_basin_time[var].attrs["unit"] = "kg m-2 s-1"
 
         start_time_name = start_time[:10]
@@ -255,9 +255,10 @@ def get_shapefiles(directory: Path, basin_id: str) -> Path:
     if not shape_path.is_file():
         if not combined_shapefile_path.is_file():
             http = urllib3.PoolManager(timeout=urllib3.Timeout(connect=10.0, read=300))
-            with http.request(
-                "GET", SHAPEFILE_URL, preload_content=False
-            ) as r, zip_path.open("wb") as out_file:
+            with (
+                http.request("GET", SHAPEFILE_URL, preload_content=False) as r,
+                zip_path.open("wb") as out_file,
+            ):
                 shutil.copyfileobj(r, out_file)
 
         with zipfile.ZipFile(zip_path) as myzip:
@@ -275,14 +276,12 @@ def extract_basin_shapefile(
 ) -> None:
     """Extract single polygon from multipolygon shapefile."""
     shape_obj = shapereader.Reader(combined_shapefile_path)
-    list_records = []
-    for record in shape_obj.records():
-        list_records.append(record.attributes["gauge_id"])
+    list_records = [record.attributes["gauge_id"] for record in shape_obj.records()]
 
-    df = pd.DataFrame(
+    basins = pd.DataFrame(
         data=list_records, index=range(len(list_records)), columns=["basin_id"]
     )
-    basin_index = df[df["basin_id"] == basin_id].index.array[0]
+    basin_index = basins[basins["basin_id"] == basin_id].index.array[0]
 
     with fiona.open(combined_shapefile_path) as src:
         dst_schema = src.schema  # Copy the source schema
@@ -300,7 +299,9 @@ def extract_basin_shapefile(
                 # kind of clunky but it works: select filtered polygon
                 if i == basin_index:
                     geom = feat.geometry
-                    assert geom.type == "Polygon"
+                    if geom.type != "Polygon":
+                        msg = "Only polygons are supported"
+                        raise ValueError(msg)
 
                     # Add the signed area of the polygon and a timestamp
                     # to the feature properties map.

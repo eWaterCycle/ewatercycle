@@ -1,8 +1,9 @@
 """Global Runoff Data Centre module."""
 
 import logging
-import os
-from typing import Any, Dict, Optional, Union
+import warnings
+from pathlib import Path
+from typing import Any
 
 import pandas as pd
 import xarray as xr
@@ -13,14 +14,14 @@ from ewatercycle.util import get_time, to_absolute_path
 
 logger = logging.getLogger(__name__)
 
-MetaDataType = Dict[str, Union[str, int, float]]
+MetaDataType = dict[str, str | int | float]
 
 
 def get_grdc_data(
     station_id: str,
     start_time: str,
     end_time: str,
-    data_home: Optional[str] = None,
+    data_home: str | None = None,
     column: str = "streamflow",
 ) -> xr.Dataset:
     """Get river discharge data from Global Runoff Data Centre (GRDC).
@@ -30,8 +31,10 @@ def get_grdc_data(
     https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/riverdischarge_node.html .
     The downloaded zip file contains a file named GRDC-Daily.nc.
 
-    This function will first try to read data from the GRDC-Daily.nc file in the ``data_home`` directory.
-    If that fails it will look for the GRDC Export (ASCII text) formatted file for example ``6435060_Q_Day.Cmd.txt``.
+    This function will first try to read data from the GRDC-Daily.nc file
+    in the ``data_home`` directory.
+    If that fails it will look for the GRDC Export (ASCII text) formatted file
+    for example ``6435060_Q_Day.Cmd.txt``.
 
     Args:
         station_id: The station id to get. The station id can be found in the
@@ -47,10 +50,12 @@ def get_grdc_data(
         column: optional. Name of column in dataframe. Default: "streamflow".
 
     Returns:
-        grdc data in a xarray dataset. Shaped like a filtered version of the GRDC daily NetCDF file.
+        grdc data in a xarray dataset.
+            Shaped like a filtered version of the GRDC daily NetCDF file.
 
     Raises:
-        ValueError: If no data for the requested station id and period could not be found.
+        ValueError: If no data for the requested station id
+            and period could not be found.
 
     Examples:
 
@@ -85,19 +90,21 @@ def get_grdc_data(
                 institution:    GRDC
                 history:        Download from GRDC Database, 21/06/2024
                 missing_value:  -999.000
-    """  # noqa: E501
+    """  # noqa: D214,D410,D411
     if data_home:
         data_path = to_absolute_path(data_home)
     elif CFG.grdc_location:
         data_path = to_absolute_path(CFG.grdc_location)
     else:
-        raise ValueError(
+        msg = (
             "Provide the grdc path using `data_home` argument"
             "or using `grdc_location` in ewatercycle configuration file."
         )
+        raise ValueError(msg)
 
     if not data_path.exists():
-        raise ValueError(f"The grdc directory {data_path} does not exist!")
+        msg = f"The grdc directory {data_path} does not exist!"
+        raise ValueError(msg)
 
     # Read the NetCDF file
     nc_file = data_path / "GRDC-Daily.nc"
@@ -114,11 +121,10 @@ def get_grdc_data(
     raw_file = data_path / f"{station_id}_Q_Day.Cmd.txt"
     if not raw_file.exists():
         if nc_file.exists():
-            raise ValueError(
-                f"The grdc station {station_id} is not in the {nc_file} file and {raw_file} does not exist!"  # noqa: E501
-            )
-        else:
-            raise ValueError(f"The grdc file {raw_file} does not exist!")
+            msg = f"The grdc station {station_id} is not in the {nc_file} file and {raw_file} does not exist!"  # noqa: E501
+            raise ValueError(msg)
+        msg = f"The grdc file {raw_file} does not exist!"
+        raise ValueError(msg)
 
     # Convert the raw data to an dataframe
     metadata, df = _grdc_read(
@@ -128,13 +134,13 @@ def get_grdc_data(
         column=column,
     )
 
-    ds = xr.Dataset.from_dict(
+    return xr.Dataset.from_dict(
         {
             "coords": {
                 "time": {
                     "dims": ("time",),
                     "attrs": {"long_name": "time"},
-                    "data": df.index.values,
+                    "data": df.index.to_numpy(),
                 },
                 "id": {
                     "dims": (),
@@ -150,14 +156,14 @@ def get_grdc_data(
                 "Conventions": "CF-1.7",
                 "references": "grdc.bafg.de",
                 "institution": "GRDC",
-                "history": f"Converted from {raw_file.name} of {metadata['file_generation_date']} to netcdf by eWaterCycle Python package",
+                "history": f"Converted from {raw_file.name} of {metadata['file_generation_date']} to netcdf by eWaterCycle Python package",  # noqa: E501
                 "missing_value": "-999.000",
             },
             "data_vars": {
                 column: {
                     "dims": ("time",),
                     "attrs": {"units": "m3/s", "long_name": "Mean daily discharge (Q)"},
-                    "data": df[column].values,
+                    "data": df[column].to_numpy(),
                 },
                 "area": {
                     "dims": (),
@@ -223,8 +229,6 @@ def get_grdc_data(
         }
     )
 
-    return ds
-
 
 def _grdc_read(grdc_station_path, start, end, column):
     with grdc_station_path.open("r", encoding="cp1252", errors="ignore") as file:
@@ -252,7 +256,7 @@ def _grdc_read(grdc_station_path, start, end, column):
         {column: grdc_data[" Value"].array},
         index=grdc_data["YYYY-MM-DD"].array,
     )
-    grdc_station_df.index.rename("time", inplace=True)
+    grdc_station_df.index.rename("time", inplace=True)  # noqa: PD002
 
     # Select GRDC station data that matches the forecast results Date
     grdc_station_select = grdc_station_df.loc[start:end]
@@ -260,7 +264,7 @@ def _grdc_read(grdc_station_path, start, end, column):
     return metadata, grdc_station_select
 
 
-def _grdc_metadata_reader(grdc_station_path, all_lines):
+def _grdc_metadata_reader(grdc_station_path, all_lines):  # noqa: C901
     # Initiating a dictionary that will contain all GRDC attributes.
     # This function is based on earlier work by Rolf Hut.
     # https://github.com/RolfHut/GRDC2NetCDF/blob/master/GRDC2NetCDF.py
@@ -278,19 +282,18 @@ def _grdc_metadata_reader(grdc_station_path, all_lines):
 
     # get grdc ids (from files) and check their consistency with their
     # file names
-    id_from_file_name = int(
-        os.path.basename(grdc_station_path).split(".")[0].split("_")[0]
-    )
+    id_from_file_name = int(Path(grdc_station_path).name.split(".")[0].split("_")[0])
     id_from_grdc = None
     if id_from_file_name == int(all_lines[8].split(":")[1].strip()):
         id_from_grdc = int(all_lines[8].split(":")[1].strip())
     else:
-        print(
+        warnings.warn(
             "GRDC station "
             + str(id_from_file_name)
             + " ("
             + str(grdc_station_path)
-            + ") is NOT used."
+            + ") is NOT used.",
+            stacklevel=2,
         )
 
     if id_from_grdc is not None:

@@ -9,7 +9,7 @@ from xarray.testing import assert_allclose
 from ewatercycle.observation.caravan import get_caravan_data
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_retrieve():
     with mock.patch(
         "ewatercycle._forcings.caravan.CaravanForcing.get_dataset"
@@ -45,8 +45,8 @@ def test_get_caravan_data(mock_retrieve):
                 "basin_id": {"dims": (), "attrs": {}, "data": b"camels_03439000"},
             },
             "attrs": {
-                "history": "Wed Mar 27 16:11:00 2024: /usr/bin/ncap2 -s time=double(time) -O Caravan/camels.nc Caravan/camels.nc\nMerged together from separate files; All forcing and state variables are derived from ERA5-Land hourly by ECMWF. Streamflow data was taken from the CAMELS (US) dataset by Newman et al. (2014).",  # noqa
-                "NCO": "netCDF Operators version 5.0.6 (Homepage = http://nco.sf.net, Code = http://github.com/nco/nco)",  # noqa
+                "history": "Wed Mar 27 16:11:00 2024: /usr/bin/ncap2 -s time=double(time) -O Caravan/camels.nc Caravan/camels.nc\nMerged together from separate files; All forcing and state variables are derived from ERA5-Land hourly by ECMWF. Streamflow data was taken from the CAMELS (US) dataset by Newman et al. (2014).",
+                "NCO": "netCDF Operators version 5.0.6 (Homepage = http://nco.sf.net, Code = http://github.com/nco/nco)",
             },
             "dims": {"time": 3},
             "data_vars": {

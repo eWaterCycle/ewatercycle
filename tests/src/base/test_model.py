@@ -1,6 +1,7 @@
+from collections.abc import ItemsView
 from datetime import datetime
 from pathlib import Path
-from typing import Type
+from typing import Any
 from unittest.mock import patch
 
 import numpy as np
@@ -28,12 +29,12 @@ class MockModel(eWaterCycleModel):
         return OptionalDestBmi(self.mybmi)
 
 
-@fixture
+@fixture()
 def mocked_bmi():
     return DummyModelWith2DRectilinearGrid()
 
 
-@fixture
+@fixture()
 def mocked_model(mocked_config, mocked_bmi):
     return MockModel(mybmi=mocked_bmi)
 
@@ -79,7 +80,7 @@ class TestWithSetup:
         mocked_model.finalize()
 
         with pytest.raises(AttributeError, match="has no attribute '_bmi'"):
-            mocked_model.bmi
+            mocked_model.bmi  # noqa: B018
         mocked_bmi.mock.finalize.assert_called_once_with()
 
     def test_update(self, mocked_model: eWaterCycleModel):
@@ -268,11 +269,11 @@ class TestWithSetup:
         # Check that data and coords are aligned
         assert result.sel(
             longitude=0.2, latitude=1.2, time=datetime(1970, 1, 1)
-        ).values.tolist() == pytest.approx(6.6)
+        ).to_numpy().tolist() == pytest.approx(6.6)
 
 
 class DummyLocalModel(LocalModel):
-    bmi_class: Type[Bmi] = DummyModelWith2DRectilinearGrid
+    bmi_class: type[Bmi] = DummyModelWith2DRectilinearGrid
 
 
 # bit ugly to have version here,
@@ -281,7 +282,7 @@ __version__ = "1.2.3"
 
 
 class TestLocalModel:
-    @fixture
+    @fixture()
     def model(self):
         return DummyLocalModel()
 
@@ -401,3 +402,18 @@ class TestParameterSetValidation:
             match="Parameter set 'test' not compatible with this model version.",
         ):
             VersionedMockModel(mybmi=mocked_bmi, parameter_set=parameter_set)
+
+
+class TestWithParameters:
+    def test_setup_cfg_file_content(self, mocked_bmi: Bmi, tmp_path: Path):
+        class ParameterizedMockModel(MockModel):
+            @property
+            def parameters(self) -> ItemsView[str, Any]:
+                return {"parameter1": 42, "parameter2": "foo"}.items()
+
+        model = ParameterizedMockModel(mybmi=mocked_bmi)
+        model.setup(cfg_dir=str(tmp_path))
+
+        expected = "parameter1: 42\nparameter2: foo"
+        result = (tmp_path / "config.yaml").read_text().strip()
+        assert result == expected

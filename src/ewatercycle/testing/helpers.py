@@ -1,3 +1,5 @@
+"""Helper functions for testing."""
+
 from io import StringIO
 from pathlib import Path
 

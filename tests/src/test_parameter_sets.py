@@ -12,7 +12,7 @@ from ewatercycle.parameter_sets import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def setup_config(tmp_path: Path):
     CFG.parameterset_dir = tmp_path
     CFG.parameter_sets = {}
@@ -25,7 +25,7 @@ def setup_config(tmp_path: Path):
     CFG.reload()
 
 
-@pytest.fixture
+@pytest.fixture()
 def mocked_parameterset_dir(setup_config, tmp_path):
     ps1_dir = tmp_path / "ps1"
     ps1_dir.mkdir()

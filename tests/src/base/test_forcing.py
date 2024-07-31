@@ -1,4 +1,3 @@
-import unittest
 from pathlib import Path
 from shutil import copytree
 from unittest import mock
@@ -9,9 +8,7 @@ from cartopy.io import shapereader
 
 from ewatercycle._forcings.caravan import (
     CaravanForcing,
-    crop_ds,
     extract_basin_shapefile,
-    get_shapefiles,
 )
 from ewatercycle._forcings.makkink import (
     DistributedMakkinkForcing,
@@ -235,7 +232,7 @@ filenames:
         assert content == expected
 
 
-@pytest.fixture
+@pytest.fixture()
 def recipe_output(tmp_path: Path) -> dict:
     forcing_dir = Path(__file__).parent.parent / "esmvaltool/files"
     output_dir = tmp_path / "output"
@@ -254,7 +251,7 @@ def test_makkink_derivation(recipe_output):
 
     assert "evspsblpot" in recipe_output
 
-    ds = xr.open_dataset(recipe_output["directory"] / recipe_output["evspsblpot"])  # type: ignore
+    ds = xr.open_dataset(recipe_output["directory"] / recipe_output["evspsblpot"])
     assert not ds["evspsblpot"].mean(dim=["lat", "lon"]).isnull().any("time")
 
 
@@ -280,7 +277,7 @@ def test_integration_makkink_forcing(sample_shape, recipe_output):
         )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_retrieve():
     with mock.patch(
         "ewatercycle._forcings.caravan.CaravanForcing.get_dataset"
@@ -291,7 +288,7 @@ def mock_retrieve():
 
 
 def test_retrieve_caravan_forcing(tmp_path: Path, mock_retrieve: mock.MagicMock):
-    vars = (
+    variables = (
         "timezone",
         "name",
         "country",
@@ -324,7 +321,7 @@ def test_retrieve_caravan_forcing(tmp_path: Path, mock_retrieve: mock.MagicMock)
         end_time="1981-03-01T00:00:00Z",
         directory=str(tmp_camels_dir),
         basin_id=basin_id,
-        variables=vars,
+        variables=variables,
     )
     caravan_forcing.save()
     ds = caravan_forcing.to_xarray()
@@ -385,7 +382,7 @@ def test_extract_basin_shapefile(tmp_path: Path):
     extract_basin_shapefile(basin_id, combined_shape_file_dir, extracted_shape_file_dir)
 
     shape_obj = shapereader.Reader(extracted_shape_file_dir)
-    records = [rec for rec in shape_obj.records()]
+    records = list(shape_obj.records())
 
     assert len(records) == 1
     assert records[0].attributes["gauge_id"] == basin_id

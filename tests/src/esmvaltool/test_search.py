@@ -1,4 +1,5 @@
 """Test search module."""
+
 import gzip
 import json
 from pathlib import Path
@@ -93,12 +94,12 @@ def test_cfg_warning(mock_esgf_query: mock.MagicMock):
     CFG["search_esgf"] = "always"
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_different_freqs():
     test_cases = ["day", "CFday", "fx", "E1hr", "E3hr", "AERhr", "E3hrPt", "AERday"]
 
     result = [Dataset(**DATASET_TEMPLATE) for _ in range(len(test_cases))]
-    for test_case, dataset in zip(test_cases, result):
+    for test_case, dataset in zip(test_cases, result, strict=False):
         dataset["mip"] = test_case
 
     with mock.patch("ewatercycle.esmvaltool.search._query_esgf") as mock_query:

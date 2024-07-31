@@ -80,7 +80,7 @@ def test_to_absolute_path_with_relative_input_and_no_parent():
 
 def test_to_absolute_path_with_relative_input_and_relative_parent():
     input_path = "nonexistent_file.txt"
-    parsed = to_absolute_path(input_path, parent=Path("."))
+    parsed = to_absolute_path(input_path, parent=Path())
     expected = Path.cwd() / "nonexistent_file.txt"
     assert parsed == expected
 
@@ -105,7 +105,7 @@ def test_reindex(tmp_path):
         },
         dims=["longitude", "latitude"],
         name="tas",
-        attrs=dict(units="degC"),
+        attrs={"units": "degC"},
     )
     expected_source.to_netcdf(f"{tmp_path}/tas.nc")
     expected_mask = xr.DataArray(
@@ -138,13 +138,15 @@ def test_reindex(tmp_path):
     )
 
     # Check values based on coords values
-    reindexed_val = reindexed_data["tas"].sel(latitude=-33.05, longitude=19.35).values
-    expected_val = expected_source.sel(latitude=-33.05, longitude=19.35).values
+    reindexed_val = (
+        reindexed_data["tas"].sel(latitude=-33.05, longitude=19.35).to_numpy()
+    )
+    expected_val = expected_source.sel(latitude=-33.05, longitude=19.35).to_numpy()
     assert reindexed_val == expected_val
 
     # Check values based on coords indices
-    reindexed_val = reindexed_data["tas"].isel(latitude=1, longitude=4).values
-    expected_val = expected_source.isel(latitude=1, longitude=1).values
+    reindexed_val = reindexed_data["tas"].isel(latitude=1, longitude=4).to_numpy()
+    expected_val = expected_source.isel(latitude=1, longitude=1).to_numpy()
     assert reindexed_val == expected_val
 
 

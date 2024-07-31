@@ -1,8 +1,10 @@
+"""Utility functions for the eWaterCycle package."""
+
+from collections.abc import Iterable
 from configparser import ConfigParser
-from copy import copy
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional, Tuple, Union
+from typing import Any
 
 import fiona
 import numpy as np
@@ -16,10 +18,10 @@ def find_closest_point(
     grid_latitudes: Iterable[float],
     point_longitude: float,
     point_latitude: float,
-) -> Tuple[int, int]:
+) -> tuple[int, int]:
     """Find closest grid cell to a point based on Geographical distances.
 
-    args:
+    Args:
         grid_longitudes: 1d array of model grid longitudes in degrees
         grid_latitudes: 1d array of model grid latitudes in degrees
         point_longitude: longitude in degrees of target coordinate
@@ -45,7 +47,8 @@ def find_closest_point(
     dx = np.diff(grid_longitudes_array).max() * 111  # (1 degree ~ 111km)
     dy = np.diff(grid_latitudes_array).max() * 111  # (1 degree ~ 111km)
     if distance > max(dx, dy) * 2:
-        raise ValueError(f"Point {point_longitude, point_latitude} outside model grid.")
+        msg = f"Point {point_longitude, point_latitude} outside model grid."
+        raise ValueError(msg)
 
     return int(idx_lon), int(idx_lat)
 
@@ -57,10 +60,12 @@ def geographical_distances(
     lat_vectors: np.ndarray,
     radius=6373.0,
 ) -> np.ndarray:
-    """It uses Spherical Earth projected to a plane formula:
+    """Calculate geographical distances.
+
+    It uses Spherical Earth projected to a plane formula:
     https://en.wikipedia.org/wiki/Geographical_distance
 
-    args:
+    Args:
         point_longitude: longitude in degrees of target coordinate
         point_latitude: latitude in degrees of target coordinate
         lon_vectors: 1d array of longitudes in degrees
@@ -85,15 +90,16 @@ def get_time(time_iso: str) -> datetime:
     and check if it is in UTC.
     """
     time = parse(time_iso)
-    if not time.tzname() == "UTC":
-        raise ValueError(
+    if time.tzname() != "UTC":
+        msg = (
             "The time is not in UTC. The ISO format for a UTC time "
             "is 'YYYY-MM-DDTHH:MM:SSZ'"
         )
+        raise ValueError(msg)
     return time
 
 
-def get_extents(shapefile: Any, pad=0) -> Dict[str, float]:
+def get_extents(shapefile: Any, pad=0) -> dict[str, float]:
     """Get lat/lon extents from shapefile and add padding.
 
     Args:
@@ -104,7 +110,7 @@ def get_extents(shapefile: Any, pad=0) -> Dict[str, float]:
         Dict with `start_longitude`, `start_latitude`, `end_longitude`, `end_latitude`
     """
     shape = fiona.open(to_absolute_path(shapefile))
-    x0, y0, x1, y1 = [geometry.shape(p["geometry"]).bounds for p in shape][0]
+    x0, y0, x1, y1 = next(geometry.shape(p["geometry"]).bounds for p in shape)
     x0 = round((x0 - pad), 1)
     y0 = round((y0 - pad), 1)
     x1 = round((x1 + pad), 1)
@@ -117,11 +123,12 @@ def get_extents(shapefile: Any, pad=0) -> Dict[str, float]:
     }
 
 
-def fit_extents_to_grid(extents, step=0.1, offset=0.05, ndigits=2) -> Dict[str, float]:
+def fit_extents_to_grid(extents, step=0.1, offset=0.05, ndigits=2) -> dict[str, float]:
     """Get lat/lon extents fitted to a grid.
 
     Args:
-        extents: Dict with `start_longitude`, `start_latitude`, `end_longitude`, `end_latitude`
+        extents: Dict with `start_longitude`, `start_latitude`,
+            `end_longitude`, `end_latitude`
         step: Distance between to grid cells
         offset: Offset to pad with after rounding extent to step.
         ndigits: Number of digits to return
@@ -129,13 +136,53 @@ def fit_extents_to_grid(extents, step=0.1, offset=0.05, ndigits=2) -> Dict[str, 
     Returns:
         Dict with `start_longitude`, `start_latitude`, `end_longitude`, `end_latitude`
     """
-    fit = lambda v, offset: round((round(v / step) * step) + offset, ndigits)
+
+    def fit(v, offset):
+        return round((round(v / step) * step) + offset, ndigits)
+
     return {
         "start_longitude": fit(extents["start_longitude"], -offset),
         "start_latitude": fit(extents["start_latitude"], -offset),
         "end_longitude": fit(extents["end_longitude"], offset),
         "end_latitude": fit(extents["end_latitude"], offset),
     }
+
+
+def _check_coordinates_line_up(datasets: list[xr.Dataset]):
+    # First check that the coordinates all line up before merging.
+    tolerance = 1e-7
+    for coord in ["lat", "lon"]:
+        coords = [ds[coord].to_numpy() for ds in datasets]
+        if len({c.size for c in coords}) > 1:
+            msg = f"The coordinate '{coord}' is not of the same size in every dataset."
+            raise ValueError(msg)
+        all_coords = np.array(coords)
+        if not np.all((all_coords - all_coords.mean(axis=0)) < tolerance):
+            msg = f"Coordinate {coord} deviates more than {tolerance}. Merging failed."
+            raise ValueError(msg)
+
+
+def _move_height_to_attrs(ds: xr.Dataset) -> xr.Dataset:
+    data_vars = list(ds.data_vars)
+    for bnd in ("lat_bnds", "lon_bnds", "time_bnds"):
+        if bnd in data_vars:
+            data_vars.remove(bnd)
+    if len(data_vars) == 1:
+        var = data_vars[0]
+    else:
+        msg = (
+            "More than one variable found in dataset. \n"
+            "This routine can only handle a single data variable per dataset\n"
+        )
+        raise ValueError(msg)
+
+    ds[var].attrs.update(
+        {
+            "height": float(ds["height"]),
+            "height_units": ds["height"].attrs["units"],
+        }
+    )
+    return ds.drop_vars(("height",))
 
 
 def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
@@ -151,19 +198,9 @@ def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
     References:
         [1] Randall Monroe, 2019. xkcd: Coordinate Precision. https://xkcd.com/2170/
     """
-    TOLERANCE = 1e-7
     datasets = [ds.copy(deep=True) for ds in datasets]
 
-    # First check that the coordinates all line up before merging.
-    for coord in ["lat", "lon"]:
-        coords = [ds[coord].to_numpy() for ds in datasets]
-        if len(set([c.size for c in coords])) > 1:
-            msg = f"The coordinate '{coord}' is not of the same size in every dataset."
-            raise ValueError(msg)
-        all_coords = np.array(coords)
-        if not np.all((all_coords - all_coords.mean(axis=0)) < TOLERANCE):
-            msg = f"Coordinate {coord} deviates more than {TOLERANCE}. Merging failed."
-            raise ValueError(msg)
+    _check_coordinates_line_up(datasets)
 
     removed = {
         "lat_bnds": False,
@@ -194,33 +231,14 @@ def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
         # A "height" coordinate can be present, which will result in conflicts.
         #   Instead, we move it to the variable's attributes.
         if "height" in datasets[i].variables:
-            data_vars = list(datasets[i].data_vars)
-            for bnd in ("lat_bnds", "lon_bnds", "time_bnds"):
-                if bnd in data_vars:
-                    data_vars.remove(bnd)
-            if len(data_vars) == 1:
-                var = data_vars[0]
-            else:
-                msg = (
-                    "More than one variable found in dataset. \n"
-                    "This routine can only handle a single data variable per dataset\n"
-                )
-                raise ValueError(msg)
-
-            datasets[i][var].attrs.update(
-                {
-                    "height": float(datasets[i]["height"]),
-                    "height_units": datasets[i]["height"].attrs["units"],
-                }
-            )
-            datasets[i] = datasets[i].drop_vars(("height",))
+            datasets[i] = _move_height_to_attrs(datasets[i])
 
     return xr.combine_by_coords(datasets, combine_attrs="drop_conflicts")  # type: ignore[return-value]
 
 
 def to_absolute_path(
-    input_path: Union[str, Path],
-    parent: Optional[Path] = None,
+    input_path: str | Path,
+    parent: Path | None = None,
     must_exist: bool = False,
     must_be_in_parent=True,
 ) -> Path:
@@ -242,17 +260,17 @@ def to_absolute_path(
         if must_be_in_parent:
             try:
                 pathlike.relative_to(parent)
-            except ValueError:
-                raise ValueError(
-                    f"Input path {input_path} is not a subpath of parent {parent}"
-                )
+            except ValueError as e:
+                msg = f"Input path {input_path} is not a subpath of parent {parent}"
+                raise ValueError(msg) from e
 
     return pathlike.expanduser().resolve(strict=must_exist)
 
 
 def reindex(source_file: str, var_name: str, mask_file: str, target_file: str):
-    """Conform the input file onto the indexes of a mask file, writing the
-    results to the target file.
+    """Conform the input file onto the indexes of a mask file.
+
+    Writing the results to the target file.
 
     Args:
         source_file: Input string path of the file that needs to be reindexed.
@@ -266,22 +284,23 @@ def reindex(source_file: str, var_name: str, mask_file: str, target_file: str):
     mask = xr.open_dataset(mask_file)
 
     try:
-        indexers = {"lat": mask["lat"].values, "lon": mask["lon"].values}
+        indexers = {"lat": mask["lat"].to_numpy(), "lon": mask["lon"].to_numpy()}
     except KeyError:
         try:
             indexers = {
-                "latitude": mask["latitude"].values,
-                "longitude": mask["longitude"].values,
+                "latitude": mask["latitude"].to_numpy(),
+                "longitude": mask["longitude"].to_numpy(),
             }
         except KeyError:
             try:
-                indexers = {"y": mask["y"].values, "x": mask["x"].values}
+                indexers = {"y": mask["y"].to_numpy(), "x": mask["x"].to_numpy()}
             except KeyError as err:
-                raise ValueError(
+                msg = (
                     "Bad naming of dimensions in source_file and mask_file."
                     "The dimensions should be either (x, y), or (lon, lat), "
                     "or (longitude, latitude)."
-                ) from err
+                )
+                raise ValueError(msg) from err
 
     reindexed_data = data.reindex(
         indexers,
@@ -302,9 +321,11 @@ def reindex(source_file: str, var_name: str, mask_file: str, target_file: str):
 
 
 class CaseConfigParser(ConfigParser):
-    """Case sensitive config parser
+    """Case sensitive config parser.
+
     See https://stackoverflow.com/questions/1611799/preserve-case-in-configparser
     """
 
     def optionxform(self, optionstr):
+        """Do not convert option names to lowercase."""
         return optionstr

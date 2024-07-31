@@ -1,4 +1,4 @@
-"""Config
+"""Config.
 
 Configuration of eWaterCycle is done via the
 :py:class:`~eWaterCycle.config.Configuration` object. The global configuration can be
@@ -96,7 +96,7 @@ import warnings
 from io import StringIO
 from logging import getLogger
 from pathlib import Path
-from typing import Annotated, Any, Dict, Literal, Optional, TextIO, Tuple, Union
+from typing import Annotated, Any, Literal, TextIO
 
 from pydantic import (
     BaseModel,
@@ -136,29 +136,32 @@ class Configuration(BaseModel):
     :obj:`ewatercycle.CFG` instead.
     """
 
-    grdc_location: ExpandedDirectoryPath = Path(".")
-    """Where can GRDC observation files (<station identifier>_Q_Day.Cmd.txt) be found."""
+    grdc_location: ExpandedDirectoryPath = Path()
+    """Where can GRDC observation files be found.
+
+    Assumes file names like <station identifier>_Q_Day.Cmd.txt
+    """
     container_engine: ContainerEngine = "docker"
     """Which container engine is used to run the hydrological models."""
-    apptainer_dir: ExpandedDirectoryPath = Path(".")
+    apptainer_dir: ExpandedDirectoryPath = Path()
     """Where the apptainer images files (.sif) be found."""
-    singularity_dir: Optional[DirectoryPath] = None
+    singularity_dir: DirectoryPath | None = None
     """Where the singularity images files (.sif) be found.
 
     DEPRECATED, use apptainer_dir."""
-    output_dir: ExpandedDirectoryPath = Path(".")
+    output_dir: ExpandedDirectoryPath = Path()
     """Directory in which output of model runs is stored.
 
     Each model run will generate a sub directory inside output_dir"""
-    parameterset_dir: ExpandedDirectoryPath = Path(".")
+    parameterset_dir: ExpandedDirectoryPath = Path()
     """Root directory for all parameter sets."""
-    parameter_sets: Dict[str, ParameterSet] = {}
+    parameter_sets: dict[str, ParameterSet] = {}
     """Dictionary of parameter sets.
 
     Data source for :py:func:`ewatercycle.parameter_sets.available_parameter_sets` and
     :py:func:`ewatercycle.parameter_sets.get_parameter_set` methods.
     """
-    ewatercycle_config: Optional[ExpandedFilePath] = None
+    ewatercycle_config: ExpandedFilePath | None = None
     """Where is the configuration saved or loaded from.
 
     If None then the configuration was not loaded from a file."""
@@ -167,6 +170,7 @@ class Configuration(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def singularity_dir_is_deprecated(cls, data: Any) -> Any:
+        """Deprecate singularity_dir field."""
         if data.get("singularity_dir", None) is not None:
             file = data.get("ewatercycle_config", "in-memory object")
             warnings.warn(
@@ -185,9 +189,6 @@ class Configuration(BaseModel):
         parameter_sets = self.parameter_sets
         parameterset_dir = self.parameterset_dir
         for ps_name, ps in parameter_sets.items():
-            if isinstance(ps, dict):
-                # TODO is this explicit parsing necessary?
-                ps = ParameterSet(**ps)
             if isinstance(ps, ParameterSet) and parameterset_dir:
                 ps.name = ps_name
                 ps.make_absolute(parameterset_dir)
@@ -195,12 +196,14 @@ class Configuration(BaseModel):
                 if not ps.directory.exists():
                     warnings.warn(
                         f"Parameter set {ps.name} loaded in config but "
-                        f"{ps.directory} does not seem to exist."
+                        f"{ps.directory} does not seem to exist.",
+                        stacklevel=2,
                     )
                 if not ps.config.exists():
                     warnings.warn(
                         f"Parameter set {ps.name} loaded in config but "
-                        f"{ps.config} does not seem to exist."
+                        f"{ps.config} does not seem to exist.",
+                        stacklevel=2,
                     )
         return self
 
@@ -221,8 +224,8 @@ class Configuration(BaseModel):
             for error in e.errors():
                 locs = []
                 for loc in error["loc"]:
-                    loc = f"{filename}:{loc}"
-                    locs.append(loc)
+                    floc = f"{filename}:{loc}"
+                    locs.append(floc)
                 error["loc"] = tuple(locs)
             raise
 
@@ -233,7 +236,8 @@ class Configuration(BaseModel):
         """
         path = to_absolute_path(str(filename))
         if not path.exists():
-            raise FileNotFoundError(f"Cannot find: `{filename}")
+            msg = f"Cannot find: `{filename}"
+            raise FileNotFoundError(msg)
 
         newconfig = Configuration._load_user_config(path)
         self.overwrite(newconfig)
@@ -252,7 +256,7 @@ class Configuration(BaseModel):
         self.overwrite(newconfig)
 
     def dump_to_yaml(self) -> str:
-        """Dumps YAML formatted string of Config object"""
+        """Dumps YAML formatted string of Config object."""
         stream = StringIO()
         self._save_to_stream(stream)
         return stream.getvalue()
@@ -288,7 +292,7 @@ class Configuration(BaseModel):
                 USER_HOME_CONFIG if old_config_file is None else old_config_file
             )
 
-        with open(config_file, "w") as f:
+        with Path(config_file).open("w") as f:
             self._save_to_stream(f)
 
         logger.info(f"Config written to {config_file}")
@@ -300,24 +304,23 @@ class Configuration(BaseModel):
         Args:
             other: The other configuration object.
         """
-        for key in self.model_dump().keys():
+        for key in self.model_dump():
             setattr(self, key, getattr(other, key))
 
 
-def _read_config_file(config_file: Union[os.PathLike, str]) -> dict:
+def _read_config_file(config_file: os.PathLike | str) -> dict:
     """Read config user file and store settings in a dictionary."""
     config_file = to_absolute_path(str(config_file))
     if not config_file.exists():
-        raise IOError(f"Config file `{config_file}` does not exist.")
+        msg = f"Config file `{config_file}` does not exist."
+        raise OSError(msg)
 
-    with open(config_file, "r") as file:
+    with config_file.open() as file:
         yaml = YAML(typ="safe")
-        cfg = yaml.load(file)
-
-    return cfg
+        return yaml.load(file)
 
 
-def _find_user_config(sources: Tuple[Path, ...]) -> Optional[os.PathLike]:
+def _find_user_config(sources: tuple[Path, ...]) -> os.PathLike | None:
     """Find user config in list of source directories."""
     for source in sources:
         user_config = source

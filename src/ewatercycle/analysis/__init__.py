@@ -1,5 +1,6 @@
+"""Analysis methods for eWaterCycle."""
+
 import os
-from typing import Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,16 +27,16 @@ def hydrograph(
     discharge: pd.DataFrame,
     *,
     reference: str,
-    precipitation: Optional[pd.DataFrame] = None,
-    dpi: Optional[int] = None,
+    precipitation: pd.DataFrame | None = None,
+    dpi: int | None = None,
     title: str = "Hydrograph",
     discharge_units: str = "m$^3$ s$^{-1}$",
     precipitation_units: str = "mm day$^{-1}$",
-    figsize: Tuple[float, float] = (10, 10),
-    filename: Optional[Union[os.PathLike, str]] = None,
-    nbars: Optional[int] = None,
+    figsize: tuple[float, float] = (10, 10),
+    filename: os.PathLike | str | None = None,
+    nbars: int | None = None,
     **kwargs,
-) -> Tuple[plt.Figure, Tuple[plt.Axes, plt.Axes]]:
+) -> tuple[plt.Figure, tuple[plt.Axes, plt.Axes]]:
     """Plot a hydrograph.
 
     This utility function makes it convenient to create a hydrograph from
@@ -73,7 +74,7 @@ def hydrograph(
     **kwargs:
         Options to pass to the matplotlib plotting function
 
-    Returns
+    Returns:
     -------
     fig : `matplotlib.figure.Figure`
     ax, ax_tbl : tuple of `matplotlib.axes.Axes`

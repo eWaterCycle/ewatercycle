@@ -5,6 +5,7 @@ on the ESMValTool recipe schema at
 https://github.com/ESMValGroup/ESMValCore/blob/main/esmvalcore/_recipe/recipe_schema.yml
 .
 """
+
 from io import StringIO
 from pathlib import Path
 from typing import Any, Literal, TypedDict
@@ -125,7 +126,7 @@ class Recipe(BaseModel):
 
 
 class ClimateStatistics(BaseModel):
-    """Arguments for the :py:func:`~esmvalcore.preprocessor.climate_statistics` preprocessor."""
+    """Arguments of :py:func:`~esmvalcore.preprocessor.climate_statistics`."""
 
     operator: Literal["mean", "std", "min", "max", "median", "sum"] = "mean"
     period: Literal["hour", "day", "month", "year"] = "day"
@@ -136,15 +137,13 @@ ExtractRegion = dict[
 ]
 """Arguments for the :py:func:`~esmvalcore.preprocessor.extract_region` preprocessor."""
 
-TargetGrid = TypedDict(
-    "TargetGrid",
-    {
-        "start_longitude": float,
-        "end_longitude": float,
-        "start_latitude": float,
-        "end_latitude": float,
-        "step_longitude": float,
-        "step_latitude": float,
-    },
-)
-"""Type for target_grid argument for the :py:func:`~esmvalcore.preprocessor.regrid` preprocessor."""
+
+class TargetGrid(TypedDict):
+    """Type of target_grid argument of :py:func:`~esmvalcore.preprocessor.regrid`."""
+
+    start_longitude: float
+    end_longitude: float
+    start_latitude: float
+    end_latitude: float
+    step_longitude: float
+    step_latitude: float

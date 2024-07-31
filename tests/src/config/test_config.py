@@ -23,14 +23,14 @@ def test_singularity_dir_is_deprecated(tmp_path):
         assert config.singularity_dir is None
 
 
-@pytest.fixture
+@pytest.fixture()
 def example_grdc_location(tmp_path):
     grdc_location = tmp_path / "grdc"
     grdc_location.mkdir()
     return grdc_location
 
 
-@pytest.fixture
+@pytest.fixture()
 def example_config_file(tmp_path, example_grdc_location):
     config_file = tmp_path / "ewatercycle.yaml"
     config_file.write_text(
@@ -67,7 +67,7 @@ def test_load_from_file_bad_path_returns_eror_with_config_file_in_loc(tmp_path):
     config_file = tmp_path / "ewatercycle.yaml"
     config_file.write_text(
         dedent(
-            f"""\
+            """\
         grdc_location: /a/directory/that/does/not/exist
         """
         )
@@ -94,7 +94,7 @@ def test_reload_from_default(tmp_path):
 
     config.reload()
 
-    assert config.grdc_location == Path(".")
+    assert config.grdc_location == Path()
 
 
 def test_reload_from_file(tmp_path, example_grdc_location, example_config_file):

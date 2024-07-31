@@ -10,11 +10,13 @@ class ESMValToolNotFoundError(ImportError):
     """Exception raised when ESMValTool or ESMValCore packages are not found."""
 
     def __init__(self):
+        """Initialize the exception."""
         msg = dedent(
             """\
             ESMValTool or ESMValCore packages have not been found.
 
-            Likely because ewatercycle dependencies are not installed in a conda environment.
+            Likely because ewatercycle dependencies are not installed
+            in a conda environment.
 
             Please install ewatercycle with:
 

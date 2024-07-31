@@ -1,6 +1,7 @@
 """Forcing module of eWaterCycle. Contains the forcing sources."""
+
 from importlib.metadata import entry_points
-from typing import Any, Type
+from typing import Any
 
 from ewatercycle import shared
 from ewatercycle._forcings.caravan import CaravanForcing
@@ -21,7 +22,6 @@ class ForcingSources(shared.Sources):
     """Dictionary filled with available forcing sources.
 
     Examples:
-
         List all available forcing sources:
 
         >>> from ewatercycle.forcing import sources
@@ -54,7 +54,7 @@ class ForcingSources(shared.Sources):
 
     """
 
-    def __getitem__(self, key) -> Type[DefaultForcing]:
+    def __getitem__(self, key) -> type[DefaultForcing]:
         """Get the entry point, loads it, and returns the Forcing object."""
         return super().__getitem__(key)
 
