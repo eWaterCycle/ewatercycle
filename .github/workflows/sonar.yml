@@ -24,8 +24,11 @@ jobs:
         shell: bash -l {0}
         run: |
           pip3 install -e .[dev]
-      # TODO we should run non-ruff hooks from pre-commit here?
-      - name: Lint
+      - name: Non-ruff lint
+        uses: pre-commit/action@v3.0.1
+        env:
+          SKIP: ruff,ruff-format
+      - name: Ruff Lint
         run: ruff check --output-format=github .
         shell: bash -l {0}
       - name: Check format
