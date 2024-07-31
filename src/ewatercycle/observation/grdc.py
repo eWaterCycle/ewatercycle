@@ -31,8 +31,10 @@ def get_grdc_data(
     https://www.bafg.de/GRDC/EN/02_srvcs/21_tmsrs/riverdischarge_node.html .
     The downloaded zip file contains a file named GRDC-Daily.nc.
 
-    This function will first try to read data from the GRDC-Daily.nc file in the ``data_home`` directory.
-    If that fails it will look for the GRDC Export (ASCII text) formatted file for example ``6435060_Q_Day.Cmd.txt``.
+    This function will first try to read data from the GRDC-Daily.nc file
+    in the ``data_home`` directory.
+    If that fails it will look for the GRDC Export (ASCII text) formatted file
+    for example ``6435060_Q_Day.Cmd.txt``.
 
     Args:
         station_id: The station id to get. The station id can be found in the
@@ -48,10 +50,12 @@ def get_grdc_data(
         column: optional. Name of column in dataframe. Default: "streamflow".
 
     Returns:
-        grdc data in a xarray dataset. Shaped like a filtered version of the GRDC daily NetCDF file.
+        grdc data in a xarray dataset.
+            Shaped like a filtered version of the GRDC daily NetCDF file.
 
     Raises:
-        ValueError: If no data for the requested station id and period could not be found.
+        ValueError: If no data for the requested station id
+            and period could not be found.
 
     Examples:
 
@@ -79,15 +83,14 @@ def get_grdc_data(
                 river_name           <U11 44B 'RHINE RIVER'
                 station_name         <U6 24B 'LOBITH'
                 timezone             float32 4B ...
-
-    Attributes:
+            Attributes:
                 title:          Mean daily discharge (Q)
                 Conventions:    CF-1.7
                 references:     grdc.bafg.de
                 institution:    GRDC
                 history:        Download from GRDC Database, 21/06/2024
                 missing_value:  -999.000
-    """  # noqa: E501
+    """  # noqa: D214,D410,D411
     if data_home:
         data_path = to_absolute_path(data_home)
     elif CFG.grdc_location:
