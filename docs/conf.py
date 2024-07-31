@@ -23,7 +23,7 @@ import tomli
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
-    "nbsphinx",
+    "myst_nb",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
     "autoapi.extension",
@@ -75,7 +75,7 @@ language = "en"
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
@@ -168,8 +168,8 @@ autodoc_mock_imports = [
 # Prevent alphabetic sorting of (@data)class attributes/methods
 autodoc_member_order = "bysource"
 
-# nbsphinx configuration values cf. https://nbsphinx.readthedocs.io/en/0.8.6/usage.html
-nbsphinx_execute = "never"
+nb_execution_mode = "off"
+nb_output_stderr = "remove"
 
 intersphinx_mapping = {
     "cf_units": ("https://cf-units.readthedocs.io/en/latest/", None),
