@@ -20,7 +20,7 @@ The setup steps:
 6.  `Configure ewatercycle <#configure-ewatercycle>`__
 7.  `Model container images <#model-container-images>`__
 8.  `Download example parameter sets <#download-example-parameter-sets>`__
-9.  `Prepare other parameter sets <#prepare-other-parameter-sets>`_
+9.  `Prepare other parameter sets <#prepare-other-parameter-sets>`__
 10. `Download example forcing <#download-example-forcing>`__
 11. `Download observation data <#download-observation-data>`__
 
