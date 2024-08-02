@@ -1,5 +1,6 @@
 import shutil
 import zipfile
+import time
 from pathlib import Path
 from typing import Type
 
@@ -237,26 +238,26 @@ class CaravanForcing(DefaultForcing):
         for prop in properties:
             ds_basin_time.coords.update({prop: ds_basin_time[prop].to_numpy()})
 
-        if data_source == 'era5_land':
-            duplicate_vars = set(RENAME_ERA5.values()).intersection(
-                ds_basin_time.data_vars
-            )
+#        if data_source == 'era5_land':
+        duplicate_vars = set(RENAME_ERA5.values()).intersection(
+            ds_basin_time.data_vars
+        )
 
-            ds_basin_time = ds_basin_time.drop_vars(duplicate_vars)
-            ds_basin_time = ds_basin_time.rename(RENAME_ERA5)
+        ds_basin_time = ds_basin_time.drop_vars(duplicate_vars)
+        ds_basin_time = ds_basin_time.rename(RENAME_ERA5)
 
         variables = tuple([RENAME_ERA5[var] for var in variable_names])
 
-        # convert units to Kelvin for compatibility with CMOR MIP table units
+        # convert units from Celcius to Kelvin for compatibility with CMOR MIP table units
         for temp in ["tas", "tasmin", "tasmax"]:
             ds_basin_time[temp].attrs.update({"height": "2m"})
             if (ds_basin_time[temp].attrs["unit"]) == "°C":
                 ds_basin_time[temp].values = ds_basin_time[temp].values + 273.15
                 ds_basin_time[temp].attrs["unit"] = "K"
 
+        # convert units from mm/day to "kg m-2 s-1" for compatibility with CMOR MIP table units
         for var in ["evspsblpot", "pr"]:
             if (ds_basin_time[var].attrs["unit"]) == "mm":
-                # mm/day --> kg m-2 s-1
                 ds_basin_time[var].values = ds_basin_time[var].values / (86400)
                 ds_basin_time[var].attrs["unit"] = "kg m-2 s-1"
 
@@ -302,6 +303,7 @@ def get_shapefiles(directory: Path, basin_id: str) -> Path:
 
         with zipfile.ZipFile(zip_path) as myzip:
             myzip.extractall(path=directory)
+            time.sleep(5)
 
         extract_basin_shapefile(basin_id, combined_shapefile_path, shape_path)
 
@@ -340,7 +342,7 @@ def extract_basin_shapefile(
                 # kind of clunky but it works: select filtered polygon
                 if i == basin_index:
                     geom = feat.geometry
-                    assert geom.type == "Polygon"
+                    assert geom.type in ["Polygon","MultiPolygon"]
 
                     # Add the signed area of the polygon and a timestamp
                     # to the feature properties map.
