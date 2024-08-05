@@ -50,59 +50,58 @@ class CaravanForcing(DefaultForcing):
     """Retrieves specified part of the caravan dataset from the OpenDAP server.
 
     Examples:
-    The caravan dataset is an already prepared set by Frederik Kratzert,
-    (see https://doi.org/10.1038/s41597-023-01975-w).
+        The caravan dataset is an already prepared set by Frederik Kratzert,
+        (see https://doi.org/10.1038/s41597-023-01975-w).
 
-    This retrieves it from the OpenDAP server of 4TU,
-    (see https://doi.org/10.4121/bf0eaf7c-f2fa-46f6-b8cd-77ad939dd350.v4).
+        This retrieves it from the OpenDAP server of 4TU,
+        (see https://doi.org/10.4121/bf0eaf7c-f2fa-46f6-b8cd-77ad939dd350.v4).
 
-    This can be done by specifying the
+        This can be done by specifying the
 
-    .. code-block:: python
+        .. code-block:: python
 
-        from pathlib import Path
-        from ewatercycle.forcing import sources
+            from pathlib import Path
+            from ewatercycle.forcing import sources
 
-        path = Path.cwd()
-        forcing_path = path / "Forcing" / "Camels"
-        forcing_path.mkdir(parents=True, exist_ok=True)
-        experiment_start_date = "1997-08-01T00:00:00Z"
-        experiment_end_date = "2005-09-01T00:00:00Z"
-        HRU_id = 1022500
+            path = Path.cwd()
+            forcing_path = path / "Forcing" / "Camels"
+            forcing_path.mkdir(parents=True, exist_ok=True)
+            experiment_start_date = "1997-08-01T00:00:00Z"
+            experiment_end_date = "2005-09-01T00:00:00Z"
+            HRU_id = 1022500
 
-        camels_forcing = sources['CaravanForcing'].generate(
-                                    start_time = experiment_start_date,
-                                    end_time = experiment_end_date,
-                                    directory = forcing_path,
-                                    basin_id = f"camels_0{HRU_id}"
-                                                                )
+            camels_forcing = sources['CaravanForcing'].generate(
+                                        start_time = experiment_start_date,
+                                        end_time = experiment_end_date,
+                                        directory = forcing_path,
+                                        basin_id = f"camels_0{HRU_id}"
+                                                                    )
 
-    which gives something like:
+        which gives something like:
 
-    .. code-block:: python
+        .. code-block:: python
 
-        CaravanForcing(
-        start_time='1997-08-01T00:00:00Z',
-        end_time='2005-09-01T00:00:00Z',
-        directory=PosixPath('/home/davidhaasnoot/eWaterCycle-WSL-WIP/Forcing/Camels'),
-        shape=PosixPath('/home/davidhaasnoot/eWaterCycle-WSL-WIP/Forcing/Camels/shapefiles/camels_01022500.shp'),
-        filenames={
-            'tasmax':
-             'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tasmax.nc',
-            'tasmin':
-            'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tasmin.nc',
-            'evspsblpot':
-            'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_evspsblpot.nc',
-            'pr': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_pr.nc',
-            'tas': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tas.nc',
-            'Q': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_Q.nc'
-        }
-        )
-
+            CaravanForcing(
+            start_time='1997-08-01T00:00:00Z',
+            end_time='2005-09-01T00:00:00Z',
+            directory=PosixPath('/home/davidhaasnoot/eWaterCycle-WSL-WIP/Forcing/Camels'),
+            shape=PosixPath('/home/davidhaasnoot/eWaterCycle-WSL-WIP/Forcing/Camels/shapefiles/camels_01022500.shp'),
+            filenames={
+                'tasmax':
+                'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tasmax.nc',
+                'tasmin':
+                'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tasmin.nc',
+                'evspsblpot':
+                'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_evspsblpot.nc',
+                'pr': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_pr.nc',
+                'tas': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_tas.nc',
+                'Q': 'camels_01022500_1997-08-01T00:00:00Z_2005-09-01T00:00:00Z_Q.nc'
+            }
+            )
 
     More in depth notebook van be found here:
     https://gist.github.com/Daafip/ac1b030eb5563a76f4d02175f2716fd7
-    """
+    """  # noqa: E501
 
     @classmethod
     def get_dataset(cls: type["CaravanForcing"], dataset: str) -> xr.Dataset:

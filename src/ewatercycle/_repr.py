@@ -22,11 +22,11 @@ class Representation:
     def __repr_args__(self) -> ReprArgs:
         """Reusable helper for __repr__ and __pretty__.
 
-        Can either return:
+        Can either return
         * name - value pairs, for example
             `[('foo_name', 'foo'), ('bar_name', ['b', 'a', 'r'])]`
         * or, just values, for example
-             `[(None, 'foo'), (None, ['b', 'a', 'r'])]`
+            `[(None, 'foo'), (None, ['b', 'a', 'r'])]`
         """
         attrs_names = self.__dict__.keys()
         attrs = ((s, getattr(self, s)) for s in attrs_names)

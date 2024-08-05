@@ -58,6 +58,7 @@ def get_grdc_data(
             and period could not be found.
 
     Examples:
+        To get the GRDC data for Lobith station of the Rhine river for the year 2000.
 
         .. code-block:: python
 
@@ -90,6 +91,7 @@ def get_grdc_data(
                 institution:    GRDC
                 history:        Download from GRDC Database, 21/06/2024
                 missing_value:  -999.000
+
     """  # noqa: D214,D410,D411
     if data_home:
         data_path = to_absolute_path(data_home)

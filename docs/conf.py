@@ -21,12 +21,12 @@ import tomli
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "autodoc2",
     "sphinx.ext.napoleon",
-    "myst_nb",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
-    "autoapi.extension",
+    "myst_nb",
+    "autodoc2",
+    # "autoapi.extension",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -35,7 +35,7 @@ templates_path = ["_templates"]
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-source_suffix = [".rst"]
+source_suffix = {".rst": "restructuredtext"}
 
 # The master toctree document.
 master_doc = "index"
@@ -163,7 +163,10 @@ texinfo_documents = [
 ]
 
 autodoc2_packages = ["../src/ewatercycle"]
+autodoc2_hidden_objects = ["inherited", "undoc", "private"]
 
+myst_enable_extensions = ["fieldlist"]
+myst_render_markdown_format = "myst"
 nb_execution_mode = "off"
 nb_output_stderr = "remove"
 

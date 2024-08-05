@@ -66,37 +66,41 @@ def get_usgs_data(
 ) -> xr.Dataset:
     """Get river discharge data from the USGS REST web service.
 
-    See `U.S. Geological Survey Water Services
-    <https://waterservices.usgs.gov/>`_ (USGS)
+    See `U.S. Geological Survey Water Services`_ (USGS).
 
     Args:
-        station_id: The station id to get
-        start_time: Start time of model in UTC and ISO format string e.g.
-            'YYYY-MM-DDTHH:MM:SSZ'.
-        end_time: End time of model in  UTC and ISO format string e.g.
-            'YYYY-MM-DDTHH:MM:SSZ'.
+        station_id: The station id to get.
+        start_time: Start time of model in UTC and ISO format string
+            like ``YYYY-MM-DDTHH:MM:SSZ``.
+        end_time: End time of model in UTC and ISO format string
+            like ``YYYY-MM-DDTHH:MM:SSZ``.
 
     Returns:
-        Xarray dataset with the streamflow data
-        with unit and other metadata in the variable and global attributes.
+        Xarray dataset with the streamflow data with unit and other metadata in the variable and global attributes.
 
     Examples:
         To get observations from the Little Beaver Creek.
 
-        >>> from ewatercycle.observation.usgs import get_usgs_data
-        >>> data = get_usgs_data('03109500', '2000-01-01T00:00:00Z', '2000-12-31T00:00:00Z')
-        >>> data
-        <xarray.Dataset> Size: 96kB
-        Dimensions:     (time: 8032)
-        Coordinates:
-          * time        (time) datetime64[ns] 64kB 2000-01-04T05:00:00 ... 2000-12-23...
-        Data variables:
-            streamflow  (time) float32 32kB 8.297 10.42 17.58 ... 8.552 10.65 11.69
-        Attributes:
-            title:      USGS Data from streamflow data
-            station:    Little Beaver Creek near East Liverpool OH
-            stationid:  03109500
-            location:   (np.float64(40.6758974), np.float64(-80.5406244))
+        .. code-block:: python
+
+            >>> from ewatercycle.observation.usgs import get_usgs_data
+            >>> data = get_usgs_data('03109500', '2000-01-01T00:00:00Z', '2000-12-31T00:00:00Z')
+            >>> data
+            <xarray.Dataset> Size: 96kB
+            Dimensions:     (time: 8032)
+            Coordinates:
+            * time        (time) datetime64[ns] 64kB 2000-01-04T05:00:00 ... 2000-12-23...
+            Data variables:
+                streamflow  (time) float32 32kB 8.297 10.42 17.58 ... 8.552 10.65 11.69
+            Attributes:
+                title:      USGS Data from streamflow data
+                station:    Little Beaver Creek near East Liverpool OH
+                stationid:  03109500
+                location:   (np.float64(40.6758974), np.float64(-80.5406244))
+
+    .. _U.S. Geological Survey Water Services:
+        https://waterservices.usgs.gov/
+
     """  # noqa: E501
     wml_data = _download_usgs_data(station_id, start_time, end_time)
     return _xml_to_xarray(wml_data)
