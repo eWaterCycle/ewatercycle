@@ -59,8 +59,9 @@ class ContainerImage(str):
 
     Conversion from docker to apptainer is always possible
     Conversion from apptainer can lead to unexpected behaviour in some cases:
-    - when image name contains '_' but no version tag
-    - when image name contains '-' but no organisation
+
+    * when image name contains '_' but no version tag
+    * when image name contains '-' but no organisation
 
     eWatercycle containers typically don't have these issues.
     """
