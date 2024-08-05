@@ -6,7 +6,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from hydrostats import metrics
+from matplotlib.axes import Axes
 from matplotlib.dates import DateFormatter
+from matplotlib.figure import Figure
 
 
 def _downsample(df, nrows=100, agg="mean"):
@@ -36,7 +38,7 @@ def hydrograph(
     filename: os.PathLike | str | None = None,
     nbars: int | None = None,
     **kwargs,
-) -> tuple[plt.Figure, tuple[plt.Axes, plt.Axes]]:
+) -> tuple[Figure, tuple[Axes, Axes]]:
     """Plot a hydrograph.
 
     This utility function makes it convenient to create a hydrograph from
@@ -46,38 +48,24 @@ def hydrograph(
     Optionally, the corresponding precipitation data can be plotted for
     comparison.
 
-    Parameters
-    ----------
-    discharge : pd.DataFrame
-        Dataframe containing time series of discharge data to be plotted.
-    reference : str
-        Name of the reference data, must correspond to a column in the discharge
-        dataframe. Metrics are calculated between the reference column and each
-        of the other columns.
-    precipitation : pd.DataFrame, optional
-        Optional dataframe containing time series of precipitation data to be
-        plotted from the top of the hydrograph.
-    dpi : int, optional
-        DPI for the plot.
-    title : str, optional
-        Title of the hydrograph.
-    discharge_units : str, optional
-        Units for the discharge data.
-    precipitation_units : str, optional
-        Units for the precipitation data.
-    figsize : (float, float), optional
-        With, height of the plot in inches.
-    filename : str or Path, optional
-        If specified, a copy of the plot will be saved to this path.
-    nbars : Int, optional
-        Number of bars to use for downsampling precipitation.
-    **kwargs:
-        Options to pass to the matplotlib plotting function
+    Args:
+        discharge: Dataframe containing time series of discharge data to be plotted.
+        reference: Name of the reference data, must correspond to a column
+            in the discharge dataframe. Metrics are calculated between
+            the reference column and each of the other columns.
+        precipitation: Optional dataframe containing time series of precipitation data
+            to be plotted from the top of the hydrograph.
+        dpi: DPI for the plot.
+        title: Title of the hydrograph.
+        discharge_units: Units for the discharge data.
+        precipitation_units: Units for the precipitation data.
+        figsize: With, height of the plot in inches.
+        filename: If specified, a copy of the plot will be saved to this path.
+        nbars: Number of bars to use for downsampling precipitation.
+        **kwargs: Options to pass to the matplotlib plotting function
 
     Returns:
-    -------
-    fig : `matplotlib.figure.Figure`
-    ax, ax_tbl : tuple of `matplotlib.axes.Axes`
+        First tuple member is a matplotlib figure, the second is a tuple of axes.
     """
     discharge_cols = discharge.columns.drop(reference)
     y_obs = discharge[reference]

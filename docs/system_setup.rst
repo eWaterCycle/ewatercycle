@@ -393,15 +393,15 @@ Prepare other parameter sets
 
 The example parameter sets downloaded in the previous section are nice to show off the platform features but are a bit small.
 To perform more advanced experiments, additional parameter sets are needed.
-Users could use :py:class:`ewatercycle.parameter_sets.ParameterSet` to construct parameter sets themselves.
-Or they can be made available via :py:func:`ewatercycle.parameter_sets.available_parameter_sets` and :py:func:`ewatercycle.parameter_sets.get_parameter_set` by extending the configuration file (ewatercycle.yaml).
+Users could use :py:class:`ewatercycle.base.parameter_set.ParameterSet` to construct parameter sets themselves.
+Or they can be made available via :py:func:`ewatercycle.parameter_sets.available_parameter_sets` and :py:func:`ewatercycle.base.parameter_set.ParameterSet.download` by extending the configuration file (ewatercycle.yaml).
 
 A new parameter set should be added as a key/value pair in the ``parameter_sets`` map of the configuration file.
 The key should be a unique string on the current system.
 The value is a dictionary with the following items:
 
-* directory: Location on disk where files of the parameter set are stored. If Path is relative then relative to :py:const:`ewatercycle.CFG.parameterset_dir`.
-* config: Model configuration file which uses files from directory. If Path is relative then relative to :py:const:`ewatercycle.CFG.parameterset_dir`.
+* directory: Location on disk where files of the parameter set are stored. If Path is relative then relative to :py:const:`ewatercycle.config.Configuration.parameterset_dir`.
+* config: Model configuration file which uses files from directory. If Path is relative then relative to :py:const:`ewatercycle.config.Configuration.parameterset_dir`.
 * doi: Persistent identifier of the parameter set. For example a DOI for a Zenodo record.
 * target_model: Name of the model that parameter set can work with
 * supported_model_versions: Set of model versions that are supported by this parameter set. If not set then parameter set will be supported by all versions of model

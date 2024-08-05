@@ -162,6 +162,10 @@ texinfo_documents = [
     ),
 ]
 
+# Turned off nitpicky as not all warnings are fixable
+# To find reference target not found warnings turn this on
+nitpicky = False
+
 autodoc_mock_imports = [
     "cf_units",  # Causes many errors in docs build.
 ]
@@ -173,6 +177,7 @@ autoapi_python_class_content = "both"
 autoapi_options = ["members", "undoc-members", "imported-members", "show-inheritance"]
 # If you get build errors pointing to audoapi/**/*.rst files,
 # to debug set `autoapi_keep_files` to True
+autoapi_keep_files = False
 
 myst_heading_anchors = 3
 nb_execution_mode = "off"
@@ -194,6 +199,7 @@ intersphinx_mapping = {
     "seaborn": ("https://seaborn.pydata.org/", None),
     "sklearn": ("https://scikit-learn.org/stable", None),
     "xarray": ("https://docs.xarray.dev/en/stable/", None),
+    "pydantic": ("https://docs.pydantic.dev/latest/", None),
 }
 
 # Dont copy line number, >>> and ... from code blocks

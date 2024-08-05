@@ -1,8 +1,8 @@
 """Config.
 
 Configuration of eWaterCycle is done via the
-:py:class:`~eWaterCycle.config.Configuration` object. The global configuration can be
-imported from the :py:mod:`eWaterCycle` module as :py:data:`~ewatercycle.CFG`:
+:py:class:`~ewatercycle.config.Configuration` object. The global configuration can be
+imported from the :py:mod:`ewatercycle` module as :py:data:`~ewatercycle.CFG`:
 
 .. code-block:: python
 
@@ -137,7 +137,7 @@ class Configuration(BaseModel):
     """Dictionary of parameter sets.
 
     Data source for :py:func:`ewatercycle.parameter_sets.available_parameter_sets` and
-    :py:func:`ewatercycle.parameter_sets.get_parameter_set` methods.
+    :py:func:`ewatercycle.base.parameter_set.ParameterSet.download` methods.
     """
     ewatercycle_config: ExpandedFilePath | None = None
     """Where is the configuration saved or loaded from.
