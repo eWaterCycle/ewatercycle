@@ -168,12 +168,12 @@ class CaravanForcing(DefaultForcing):
                 If none is specified, will be downloaded automatically.
             kwargs: Additional keyword arguments.
                 basin_id: The ID of the desired basin. Data sets can be explored using
-                    `CaravanForcing.get_dataset(dataset_name)` or
-                    `CaravanForcing.get_basin_id(dataset_name)`
-                    where `dataset_name` is the name of a dataset in Caravan
-                    (for example, "camels" or "camelsgb").
-                    For more information do `help(CaravanForcing.get_basin_id)` or see
-                    https://www.ewatercycle.org/caravan-map/.
+                `CaravanForcing.get_dataset(dataset_name)` or
+                `CaravanForcing.get_basin_id(dataset_name)`
+                where `dataset_name` is the name of a dataset in Caravan
+                (for example, "camels" or "camelsgb").
+                For more information do `help(CaravanForcing.get_basin_id)` or see
+                https://www.ewatercycle.org/caravan-map/.
         """
         if "basin_id" not in kwargs:
             msg = (

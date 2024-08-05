@@ -35,7 +35,8 @@ def search_esgf(
     the data could be offline. Node status can be found `here
     <https://aims2.llnl.gov/nodes>`_.
 
-    More informations on ESMValTool's search functionality can be found `here
+    More informations on ESMValTool's search functionality can be found at the
+    `ESMValCore api docs
     <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/api/esmvalcore.esgf.html>`_
 
     For more information on what valid experiments, frequencies, variables are, see
@@ -79,10 +80,10 @@ def search_esgf(
         variables: Which variables are you searching for. Use the short_name definition.
             For example: ['pr', 'tas'].
         project: Which project to search in. Defaults to 'CMIP6'.
-        extended_mip_tables (optional): If you want to use extended MIP tables.
+        extended_mip_tables: Optional. If you want to use extended MIP tables.
             These tables are probably not relevant for most hydrology usecases and can
             make the search slower. Defaults to False.
-        verbose (optional): If the results should be printed in a verbose way, to aid
+        verbose: Ooptional. If the results should be printed in a verbose way, to aid
             in your search experience. Defaults to False.
 
     Returns:

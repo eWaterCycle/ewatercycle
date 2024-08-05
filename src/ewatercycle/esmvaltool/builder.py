@@ -129,7 +129,7 @@ class RecipeBuilder:
                 When string is given a predefined dataset is looked up in
                 :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
                 When dict given it is passed to
-                :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
+                :py:class:`ewatercycle.esmvaltool.schema.Dataset` constructor.
 
         Only one dataset is allowed when generating eWaterCycle forcings.
         Calling this method again will overwrite the previous dataset.

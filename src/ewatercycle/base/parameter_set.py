@@ -31,8 +31,9 @@ def download_github_repo(
         repo: Repository name (e.g, "ewatercycle")
         branch: Branch name (e.g., "main")
         download_dir: Path towards the directory where the data should be downloaded to.
-        subfolder (optional): Subfolder within the github repo to extract.
-            E.g. "src/ewatercycle/base".
+        subfolder: Optional subfolder within the github repo to extract.
+            For example "src/ewatercycle/base".
+            If not set then downloads the entire repository.
 
     Raises:
         ConnectionError: If the HTTP return code is not 200.
@@ -129,7 +130,7 @@ class ParameterSet(BaseModel):
 
     Is directory containing data that does not change over time.
     Should be passed to a models constructor like
-    :py:class:`~ewatercycle.base.model.AbstractModel`.
+    :py:class:`~ewatercycle.base.model.eWaterCycleModel`.
 
     Example:
         >>> from ewatercycle.base import ParameterSet

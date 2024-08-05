@@ -23,7 +23,7 @@ import tomli
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
-    "nbsphinx",
+    "myst_nb",
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
     "autoapi.extension",
@@ -75,19 +75,13 @@ language = "en"
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
-
-
-# -- Use autoapi.extension to run sphinx-apidoc -------
-autoapi_dirs = ["../src"]
-autoapi_python_class_content = "both"
-autoapi_options = ["members", "undoc-members", "imported-members", "show-inheritance"]
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -162,46 +156,44 @@ texinfo_documents = [
     ),
 ]
 
+# Turned off nitpicky as not all warnings are fixable
+# To find reference target not found warnings turn this on
+nitpicky = False
+
 autodoc_mock_imports = [
     "cf_units",  # Causes many errors in docs build.
 ]
 # Prevent alphabetic sorting of (@data)class attributes/methods
 autodoc_member_order = "bysource"
 
-# nbsphinx configuration values cf. https://nbsphinx.readthedocs.io/en/0.8.6/usage.html
-nbsphinx_execute = "never"
+autoapi_dirs = ["../src"]
+autoapi_python_class_content = "both"
+autoapi_options = ["members", "undoc-members", "imported-members", "show-inheritance"]
+# If you get build errors pointing to audoapi/**/*.rst files,
+# to debug set `autoapi_keep_files` to True
+autoapi_keep_files = False
 
-# Hacky way to 'remove' the cell count from the prompt.
-# Inspired by https://github.com/spatialaudio/nbsphinx/issues/126
-nbsphinx_prompt_width = "0"
-nbsphinx_input_prompt = "%s         In:"
-nbsphinx_output_prompt = "%s       Out:"
-
-# Nice formatting of model-specific input parameters
-napoleon_custom_sections = [
-    ("hype", "params_style"),
-    ("lisflood", "params_style"),
-    ("marrmot", "params_style"),
-    ("pcrglobwb", "params_style"),
-    ("wflow", "params_style"),
-]
+myst_heading_anchors = 3
+nb_execution_mode = "off"
+nb_output_stderr = "remove"
 
 intersphinx_mapping = {
     "cf_units": ("https://cf-units.readthedocs.io/en/latest/", None),
-    "esmvalcore": ("https://docs.esmvaltool.org/projects/esmvalcore/en/latest/", None),
+    "esmvalcore": ("https://docs.esmvaltool.org/projects/ESMValCore/en/latest/", None),
     "esmvaltool": ("https://docs.esmvaltool.org/en/latest/", None),
     "grpc4bmi": ("https://grpc4bmi.readthedocs.io/en/latest/", None),
     "iris": ("https://scitools-iris.readthedocs.io/en/latest/", None),
     "lime": ("https://lime-ml.readthedocs.io/en/latest/", None),
     "basic_modeling_interface": ("https://bmi.readthedocs.io/en/latest/", None),
-    "matplotlib": ("https://matplotlib.org/", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "pandas": ("https://pandas.pydata.org/pandas-docs/dev", None),
     "python": ("https://docs.python.org/3/", None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "seaborn": ("https://seaborn.pydata.org/", None),
     "sklearn": ("https://scikit-learn.org/stable", None),
     "xarray": ("https://docs.xarray.dev/en/stable/", None),
+    "pydantic": ("https://docs.pydantic.dev/latest/", None),
 }
 
 # Dont copy line number, >>> and ... from code blocks

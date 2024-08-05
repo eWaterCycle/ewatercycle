@@ -59,6 +59,7 @@ def _to_absolute_path(v: str | Path):
 
 # Needed so subclass.generate() can return type of subclass instead of base class.
 AnyForcing = TypeVar("AnyForcing", bound="DefaultForcing")
+"""TypeVar for forcing classes."""
 Postprocessor: TypeAlias = Callable[[dict[str, str]], tuple[str, ...]]
 
 
@@ -127,7 +128,7 @@ class DefaultForcing(BaseModel):
                 When string is given a predefined dataset is looked up in
                 :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
                 When dict given it is passed to
-                :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
+                :py:class:`ewatercycle.esmvaltool.schema.Dataset` constructor.
             start_time: Start time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: nd time of forcing in UTC and ISO format string e.g.
