@@ -1,0 +1,55 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/miniconda
+{
+	"name": "Micromamba",
+	// TODO remove unused comments
+	// "image": "mcr.microsoft.com/devcontainers/universal:2",
+	"build": {
+		"context": "..",
+		"dockerfile": "Dockerfile"
+	},
+	"features": {
+		// "ghcr.io/mamba-org/devcontainer-features/micromamba:1": {
+    		// "envFile": "/tmp/conda-lock.yml",
+			// "envName": "ewatercycle"
+  		// },
+		// "ghcr.io/rocker-org/devcontainer-features/miniforge:1": {
+		// 	"variant": "miniforge"
+		// },
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {}
+	},
+	// "updateContentCommand": "micromamba update -y -f /tmp/conda-lock.yml && pip3 install -e .[dev]",
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": ". /opt/conda/etc/profile.d/conda.sh && conda activate ewatercycle && pip3 install -e .[dev] && pre-commit install",
+	// "postCreateCommand": "pip3 install -e .[dev] && pre-commit install",
+
+	// "onCreateCommand": "conda install conda-lock -n base -c conda-forge -y",
+	// "postCreateCommand": "conda-lock install -n ewatercycle && conda activate ewatercycle && pip3 install -e .[dev] && pre-commit install",
+
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"charliermarsh.ruff",
+				"ms-python.mypy-type-checker",
+				// Extensions for docs
+				// "njpwerner.autodocstring",
+				// "redhat.vscode-yaml",
+				// "lextudio.restructuredtext",
+				// "trond-snekvik.simple-rst",
+				// "swyddfa.esbonio",
+				// Extensions for notebooks
+				// "ms-toolsai.jupyter",
+				// "ms-toolsai.vscode-jupyter-cell-tags"
+			],
+			"settings": {
+				"python.defaultInterpreterPath": "/opt/conda/envs/ewatercycle/bin/python3",
+				"python.condaPath": "/opt/conda/condabin/conda",
+				"python.venvPath": "/opt/conda/envs",
+				"python.terminal.activateEnvironment": false
+			}
+		}
+	}
+}
