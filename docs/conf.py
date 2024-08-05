@@ -83,12 +83,6 @@ pygments_style = "sphinx"
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
-
-# -- Use autoapi.extension to run sphinx-apidoc -------
-autoapi_dirs = ["../src"]
-autoapi_python_class_content = "both"
-autoapi_options = ["members", "undoc-members", "imported-members", "show-inheritance"]
-
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
