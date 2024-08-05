@@ -5,5 +5,4 @@ sphinx-copybutton
 jinja2
 sphinx-autoapi
 sphinx_rtd_theme
-sphinx-autodoc2
 tomli

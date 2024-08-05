@@ -35,7 +35,8 @@ def search_esgf(
     the data could be offline. Node status can be found `here
     <https://aims2.llnl.gov/nodes>`_.
 
-    More informations on ESMValTool's search functionality can be found `here
+    More informations on ESMValTool's search functionality can be found at the
+    `ESMValCore api docs
     <https://docs.esmvaltool.org/projects/ESMValCore/en/latest/api/esmvalcore.esgf.html>`_
 
     For more information on what valid experiments, frequencies, variables are, see

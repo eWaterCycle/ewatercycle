@@ -67,28 +67,6 @@ Or to reload the current config:
 
     >>> CFG.reload()
 
-.. data:: CFG
-
-eWaterCycle configuration object.
-
-The configuration is loaded from:
-
- 1. ``$XDG_CONFIG_HOME/ewatercycle/ewatercycle.yaml``
- 2. ``~/.config/ewatercycle/ewatercycle.yaml``
- 3. ``/etc/ewatercycle.yaml``
- 4. Fall back to empty configuration
-
-The ``ewatercycle.yaml`` is formatted in YAML and could for example look like:
-
-.. code-block:: yaml
-
-    grdc_location: /data/grdc
-    container_engine: apptainer
-    apptainer_dir: /data/apptainer-images
-    output_dir: /scratch
-    # Filled apptainer_dir with
-    # cd /data/apptainer-images
-    # apptainer pull docker://ewatercycle/wflow-grpc4bmi:2020.1.1
 """
 
 import os
@@ -342,6 +320,25 @@ _SOURCES = (USER_HOME_CONFIG, SYSTEM_CONFIG)
 
 USER_CONFIG = _find_user_config(_SOURCES)
 
-CFG = Configuration()
-if USER_CONFIG:
-    CFG = Configuration._load_user_config(USER_CONFIG)
+CFG = Configuration._load_user_config(USER_CONFIG) if USER_CONFIG else Configuration()
+"""eWaterCycle configuration object.
+
+The configuration is loaded from:
+
+ 1. ``$XDG_CONFIG_HOME/ewatercycle/ewatercycle.yaml``
+ 2. ``~/.config/ewatercycle/ewatercycle.yaml``
+ 3. ``/etc/ewatercycle.yaml``
+ 4. Fall back to empty configuration
+
+The ``ewatercycle.yaml`` is formatted in YAML and could for example look like:
+
+.. code-block:: yaml
+
+    grdc_location: /data/grdc
+    container_engine: apptainer
+    apptainer_dir: /data/apptainer-images
+    output_dir: /scratch
+    # Filled apptainer_dir with
+    # cd /data/apptainer-images
+    # apptainer pull docker://ewatercycle/wflow-grpc4bmi:2020.1.1
+"""

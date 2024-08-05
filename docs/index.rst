@@ -70,4 +70,3 @@ that are commonly used throughout this documentation.
    plugins
    infrastructures
    observations
-   apidocs/index

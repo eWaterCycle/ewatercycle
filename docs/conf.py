@@ -21,7 +21,7 @@ import tomli
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "autodoc2",
+    "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "myst_nb",
     "sphinx.ext.intersphinx",
@@ -162,8 +162,19 @@ texinfo_documents = [
     ),
 ]
 
-autodoc2_packages = ["../src/ewatercycle"]
+autodoc_mock_imports = [
+    "cf_units",  # Causes many errors in docs build.
+]
+# Prevent alphabetic sorting of (@data)class attributes/methods
+autodoc_member_order = "bysource"
 
+autoapi_dirs = ["../src"]
+autoapi_python_class_content = "both"
+autoapi_options = ["members", "undoc-members", "imported-members", "show-inheritance"]
+# If you get build errors pointing to audoapi/**/*.rst files,
+# to debug set `autoapi_keep_files` to True
+
+myst_heading_anchors = 3
 nb_execution_mode = "off"
 nb_output_stderr = "remove"
 

@@ -65,7 +65,6 @@ dev = [
     "pytest-runner",
     "rich",
     "sphinx",
-    "sphinx-autodoc2",
     "sphinx-autoapi",
     "sphinx-copybutton",
     "sphinx-rtd-theme",
