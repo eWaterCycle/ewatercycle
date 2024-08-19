@@ -83,7 +83,7 @@ def search_esgf(
         extended_mip_tables: Optional. If you want to use extended MIP tables.
             These tables are probably not relevant for most hydrology usecases and can
             make the search slower. Defaults to False.
-        verbose: Ooptional. If the results should be printed in a verbose way, to aid
+        verbose: Optional. If the results should be printed in a verbose way, to aid
             in your search experience. Defaults to False.
 
     Returns:
