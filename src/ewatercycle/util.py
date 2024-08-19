@@ -27,7 +27,7 @@ def find_closest_point(
         point_longitude: longitude in degrees of target coordinate
         point_latitude: latitude in degrees of target coordinate
 
-    returns:
+    Returns:
         Tuple with first index of closest grid point in the original longitude array
         and second the index of closest grid point in the original latitude array.
     """
@@ -72,7 +72,7 @@ def geographical_distances(
         lat_vectors: 1d array of latitudes in degrees
         radius: Radius of a sphere in km. Default is Earths approximate radius.
 
-    returns:
+    Returns:
         Array of geographical distance of point to all vector members.
 
     """

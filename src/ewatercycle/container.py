@@ -309,17 +309,17 @@ class BmiProxy(Bmi):
         origin: the BMI object to proxy
 
     Example:
-    To overwrite the `get_value` method of a BMI class, you can use the following
+        To overwrite the `get_value` method of a BMI class, you can use the following
 
-    >>> class MyBmi(BmiProxy):
-    ...     def get_value(self, name: str, dest: np.ndarray) -> np.ndarray:
-    ...         dest[:] = 1
-    ...         return dest
-    >>> bmi = MyBmi(BmiImplementation())
-    >>> bmi.get_value("my_var", np.empty((2,3), dtype=np.float64))
-    array([[1., 1., 1.], [1., 1., 1.]])
+        >>> class MyBmi(BmiProxy):
+        ...     def get_value(self, name: str, dest: np.ndarray) -> np.ndarray:
+        ...         dest[:] = 1
+        ...         return dest
+        >>> bmi = MyBmi(BmiImplementation())
+        >>> bmi.get_value("my_var", np.empty((2,3), dtype=np.float64))
+        array([[1., 1., 1.], [1., 1., 1.]])
 
-    All other methods are forwarded to the origin.
+        All other methods are forwarded to the origin.
 
     """
 

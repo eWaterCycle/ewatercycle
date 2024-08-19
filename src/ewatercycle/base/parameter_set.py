@@ -60,7 +60,7 @@ class GitHubDownloader(BaseModel):
     """Download and extract a Github repository.
 
     Examples:
-        * https://github.com/ec-jrc/lisflood-usecases/tree/master/LF_lat_lon_UseCase
+        See https://github.com/ec-jrc/lisflood-usecases/tree/master/LF_lat_lon_UseCase
 
     """
 
