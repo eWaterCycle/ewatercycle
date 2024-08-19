@@ -74,7 +74,7 @@ def example_parameter_sets() -> dict[str, ParameterSet]:
     # TODO how to add a new model docs should be updated with this part
     return {
         entry_point.name: entry_point.load()
-        for entry_point in entry_points(group="ewatercycle.parameter_sets")  # /NOSONAR
+        for entry_point in entry_points(group="ewatercycle.parameter_sets")
     }
 
 

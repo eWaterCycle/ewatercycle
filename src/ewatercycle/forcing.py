@@ -71,7 +71,7 @@ _forcings: dict[str, Any] = {
 _forcings.update(
     {
         entry_point.name: entry_point
-        for entry_point in entry_points(group="ewatercycle.forcings")  # /NOSONAR
+        for entry_point in entry_points(group="ewatercycle.forcings")
     }
 )
 
