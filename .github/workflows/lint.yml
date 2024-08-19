@@ -1,4 +1,4 @@
-name: Lint
+name: Static code analysis 🔍️
 
 on:
   push:
