@@ -189,10 +189,8 @@ class Configuration(BaseModel):
     def _load_user_config(cls, filename: os.PathLike[str] | str) -> "Configuration":
         """Load user configuration from the given file.
 
-        Parameters
-        ----------
-        filename: pathlike
-            Name of the config file, must be yaml format
+        Args:
+            filename: Name of the config file, must be yaml format
         """
         mapping = _read_config_file(filename)
         try:
