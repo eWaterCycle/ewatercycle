@@ -102,7 +102,7 @@ class CaravanForcing(DefaultForcing):
 
         More in depth notebook van be found here:
         https://gist.github.com/Daafip/ac1b030eb5563a76f4d02175f2716fd7
-    """
+    """  # noqa: E501
 
     @classmethod
     def get_dataset(cls: type["CaravanForcing"], dataset: str) -> xr.Dataset:

@@ -344,7 +344,7 @@ class DistributedUserForcing(DefaultForcing):
                     'evspsblpot': 'Derived_Makkink_evspsblpot.nc'
                 }
             )
-    """
+    """  # noqa: E501
 
     @classmethod
     def _build_recipe(
@@ -415,7 +415,7 @@ class LumpedUserForcing(DistributedUserForcing):
                     'evspsblpot': 'Derived_Makkink_evspsblpot.nc'
                 }
             )
-    """
+    """  # noqa: E501
 
     @classmethod
     def _build_recipe(
