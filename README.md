@@ -4,9 +4,10 @@
 
 A Python package for running hydrological models.
 
-[![image](https://github.com/eWaterCycle/ewatercycle/actions/workflows/ci.yml/badge.svg)](https://github.com/eWaterCycle/ewatercycle/actions/workflows/ci.yml)
-[![image](https://sonarcloud.io/api/project_badges/measure?project=eWaterCycle_ewatercycle&metric=alert_status)](https://sonarcloud.io/dashboard?id=eWaterCycle_ewatercycle)
-[![image](https://sonarcloud.io/api/project_badges/measure?project=eWaterCycle_ewatercycle&metric=coverage)](https://sonarcloud.io/component_measures?id=eWaterCycle_ewatercycle&metric=coverage)
+[![Test CI](https://github.com/eWaterCycle/ewatercycle/actions/workflows/test.yml/badge.svg)](https://github.com/eWaterCycle/ewatercycle/actions/workflows/test.yml)
+[![Lint CI](https://github.com/eWaterCycle/ewatercycle/actions/workflows/lint.yml/badge.svg)](https://github.com/eWaterCycle/ewatercycle/actions/workflows/lint.yml)
+[![Build CI](https://github.com/eWaterCycle/ewatercycle/actions/workflows/build.yml/badge.svg)](https://github.com/eWaterCycle/ewatercycle/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/eWaterCycle/ewatercycle/graph/badge.svg?token=dAZma01eVz)](https://codecov.io/gh/eWaterCycle/ewatercycle)
 [![Documentation Status](https://readthedocs.org/projects/ewatercycle/badge/?version=latest)](https://ewatercycle.readthedocs.io/en/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/ewatercycle)](https://pypi.org/project/ewatercycle/)
 [![image](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B-yellow)](https://fair-software.eu)

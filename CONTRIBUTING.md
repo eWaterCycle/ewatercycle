@@ -58,15 +58,16 @@ The sections below outline the steps in each case.
 4. install the package in editable mode with
     `pip3 install -e .`;
 4. make sure pre commit hook is installed by running `pre-commit install`, causes linting and formatting to be applied during commit;
-5. make sure the existing tests still work by running `pytest`;
-6. make sure the existing documentation can still by generated without
+5. make sure types are correct by running ``mypy``.
+6. make sure the existing tests still work by running `pytest`;
+7. make sure the existing documentation can still by generated without
     warnings by running `cd docs && make html`. [Pandoc](https://pandoc.org/) is required to generate docs, it can be installed with ``conda install -c conda-forge pandoc`` ;
-7. add your own tests (if necessary);
-8. update or expand the documentation; Please add [Google Style Python
+8. add your own tests (if necessary);
+9. update or expand the documentation; Please add [Google Style Python
     docstrings](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings).
-9. [push](http://rogerdudler.github.io/git-guide/) your feature branch
+10. [push](http://rogerdudler.github.io/git-guide/) your feature branch
     to (your fork of) the ewatercycle repository on GitHub;
-10. create the pull request, e.g. following the instructions
+11. create the pull request, e.g. following the instructions
     [here](https://help.github.com/articles/creating-a-pull-request/).
 
 In case you feel like you\'ve made a valuable contribution, but you
@@ -87,18 +88,19 @@ This section is for maintainers of the package.
 5. Update CHANGELOG.md with changes between current and new version. (Don't forget to also update the links at the bottom of the file)
 6. Make sure pre-commit hooks are green for all files by running ``pre-commit run --all-files``.
 7. Make sure types are correct by running ``mypy``.
-8. Commit & push changes to GitHub.
-9. Wait for [GitHub
+8. Make sure all tests passed by running ``pytest``.
+9. Commit & push changes to GitHub.
+10. Wait for [GitHub
     actions](https://github.com/eWaterCycle/ewatercycle/actions?query=branch%3Amain+)
     to be completed and green.
 
-10. Create a [GitHub release](https://github.com/eWaterCycle/ewatercycle/releases/new)
+11. Create a [GitHub release](https://github.com/eWaterCycle/ewatercycle/releases/new)
 
     - Use version as title and tag version.
     - As description use intro text from README.md (to give context to
         Zenodo record) and changes from CHANGELOG.md
 
-11. Verify
+12. Verify
 
     1. Has [new Zenodo
         record](https://zenodo.org/search?page=1&size=20&q=ewatercycle)
@@ -111,4 +113,4 @@ This section is for maintainers of the package.
     4. Can new version be installed with pip using
         `pip3 install ewatercycle==<new version>`?
 
-12. Celebrate
+13. Celebrate

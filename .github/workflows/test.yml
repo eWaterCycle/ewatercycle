@@ -1,0 +1,39 @@
+name: Testing and type checking 🐛
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: conda-lock.yml
+          environment-name: ci
+          cache-environment: true
+          init-shell: bash
+      - name: Install dependencies
+        shell: bash -l {0}
+        run: |
+          pip3 install -e .[dev]
+      - name: Test
+        run: pytest --cov --cov-report=xml
+        shell: bash -l {0}
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          use_oidc: true
+      # mypy should be in lint workflow,
+      # but mypy requires all dependencies to be installed,
+      # so we put it here.
+      - name: Check typings
+        run: mypy
+        shell: bash -l {0}

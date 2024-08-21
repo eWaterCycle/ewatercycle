@@ -24,7 +24,7 @@ from importlib.metadata import entry_points, packages_distributions
 from ewatercycle import shared
 from ewatercycle.base.model import eWaterCycleModel
 
-_model_entrypoints = entry_points(group="ewatercycle.models")  # /NOSONAR
+_model_entrypoints = entry_points(group="ewatercycle.models")
 
 
 def get_package_name(module_name: str) -> str:
@@ -57,23 +57,23 @@ class ModelSources(shared.Sources):
     """Dictionary filled with available models.
 
     Examples:
-            Get a nice overview of the available models:
+        Get a nice overview of the available models:
 
-            >>> from ewatercycle.models import sources
-            >>> print(sources)
-            ...
+        >>> from ewatercycle.models import sources
+        >>> print(sources)
+        ...
 
-            List the names of the available models:
+        List the names of the available models:
 
-            >>> from ewatercycle.models import sources
-            >>> sources.keys()
-            ['Wflow', 'LeakyBucket', ...]
+        >>> from ewatercycle.models import sources
+        >>> sources.keys()
+        ['Wflow', 'LeakyBucket', ...]
 
-            Access one of the models:
+        Access one of the models:
 
-            >>> from ewatercycle.models import sources
-            >>> sources["Wflow"]
-            model = sources["Wflow"]()
+        >>> from ewatercycle.models import sources
+        >>> sources["Wflow"]
+        model = sources["Wflow"]()
 
     To get your own model to be listed here it needs to be
     registered in the `ewatercycle.models`
