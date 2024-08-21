@@ -58,12 +58,11 @@ dependencies = [
 dev = [
     "ipython",
     "mypy",
-    "nbsphinx",
+    "myst-nb",
     "pre-commit>=2.15.0",
     "pytest",
     "pytest-cov",
     "pytest-runner",
-    "recommonmark",
     "rich",
     "sphinx",
     "sphinx-autoapi",

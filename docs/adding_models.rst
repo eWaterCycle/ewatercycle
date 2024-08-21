@@ -41,7 +41,6 @@ and should be implemented:
 * ``get_end_time()``
 * ``get_grid_type()``
 * ``get_grid_rank()``
-.. To convert flat array to xarray or get/set value at coord
 * ``get_grid_shape()``
 * ``get_grid_size()``
 * ``get_grid_x()``
@@ -49,12 +48,10 @@ and should be implemented:
 * ``get_output_var_names()``
 * ``get_start_time()``
 * ``get_time_step()``
-.. To convert time to a datetime object
 * ``get_time_units()``
 * ``get_value_at_indices()``
 * ``get_value()``
 * ``get_var_grid()``
-.. To reserve a correctly sized array for output
 * ``get_var_itemsize()``
 * ``get_var_nbytes()``
 * ``get_var_type()``
@@ -90,8 +87,8 @@ The forcing class should sub class :py:class:`~ewatercycle.base.forcing.DefaultF
 
 In the class you have to define attributes for the forcing files your model will need.
 
-To use a ESMValTool recipe you have to implement the :py:meth:`~ewatercycle.base.forcing.DefaultForcing._build_recipe` method.
-It should return a :py:class:`~ewatercycle.esmvaltool.models.Recipe` object which can be build using the
+To use a ESMValTool recipe you have to implement the ``DefaultForcing._build_recipe()`` method.
+It should return a :py:class:`~ewatercycle.esmvaltool.schema.Recipe` object which can be build using the
 :py:class:`~ewatercycle.esmvaltool.builder.RecipeBuilder` class.
 For example if your model only needs precipitation you can implement the method like this:
 
@@ -141,7 +138,7 @@ so
         )
 
 
-The recipe output is mapped to the forcing class arguments with the :py:meth:`~ewatercycle.base.forcing.DefaultForcing._recipe_output_to_forcing_arguments` method.
+The recipe output is mapped to the forcing class arguments with the ``DefaultForcing._recipe_output_to_forcing_arguments()`` method.
 If you want to change the mapping you can override this method.
 
 If you do not want to use ESMValTool to generate recipes you can override the :py:meth:`~ewatercycle.base.forcing.DefaultForcing.generate` method.

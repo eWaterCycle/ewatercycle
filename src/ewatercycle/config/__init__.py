@@ -1,8 +1,8 @@
 """Config.
 
 Configuration of eWaterCycle is done via the
-:py:class:`~eWaterCycle.config.Configuration` object. The global configuration can be
-imported from the :py:mod:`eWaterCycle` module as :py:data:`~ewatercycle.CFG`:
+:py:class:`~ewatercycle.config.Configuration` object. The global configuration can be
+imported from the :py:mod:`ewatercycle` module as :py:data:`~ewatercycle.CFG`:
 
 .. code-block:: python
 
@@ -67,28 +67,6 @@ Or to reload the current config:
 
     >>> CFG.reload()
 
-.. data:: CFG
-
-eWaterCycle configuration object.
-
-The configuration is loaded from:
-
- 1. ``$XDG_CONFIG_HOME/ewatercycle/ewatercycle.yaml``
- 2. ``~/.config/ewatercycle/ewatercycle.yaml``
- 3. ``/etc/ewatercycle.yaml``
- 4. Fall back to empty configuration
-
-The ``ewatercycle.yaml`` is formatted in YAML and could for example look like:
-
-.. code-block:: yaml
-
-    grdc_location: /data/grdc
-    container_engine: apptainer
-    apptainer_dir: /data/apptainer-images
-    output_dir: /scratch
-    # Filled apptainer_dir with
-    # cd /data/apptainer-images
-    # apptainer pull docker://ewatercycle/wflow-grpc4bmi:2020.1.1
 """
 
 import os
@@ -159,7 +137,7 @@ class Configuration(BaseModel):
     """Dictionary of parameter sets.
 
     Data source for :py:func:`ewatercycle.parameter_sets.available_parameter_sets` and
-    :py:func:`ewatercycle.parameter_sets.get_parameter_set` methods.
+    :py:func:`ewatercycle.base.parameter_set.ParameterSet.download` methods.
     """
     ewatercycle_config: ExpandedFilePath | None = None
     """Where is the configuration saved or loaded from.
@@ -211,10 +189,8 @@ class Configuration(BaseModel):
     def _load_user_config(cls, filename: os.PathLike[str] | str) -> "Configuration":
         """Load user configuration from the given file.
 
-        Parameters
-        ----------
-        filename: pathlike
-            Name of the config file, must be yaml format
+        Args:
+            filename: Name of the config file, must be yaml format
         """
         mapping = _read_config_file(filename)
         try:
@@ -342,6 +318,25 @@ _SOURCES = (USER_HOME_CONFIG, SYSTEM_CONFIG)
 
 USER_CONFIG = _find_user_config(_SOURCES)
 
-CFG = Configuration()
-if USER_CONFIG:
-    CFG = Configuration._load_user_config(USER_CONFIG)
+CFG = Configuration._load_user_config(USER_CONFIG) if USER_CONFIG else Configuration()
+"""eWaterCycle configuration object.
+
+The configuration is loaded from:
+
+ 1. ``$XDG_CONFIG_HOME/ewatercycle/ewatercycle.yaml``
+ 2. ``~/.config/ewatercycle/ewatercycle.yaml``
+ 3. ``/etc/ewatercycle.yaml``
+ 4. Fall back to empty configuration
+
+The ``ewatercycle.yaml`` is formatted in YAML and could for example look like:
+
+.. code-block:: yaml
+
+    grdc_location: /data/grdc
+    container_engine: apptainer
+    apptainer_dir: /data/apptainer-images
+    output_dir: /scratch
+    # Filled apptainer_dir with
+    # cd /data/apptainer-images
+    # apptainer pull docker://ewatercycle/wflow-grpc4bmi:2020.1.1
+"""

@@ -59,6 +59,7 @@ def _to_absolute_path(v: str | Path):
 
 # Needed so subclass.generate() can return type of subclass instead of base class.
 AnyForcing = TypeVar("AnyForcing", bound="DefaultForcing")
+"""TypeVar for forcing classes."""
 Postprocessor: TypeAlias = Callable[[dict[str, str]], tuple[str, ...]]
 
 
@@ -127,7 +128,7 @@ class DefaultForcing(BaseModel):
                 When string is given a predefined dataset is looked up in
                 :py:const:`ewatercycle.esmvaltool.datasets.DATASETS`.
                 When dict given it is passed to
-                :py:class:`ewatercycle.esmvaltool.models.Dataset` constructor.
+                :py:class:`ewatercycle.esmvaltool.schema.Dataset` constructor.
             start_time: Start time of forcing in UTC and ISO format string e.g.
                 'YYYY-MM-DDTHH:MM:SSZ'.
             end_time: nd time of forcing in UTC and ISO format string e.g.
@@ -300,50 +301,50 @@ class DistributedUserForcing(DefaultForcing):
     """Forcing object with user-specified downloaded variables and postprocessing.
 
     Examples:
-    To generate forcing from ERA5 for the Rhine catchment for 2000-2001, retrieving
-    the 'pr', 'tas' and 'rsds' variables, and applying the Makkink evaporation
-    postprocessor.
+        To generate forcing from ERA5 for the Rhine catchment for 2000-2001, retrieving
+        the 'pr', 'tas' and 'rsds' variables, and applying the Makkink evaporation
+        postprocessor.
 
-    .. code-block:: python
+        .. code-block:: python
 
-        from pathlib import Path
-        from rich import print
-        from ewatercycle.base.forcing import DistributedUserForcing
+            from pathlib import Path
+            from rich import print
+            from ewatercycle.base.forcing import DistributedUserForcing
 
-        cmip_dataset = {
-            "dataset": "EC-Earth3",
-            "project": "CMIP6",
-            "grid": "gr",
-            "exp": "historical",
-            "ensemble": "r6i1p1f1",
-        }
-        shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
-        forcing = DistributedUserForcing.generate(
-            dataset=cmip_dataset,
-            start_time='2000-01-01T00:00:00Z',
-            end_time='2001-01-01T00:00:00Z',
-            shape=str(shape.absolute()),
-            variables=("pr", "tas"),
-        )
-        print(forcing)
-
-    Gives something like:
-
-    .. code-block:: python
-
-        DistributedUserForcing(
-            start_time='2000-01-01T00:00:00Z',
-            end_time='2001-01-01T00:00:00Z',
-            directory=PosixPath('/home/bart/esmvaltool_output/ewcrepvl1jeunb_20240305_131155/work/diagnostic/script'),
-            shape=PosixPath('/home/bart/git/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
-            filenames={
-                'pr': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_pr_gr_2000-2001.nc',
-                'tas': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_tas_gr_2000-2001.nc',
-                'rsds': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_rsds_gr_2000-2001.nc',
-                'evspsblpot': 'Derived_Makkink_evspsblpot.nc'
+            cmip_dataset = {
+                "dataset": "EC-Earth3",
+                "project": "CMIP6",
+                "grid": "gr",
+                "exp": "historical",
+                "ensemble": "r6i1p1f1",
             }
-        )
-    """
+            shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
+            forcing = DistributedUserForcing.generate(
+                dataset=cmip_dataset,
+                start_time='2000-01-01T00:00:00Z',
+                end_time='2001-01-01T00:00:00Z',
+                shape=str(shape.absolute()),
+                variables=("pr", "tas"),
+            )
+            print(forcing)
+
+        Gives something like:
+
+        .. code-block:: python
+
+            DistributedUserForcing(
+                start_time='2000-01-01T00:00:00Z',
+                end_time='2001-01-01T00:00:00Z',
+                directory=PosixPath('/home/bart/esmvaltool_output/ewcrepvl1jeunb_20240305_131155/work/diagnostic/script'),
+                shape=PosixPath('/home/bart/git/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
+                filenames={
+                    'pr': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_pr_gr_2000-2001.nc',
+                    'tas': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_tas_gr_2000-2001.nc',
+                    'rsds': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_rsds_gr_2000-2001.nc',
+                    'evspsblpot': 'Derived_Makkink_evspsblpot.nc'
+                }
+            )
+    """  # noqa: E501
 
     @classmethod
     def _build_recipe(
@@ -371,50 +372,50 @@ class LumpedUserForcing(DistributedUserForcing):
     """Forcing object with user-specified downloaded variables and postprocessing.
 
     Examples:
-    To generate lumped forcing from ERA5 for the Rhine catchment for 2000-2001,
-    retrieving the 'pr', 'tas' and 'rsds' variables, and applying the Makkink
-    evaporation postprocessor.
+        To generate lumped forcing from ERA5 for the Rhine catchment for 2000-2001,
+        retrieving the 'pr', 'tas' and 'rsds' variables, and applying the Makkink
+        evaporation postprocessor.
 
-    .. code-block:: python
+        .. code-block:: python
 
-        from pathlib import Path
-        from rich import print
-        from ewatercycle.base.forcing import LumpedUserForcing
+            from pathlib import Path
+            from rich import print
+            from ewatercycle.base.forcing import LumpedUserForcing
 
-        cmip_dataset = {
-            "dataset": "EC-Earth3",
-            "project": "CMIP6",
-            "grid": "gr",
-            "exp": "historical",
-            "ensemble": "r6i1p1f1",
-        }
-        shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
-        forcing = LumpedUserForcing.generate(
-            dataset=cmip_dataset,
-            start_time='2000-01-01T00:00:00Z',
-            end_time='2001-01-01T00:00:00Z',
-            shape=str(shape.absolute()),
-            variables=("pr", "tas"),
-        )
-        print(forcing)
-
-    Gives something like:
-
-    .. code-block:: python
-
-        LumpedUserForcing(
-            start_time='2000-01-01T00:00:00Z',
-            end_time='2001-01-01T00:00:00Z',
-            directory=PosixPath('/home/bart/esmvaltool_output/ewcrepvl1jeunb_20240305_131155/work/diagnostic/script'),
-            shape=PosixPath('/home/bart/git/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
-            filenames={
-                'pr': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_pr_gr_2000-2001.nc',
-                'tas': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_tas_gr_2000-2001.nc',
-                'rsds': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_rsds_gr_2000-2001.nc',
-                'evspsblpot': 'Derived_Makkink_evspsblpot.nc'
+            cmip_dataset = {
+                "dataset": "EC-Earth3",
+                "project": "CMIP6",
+                "grid": "gr",
+                "exp": "historical",
+                "ensemble": "r6i1p1f1",
             }
-        )
-    """
+            shape = Path("./src/ewatercycle/testing/data/Rhine/Rhine.shp")
+            forcing = LumpedUserForcing.generate(
+                dataset=cmip_dataset,
+                start_time='2000-01-01T00:00:00Z',
+                end_time='2001-01-01T00:00:00Z',
+                shape=str(shape.absolute()),
+                variables=("pr", "tas"),
+            )
+            print(forcing)
+
+        Gives something like:
+
+        .. code-block:: python
+
+            LumpedUserForcing(
+                start_time='2000-01-01T00:00:00Z',
+                end_time='2001-01-01T00:00:00Z',
+                directory=PosixPath('/home/bart/esmvaltool_output/ewcrepvl1jeunb_20240305_131155/work/diagnostic/script'),
+                shape=PosixPath('/home/bart/git/ewatercycle/src/ewatercycle/testing/data/Rhine/Rhine.shp'),
+                filenames={
+                    'pr': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_pr_gr_2000-2001.nc',
+                    'tas': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_tas_gr_2000-2001.nc',
+                    'rsds': 'CMIP6_EC-Earth3_day_historical_r6i1p1f1_rsds_gr_2000-2001.nc',
+                    'evspsblpot': 'Derived_Makkink_evspsblpot.nc'
+                }
+            )
+    """  # noqa: E501
 
     @classmethod
     def _build_recipe(

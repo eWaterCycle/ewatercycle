@@ -27,9 +27,9 @@ def find_closest_point(
         point_longitude: longitude in degrees of target coordinate
         point_latitude: latitude in degrees of target coordinate
 
-    returns:
-        idx_lon: index of closest grid point in the original longitude array
-        idx_lat: index of closest grid point in the original latitude array
+    Returns:
+        Tuple with first index of closest grid point in the original longitude array
+        and second the index of closest grid point in the original latitude array.
     """
     grid_longitudes_array = np.array(grid_longitudes)
     grid_latitudes_array = np.array(grid_latitudes)
@@ -72,8 +72,8 @@ def geographical_distances(
         lat_vectors: 1d array of latitudes in degrees
         radius: Radius of a sphere in km. Default is Earths approximate radius.
 
-    returns:
-        distances: array of geographical distance of point to all vector members
+    Returns:
+        Array of geographical distance of point to all vector members.
 
     """
     dlon = np.radians(lon_vectors - point_longitude)
@@ -277,7 +277,7 @@ def reindex(source_file: str, var_name: str, mask_file: str, target_file: str):
         var_name: Variable name in the source_file dataset.
         mask_file: Input string path of the mask file.
         target_file: Output string path of the
-        file that is reindexed.
+            file that is reindexed.
     """
     # TODO this returns PerformanceWarning, see if it can be fixed.
     data = xr.open_dataset(source_file, chunks={"time": 1})

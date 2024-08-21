@@ -1,8 +1,3 @@
-.. ewatercycle documentation master file, created by
-   sphinx-quickstart on Thu Jun 21 11:07:11 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to ewatercycle's documentation!
 =======================================
 
@@ -26,8 +21,7 @@ enables interactively running a model from a Python environment like so:
        discharge = model.get_value_at_coords("RiverRunoff", lat=[52.3], lon=[5.2])
        output.append(discharge)
 
-To learn how to use the package, see the `User guide <user_guide.html>`_ and
-`example pages <examples.html>`_.
+To learn how to use the package, see the `User guide <user_guide/00_intro.html>`_
 
 Typically the eWaterCycle platform is deployed on a system that can be accessed
 through the browser via JupyterHub, and comes preconfigured with readily
@@ -42,7 +36,6 @@ algorithms), and supplying custom elements. This does mean that a simple usecase
 sometimes requires slightly more lines of code than strictly nescessary, for the
 sake of making it easy to adapt this code to more complex and/or custom
 usecases.
-
 
 Glossary
 --------
