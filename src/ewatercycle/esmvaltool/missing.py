@@ -21,7 +21,7 @@ class ESMValToolNotFoundError(ImportError):
             Please install ewatercycle with:
 
             ```shell
-            wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/conda-lock.yml
+            curl -o conda-lock.yml https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/conda-lock.yml
             conda install mamba conda-lock -n base -c conda-forge -y
             conda-lock install --no-dev -n ewatercycle
             conda activate ewatercycle

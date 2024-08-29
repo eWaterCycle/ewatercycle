@@ -31,8 +31,8 @@ The eWaterCycle Python package uses a lot of geospatial dependencies
 which can be installed using `Conda <https://conda.io/>`__ package
 management system.
 
-Install Conda by using the `miniconda
-installer <https://docs.conda.io/en/latest/miniconda.html>`__.
+Install Conda by using the `miniforge
+installer <https://github.com/conda-forge/miniforge>`__.
 
 After conda is installed you can install the software dependencies with
 a `conda environment
@@ -40,7 +40,7 @@ file <https://github.com/eWaterCycle/ewatercycle/blob/main/conda-lock.yml>`__.
 
 .. code:: shell
 
-    wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/conda-lock.yml
+    curl -o conda-lock.yml https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/conda-lock.yml
     conda install mamba conda-lock -n base -c conda-forge -y
     conda-lock install --no-dev -n ewatercycle
     conda activate ewatercycle

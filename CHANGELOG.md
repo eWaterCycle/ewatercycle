@@ -6,10 +6,12 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+### [2.3.0] (2024-08-29)
+
 ## Changed
 
-- Use [conda-lock](https://conda.github.io/conda-lock/) to install reproducible conda dependencies. Instead of loosely pinned environment.yml ([#442](https://github.com/eWaterCycle/ewatercycle/pull/442))
-- Esmvaltool is no longer a Python dependency, but a conda dependency ([#442](https://github.com/eWaterCycle/ewatercycle/pull/442))
+- Use [conda-lock](https://conda.github.io/conda-lock/) to install reproducible conda dependencies. Instead of loosely pinned environment.yml ([#357](https://github.com/eWaterCycle/ewatercycle/issues/357))
+- ESMValTool is no longer a Python dependency, but a conda dependency ([#442](https://github.com/eWaterCycle/ewatercycle/pull/442))
 
 ### [2.2.0] (2024-07-08)
 
@@ -255,7 +257,8 @@ Everthing listed at [2.0.0](2.0.0), but without the adding models part.
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.2.0...HEAD
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.3.0...HEAD
+[2.3.0]: https://github.com/eWaterCycle/ewatercycle/compare/2.2.0...2.3.0
 [2.2.0]: https://github.com/eWaterCycle/ewatercycle/compare/2.1.1...2.2.0
 [2.1.1]: https://github.com/eWaterCycle/ewatercycle/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/eWaterCycle/ewatercycle/compare/2.0.0...2.1.0
