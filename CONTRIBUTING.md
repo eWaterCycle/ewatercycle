@@ -83,35 +83,36 @@ your pull request.
 This section is for maintainers of the package.
 
 1. Checkout ``HEAD`` of ``main`` branch with ``git checkout main`` and ``git pull``.
-2. If dependencies have changed then create a new [conda lock](https://conda.github.io/conda-lock/) file with ``conda-lock lock -f pyproject.toml``.
-3. Determine what new version (major, minor or patch) to use. Package uses `semantic versioning <https://semver.org>`_.
-4. Set new version in ``pyproject.toml`` file in project section.
-5. Update CHANGELOG.md with changes between current and new version. (Don't forget to also update the links at the bottom of the file)
-6. Make sure pre-commit hooks are green for all files by running ``pre-commit run --all-files``.
-7. Make sure types are correct by running ``mypy``.
-8. Make sure all tests passed by running ``pytest``.
-9. Commit & push changes to GitHub.
-10. Wait for [GitHub
+1. Determine what new version (major, minor or patch) to use. Package uses `semantic versioning <https://semver.org>`_.
+1. Because main branch is protected, you need to create a new branch with ``git checkout -b release-<version>``.
+1. If dependencies have changed then create a new [conda lock](https://conda.github.io/conda-lock/) file with ``conda-lock lock -f pyproject.toml``.
+1. Set new version in ``pyproject.toml`` file in project section.
+1. Update CHANGELOG.md with changes between current and new version. (Don't forget to also update the links at the bottom of the file)
+1. Make sure pre-commit hooks are green for all files by running ``pre-commit run --all-files``.
+1. Make sure types are correct by running ``mypy``.
+1. Make sure all tests passed by running ``pytest``.
+1. Commit & push changes to GitHub.
+1. Create a pull request, review it, wait for actions to be green and merge the pull request.
+1. Wait for [GitHub
     actions](https://github.com/eWaterCycle/ewatercycle/actions?query=branch%3Amain+)
-    to be completed and green.
-
-11. Create a [GitHub release](https://github.com/eWaterCycle/ewatercycle/releases/new)
+    on main branch to be completed and green.
+1. Create a [GitHub release](https://github.com/eWaterCycle/ewatercycle/releases/new)
 
     - Use version as title and tag version.
     - As description use intro text from README.md (to give context to
         Zenodo record) and changes from CHANGELOG.md
 
-12. Verify
+1. Verify
 
     1. Has [new Zenodo
         record](https://zenodo.org/search?page=1&size=20&q=ewatercycle)
         been created?
-    2. Has [stable
+    1. Has [stable
         ReadTheDocs](https://ewatercycle.readthedocs.io/en/stable/) been
         updated?
-    3. Has the [Github publish action](https://github.com/eWaterCycle/ewatercycle/actions/workflows/python-publish.yml)
+    1. Has the [Github publish action](https://github.com/eWaterCycle/ewatercycle/actions/workflows/python-publish.yml)
         successfully uploaded the archives to [PyPI](https://pypi.org/project/ewatercycle/)?
-    4. Can new version be installed with pip using
+    1. Can new version be installed with pip using
         `pip3 install ewatercycle==<new version>`?
 
-13. Celebrate
+1. Celebrate
