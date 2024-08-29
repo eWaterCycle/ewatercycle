@@ -44,30 +44,31 @@ The sections below outline the steps in each case.
 1. (**important**) announce your plan to the rest of the community
     *before you start working*. This announcement should be in the form
     of a (new) issue;
-2. (**important**) wait until some kind of consensus is reached about
+1. (**important**) wait until some kind of consensus is reached about
     your idea being a good idea;
-3. if needed, fork the repository to your own Github profile and create
+1. if needed, fork the repository to your own Github profile and create
     your own feature branch off of the latest main commit. While working
     on your feature branch, make sure to stay up to date with the main
     branch by pulling in changes, possibly from the \'upstream\'
     repository (follow the instructions
     [here](https://help.github.com/articles/configuring-a-remote-for-a-fork/)
     and [here](https://help.github.com/articles/syncing-a-fork/));
-4. install package main and dev dependencies in a conda environment with
+1. If you are using [Visual Studio Code](https://code.visualstudio.com), some extensions will be recommended and you are offered to run inside a [DevContainer](https://containers.dev) in which the dependencies are already installed;
+1. install package main and dev dependencies in a conda environment with
     `conda-lock install -n ewatercycle` and activate it with `conda activate ewatercycle`;
-4. install the package in editable mode with
+1. install the package in editable mode with
     `pip3 install -e .`;
-4. make sure pre commit hook is installed by running `pre-commit install`, causes linting and formatting to be applied during commit;
-5. make sure types are correct by running ``mypy``.
-6. make sure the existing tests still work by running `pytest`;
-7. make sure the existing documentation can still by generated without
+1. make sure pre commit hook is installed by running `pre-commit install`, causes linting and formatting to be applied during commit;
+1. make sure types are correct by running ``mypy``.
+1. make sure the existing tests still work by running `pytest`;
+1. make sure the existing documentation can still by generated without
     warnings by running `cd docs && make html`. [Pandoc](https://pandoc.org/) is required to generate docs, it can be installed with ``conda install -c conda-forge pandoc`` ;
-8. add your own tests (if necessary);
-9. update or expand the documentation; Please add [Google Style Python
+1. add your own tests (if necessary);
+1. update or expand the documentation; Please add [Google Style Python
     docstrings](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings).
-10. [push](http://rogerdudler.github.io/git-guide/) your feature branch
+1. [push](http://rogerdudler.github.io/git-guide/) your feature branch
     to (your fork of) the ewatercycle repository on GitHub;
-11. create the pull request, e.g. following the instructions
+1. create the pull request, e.g. following the instructions
     [here](https://help.github.com/articles/creating-a-pull-request/).
 
 In case you feel like you\'ve made a valuable contribution, but you
