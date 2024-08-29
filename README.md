@@ -71,17 +71,18 @@ and produce a hydrograph.
 <details>
 
 <summary>
-In pseudo code:
+In condensed code:
 
 ```python
 forcing = ewatercycle.forcing.sources['MarrmotForcing'].generate(...)
-model = ewatercycle.models.MarrmotM14(forcing)
+model = ewatercycle.models.sources['MarrmotM14'](forcing)
 model.setup(...)
 model.initialize()
 while (model.time < model.end_time):
     model.update()
     value = model.get_value_as_xarray('flux_out_Q')
 model.finalize()
+ewatercycle.analysis.hydrograph(...)
 ```
 
 </summary>
@@ -103,7 +104,7 @@ forcing = ewatercycle.forcing.sources['MarrmotForcing'].generate(
     shape=rhine_shape()
 )
 
-model = ewatercycle.models.MarrmotM14(version='2020.11', forcing=forcing)
+model = ewatercycle.models.sources['MarrmotM14'](version='2020.11', forcing=forcing)
 
 cfg_file, cfg_dir = model.setup(
     threshold_flow_generation_evap_change=0.1,
