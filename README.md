@@ -37,7 +37,7 @@ generate forcing data. It is preferred to create a Conda environment to
 install those dependencies:
 
 ```shell
-wget https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/conda-lock.yml
+curl -o conda-lock.yml https://raw.githubusercontent.com/eWaterCycle/ewatercycle/main/conda-lock.yml
 conda install mamba conda-lock -n base -c conda-forge -y
 conda-lock install --no-dev -n ewatercycle
 conda activate ewatercycle
@@ -52,7 +52,7 @@ pip install ewatercycle
 The ewatercycle package ships without any models. Models are packaged in [plugins](https://ewatercycle.readthedocs.io/en/latest/plugins.html). To install all endorsed plugins use
 
 ```shell
-pip install ewatercycle-hype ewatercycle-lisflood ewatercycle-marrmot ewatercycle-pcrglobwb ewatercycle-wflow  ewatercycle-leakybucket
+pip install ewatercycle-hype ewatercycle-lisflood ewatercycle-marrmot ewatercycle-pcrglobwb ewatercycle-wflow ewatercycle-leakybucket
 ```
 
 Besides installing software you will need to create a configuration
@@ -65,59 +65,84 @@ for instructions.
 
 Example using the [Marrmot M14
 (TOPMODEL)](https://github.com/wknoben/MARRMoT/blob/master/MARRMoT/Models/Model%20files/m_14_topmodel_7p_2s.m)
-hydrological model on Merrimack catchment to generate forcing, run it
+hydrological model on Rhine catchment to generate forcing, run it
 and produce a hydrograph.
 
+<details>
+
+<summary>
+In pseudo code:
+
 ```python
-import pandas as pd
+forcing = ewatercycle.forcing.sources['MarrmotForcing'].generate(...)
+model = ewatercycle.models.MarrmotM14(forcing)
+model.setup(...)
+model.initialize()
+while (model.time < model.end_time):
+    model.update()
+    value = model.get_value_as_xarray('flux_out_Q')
+model.finalize()
+```
+
+</summary>
+In real code:
+
+```python
 import ewatercycle.analysis
 import ewatercycle.forcing
 import ewatercycle.models
 import ewatercycle.observation.grdc
+from ewatercycle.testing.fixtures import rhine_shape
+import shapefile
+import pandas as pd
 
-forcing = ewatercycle.forcing.generate(
-    target_model='marrmot',
+forcing = ewatercycle.forcing.sources['MarrmotForcing'].generate(
     dataset='ERA5',
     start_time='2010-01-01T00:00:00Z',
     end_time='2010-12-31T00:00:00Z',
-    shape='Merrimack/Merrimack.shp'
+    shape=rhine_shape()
 )
 
-model = ewatercycle.models.MarrmotM14(version="2020.11", forcing=forcing)
+model = ewatercycle.models.MarrmotM14(version='2020.11', forcing=forcing)
 
 cfg_file, cfg_dir = model.setup(
     threshold_flow_generation_evap_change=0.1,
-    leakage_saturated_zone_flow_coefficient=0.99,
-    zero_deficit_base_flow_speed=150.0,
-    baseflow_coefficient=0.3,
-    gamma_distribution_phi_parameter=1.8
 )
 
 model.initialize(cfg_file)
 
-observations_df = ewatercycle.observation.grdc.get_grdc_data(
-    station_id=4147380,
+# flux_out_Q unit conversion factor from mm/day to m3/s
+sf = shapefile.Reader(rhine_shape())
+area = sf.record(0)['SUB_AREA'] * 1e6 # from shapefile in m2
+conversion_mmday2m3s = 1 / (1000 * 24 * 60 * 60)
+conversion = conversion_mmday2m3s * area
+
+simulated_discharge = []
+while (model.time < model.end_time):
+    model.update()
+    simulated_discharge.append(
+        model.get_value_as_xarray('flux_out_Q')
+    )
+
+observations_ds = ewatercycle.observation.grdc.get_grdc_data(
+    station_id=6335020,  # Rees, Germany
     start_time=model.start_time_as_isostr,
     end_time=model.end_time_as_isostr,
     column='observation',
-).observation.to_dataframe()
+)
 
-simulated_discharge = []
-timestamps = []
-while (model.time < model.end_time):
-    model.update()
-    value = model.get_value('flux_out_Q')[0]
-    # flux_out_Q unit conversion factor from mm/day to m3/s
-    area = 13016500000.0  # from shapefile in m2
-    conversion_mmday2m3s = 1 / (1000 * 24 * 60 * 60)
-    simulated_discharge.append(value * area * conversion_mmday2m3s)
-    timestamps.append(model.time_as_datetime.date())
-simulated_discharge_df = pd.DataFrame({'simulated': simulated_discharge}, index=pd.to_datetime(timestamps))
+# Combine the simulated discharge with the observations
+sim_da = xr.concat(simulated_discharge, dim='time') * conversion
+sim_da.name = 'simulated'
+discharge = xr.merge([sim_da, observations_ds["observation"]]).to_dataframe()
+discharge= discharge[["observation", "simulated"]].dropna()
 
 ewatercycle.analysis.hydrograph(simulated_discharge_df.join(observations_df), reference='observation')
 
 model.finalize()
 ```
+
+</details>
 
 More examples can be found in the plugins listed in the
 [documentation](https://ewatercycle.readthedocs.io/en/latest/plugins.html).
