@@ -137,7 +137,7 @@ observations_ds = ewatercycle.observation.grdc.get_grdc_data(
 sim_da = xr.concat(simulated_discharge, dim='time') * conversion
 sim_da.name = 'simulated'
 discharge = xr.merge([sim_da, observations_ds["observation"]]).to_dataframe()
-discharge= discharge[["observation", "simulated"]].dropna()
+discharge = discharge[["observation", "simulated"]].dropna()
 
 ewatercycle.analysis.hydrograph(discharge, reference='observation')
 
