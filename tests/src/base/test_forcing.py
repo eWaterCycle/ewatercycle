@@ -59,6 +59,10 @@ filenames:
 
         assert content == expected
 
+        # make sure all mandatory (shape)files exist
+        for ext in [".dbf", ".prj", ".shp", ".shx"]:
+            assert (forcing.directory / forcing.shape.with_suffix(ext)).exists()
+
 
 class TestGenericDistributedForcingWithInternalShape:
     def test_save(self, tmp_path: Path, sample_shape: str):

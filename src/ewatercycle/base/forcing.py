@@ -222,9 +222,16 @@ class DefaultForcing(BaseModel):
         # Copy shapefile so statistics like area can be derived
         if clone.shape is not None:
             if not clone.shape.is_relative_to(clone.directory):
-                clone.shape = Path(
+                new_shp_path = Path(
                     shutil.copy(clone.shape, clone.directory / clone.shape.name)
                 )
+                # Also copy other required files:
+                for ext in [".dbf", ".shx", ".prj"]:
+                    shutil.copy(
+                        clone.shape.with_suffix(ext),
+                        clone.directory / clone.shape.with_suffix(ext).name,
+                    )
+                clone.shape = new_shp_path
             clone.shape = clone.shape.relative_to(clone.directory)
 
         fdict = clone.model_dump(exclude={"directory"}, exclude_none=True, mode="json")
