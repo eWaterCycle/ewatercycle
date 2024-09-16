@@ -225,6 +225,13 @@ class DefaultForcing(BaseModel):
                 new_shp_path = Path(
                     shutil.copy(clone.shape, clone.directory / clone.shape.name)
                 )
+                if not clone.shape.with_suffix(".prj").exists():
+                    msg = (
+                        "Your shape file is missing the .prj projection file.\n"
+                        "This file is required, as we cannot guess what projection your"
+                        "shapefile is in."
+                    )
+                    raise FileNotFoundError(msg)
                 # Also copy other required files:
                 for ext in [".dbf", ".shx", ".prj"]:
                     shutil.copy(
