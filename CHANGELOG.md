@@ -6,6 +6,9 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+
+### [2.3.1] (2024-09-17)
+
 ## Fixed
 
 - all required shapefile files (`.shp`, `.shx`, `.dbf`, `.prj`) are now copied to the new directory when saving a forcing object ([#430](https://github.com/eWaterCycle/ewatercycle/issues/430)).
@@ -261,7 +264,8 @@ Everthing listed at [2.0.0](2.0.0), but without the adding models part.
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.3.0...HEAD
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.3.1...HEAD
+[2.3.1]: https://github.com/eWaterCycle/ewatercycle/compare/2.3.0...2.3.1
 [2.3.0]: https://github.com/eWaterCycle/ewatercycle/compare/2.2.0...2.3.0
 [2.2.0]: https://github.com/eWaterCycle/ewatercycle/compare/2.1.1...2.2.0
 [2.1.1]: https://github.com/eWaterCycle/ewatercycle/compare/2.1.0...2.1.1
