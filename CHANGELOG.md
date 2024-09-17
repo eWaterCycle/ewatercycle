@@ -6,6 +6,9 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+
+### [2.3.1] (2024-09-17)
+
 ## Fixed
 
 - all required shapefile files (`.shp`, `.shx`, `.dbf`, `.prj`) are now copied to the new directory when saving a forcing object ([#430](https://github.com/eWaterCycle/ewatercycle/issues/430)).
