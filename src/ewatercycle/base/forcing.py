@@ -313,7 +313,7 @@ class DefaultForcing(BaseModel):
         """Return the area of the shapefile in m2.
         """
         if self.shape == None:
-            raise ("Shapefile not specified")
+            raise ValueError("Shapefile not specified")
         shape = fiona.open(self.shape)
         poly = [shapely.geometry.shape(p["geometry"]) for p in shape][0]
         geod = Geod(ellps="WGS84")
