@@ -331,7 +331,7 @@ class DefaultForcing(BaseModel):
         """
 
         if self.shape == None:
-            raise ("Shapefile not specified")
+            raise ValueError("Shapefile not specified")
 
         shape = fiona.open(self.shape)
         poly = [shapely.geometry.shape(p["geometry"]) for p in shape][0]
