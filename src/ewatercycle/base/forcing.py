@@ -343,14 +343,14 @@ class DefaultForcing(BaseModel):
         
         plt.figure(figsize=(8, 5))
         ax = plt.axes(projection=ccrs.PlateCarree())
-        ax.add_geometries(
+        ax.add_geometries(  # type: ignore
             poly, crs=ccrs.PlateCarree(), facecolor='#f5b41d', edgecolor='k', alpha=0.8,
         )
-        ax.add_feature(cfeature.COASTLINE, linewidth=1)
-        ax.add_feature(cfeature.RIVERS, linewidth=1)
-        ax.add_feature(cfeature.OCEAN, edgecolor="none", facecolor="#4287f5")
+        ax.add_feature(cfeature.COASTLINE, linewidth=1)  # type: ignore
+        ax.add_feature(cfeature.RIVERS, linewidth=1)  # type: ignore
+        ax.add_feature(cfeature.OCEAN, edgecolor="none", facecolor="#4287f5")  # type: ignore
         
-        ax.set_extent((w-pad, e+pad, s-pad, n+pad), crs=ccrs.PlateCarree())
+        ax.set_extent((w-pad, e+pad, s-pad, n+pad), crs=ccrs.PlateCarree())  # type: ignore
         return ax
 
     def __eq__(self, other):
