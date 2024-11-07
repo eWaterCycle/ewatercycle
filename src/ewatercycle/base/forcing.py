@@ -196,12 +196,12 @@ class DefaultForcing(BaseModel):
     @classmethod
     def _build_recipe(
         cls,
-        start_time: datetime,  # noqa: ARG003
-        end_time: datetime,  # noqa: ARG003
-        shape: Path,  # noqa: ARG003
-        dataset: Dataset | str | dict,  # noqa: ARG003
-        variables: tuple[str, ...] = (),  # noqa: ARG003
-        **model_specific_options,  # noqa: ARG003
+        start_time: datetime,
+        end_time: datetime,
+        shape: Path,
+        dataset: Dataset | str | dict,
+        variables: tuple[str, ...] = (),
+        **model_specific_options,
     ) -> Recipe:
         # TODO do we want an implementation here?
         # If so how is it different from GenericDistributedForcing?
