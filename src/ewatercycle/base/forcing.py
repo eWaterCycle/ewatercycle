@@ -327,10 +327,10 @@ class DefaultForcing(BaseModel):
         The plot is padded with 10% of the north-south extend,
         or the east-west extend (which ever is smallest).
 
-        Optionally a matplotlib axes object can be passed into which the 
-        shape is plotted.
+        Optionally a matplotlib axes object can be passed into 
+        which the shape is plotted.
 
-        the axis object is returned.
+        The axis object is returned.
         """
 
         if self.shape == None:
@@ -342,8 +342,8 @@ class DefaultForcing(BaseModel):
         
         # 10 % of the minimum of either the west-east extend or the north-south extend is used as
         # padding around the shape.
-        pad = min(abs(w - e), abs(n - s)) * 0.1 
-
+        pad = min(abs(w - e), abs(n - s)) * 0.1
+        
         if ax == None:
             axis_provided = False
             plt.figure(figsize=(8, 5))
