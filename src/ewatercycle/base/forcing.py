@@ -35,6 +35,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Annotated, TypeAlias, TypeVar
 
+import fiona
+import shapely
+from pyproj import Geod
+
 import xarray as xr
 from pydantic import BaseModel
 from pydantic.functional_validators import AfterValidator, model_validator
@@ -298,6 +302,19 @@ class DefaultForcing(BaseModel):
         Shorthand for self.filenames.keys()
         """
         return tuple(self.filenames)
+
+    def get_shape_area(self) -> float:
+        """Return the area of the shapefile in m2.
+        """
+        if shape == None:
+            raise ("Shapefile not specified")
+        shape = fiona.open(forcing.shape)
+        poly = [shapely.geometry.shape(p["geometry"]) for p in shape][0]
+        geod = Geod(ellps="WGS84")
+        poly_area, _ = geod.geometry_area_perimeter(poly)
+        catchment_area_m2 = abs(poly_area)
+        return catchment_area_m2
+    
 
     def __eq__(self, other):
         """Check if two Forcing objects are equal."""
