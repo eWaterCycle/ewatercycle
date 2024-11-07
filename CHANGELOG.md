@@ -6,6 +6,10 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## [Unreleased]
 
+## Added
+
+- `.get_shape_area()` utility method to the ewatercycle Forcing objects. This returns the area of the shapefile in square meters, useful for converting the results of lumped models (e.g., from mm/day to m3/s) ([#464](https://github.com/eWaterCycle/ewatercycle/issues/464)).
+- `.plot_shape()` utility method to the ewatercycle Forcing objects. This allows plotting the shapefile in a single-line of code, or adds the shapefile to an existing plot ([#464](https://github.com/eWaterCycle/ewatercycle/issues/464)).
 
 ### [2.3.1] (2024-09-17)
 
