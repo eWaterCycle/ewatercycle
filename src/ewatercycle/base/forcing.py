@@ -311,9 +311,9 @@ class DefaultForcing(BaseModel):
     def get_shape_area(self) -> float:
         """Return the area of the shapefile in m2.
         """
-        if forcing.shape == None:
+        if self.shape == None:
             raise ("Shapefile not specified")
-        shape = fiona.open(forcing.shape)
+        shape = fiona.open(self.shape)
         poly = [shapely.geometry.shape(p["geometry"]) for p in shape][0]
         geod = Geod(ellps="WGS84")
         poly_area, _ = geod.geometry_area_perimeter(poly)
@@ -322,10 +322,10 @@ class DefaultForcing(BaseModel):
 
 
     def plot_shape(self):
-        if forcing.shape == None:
+        if self.shape == None:
             raise ("Shapefile not specified")
 
-        shape = fiona.open(forcing.shape)
+        shape = fiona.open(self.shape)
         poly = [shapely.geometry.shape(p["geometry"]) for p in shape][0]
         w, s, e, n = poly.bounds  # different order than set_extent expects
         
