@@ -322,12 +322,15 @@ class DefaultForcing(BaseModel):
         return catchment_area_m2
 
 
-    def plot_shape(self) -> matplotlib.axes._axes.Axes:
+    def plot_shape(self, ax = None) -> matplotlib.axes._axes.Axes:
         """Make a plot of the shapefile on a map of the world.
         The plot is padded with 10% of the north-south extend,
         or the east-west extend (which ever is smallest).
 
-        the axis object is ter
+        Optionally a matplotlib axes object can be passed into which the 
+        shape is plotted.
+
+        the axis object is returned.
         """
 
         if self.shape == None:
@@ -340,17 +343,26 @@ class DefaultForcing(BaseModel):
         # 10 % of the minimum of either the west-east extend or the north-south extend is used as
         # padding around the shape.
         pad = min(abs(w - e), abs(n - s)) * 0.1 
-        
-        plt.figure(figsize=(8, 5))
-        ax = plt.axes(projection=ccrs.PlateCarree())
+
+        if ax == None:
+            axis_provided = False
+            plt.figure(figsize=(8, 5))
+            ax = plt.axes(projection=ccrs.PlateCarree())
+        else:
+            axis_provided = True
+            if not(hasattr(ax,'add_geometries')):
+                raise ValueError("The provided axis does not have an add_gemotries attribute (so no spatial projection")
+
         ax.add_geometries(  # type: ignore
             poly, crs=ccrs.PlateCarree(), facecolor='#f5b41d', edgecolor='k', alpha=0.8,
         )
         ax.add_feature(cfeature.COASTLINE, linewidth=1)  # type: ignore
         ax.add_feature(cfeature.RIVERS, linewidth=1)  # type: ignore
         ax.add_feature(cfeature.OCEAN, edgecolor="none", facecolor="#4287f5")  # type: ignore
-        
-        ax.set_extent((w-pad, e+pad, s-pad, n+pad), crs=ccrs.PlateCarree())  # type: ignore
+
+        if not axis_provided:
+            ax.set_extent((w-pad, e+pad, s-pad, n+pad), crs=ccrs.PlateCarree())  # type: ignore
+
         return ax
 
     def __eq__(self, other):
