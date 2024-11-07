@@ -321,7 +321,14 @@ class DefaultForcing(BaseModel):
         return catchment_area_m2
 
 
-    def plot_shape(self):
+    def plot_shape(self) -> matplotlib.axes._axes.Axes:
+        """Make a plot of the shapefile on a map of the world.
+        The plot is padded with 10% of the north-south extend,
+        or the east-west extend (which ever is smallest).
+
+        the axis object is ter
+        """
+
         if self.shape == None:
             raise ("Shapefile not specified")
 
@@ -342,7 +349,8 @@ class DefaultForcing(BaseModel):
         ax.add_feature(cfeature.RIVERS, linewidth=1)
         ax.add_feature(cfeature.OCEAN, edgecolor="none", facecolor="#4287f5")
         
-        ax.set_extent((w-pad, e+pad, s-pad, n+pad), crs=ccrs.PlateCarree())    
+        ax.set_extent((w-pad, e+pad, s-pad, n+pad), crs=ccrs.PlateCarree())
+        return ax
 
     def __eq__(self, other):
         """Check if two Forcing objects are equal."""
