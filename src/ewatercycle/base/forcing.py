@@ -39,6 +39,11 @@ import fiona
 import shapely
 from pyproj import Geod
 
+import shapely.geometry
+import cartopy.crs as ccrs
+import matplotlib.pyplot as plt
+import cartopy.feature as cfeature
+
 import xarray as xr
 from pydantic import BaseModel
 from pydantic.functional_validators import AfterValidator, model_validator
@@ -306,7 +311,7 @@ class DefaultForcing(BaseModel):
     def get_shape_area(self) -> float:
         """Return the area of the shapefile in m2.
         """
-        if shape == None:
+        if forcing.shape == None:
             raise ("Shapefile not specified")
         shape = fiona.open(forcing.shape)
         poly = [shapely.geometry.shape(p["geometry"]) for p in shape][0]
@@ -314,7 +319,30 @@ class DefaultForcing(BaseModel):
         poly_area, _ = geod.geometry_area_perimeter(poly)
         catchment_area_m2 = abs(poly_area)
         return catchment_area_m2
-    
+
+
+    def plot_shape(self):
+        if forcing.shape == None:
+            raise ("Shapefile not specified")
+
+        shape = fiona.open(forcing.shape)
+        poly = [shapely.geometry.shape(p["geometry"]) for p in shape][0]
+        w, s, e, n = poly.bounds  # different order than set_extent expects
+        
+        # 10 % of the minimum of either the west-east extend or the north-south extend is used as
+        # padding around the shape.
+        pad = min(abs(w - e), abs(n - s)) * 0.1 
+        
+        plt.figure(figsize=(8, 5))
+        ax = plt.axes(projection=ccrs.PlateCarree())
+        ax.add_geometries(
+            poly, crs=ccrs.PlateCarree(), facecolor='#f5b41d', edgecolor='k', alpha=0.8,
+        )
+        ax.add_feature(cfeature.COASTLINE, linewidth=1)
+        ax.add_feature(cfeature.RIVERS, linewidth=1)
+        ax.add_feature(cfeature.OCEAN, edgecolor="none", facecolor="#4287f5")
+        
+        ax.set_extent((w-pad, e+pad, s-pad, n+pad), crs=ccrs.PlateCarree())    
 
     def __eq__(self, other):
         """Check if two Forcing objects are equal."""
