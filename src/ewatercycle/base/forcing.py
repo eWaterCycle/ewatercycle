@@ -35,19 +35,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import Annotated, TypeAlias, TypeVar
 
-import fiona
-import shapely
-from pyproj import Geod
-
-import shapely.geometry
 import cartopy.crs as ccrs
-import matplotlib.pyplot as plt
-import matplotlib.axes
 import cartopy.feature as cfeature
-
+import fiona
+import matplotlib.axes
+import matplotlib.pyplot as plt
+import shapely
+import shapely.geometry
 import xarray as xr
 from pydantic import BaseModel
 from pydantic.functional_validators import AfterValidator, model_validator
+from pyproj import Geod
 from ruamel.yaml import YAML
 
 from ewatercycle.esmvaltool.builder import (
@@ -310,58 +308,72 @@ class DefaultForcing(BaseModel):
         return tuple(self.filenames)
 
     def get_shape_area(self) -> float:
-        """Return the area of the shapefile in m2.
-        """
-        if self.shape == None:
-            raise ValueError("Shapefile not specified")
+        """Return the area of the shapefile in m2."""
+        if self.shape is None:
+            msg = "Shapefile not specified"
+            raise ValueError(msg)
+
         shape = fiona.open(self.shape)
-        poly = [shapely.geometry.shape(p["geometry"]) for p in shape][0]
+        poly = shapely.geometry.shape(next(shape)["geometry"])
         geod = Geod(ellps="WGS84")
         poly_area, _ = geod.geometry_area_perimeter(poly)
-        catchment_area_m2 = abs(poly_area)
-        return catchment_area_m2
+        return abs(poly_area)
 
-
-    def plot_shape(self, ax = None) -> matplotlib.axes._axes.Axes:
+    def plot_shape(
+        self, ax: matplotlib.axes._axes.Axes | None = None
+    ) -> matplotlib.axes._axes.Axes:
         """Make a plot of the shapefile on a map of the world.
+
         The plot is padded with 10% of the north-south extend,
         or the east-west extend (which ever is smallest).
 
-        Optionally a matplotlib axes object can be passed into 
+        Optionally a matplotlib axes object can be passed into
         which the shape is plotted.
 
         The axis object is returned.
         """
-
-        if self.shape == None:
-            raise ValueError("Shapefile not specified")
+        if self.shape is None:
+            msg = "Shapefile not specified"
+            raise ValueError(msg)
 
         shape = fiona.open(self.shape)
-        poly = [shapely.geometry.shape(p["geometry"]) for p in shape][0]
+        poly = shapely.geometry.shape(next(shape)["geometry"])
         w, s, e, n = poly.bounds  # different order than set_extent expects
-        
-        # 10 % of the minimum of either the west-east extend or the north-south extend is used as
-        # padding around the shape.
+
+        # 10 % of the minimum of either the west-east extend or the north-south extend
+        #  is used as padding around the shape.
         pad = min(abs(w - e), abs(n - s)) * 0.1
-        
-        if ax == None:
+
+        if ax is None:
             axis_provided = False
             plt.figure(figsize=(8, 5))
             ax = plt.axes(projection=ccrs.PlateCarree())
+            ax.add_feature(cfeature.COASTLINE, linewidth=1)  # type: ignore[attr-defined]
+            ax.add_feature(cfeature.RIVERS, linewidth=1)  # type: ignore[attr-defined]
+            ax.add_feature(cfeature.OCEAN, edgecolor="none", facecolor="#4287f5")  # type: ignore[attr-defined]
+
         else:
             axis_provided = True
-            if not(hasattr(ax,'add_geometries')):
-                raise ValueError("The provided axis does not have an add_gemotries attribute (so no spatial projection")
+            if not hasattr(ax, "add_geometries"):
+                msg = (
+                    "The provided axis does not have an add_geometries attribute, \n"
+                    " thus no spatial projection. This is required to plot a shape.\n"
+                    "Create a figure like the following instead:\n"
+                    "    plt.figure(figsize=(8, 5))\n"
+                    "    ax = plt.axes(projection=ccrs.PlateCarree())\n"
+                )
+                raise ValueError(msg)
 
-        ax.add_geometries(  # type: ignore
-            poly, crs=ccrs.PlateCarree(), facecolor='#f5b41d', edgecolor='k', alpha=0.8,
+        ax.add_geometries(  # type: ignore[attr-defined]
+            poly,
+            crs=ccrs.PlateCarree(),
+            facecolor="#f5b41d",
+            edgecolor="k",
+            alpha=0.8,
         )
-        ax.add_feature(cfeature.COASTLINE, linewidth=1)  # type: ignore
-        ax.add_feature(cfeature.RIVERS, linewidth=1)  # type: ignore
-        ax.add_feature(cfeature.OCEAN, edgecolor="none", facecolor="#4287f5")  # type: ignore
 
         if not axis_provided:
-            ax.set_extent((w-pad, e+pad, s-pad, n+pad), crs=ccrs.PlateCarree())  # type: ignore
+            ax.set_extent((w - pad, e + pad, s - pad, n + pad), crs=ccrs.PlateCarree())  # type: ignore[attr-defined]
 
         return ax
 
