@@ -5,9 +5,11 @@ import pytest
 import xarray as xr
 from numpy.testing import assert_array_equal
 
+import ewatercycle
 from ewatercycle.util import (
     find_closest_point,
     fit_extents_to_grid,
+    get_package_versions,
     get_time,
     merge_esvmaltool_datasets,
     reindex,
@@ -250,3 +252,9 @@ def test_merge_datasets_multivar(esmvaltool_output):
             esmvaltool_output[i]["second_var"] = esmvaltool_output[i]["tas"] + 1
     with pytest.raises(ValueError, match="More than one variable found in dataset"):
         merge_esvmaltool_datasets(esmvaltool_output)
+
+
+def test_version_getter():
+    versions = get_package_versions()
+    assert versions["ewatercycle"] == ewatercycle.__version__
+    assert "grpc4bmi" in versions
