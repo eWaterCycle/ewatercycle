@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-import ewatercycle
 import pytest
 import xarray as xr
 from numpy.testing import assert_array_equal
 
+import ewatercycle
 from ewatercycle.util import (
     find_closest_point,
     fit_extents_to_grid,
