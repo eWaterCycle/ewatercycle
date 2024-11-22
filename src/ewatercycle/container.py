@@ -5,9 +5,10 @@
 import re
 from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 
 import numpy as np
+import remotebmi
 from bmipy import Bmi
 from grpc import FutureTimeoutError
 from grpc4bmi.bmi_client_apptainer import BmiClientApptainer
@@ -136,6 +137,7 @@ def start_container(
     delay=0,
     # TODO replace Any type with Bmi + BmiFromOrigin
     wrappers: Sequence[type[Any]] = (MemoizedBmi, OptionalDestBmi),
+    protocol: Literal["grpc", "openapi"] = "grpc"
 ) -> OptionalDestBmi:
     """Start container with model inside.
 
@@ -152,6 +154,7 @@ def start_container(
         delay: Number of seconds to wait before connecting.
         wrappers: List of classes to wrap around the grcp4bmi object from container.
             Order is important. The first wrapper is the most inner wrapper.
+        protocol: Which protocol to use, grpc or openapi.
 
     Raises:
         ValueError: When unknown container technology is requested.
@@ -184,7 +187,7 @@ def start_container(
 
     if engine == "docker":
         bmi = start_docker_container(
-            work_dir, image, input_dirs, image_port, timeout, delay
+            work_dir, image, input_dirs, image_port, timeout, delay, protocol,
         )
     elif engine == "apptainer":
         bmi = start_apptainer_container(
@@ -193,6 +196,7 @@ def start_container(
             input_dirs,
             timeout,
             delay,
+            protocol,
         )
     else:
         msg = f"Unknown container technology: {CFG.container_engine}"
@@ -209,6 +213,7 @@ def start_apptainer_container(
     input_dirs: Iterable[str] = (),
     timeout: int | None = None,
     delay: int = 0,
+    protocol: Literal["grpc", "openapi"] = "grpc",
 ) -> Bmi:
     """Start Apptainer container with model inside.
 
@@ -220,6 +225,7 @@ def start_apptainer_container(
         input_dirs: Additional directories to mount inside container.
         timeout: Number of seconds to wait for grpc connection.
         delay: Number of seconds to wait before connecting.
+        protocol: Which protocol to use, grpc or openapi.
 
     .. _apptainer manual: https://apptainer.org/docs/user/latest/cli/apptainer_run.html
 
@@ -234,13 +240,25 @@ def start_apptainer_container(
         image_fn = str(CFG.apptainer_dir / image_fn)
 
     try:
-        return BmiClientApptainer(
-            image=image_fn,
-            work_dir=str(work_dir),
-            input_dirs=input_dirs,
-            timeout=timeout,
-            delay=delay,
-        )
+        if protocol == "grpc":
+            return BmiClientApptainer(
+                image=image_fn,
+                work_dir=str(work_dir),
+                input_dirs=input_dirs,
+                timeout=timeout,
+                delay=delay,
+            )
+        if protocol == "openapi":
+            return remotebmi.BmiClientApptainer(
+                image=image_fn,
+                work_dir=str(work_dir),
+                input_dirs=input_dirs,
+                delay=delay,
+            )
+        msg = f"Invalid protocol '{protocol}'!"
+        raise ValueError(msg)
+
+
     except FutureTimeoutError as exc:
         msg = (
             "Couldn't spawn container within allocated time limit "
@@ -258,6 +276,7 @@ def start_docker_container(
     image_port=55555,
     timeout=None,
     delay=0,
+    protocol: Literal["grpc", "openapi"] = "grpc",
 ):
     """Start Docker container with model inside.
 
@@ -268,6 +287,7 @@ def start_docker_container(
         image_port: Docker port inside container where grpc4bmi server is running.
         timeout: Number of seconds to wait for grpc connection.
         delay: Number of seconds to wait before connecting.
+        protocol: Which protocol to use, grpc or openapi.
 
     Raises:
         TimeoutError: When model inside container did not start quickly enough.
@@ -276,14 +296,26 @@ def start_docker_container(
         Bmi object which wraps the container.
     """
     try:
-        return BmiClientDocker(
-            image=image.docker_url,
-            image_port=image_port,
-            work_dir=str(work_dir),
-            input_dirs=input_dirs,
-            timeout=timeout,
-            delay=delay,
-        )
+        if protocol == "grpc":
+            return BmiClientDocker(
+                image=image.docker_url,
+                image_port=image_port,
+                work_dir=str(work_dir),
+                input_dirs=input_dirs,
+                timeout=timeout,
+                delay=delay,
+            )
+        if protocol == "openapi":
+            return remotebmi.BmiClientDocker(
+                image=image.docker_url,
+                host="localhost",
+                image_port=50051,
+                work_dir=str(work_dir),
+                input_dirs=input_dirs,
+                delay=delay,
+            )
+        msg = f"Invalid protocol '{protocol}'!"
+        raise ValueError(msg)
     except FutureTimeoutError as exc:
         # https://github.com/eWaterCycle/grpc4bmi/issues/95
         # https://github.com/eWaterCycle/grpc4bmi/issues/100
