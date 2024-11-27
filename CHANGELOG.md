@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 Formatted as described on [https://keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## Unreleased
+
+## [2.4.0] (2024-11-27)
 
 ## Added
 
@@ -269,7 +271,8 @@ Everthing listed at [2.0.0](2.0.0), but without the adding models part.
 - Empty Python project directory structure
 - Added symlink based data files copier
 
-[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.3.1...HEAD
+[Unreleased]: https://github.com/eWaterCycle/ewatercycle/compare/2.4.0...HEAD
+[2.4.0]: https://github.com/eWaterCycle/ewatercycle/compare/2.4.0...2.3.1
 [2.3.1]: https://github.com/eWaterCycle/ewatercycle/compare/2.3.0...2.3.1
 [2.3.0]: https://github.com/eWaterCycle/ewatercycle/compare/2.2.0...2.3.0
 [2.2.0]: https://github.com/eWaterCycle/ewatercycle/compare/2.1.1...2.2.0
