@@ -312,6 +312,7 @@ class TestContainerizedModel:
 
         mocked_start_container.assert_called_once_with(
             image="ewatercycle/ewatercycle_dummy:latest",
+            protocol="grpc",
             work_dir=tmp_path,
             input_dirs=[],
             timeout=300,
@@ -345,6 +346,7 @@ class TestContainerizedModel:
 
         mocked_start_container.assert_called_once_with(
             image="ewatercycle/ewatercycle_dummy:latest",
+            protocol="grpc",
             work_dir=tmp_path,
             input_dirs=[
                 str(parameter_set_dir),
