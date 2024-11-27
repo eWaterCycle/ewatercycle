@@ -319,6 +319,23 @@ class TestContainerizedModel:
         )
 
     @patch("ewatercycle.base.model.start_container")
+    def test_remotebmi_setup(self, mocked_start_container, tmp_path: Path):
+        model = ContainerizedModel(
+            bmi_image="ewatercycle/ewatercycle_dummy:latest",
+            protocol="openapi",
+        )
+
+        model.setup(cfg_dir=str(tmp_path))
+
+        mocked_start_container.assert_called_once_with(
+            image="ewatercycle/ewatercycle_dummy:latest",
+            protocol="openapi",
+            work_dir=tmp_path,
+            input_dirs=[],
+            timeout=300,
+        )
+
+    @patch("ewatercycle.base.model.start_container")
     def test_setup_with_additional_input_dirs(
         self, mocked_start_container, tmp_path: Path
     ):
