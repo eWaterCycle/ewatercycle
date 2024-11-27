@@ -137,7 +137,7 @@ def start_container(
     delay=0,
     # TODO replace Any type with Bmi + BmiFromOrigin
     wrappers: Sequence[type[Any]] = (MemoizedBmi, OptionalDestBmi),
-    protocol: Literal["grpc", "openapi"] = "grpc"
+    protocol: Literal["grpc", "openapi"] = "grpc",
 ) -> OptionalDestBmi:
     """Start container with model inside.
 
@@ -187,7 +187,13 @@ def start_container(
 
     if engine == "docker":
         bmi = start_docker_container(
-            work_dir, image, input_dirs, image_port, timeout, delay, protocol,
+            work_dir,
+            image,
+            input_dirs,
+            image_port,
+            timeout,
+            delay,
+            protocol,
         )
     elif engine == "apptainer":
         bmi = start_apptainer_container(
@@ -257,7 +263,6 @@ def start_apptainer_container(
             )
         msg = f"Invalid protocol '{protocol}'!"
         raise ValueError(msg)
-
 
     except FutureTimeoutError as exc:
         msg = (
