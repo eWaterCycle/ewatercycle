@@ -15,9 +15,9 @@
 version: 1
 metadata:
   content_hash:
-    linux-64: 5fca44ae0d63a0def1d88d3523be809897b39a13179e6bd07c597178ca2139ff
-    osx-64: 05c36673f481972c80b2228f693a4447bb5f793e834d5561228235c69855b2fa
-    osx-arm64: 8e454e165c9eec1dae969e953090da78fb5a33fd0a0fc68b8f8cc0deb57aac9f
+    linux-64: 8edcaee1ed1f735c46425a314033534a57bf3c3d9d8dd48da6931edea69a7785
+    osx-64: 5c03923b56c10b1d25497d9de3ff60c3a918f3afbf3a53fd77117d33ff41fccc
+    osx-arm64: 184fa46affaff05dd51c596674ed0931725d2df7374d903206e04542cef69526
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -3507,52 +3507,52 @@ package:
   category: dev
   optional: true
 - name: cryptography
-  version: 44.0.0
+  version: 43.0.3
   manager: conda
   platform: linux-64
   dependencies:
     __glibc: '>=2.17,<3.0.a0'
     cffi: '>=1.12'
     libgcc: '>=13'
-    openssl: '>=3.4.0,<4.0a0'
+    openssl: '>=3.3.2,<4.0a0'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/linux-64/cryptography-44.0.0-py312hda17c39_0.conda
+  url: https://conda.anaconda.org/conda-forge/linux-64/cryptography-43.0.3-py312hda17c39_0.conda
   hash:
-    md5: 50052304026b6f33fdd34563ee4b47b8
-    sha256: 4241f5e195994ae86199389b22a0621aef2afeb8a468bd98f0958bb77eff90a3
+    md5: 2abada8c216dd6e32514535a3fa245d4
+    sha256: ba9e5aced2e7dc0bbc48f60bf38f514839424a01975fb2aed30e9246c2f82c7c
   category: main
   optional: false
 - name: cryptography
-  version: 44.0.0
+  version: 43.0.3
   manager: conda
   platform: osx-64
   dependencies:
     __osx: '>=10.13'
     cffi: '>=1.12'
-    openssl: '>=3.4.0,<4.0a0'
+    openssl: '>=3.3.2,<4.0a0'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-64/cryptography-44.0.0-py312h0995e51_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-64/cryptography-43.0.3-py312h83535b2_0.conda
   hash:
-    md5: f94336e50f5235101cf350b59470e9af
-    sha256: 7124650628b403f3f9390cf08bb5eef42aae379aaaddad0837ea1978d9b72246
+    md5: 3161e0eac36f8c0bd5f3b292491e708c
+    sha256: 904f0bc21c2801f8162e6f7031e3bf1785ff3b17a2500568c672913e4bd6af60
   category: main
   optional: false
 - name: cryptography
-  version: 44.0.0
+  version: 43.0.3
   manager: conda
   platform: osx-arm64
   dependencies:
     __osx: '>=11.0'
     cffi: '>=1.12'
-    openssl: '>=3.4.0,<4.0a0'
+    openssl: '>=3.3.2,<4.0a0'
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
-  url: https://conda.anaconda.org/conda-forge/osx-arm64/cryptography-44.0.0-py312hf9bd80e_0.conda
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/cryptography-43.0.3-py312h5fad481_0.conda
   hash:
-    md5: 8b38354fa800d51d12ab4c2f7984a15b
-    sha256: 2e09947ed977e1c19ed482442fbb904d543a54802080d34f15d08b7a62268a23
+    md5: 0533de15db4534b192e41ce3e947d4c0
+    sha256: 2c1e7da2c6035978ba94e7252d6422337fe84ce94a7926a513a5559f01443372
   category: main
   optional: false
 - name: cuda-version
@@ -17768,45 +17768,42 @@ package:
   category: main
   optional: false
 - name: pyopenssl
-  version: 21.0.0
+  version: 24.2.1
   manager: conda
   platform: linux-64
   dependencies:
-    cryptography: '>=3.3'
-    python: '>=2.7'
-    six: '>=1.5.2'
-  url: https://conda.anaconda.org/conda-forge/noarch/pyopenssl-21.0.0-pyhd8ed1ab_0.tar.bz2
+    cryptography: '>=41.0.5,<44'
+    python: '>=3.7'
+  url: https://conda.anaconda.org/conda-forge/noarch/pyopenssl-24.2.1-pyhd8ed1ab_2.conda
   hash:
-    md5: 8c49efecb7dca466e18b06015e8c88ce
-    sha256: c9bb8059b6de4acfde65cc39e0d04127e82c496023223fe92c05d8b9a06f9cc8
+    md5: 85fa2fdd26d5a38792eb57bc72463f07
+    sha256: 6618aaa9780b723abfda95f3575900df99dd137d96c80421ad843a5cbcc70e6e
   category: main
   optional: false
 - name: pyopenssl
-  version: 21.0.0
+  version: 24.2.1
   manager: conda
   platform: osx-64
   dependencies:
-    python: '>=2.7'
-    six: '>=1.5.2'
-    cryptography: '>=3.3'
-  url: https://conda.anaconda.org/conda-forge/noarch/pyopenssl-21.0.0-pyhd8ed1ab_0.tar.bz2
+    python: '>=3.7'
+    cryptography: '>=41.0.5,<44'
+  url: https://conda.anaconda.org/conda-forge/noarch/pyopenssl-24.2.1-pyhd8ed1ab_2.conda
   hash:
-    md5: 8c49efecb7dca466e18b06015e8c88ce
-    sha256: c9bb8059b6de4acfde65cc39e0d04127e82c496023223fe92c05d8b9a06f9cc8
+    md5: 85fa2fdd26d5a38792eb57bc72463f07
+    sha256: 6618aaa9780b723abfda95f3575900df99dd137d96c80421ad843a5cbcc70e6e
   category: main
   optional: false
 - name: pyopenssl
-  version: 21.0.0
+  version: 24.2.1
   manager: conda
   platform: osx-arm64
   dependencies:
-    python: '>=2.7'
-    six: '>=1.5.2'
-    cryptography: '>=3.3'
-  url: https://conda.anaconda.org/conda-forge/noarch/pyopenssl-21.0.0-pyhd8ed1ab_0.tar.bz2
+    python: '>=3.7'
+    cryptography: '>=41.0.5,<44'
+  url: https://conda.anaconda.org/conda-forge/noarch/pyopenssl-24.2.1-pyhd8ed1ab_2.conda
   hash:
-    md5: 8c49efecb7dca466e18b06015e8c88ce
-    sha256: c9bb8059b6de4acfde65cc39e0d04127e82c496023223fe92c05d8b9a06f9cc8
+    md5: 85fa2fdd26d5a38792eb57bc72463f07
+    sha256: 6618aaa9780b723abfda95f3575900df99dd137d96c80421ad843a5cbcc70e6e
   category: main
   optional: false
 - name: pyparsing
