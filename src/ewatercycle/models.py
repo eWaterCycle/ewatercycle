@@ -42,13 +42,15 @@ try:
     for _model in _model_entrypoints:
         globals()[_model.name] = _model.load()
 except Exception as e:
+    # avoid autoapi issue https://github.com/pylint-dev/astroid/issues/2644
+    pkg_name = get_package_name(_model.value.split(".")[0])
     msg = (
         "An error was raised when trying to load the plugin of model "
         f"'{_model.name}'.\n"
         "You can report the issue on the model's github repository, "
         "or on https://github.com/eWaterCycle/ewatercycle/issues\n"
         "In the meantime, you can try uninstalling the plugin with:\n"
-        f"    pip uninstall {get_package_name(_model.value.split('.')[0])}"
+        f"    pip uninstall {pkg_name}"
     )
     raise ImportError(msg) from e
 
