@@ -52,7 +52,8 @@ dependencies = [
     "Shapely",
     "xarray",
     "fsspec",
-    'cartopy',
+    "cartopy",
+    "pyopenssl>=24.0.0",  # otherwise conda lock file will have a too old version
 ]
 
 [project.optional-dependencies]
