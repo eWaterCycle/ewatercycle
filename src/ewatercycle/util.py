@@ -350,5 +350,6 @@ def get_package_versions() -> dict[str, str]:
     package_versions = {}
     package_versions["ewatercycle"] = version("ewatercycle")
     package_versions["grpc4bmi"] = version("grpc4bmi")
+    package_versions["remotebmi"] = version("remotebmi")
     package_versions.update({pkg: version(pkg) for pkg in packages})
     return package_versions

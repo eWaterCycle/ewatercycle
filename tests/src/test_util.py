@@ -258,3 +258,4 @@ def test_version_getter():
     versions = get_package_versions()
     assert versions["ewatercycle"] == ewatercycle.__version__
     assert "grpc4bmi" in versions
+    assert "remotebmi" in versions
