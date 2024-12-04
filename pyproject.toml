@@ -53,7 +53,8 @@ dependencies = [
     "xarray",
     "fsspec",
     "cartopy",
-    "pyopenssl>=24.0.0",  # otherwise conda lock file will have a too old version
+    # Pin pyopenssl (conda installs old version) https://github.com/conda/conda/issues/13619
+    "pyopenssl>=24.0.0",
 ]
 
 [project.optional-dependencies]
