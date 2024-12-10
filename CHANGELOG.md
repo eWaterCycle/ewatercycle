@@ -6,6 +6,10 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## Unreleased
 
+## Added
+
+- `model.logs` property to inspect the logs of a containerized model ([#470](https://github.com/eWaterCycle/ewatercycle/pull/470)).
+
 ## [2.4.0] (2024-12-04)
 
 ## Added
