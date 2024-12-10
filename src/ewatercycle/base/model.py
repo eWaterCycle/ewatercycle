@@ -458,7 +458,7 @@ class ContainerizedModel(eWaterCycleModel):
         """Return the container logs."""
         bmi = self._bmi
         while isinstance(bmi, OptionalDestBmi | MemoizedBmi):
-            bmi = bmi.origin
+            bmi = bmi.origin  # type: ignore[assignment,unused-ignore]
 
         if hasattr(bmi, "logs"):
             return bmi.logs()
