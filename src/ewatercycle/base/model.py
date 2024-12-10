@@ -15,6 +15,7 @@ import numpy as np
 import xarray as xr
 import yaml
 from cftime import num2pydate
+from grpc4bmi.bmi_memoized import MemoizedBmi
 from grpc4bmi.bmi_optionaldest import OptionalDestBmi
 from pydantic import (
     BaseModel,
@@ -451,6 +452,18 @@ class ContainerizedModel(eWaterCycleModel):
     def version(self) -> str:
         """Version of the container image."""
         return self.bmi_image.version
+
+    @property
+    def logs(self) -> str:
+        """Return the container logs."""
+        bmi = self._bmi
+        while isinstance(bmi, OptionalDestBmi | MemoizedBmi):
+            bmi = bmi.origin  # type: ignore[assignment,unused-ignore]
+
+        if hasattr(bmi, "logs"):
+            return bmi.logs()
+        msg = f"No logs detected, BMI is of unexpected type {type(bmi)}."
+        raise ValueError(msg)
 
     def _make_bmi_instance(self) -> OptionalDestBmi:
         if self.parameter_set:
