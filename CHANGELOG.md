@@ -9,6 +9,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 ## Added
 
 - `model.logs` property to inspect the logs of a containerized model ([#470](https://github.com/eWaterCycle/ewatercycle/pull/470)).
+- mention remotebmi in docs ([#471](https://github.com/eWaterCycle/ewatercycle/issues/471))
 
 ## [2.4.0] (2024-12-04)
 

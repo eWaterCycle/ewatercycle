@@ -21,7 +21,7 @@ without having intimate knowledge about how to install and run the
 models.
 
 - Uses container for running models in an isolated and portable way
-    with [grpc4bmi](https://github.com/eWaterCycle/grpc4bmi)
+    with [grpc4bmi](https://github.com/eWaterCycle/grpc4bmi) or [remotebmi](https://github.com/eWaterCycle/remotebmi)
 - Generates rain and sunshine required for the model using
     [ESMValTool](https://www.esmvaltool.org/)
 - Supports observation data from [GRDC or
