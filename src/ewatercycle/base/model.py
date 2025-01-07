@@ -8,7 +8,7 @@ from collections.abc import ItemsView, Iterable
 from contextlib import suppress
 from datetime import timezone
 from pathlib import Path
-from typing import Annotated, Any, cast
+from typing import Annotated, Any, Literal, cast
 
 import bmipy
 import numpy as np
@@ -439,6 +439,7 @@ class ContainerizedModel(eWaterCycleModel):
     """
 
     bmi_image: Annotated[ContainerImage, BeforeValidator(_parse_containerimage)]
+    protocol: Literal["grpc", "openapi"] = "grpc"
 
     # Create as empty list to allow models to append before bmi is made:
     _additional_input_dirs: list[str] = PrivateAttr([])
@@ -459,6 +460,7 @@ class ContainerizedModel(eWaterCycleModel):
 
         return start_container(
             image=self.bmi_image,
+            protocol=self.protocol,
             work_dir=self._cfg_dir,
             input_dirs=self._additional_input_dirs,
             timeout=300,

@@ -85,6 +85,7 @@ model.finalize()
 ewatercycle.analysis.hydrograph(...)
 ```
 
+(Click to see real code)
 </summary>
 In real code:
 
@@ -95,7 +96,7 @@ import ewatercycle.models
 import ewatercycle.observation.grdc
 from ewatercycle.testing.fixtures import rhine_shape
 import shapefile
-import pandas as pd
+import xarray as xr
 
 forcing = ewatercycle.forcing.sources['MarrmotForcing'].generate(
     dataset='ERA5',
@@ -136,9 +137,9 @@ observations_ds = ewatercycle.observation.grdc.get_grdc_data(
 sim_da = xr.concat(simulated_discharge, dim='time') * conversion
 sim_da.name = 'simulated'
 discharge = xr.merge([sim_da, observations_ds["observation"]]).to_dataframe()
-discharge= discharge[["observation", "simulated"]].dropna()
+discharge = discharge[["observation", "simulated"]].dropna()
 
-ewatercycle.analysis.hydrograph(simulated_discharge_df.join(observations_df), reference='observation')
+ewatercycle.analysis.hydrograph(discharge, reference='observation')
 
 model.finalize()
 ```

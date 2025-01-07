@@ -3,6 +3,7 @@
 from collections.abc import Iterable
 from configparser import ConfigParser
 from datetime import datetime
+from importlib.metadata import entry_points, version
 from pathlib import Path
 from typing import Any
 
@@ -329,3 +330,26 @@ class CaseConfigParser(ConfigParser):
     def optionxform(self, optionstr):
         """Do not convert option names to lowercase."""
         return optionstr
+
+
+def extract_package_name(value: str) -> str:
+    """Extract package name from entry point value.
+
+    E.g. "ewatercycle_HBV.model:HBV" will return
+    "ewatercycle_HBV".
+    """
+    source = value.split(":")[0]
+    return source.split(".")[0]
+
+
+def get_package_versions() -> dict[str, str]:
+    """Get the version numbers of the ewatercycle package and its plugins."""
+    eps = [ep for ep in entry_points() if "ewatercycle" in ep.group]
+    packages = {extract_package_name(ep.value) for ep in eps}
+
+    package_versions = {}
+    package_versions["ewatercycle"] = version("ewatercycle")
+    package_versions["grpc4bmi"] = version("grpc4bmi")
+    package_versions["remotebmi"] = version("remotebmi")
+    package_versions.update({pkg: version(pkg) for pkg in packages})
+    return package_versions

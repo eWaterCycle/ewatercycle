@@ -121,10 +121,10 @@ def _save_and_run_recipe(recipe: Recipe, output_dir: Path | None) -> RecipeOutpu
     Returns:
         ESMValTool recipe output
     """
-    recipe_file = NamedTemporaryFile(
+    with NamedTemporaryFile(
         prefix="ewcrep", suffix=".yml", mode="w", delete=False
-    )
-    recipe_path = Path(recipe_file.name)
+    ) as recipe_file:
+        recipe_path = Path(recipe_file.name)
 
     try:
         recipe.save(recipe_path)

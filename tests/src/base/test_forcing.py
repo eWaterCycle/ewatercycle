@@ -2,9 +2,11 @@ from pathlib import Path
 from shutil import copytree
 from unittest import mock
 
+import cartopy.crs as ccrs
 import pytest
 import xarray as xr
 from cartopy.io import shapereader
+from matplotlib import pyplot as plt
 
 from ewatercycle._forcings.caravan import (
     CaravanForcing,
@@ -23,6 +25,8 @@ from ewatercycle.base.forcing import (
 )
 
 # Use GenericDistributedForcing to test abstract DefaultForcing class
+
+RHINE_AREA_M2 = 163645.590864e6  # area of rhine shapefile (approx 160,000 km2)
 
 
 class TestGenericDistributedForcingWithExternalShape:
@@ -59,15 +63,20 @@ filenames:
 
         assert content == expected
 
+        # make sure all mandatory (shape)files exist
+        for ext in [".dbf", ".prj", ".shp", ".shx"]:
+            assert (forcing.directory / forcing.shape.with_suffix(ext)).exists()
+
 
 class TestGenericDistributedForcingWithInternalShape:
-    def test_save(self, tmp_path: Path, sample_shape: str):
+    @pytest.fixture
+    def forcing(self, tmp_path: Path, sample_shape: str):
         # Copy shape to tmp_path
         shape_dir = Path(sample_shape).parent
         copytree(shape_dir, tmp_path / shape_dir.name)
         shape = tmp_path / shape_dir.name / Path(sample_shape).name
 
-        forcing = GenericDistributedForcing(
+        return GenericDistributedForcing(
             directory=tmp_path,
             shape=shape,
             start_time="2000-01-01T00:00:00Z",
@@ -79,6 +88,8 @@ class TestGenericDistributedForcingWithInternalShape:
                 "tasmax": "OBS6_ERA5_reanaly_*_day_tasmax_2000-2001.nc",
             },
         )
+
+    def test_save(self, forcing: GenericDistributedForcing, tmp_path: Path):
         forcing.save()
 
         fn = tmp_path / FORCING_YAML
@@ -96,6 +107,36 @@ filenames:
 """
 
         assert content == expected
+
+    def test_shape_area(self, forcing: GenericDistributedForcing):
+        compute_rhine_area = forcing.get_shape_area()
+        assert abs(compute_rhine_area - RHINE_AREA_M2) < 1.0
+
+    def test_missing_shape_area(self, forcing: GenericDistributedForcing):
+        forcing2 = forcing.model_copy()
+        forcing2.shape = None
+        with pytest.raises(ValueError, match="Shapefile not specified"):
+            forcing2.get_shape_area()
+
+    def test_shape_plot(self, forcing):
+        forcing.plot_shape()
+
+    def test_missing_shape_plot(self, forcing):
+        forcing2 = forcing.model_copy()
+        forcing2.shape = None
+        with pytest.raises(ValueError, match="Shapefile not specified"):
+            forcing2.plot_shape()
+
+    def test_external_ax_shape_plot(self, forcing):
+        plt.figure(figsize=(8, 5))
+        ax = plt.axes(projection=ccrs.PlateCarree())
+        forcing.plot_shape(ax=ax)
+
+    def test_external_ax_no_proj_shape_plot(self, forcing):
+        plt.figure(figsize=(8, 5))
+        ax = plt.axes()
+        with pytest.raises(ValueError, match="no spatial projection"):
+            forcing.plot_shape(ax=ax)
 
 
 class TestGenericDistributedForcingWithoutShape:

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ewatercycle"
-version = "2.3.0"
+version = "2.4.0"
 description = "A Python package for running and validating a hydrology model"
 readme = "README.md"
 license = "Apache-2.0"
@@ -40,6 +40,7 @@ dependencies = [
     # otherwise pip installation fails on esmpy
     "Fiona",
     "grpc4bmi>=0.4.0",
+    "remotebmi",
     "hydrostats",
     "matplotlib>=3.5.0",
     "numpy",
@@ -51,7 +52,9 @@ dependencies = [
     "Shapely",
     "xarray",
     "fsspec",
-    'cartopy',
+    "cartopy",
+    # Pin pyopenssl (conda installs old version) https://github.com/conda/conda/issues/13619
+    "pyopenssl>=24.0.0",
 ]
 
 [project.optional-dependencies]
@@ -205,6 +208,8 @@ ignore = [
     "E501",
     # Allow prints
     "T201",
+    # Allow shadowing builtins
+    "A004",
 ]
 
 [tool.ruff.lint.pydocstyle]
