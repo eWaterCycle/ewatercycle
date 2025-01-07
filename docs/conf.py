@@ -182,6 +182,7 @@ intersphinx_mapping = {
     "esmvalcore": ("https://docs.esmvaltool.org/projects/ESMValCore/en/latest/", None),
     "esmvaltool": ("https://docs.esmvaltool.org/en/latest/", None),
     "grpc4bmi": ("https://grpc4bmi.readthedocs.io/en/latest/", None),
+    "remotebmi": ("https://www.ewatercycle.org/remotebmi/python/", None),
     "iris": ("https://scitools-iris.readthedocs.io/en/latest/", None),
     "lime": ("https://lime-ml.readthedocs.io/en/latest/", None),
     "basic_modeling_interface": ("https://bmi.readthedocs.io/en/latest/", None),

@@ -208,8 +208,6 @@ ignore = [
     "E501",
     # Allow prints
     "T201",
-    # Allow shadowing builtins
-    "A004",
 ]
 
 [tool.ruff.lint.pydocstyle]
