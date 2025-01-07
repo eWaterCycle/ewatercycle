@@ -6,6 +6,10 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## Unreleased
 
+## Added
+
+- mention remotebmi in docs ([#471](https://github.com/eWaterCycle/ewatercycle/issues/471))
+
 ## [2.4.0] (2024-12-04)
 
 ## Added

@@ -18,6 +18,10 @@ Use the flowchart below to determine which steps are required for your model.
 .. raw:: html
     :file: _static/flowchart_ewatercycle.excalidraw.svg
 
+You can also download the flowchart as an SVG file using the link below:
+
+:download:`Download flowchart <_static/flowchart_ewatercycle.excalidraw.svg>`
+
 .. _BMI model:
 
 Create a model which exposes the Basic Model Interface (BMI)
