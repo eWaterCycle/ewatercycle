@@ -463,7 +463,7 @@ class ContainerizedModel(eWaterCycleModel):
             )
             raise ValueError(msg)
         bmi = self._bmi
-        while isinstance(bmi, OptionalDestBmi | MemoizedBmi):
+        while hasattr(bmi, "origin"):
             bmi = bmi.origin  # type: ignore[assignment,unused-ignore]
 
         if hasattr(bmi, "logs"):
