@@ -29,8 +29,6 @@ models.
 - Exposes [simple
     interface](https://ewatercycle.readthedocs.io/en/latest/user_guide/00_intro.html)
     to quickly get up and running
-- Exposes <a href="https://ewatercycle.readthedocs.io/en/latest/user_guide/00_intro.html" target="_blank" rel="noopener noreferrer">simple interface</a>
- to quickly get up and running
 
 ## Install
 
