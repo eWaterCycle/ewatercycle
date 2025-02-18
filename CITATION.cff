@@ -66,6 +66,12 @@ authors:
     family-names: van de Giesen
     given-names: Nick
     orcid: "https://orcid.org/0000-0002-7200-3353"
+  -
+    affiliation: "Delft University of Technology"
+    family-names: Melotto
+    given-names: Mark
+    orcid: "https://orcid.org/0009-0005-2727-660X"
+    email: "markmelotto@tudelft.nl"
 cff-version: "1.2.0"
 keywords:
   - hydrology
