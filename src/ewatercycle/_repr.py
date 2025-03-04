@@ -66,7 +66,7 @@ class Representation:
 
     def __repr__(self) -> str:
         """The default implementation of __repr__ just calls __str__."""
-        return f'{self.__repr_name__()}({self.__repr_str__(", ")})'
+        return f"{self.__repr_name__()}({self.__repr_str__(', ')})"
 
     def __rich_repr__(self) -> RichReprResult:
         """Get fields for Rich library."""
