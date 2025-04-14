@@ -4,6 +4,28 @@ The data only includes a year of forcing for one catchment.
 
 For own use, please download from the original source and cite correctly. The Caravan dataset itself is also a combination of data from seperate sources.
 
-The Carvan dataset is originanly obtained from https://zenodo.org/records/7944025 and is explained in a paper by Kratzert, F. :'Caravan - A global community dataset for large-sample hydrology' found here: https://doi-org.tudelft.idm.oclc.org/10.1038/s41597-023-01975-w
+The Carvan dataset is originally obtained from https://zenodo.org/records/7944025 and is explained in a paper by Kratzert, F. :'Caravan - A global community dataset for large-sample hydrology' found here: https://doi-org.tudelft.idm.oclc.org/10.1038/s41597-023-01975-w
 
 Distributed under Creative Commons Attribution 4.0 International.
+
+
+## Test data generation
+
+The test data file was generated with:
+
+```py
+import xarray as xr
+
+from ewatercycle._forcings.caravan import OPENDAP_URL
+
+dataset="camels"
+ds_dap = xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
+
+ds_test = xr.concat(
+    (ds_dap.sel(basin_id=b"camels_01022500"), ds_dap.sel(basin_id=b"camels_03439000")),
+    dim="basin_id",
+)
+
+# Can't write to hdf5 due to "name" variable
+ds_test.to_netcdf("tests/src/base/forcing_files/test_caravan_file.nc", format="NETCDF3_CLASSIC")
+```
