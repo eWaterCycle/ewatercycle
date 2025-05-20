@@ -164,7 +164,8 @@ class CaravanForcing(DefaultForcing):
             directory: Directory in which forcing should be written.
             variables: Variables which are needed for model,
                 if not specified will default to all.
-            shape_in: (Optional) Path to a shape file of the basin, or the combined.shp file of all basins.
+            shape_in: (Optional) Path to a shape file of the basin, or the combined.shp 
+                file of all basins.
                 If none is specified, will be downloaded automatically.
             kwargs: Additional keyword arguments.
                 basin_id: The ID of the desired basin. Data sets can be explored using
