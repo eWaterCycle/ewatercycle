@@ -151,7 +151,7 @@ class CaravanForcing(DefaultForcing):
         end_time: str,
         directory: str,
         variables: tuple[str, ...] = (),
-        shape: str | Path | None = None,
+        shape_in: str | Path | None = None,
         **kwargs,
     ) -> "CaravanForcing":
         """Retrieve caravan for a model.
@@ -189,17 +189,19 @@ class CaravanForcing(DefaultForcing):
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
         
-        if shape is None:
+        if shape_in is None:
             shape = get_shapefiles(Path(directory), basin_id)
-        elif Path(shape).name == "combined.shp":
-            shape_path_out = Path(directory) / f"{basin_id}.shp"
-            extract_basin_shapefile(basin_id, Path(shape), shape_path_out)
+        elif Path(shape_in).name == "combined.shp":
+            shape = Path(directory) / f"{basin_id}.shp"
+            extract_basin_shapefile(basin_id, Path(shape_in), shape)
         elif not (Path(shape).name == f"{basin_id}.shp"):
             msg = (
                 "shape must either point to a shapefile of the basin ID"
                 "Or to the combined.shp file that contains all basins."
             )
             raise ValueError(msg)
+        else:
+            shape = shape_in
 
         if len(variables) == 0:
             variables = ds_basin_time.data_vars.keys()  # type: ignore[assignment]
@@ -309,9 +311,9 @@ def extract_basin_shapefile(
                 # kind of clunky but it works: select filtered polygon
                 if i == basin_index:
                     geom = feat.geometry
-                    if geom.type != "Polygon":
-                        msg = "Only polygons are supported"
-                        raise ValueError(msg)
+                    # if geom.type != "Polygon":
+                    #     msg = "Only polygons are supported"
+                    #     raise ValueError(msg)
 
                     # Add the signed area of the polygon and a timestamp
                     # to the feature properties map.
