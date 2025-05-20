@@ -164,7 +164,7 @@ class CaravanForcing(DefaultForcing):
             directory: Directory in which forcing should be written.
             variables: Variables which are needed for model,
                 if not specified will default to all.
-            shape: (Optional) Path to a shape file.
+            shape_in: (Optional) Path to a shape file of the basin, or the combined.shp file of all basins.
                 If none is specified, will be downloaded automatically.
             kwargs: Additional keyword arguments.
                 basin_id: The ID of the desired basin. Data sets can be explored using
@@ -193,7 +193,7 @@ class CaravanForcing(DefaultForcing):
         elif Path(shape_in).name == "combined.shp":
             shape = Path(directory) / f"{basin_id}.shp"
             extract_basin_shapefile(basin_id, Path(shape_in), shape)
-        elif not (Path(shape).name == f"{basin_id}.shp"):
+        elif Path(shape).name != f"{basin_id}.shp":
             msg = (
                 "shape must either point to a shapefile of the basin ID"
                 "Or to the combined.shp file that contains all basins."
@@ -310,9 +310,6 @@ def extract_basin_shapefile(
                 # kind of clunky but it works: select filtered polygon
                 if i == basin_index:
                     geom = feat.geometry
-                    # if geom.type != "Polygon":
-                    #     msg = "Only polygons are supported"
-                    #     raise ValueError(msg)
 
                     # Add the signed area of the polygon and a timestamp
                     # to the feature properties map.
