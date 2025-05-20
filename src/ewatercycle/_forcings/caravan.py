@@ -188,8 +188,18 @@ class CaravanForcing(DefaultForcing):
         ds_basin = ds.sel(basin_id=basin_id.encode())
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
+        
         if shape is None:
             shape = get_shapefiles(Path(directory), basin_id)
+        elif Path(shape).name == "combined.shp":
+            shape_path_out = Path(directory) / f"{basin_id}.shp"
+            extract_basin_shapefile(basin_id, Path(shape), shape_path_out)
+        elif not (Path(shape).name == f"{basin_id}.shp"):
+            msg = (
+                "shape must either point to a shapefile of the basin ID"
+                "Or to the combined.shp file that contains all basins."
+            )
+            raise ValueError(msg)
 
         if len(variables) == 0:
             variables = ds_basin_time.data_vars.keys()  # type: ignore[assignment]
