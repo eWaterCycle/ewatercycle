@@ -188,7 +188,6 @@ class CaravanForcing(DefaultForcing):
         ds_basin = ds.sel(basin_id=basin_id.encode())
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
-        
         if shape_in is None:
             shape = get_shapefiles(Path(directory), basin_id)
         elif Path(shape_in).name == "combined.shp":
