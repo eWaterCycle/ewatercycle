@@ -396,7 +396,7 @@ class DefaultForcing(BaseModel):
         shape, and filenames attributes. This allows Forcing instances to be used
         in hashed collections such as sets and as dictionary keys, provided these
         attributes are themselves immutable and hashable.
-        
+
         Returns:
             int: The hash value of the object.
         """
