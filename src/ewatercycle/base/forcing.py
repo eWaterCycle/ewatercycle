@@ -389,8 +389,18 @@ class DefaultForcing(BaseModel):
         raise KeyError(msg)
 
     def __hash__(self):
-        """Return a hash value based on start_time, end_time, directory, shape, and filenames."""
-        return hash((self.start_time, self.end_time, self.directory, tuple(self.shape), tuple(self.filenames)))
+        """Return a hash value based on: 
+        start_time, 
+        end_time, 
+        directory, 
+        shape, and 
+        filenames."""
+        return hash((self.start_time, 
+                     self.end_time, 
+                     self.directory, 
+                     tuple(self.shape), 
+                     tuple(self.filenames)
+                    ))
 
 
 class DistributedUserForcing(DefaultForcing):
