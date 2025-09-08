@@ -400,11 +400,13 @@ class DefaultForcing(BaseModel):
             int: The hash value of the object.
         """
         return hash(
-            (self.start_time,
-             self.end_time,
-             self.directory,
-             tuple(self.shape),
-             tuple(self.filenames))
+            (
+                self.start_time,
+                self.end_time,
+                self.directory,
+                tuple(self.shape),
+                tuple(self.filenames),
+            )
         )
 
 
