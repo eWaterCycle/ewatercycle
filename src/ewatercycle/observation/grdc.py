@@ -351,12 +351,12 @@ def _grdc_metadata_reader(grdc_station_path, all_lines):  # noqa: C901
             attribute_grdc["altitude_masl"] = "NA"
 
         try:
-            attribute_grdc["dataSetContent"] = str(all_lines[20].split(":")[1].strip())
+            attribute_grdc["dataSetContent"] = str(all_lines[21].split(":")[1].strip())
         except (IndexError, ValueError):
             attribute_grdc["dataSetContent"] = "NA"
 
         try:
-            attribute_grdc["units"] = str(all_lines[22].split(":")[1].strip())
+            attribute_grdc["units"] = str(all_lines[23].split(":")[1].strip())
         except (IndexError, ValueError):
             attribute_grdc["units"] = "NA"
 
