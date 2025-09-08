@@ -315,7 +315,7 @@ def reindex(source_file: str, var_name: str, mask_file: str, target_file: str):
             var_name: {
                 "zlib": True,
                 "complevel": 4,
-                "chunksizes": (1,) + reindexed_data[var_name].shape[1:],
+                "chunksizes": (1, *reindexed_data[var_name].shape[1:]),
             }
         },
     )
