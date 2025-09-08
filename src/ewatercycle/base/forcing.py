@@ -389,8 +389,7 @@ class DefaultForcing(BaseModel):
         raise KeyError(msg)
 
     def __hash__(self):
-        """
-        Returns a hash value for the Forcing object.
+        """Returns a hash value for the Forcing object.
 
         The hash is computed using the object's start_time, end_time, directory,
         shape, and filenames attributes. This allows Forcing instances to be used
