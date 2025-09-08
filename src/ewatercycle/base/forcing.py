@@ -400,7 +400,12 @@ class DefaultForcing(BaseModel):
         Returns:
             int: The hash value of the object.
         """
-        return hash((self.start_time, self.end_time, self.directory, self.shape, self.filenames))
+        return hash((self.start_time, 
+                     self.end_time, 
+                     self.directory, 
+                     self.shape, 
+                     self.filenames)
+                   )
 
 
 class DistributedUserForcing(DefaultForcing):
