@@ -388,6 +388,9 @@ class DefaultForcing(BaseModel):
         msg = f"'{key}' is not a valid variable for this forcing object."
         raise KeyError(msg)
 
+    def __hash__(self):
+        return hash((self.start_time, self.end_time, self.directory, self.shape, self.filenames)
+
 
 class DistributedUserForcing(DefaultForcing):
     """Forcing object with user-specified downloaded variables and postprocessing.
