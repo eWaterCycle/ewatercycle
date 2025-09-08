@@ -389,23 +389,14 @@ class DefaultForcing(BaseModel):
         raise KeyError(msg)
 
     def __hash__(self):
-        """
-        Returns a hash value for the Forcing object.
-
-        The hash is computed using the object's start_time, end_time, directory,
-        shape, and filenames attributes. This allows Forcing instances to be used
-        in hashed collections such as sets and as dictionary keys, provided these
-        attributes are themselves immutable and hashable.
-    
-        Returns:
-            int: The hash value of the object.
-        """
-        return hash((self.start_time, 
-                     self.end_time, 
-                     self.directory, 
-                     self.shape, 
-                     self.filenames)
-                   )
+    """Return a hash value based on start_time, end_time, directory, shape, and filenames."""
+        return hash((
+            self.start_time,
+            self.end_time,
+            self.directory,
+            tuple(self.shape),
+            tuple(self.filenames)
+        ))
 
 
 class DistributedUserForcing(DefaultForcing):
