@@ -395,12 +395,13 @@ class DefaultForcing(BaseModel):
         directory, 
         shape, and 
         filenames."""
-        return hash((self.start_time, 
-                     self.end_time, 
-                     self.directory, 
-                     tuple(self.shape), 
-                     tuple(self.filenames)
-                    ))
+        return hash(
+            (self.start_time, 
+             self.end_time, 
+             self.directory, 
+             tuple(self.shape), 
+             tuple(self.filenames))
+        )
 
 
 class DistributedUserForcing(DefaultForcing):
