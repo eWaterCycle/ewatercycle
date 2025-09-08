@@ -404,7 +404,7 @@ class DefaultForcing(BaseModel):
                 self.start_time,
                 self.end_time,
                 self.directory,
-                tuple(self.shape),
+                self.shape,
                 tuple(self.filenames),
             )
         )
