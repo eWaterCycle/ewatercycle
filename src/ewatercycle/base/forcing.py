@@ -389,7 +389,7 @@ class DefaultForcing(BaseModel):
         raise KeyError(msg)
 
     def __hash__(self):
-        """Return a hash value based on: 
+        """Return a hash value based on:
         start_time,
         end_time,
         directory,
