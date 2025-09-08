@@ -390,16 +390,16 @@ class DefaultForcing(BaseModel):
 
     def __hash__(self):
         """Return a hash value based on: 
-        start_time, 
-        end_time, 
-        directory, 
-        shape, and 
+        start_time,
+        end_time,
+        directory,
+        shape, and
         filenames."""
         return hash(
-            (self.start_time, 
-             self.end_time, 
-             self.directory, 
-             tuple(self.shape), 
+            (self.start_time,
+             self.end_time,
+             self.directory,
+             tuple(self.shape),
              tuple(self.filenames))
         )
 
