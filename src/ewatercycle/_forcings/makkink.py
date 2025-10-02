@@ -17,11 +17,17 @@ def derive_e_pot(recipe_output: dict) -> tuple[str, ...]:
     ds_tas = xr.open_dataset(
         Path(recipe_output["directory"]) / recipe_output["tas"],
         chunks="auto",
+        decode_cf=False,
     )
+    ds_tas = xr.decode_cf(ds_tas)  # decoding after loading makes Dask happy.
+    ds_tas["time_bnds"].load()  # Need to be in memory for merging datasets.
     ds_rsds = xr.open_dataset(
         Path(recipe_output["directory"]) / recipe_output["rsds"],
         chunks="auto",
+        decode_cf=False,
     )
+    ds_rsds = xr.decode_cf(ds_rsds)
+    ds_rsds["time_bnds"].load()
     # We need to make sure the coordinates line up. Floating point errors from
     #  ESMValTool mess with this:
     ds = merge_esvmaltool_datasets([ds_tas, ds_rsds])
