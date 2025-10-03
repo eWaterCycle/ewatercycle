@@ -264,7 +264,7 @@ def _grdc_read(grdc_station_path, start, end, column):
     return metadata, grdc_station_select
 
 
-def _grdc_metadata_reader(grdc_station_path, all_lines):  # noqa: C901
+def _grdc_metadata_reader(grdc_station_path, all_lines):
     # Initiating a dictionary that will contain all GRDC attributes.
     # This function is based on earlier work by Rolf Hut.
     # https://github.com/RolfHut/GRDC2NetCDF/blob/master/GRDC2NetCDF.py
@@ -322,8 +322,7 @@ def _grdc_metadata_reader(grdc_station_path, all_lines):  # noqa: C901
     return attribute_grdc
 
 def _extract_metadata(lines, key, cast=str, default="NA"):
-    """
-    Private helper to extract metadata fields from GRDC header lines.
+    """Private helper to extract metadata fields from GRDC header lines.
     """
     for line in lines:
         if line.strip().startswith(f"# {key}:"):

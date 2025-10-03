@@ -2,8 +2,15 @@
 
 
 from pathlib import Path
+
 import pytest
-from ewatercycle.observations.grdc import _grdc_metadata_reader, _extract_metadata, _grdc_read
+
+from ewatercycle.observations.grdc import (
+    _extract_metadata,
+    _grdc_metadata_reader,
+    _grdc_read,
+)
+
 
 @pytest.fixture
 def grdc_file():
