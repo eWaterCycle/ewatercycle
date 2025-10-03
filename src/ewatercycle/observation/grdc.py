@@ -300,71 +300,38 @@ def _grdc_metadata_reader(grdc_station_path, all_lines):  # noqa: C901
         attribute_grdc["grdc_file_name"] = str(grdc_station_path)
         attribute_grdc["id_from_grdc"] = id_from_grdc
 
-        try:
-            attribute_grdc["file_generation_date"] = str(
-                all_lines[6].split(":")[1].strip()
-            )
-        except (IndexError, ValueError):
-            attribute_grdc["file_generation_date"] = "NA"
+        attribute_grdc["file_generation_date"] = _extract_metadata(all_lines, "file generation date")
+        attribute_grdc["river_name"] = _extract_metadata(all_lines, "River")
+        attribute_grdc["station_name"] = _extract_metadata(all_lines, "Station")
+        attribute_grdc["country_code"] = _extract_metadata(all_lines, "Country")
+        attribute_grdc["grdc_latitude_in_arc_degree"] = _extract_metadata(all_lines, "Latitude (DD)", cast=float)
+        attribute_grdc["grdc_longitude_in_arc_degree"] = _extract_metadata(all_lines, "Longitude (DD)", cast=float)
+        attribute_grdc["grdc_catchment_area_in_km2"] = _extract_metadata(all_lines, "Catchment area (km²)", cast=float)
+        attribute_grdc["altitude_masl"] = _extract_metadata(all_lines, "Altitude (m ASL)", cast=float)
+        attribute_grdc["dataSetContent"] = _extract_metadata(all_lines, "Data Set Content")
+        attribute_grdc["units"] = _extract_metadata(all_lines, "Unit of measure")
+        attribute_grdc["Owner of original data"] = _extract_metadata(all_lines, "Owner of original data",
+                                                                    default="Unknown")
 
-        try:
-            attribute_grdc["river_name"] = str(all_lines[9].split(":")[1].strip())
-        except (IndexError, ValueError):
-            attribute_grdc["river_name"] = "NA"
-
-        try:
-            attribute_grdc["station_name"] = str(all_lines[10].split(":")[1].strip())
-        except (IndexError, ValueError):
-            attribute_grdc["station_name"] = "NA"
-
-        try:
-            attribute_grdc["country_code"] = str(all_lines[11].split(":")[1].strip())
-        except (IndexError, ValueError):
-            attribute_grdc["country_code"] = "NA"
-
-        try:
-            attribute_grdc["grdc_latitude_in_arc_degree"] = float(
-                all_lines[12].split(":")[1].strip()
-            )
-        except (IndexError, ValueError):
-            attribute_grdc["grdc_latitude_in_arc_degree"] = "NA"
-
-        try:
-            attribute_grdc["grdc_longitude_in_arc_degree"] = float(
-                all_lines[13].split(":")[1].strip()
-            )
-        except (IndexError, ValueError):
-            attribute_grdc["grdc_longitude_in_arc_degree"] = "NA"
-
-        try:
-            attribute_grdc["grdc_catchment_area_in_km2"] = float(
-                all_lines[14].split(":")[1].strip()
-            )
-            if attribute_grdc["grdc_catchment_area_in_km2"] <= 0.0:
-                attribute_grdc["grdc_catchment_area_in_km2"] = "NA"
-        except (IndexError, ValueError):
+        if (
+                attribute_grdc["grdc_catchment_area_in_km2"] != "NA"
+                and attribute_grdc["grdc_catchment_area_in_km2"] <= 0.0
+        ):
             attribute_grdc["grdc_catchment_area_in_km2"] = "NA"
 
-        try:
-            attribute_grdc["altitude_masl"] = float(all_lines[15].split(":")[1].strip())
-        except (IndexError, ValueError):
-            attribute_grdc["altitude_masl"] = "NA"
-
-        try:
-            attribute_grdc["dataSetContent"] = str(all_lines[21].split(":")[1].strip())
-        except (IndexError, ValueError):
-            attribute_grdc["dataSetContent"] = "NA"
-
-        try:
-            attribute_grdc["units"] = str(all_lines[23].split(":")[1].strip())
-        except (IndexError, ValueError):
-            attribute_grdc["units"] = "NA"
-
-        try:
-            attribute_grdc["Owner of original data"] = (
-                all_lines[18].split(":")[1].strip()
-            )
-        except (IndexError, ValueError):
-            attribute_grdc["Owner of original data"] = "Unknown"
-
     return attribute_grdc
+
+def _extract_metadata(lines, key, cast=str, default="NA"):
+    """
+    Private helper to extract metadata fields from GRDC header lines.
+    """
+    for line in lines:
+        if line.strip().startswith(f"# {key}:"):
+            parts = line.split(":", 1)
+            if len(parts) > 1:
+                value = parts[1].strip()
+                try:
+                    return cast(value)
+                except ValueError:
+                    return default
+    return default
