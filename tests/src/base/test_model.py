@@ -418,7 +418,7 @@ class TestParameterSetValidation:
 
         with pytest.raises(
             ValueError,
-            match="Parameter set 'test' not compatible with this model version.",
+            match=r"Parameter set 'test' not compatible with this model version.",
         ):
             VersionedMockModel(mybmi=mocked_bmi, parameter_set=parameter_set)
 

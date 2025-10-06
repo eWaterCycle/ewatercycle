@@ -178,7 +178,7 @@ def test_get_grdc_data_with_cfg(
 
 
 def test_get_grdc_data_without_file(tmp_path):
-    with pytest.raises(ValueError, match="The grdc file .* does not exist!"):
+    with pytest.raises(ValueError, match=r"The grdc file .* does not exist!"):
         get_grdc_data(
             "42424243",
             "2000-01-01T00:00Z",
@@ -313,7 +313,7 @@ def test_get_grdc_data_from_nc(sample_nc_file, expected_results: xr.Dataset):
 def test_get_grdc_data_from_nc_missing_and_no_txtfile(tmp_path, sample_nc_file):
     with pytest.raises(
         ValueError,
-        match="The grdc station 42424243 is not in the .*/GRDC-Daily.nc file and .*/42424243_Q_Day.Cmd.txt does not exist!",
+        match=r"The grdc station 42424243 is not in the .*/GRDC-Daily.nc file and .*/42424243_Q_Day.Cmd.txt does not exist!",
     ):
         get_grdc_data(
             "42424243",
