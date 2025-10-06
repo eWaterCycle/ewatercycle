@@ -58,7 +58,7 @@ from ewatercycle.util import get_time, merge_esvmaltool_datasets, to_absolute_pa
 
 logger = logging.getLogger(__name__)
 FORCING_YAML = "ewatercycle_forcing.yaml"
-
+# ruff: noqa: PLW1641
 
 def _to_absolute_path(v: str | Path):
     """Absolute path validator."""
