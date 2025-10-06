@@ -9,6 +9,7 @@ from typing import Any
 
 import fiona
 import numpy as np
+import pandas as pd
 import xarray as xr
 from dateutil.parser import parse
 from shapely import geometry
@@ -226,7 +227,7 @@ def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
         if "time_bnds" in datasets[i] and xr.infer_freq(datasets[i]["time"]) == "D":
             datasets[i]["time"] = datasets[i]["time_bnds"].isel(
                 bnds=0
-            ) + np.timedelta64(12, "h")
+            ) + pd.Timedelta("12H")
             datasets[i] = datasets[i].drop_vars("time_bnds")
 
         # A "height" coordinate can be present, which will result in conflicts.
