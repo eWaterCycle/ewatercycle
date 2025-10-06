@@ -15,7 +15,7 @@
 # Catchment area (km²):      123465.0
 # Altitude (m ASL):        1234.0
 # Next downstream station:      1111111
-# Remarks:               
+# Remarks:
 # Owner of original data: TEST - Ministry of Testing
 #************************************************************
 #
