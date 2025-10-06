@@ -20,7 +20,7 @@ def find_closest_point(
     point_longitude: float,
     point_latitude: float,
 ) -> tuple[int, int]:
-    """Find closest grid cell to a point based on Geographical distances.
+    """Find the closest grid cell to a point based on Geographical distances.
 
     Args:
         grid_longitudes: 1d array of model grid longitudes in degrees
