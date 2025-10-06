@@ -300,34 +300,40 @@ def _grdc_metadata_reader(grdc_station_path, all_lines):
         attribute_grdc["grdc_file_name"] = str(grdc_station_path)
         attribute_grdc["id_from_grdc"] = id_from_grdc
 
-        attribute_grdc["file_generation_date"] = (
-            _extract_metadata(all_lines,"file generation date"))
+        attribute_grdc["file_generation_date"] = _extract_metadata(
+            all_lines, "file generation date"
+        )
         attribute_grdc["river_name"] = _extract_metadata(all_lines, "River")
         attribute_grdc["station_name"] = _extract_metadata(all_lines, "Station")
         attribute_grdc["country_code"] = _extract_metadata(all_lines, "Country")
-        attribute_grdc["grdc_latitude_in_arc_degree"] = (
-            _extract_metadata(all_lines, "Latitude (DD)", cast=float))
-        attribute_grdc["grdc_longitude_in_arc_degree"] = (
-            _extract_metadata(all_lines,"Longitude (DD)", cast=float))
-        attribute_grdc["grdc_catchment_area_in_km2"] = (
-            _extract_metadata(all_lines,"Catchment area (km²)", cast=float))
-        attribute_grdc["altitude_masl"] = _extract_metadata(all_lines,
-                                                            "Altitude (m ASL)",
-                                                            cast=float)
-        attribute_grdc["dataSetContent"] = _extract_metadata(all_lines,
-                                                             "Data Set Content")
-        attribute_grdc["units"] = _extract_metadata(all_lines,
-                                                    "Unit of measure")
-        attribute_grdc["Owner of original data"] = (
-            _extract_metadata(all_lines, "Owner of original data", default="Unknown"))
+        attribute_grdc["grdc_latitude_in_arc_degree"] = _extract_metadata(
+            all_lines, "Latitude (DD)", cast=float
+        )
+        attribute_grdc["grdc_longitude_in_arc_degree"] = _extract_metadata(
+            all_lines, "Longitude (DD)", cast=float
+        )
+        attribute_grdc["grdc_catchment_area_in_km2"] = _extract_metadata(
+            all_lines, "Catchment area (km²)", cast=float
+        )
+        attribute_grdc["altitude_masl"] = _extract_metadata(
+            all_lines, "Altitude (m ASL)", cast=float
+        )
+        attribute_grdc["dataSetContent"] = _extract_metadata(
+            all_lines, "Data Set Content"
+        )
+        attribute_grdc["units"] = _extract_metadata(all_lines, "Unit of measure")
+        attribute_grdc["Owner of original data"] = _extract_metadata(
+            all_lines, "Owner of original data", default="Unknown"
+        )
 
         if (
-                attribute_grdc["grdc_catchment_area_in_km2"] != "NA"
-                and attribute_grdc["grdc_catchment_area_in_km2"] <= 0.0
+            attribute_grdc["grdc_catchment_area_in_km2"] != "NA"
+            and attribute_grdc["grdc_catchment_area_in_km2"] <= 0.0
         ):
             attribute_grdc["grdc_catchment_area_in_km2"] = "NA"
 
     return attribute_grdc
+
 
 def _extract_metadata(lines, key, cast=str, default="NA"):
     """Private helper to extract metadata fields from GRDC header lines."""
