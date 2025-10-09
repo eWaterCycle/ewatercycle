@@ -344,6 +344,6 @@ def _extract_metadata(lines, key, cast=str, default="NA"):
                 value = parts[1].strip()
                 try:
                     return cast(value)
-                except ValueError:
-                    return default
+                except:
+                    raise ValueError(f"No valid key: {key} in GRDC file.")
     return default
