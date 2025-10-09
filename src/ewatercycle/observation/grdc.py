@@ -334,7 +334,6 @@ def _grdc_metadata_reader(grdc_station_path, all_lines):
 
     return attribute_grdc
 
-
 def _extract_metadata(lines, key, cast=str, default="NA"):
     """Private helper to extract metadata fields from GRDC header lines."""
     for line in lines:
@@ -344,6 +343,8 @@ def _extract_metadata(lines, key, cast=str, default="NA"):
                 value = parts[1].strip()
                 try:
                     return cast(value)
-                except:
-                    raise ValueError(f"No valid key: {key} in GRDC file.")
+                except Exception as err:
+                    msg = (f"Cannot cast {value!r} to {cast.__name__} "
+                           f"for key: {key} in GRDC file.")
+                    raise ValueError(msg) from err
     return default
