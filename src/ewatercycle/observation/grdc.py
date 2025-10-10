@@ -344,10 +344,11 @@ def _extract_metadata(lines, key, cast=str, default="NA"):
                 value = parts[1].strip()
                 try:
                     return cast(value)
-                except Exception as err:
-                    msg = (
-                        f"Cannot cast {value!r} to {cast.__name__} "
-                        f"for key: {key} in GRDC file."
+                except ValueError:
+                    warnings.warn(
+                        f"Could not cast {value} to {cast}, set to {default}",
+                        stacklevel=2,
                     )
-                    raise ValueError(msg) from err
+                    return default
+    warnings.warn(f"Key: {key} not found, set to {default}", stacklevel=2)
     return default
