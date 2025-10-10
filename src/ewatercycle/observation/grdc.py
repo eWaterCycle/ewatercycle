@@ -350,5 +350,5 @@ def _extract_metadata(lines, key, cast=str, default="NA"):
                         stacklevel=2,
                     )
                     return default
-    warnings.warn(f"Key: {key} not found, set to {default}", stacklevel=2)
+    warnings.warn(f"{key} not found, set to {default}", stacklevel=2)
     return default
