@@ -21,7 +21,7 @@ def find_closest_point(
     point_longitude: float,
     point_latitude: float,
 ) -> tuple[int, int]:
-    """Find closest grid cell to a point based on Geographical distances.
+    """Find the closest grid cell to a point based on Geographical distances.
 
     Args:
         grid_longitudes: 1d array of model grid longitudes in degrees
@@ -225,9 +225,9 @@ def merge_esvmaltool_datasets(datasets: list[xr.Dataset]) -> xr.Dataset:
         #   https://github.com/eWaterCycle/infra/issues/157
         #   the following is a workaround.
         if "time_bnds" in datasets[i] and xr.infer_freq(datasets[i]["time"]) == "D":
-            datasets[i]["time"] = datasets[i]["time_bnds"].isel(
-                bnds=0
-            ) + pd.Timedelta("12H")
+            datasets[i]["time"] = datasets[i]["time_bnds"].isel(bnds=0) + pd.Timedelta(
+                "12H"
+            )
             datasets[i] = datasets[i].drop_vars("time_bnds")
 
         # A "height" coordinate can be present, which will result in conflicts.
@@ -316,7 +316,7 @@ def reindex(source_file: str, var_name: str, mask_file: str, target_file: str):
             var_name: {
                 "zlib": True,
                 "complevel": 4,
-                "chunksizes": (1,) + reindexed_data[var_name].shape[1:],
+                "chunksizes": (1, *reindexed_data[var_name].shape[1:]),
             }
         },
     )
