@@ -346,12 +346,12 @@ def test_retrieve_caravan_forcing(tmp_path: Path, mock_retrieve: mock.MagicMock)
         "high_prec_dur",
         "low_prec_freq",
         "low_prec_dur",
-        "total_precipitation_sum",
-        "potential_evaporation_sum",
-        "temperature_2m_mean",
-        "temperature_2m_min",
-        "temperature_2m_max",
-        "streamflow",
+        "pr",
+        "evspsblpot",
+        "tas",
+        "tasmin",
+        "tasmax",
+        "Q",
     )
     basin_id = "camels_03439000"
     test_files_dir = Path(__file__).parent / "forcing_files"
@@ -366,8 +366,8 @@ def test_retrieve_caravan_forcing(tmp_path: Path, mock_retrieve: mock.MagicMock)
     )
     caravan_forcing.save()
     ds = caravan_forcing.to_xarray()
-    content = list(ds.data_vars.keys())
-    expected = ["Q", "evspsblpot", "pr", "tas", "tasmax", "tasmin"]
+    content = set(ds.data_vars.keys())
+    expected = {"Q", "evspsblpot", "pr", "tas", "tasmax", "tasmin"}
     assert content == expected
     mock_retrieve.assert_called_once_with(basin_id.split("_")[0])
 
@@ -391,8 +391,8 @@ def test_retrieve_caravan_forcing_empty_vars(
     )
     caravan_forcing.save()
     ds = caravan_forcing.to_xarray()
-    content = list(ds.data_vars.keys())
-    expected = ["Q", "evspsblpot", "pr", "tas", "tasmax", "tasmin"]
+    content = set(ds.data_vars.keys())
+    expected = {"Q", "evspsblpot", "pr", "tas", "tasmax", "tasmin"}
     assert content == expected
     mock_retrieve.assert_called_once_with(basin_id.split("_")[0])
 

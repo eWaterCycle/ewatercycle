@@ -8,11 +8,13 @@ import urllib3
 import xarray as xr
 from cartopy.io import shapereader
 
+from ewatercycle._forcings._caravan_reference import CAMELS_VARS, ERA5_VARS
 from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.util import get_time
 
 COMMON_URL = "ca13056c-c347-4a27-b320-930c2a4dd207"
-OPENDAP_URL = f"https://opendap.4tu.nl/thredds/dodsC/data2/djht/{COMMON_URL}/1/"
+VERSION = 2
+OPENDAP_URL = f"https://opendap.4tu.nl/thredds/dodsC/data2/djht/{COMMON_URL}/{VERSION}/"
 SHAPEFILE_URL = (
     f"https://data.4tu.nl/file/{COMMON_URL}/bbe94526-cf1a-4b96-8155-244f20094719"
 )
@@ -71,11 +73,11 @@ class CaravanForcing(DefaultForcing):
             HRU_id = 1022500
 
             camels_forcing = sources['CaravanForcing'].generate(
-                                        start_time = experiment_start_date,
-                                        end_time = experiment_end_date,
-                                        directory = forcing_path,
-                                        basin_id = f"camels_0{HRU_id}"
-                                                                    )
+                start_time = experiment_start_date,
+                end_time = experiment_end_date,
+                directory = forcing_path,
+                basin_id = f"camels_0{HRU_id}"
+            )
 
         which gives something like:
 
@@ -168,12 +170,24 @@ class CaravanForcing(DefaultForcing):
                 If none is specified, will be downloaded automatically.
             kwargs: Additional keyword arguments.
                 basin_id: The ID of the desired basin. Data sets can be explored using
-                `CaravanForcing.get_dataset(dataset_name)` or
-                `CaravanForcing.get_basin_id(dataset_name)`
-                where `dataset_name` is the name of a dataset in Caravan
-                (for example, "camels" or "camelsgb").
-                For more information do `help(CaravanForcing.get_basin_id)` or see
-                https://www.ewatercycle.org/caravan-map/.
+                    `CaravanForcing.get_dataset(dataset_name)` or
+                    `CaravanForcing.get_basin_id(dataset_name)`
+                    where `dataset_name` is the name of a dataset in Caravan
+                    (for example, "camels" or "camelsgb").
+                    For more information do `help(CaravanForcing.get_basin_id)` or see
+                    https://www.ewatercycle.org/caravan-map/.
+                data_source: The ID of the data source to be used. For some datasets
+                    multiple datasources are available. currently this is only
+                    implemented for the (basins in the) "camels" (ie. camels US)
+                    dataset. If "data_sources" is not specified, it defaults to
+                    'era5_land' (the default for caravan). Options for Camels are:
+                        - 'nldas'
+                        - 'maurer'
+                        - 'daymet'
+                    See the documentation of Camels for details on the differences
+                    between these data sources: https://dx.doi.org/10.5065/D6MW2F4D
+                retrieve_shape: If the shapefile should be retrieved (optional). By
+                    default False.
         """
         if "basin_id" not in kwargs:
             msg = (
@@ -181,14 +195,38 @@ class CaravanForcing(DefaultForcing):
                 " Caravan."
             )
             raise ValueError(msg)
+
         basin_id = str(kwargs["basin_id"])
+
+        if "data_source" not in kwargs:
+            data_source = "era5_land"
+        elif kwargs["data_source"] in ["era5_land", "nldas", "maurer", "daymet"]:
+            data_source = str(kwargs["data_source"])
+        else:
+            msg = (
+                "If 'data_source' is provided it needs to be one of:\n"
+                "   'era5_land', 'nldas', 'maurer', 'daymet'"
+            )
+            raise ValueError(msg)
 
         dataset: str = basin_id.split("_")[0]
         ds = cls.get_dataset(dataset)
         ds_basin = ds.sel(basin_id=basin_id.encode())
+
+        if dataset != "camels" and data_source != "era5_land":
+            msg = (
+                "Alternative data sources are only implemented for the camels "
+                "(USA) dataset"
+            )
+            raise ValueError(msg)
+        ds_basin = get_camels_data(ds_basin, data_source.encode())
+
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
-        if shape is None:
+        retrieve_shape = (
+            bool(kwargs["retrieve_shape"]) if "retrieve_shape" in kwargs else True
+        )
+        if retrieve_shape:
             shape = get_shapefiles(Path(directory), basin_id)
 
         if len(variables) == 0:
@@ -197,36 +235,31 @@ class CaravanForcing(DefaultForcing):
         # only return the properties which are also in property vars
         properties = set(variables).intersection(PROPERTY_VARS)
         non_property_vars = set(variables) - properties
-        variable_names = non_property_vars.intersection(
-            RENAME_ERA5.keys()
-        )  # only take the vars also in Rename dict
+
+        # only take the vars also in Rename dict (ie. pr, tas, etc.)
+        variable_names = non_property_vars.intersection(set(RENAME_ERA5.values()))
 
         for prop in properties:
             ds_basin_time.coords.update({prop: ds_basin_time[prop].to_numpy()})
 
-        ds_basin_time = ds_basin_time.rename(RENAME_ERA5)
-        variables = tuple([RENAME_ERA5[var] for var in variable_names])
-
-        # convert units to Kelvin for compatibility with CMOR MIP table units
-        for temp in ["tas", "tasmin", "tasmax"]:
-            ds_basin_time[temp].attrs.update({"height": "2m"})
-            if (ds_basin_time[temp].attrs["unit"]) == "°C":
-                ds_basin_time[temp].values = ds_basin_time[temp].to_numpy() + 273.15
-                ds_basin_time[temp].attrs["unit"] = "K"
-
-        for var in ["evspsblpot", "pr"]:
-            if (ds_basin_time[var].attrs["unit"]) == "mm":
-                # mm/day --> kg m-2 s-1
-                ds_basin_time[var].values = ds_basin_time[var].to_numpy() / (86400)
-                ds_basin_time[var].attrs["unit"] = "kg m-2 s-1"
+        ds_basin_time = convert_units(ds_basin_time)
 
         start_time_name = start_time[:10]
         end_time_name = end_time[:10]
 
         history_attrs = ds_basin_time.attrs["history"]
-        for var in variables:
+        for var in variable_names:
             ds_basin_time[var].attrs["history"] = history_attrs
-            ds_basin_time[var].to_netcdf(
+
+            # Basin IDs can be duplicate because of problem in opendap data
+            #    only select the one with data (if it exists)
+            valid_basin = ~ds_basin_time[var].isnull().all(dim="time")
+            if ds_basin_time[var]["basin_id"].size > 1 and valid_basin.any():
+                dout = ds_basin_time[var][~ds_basin_time[var].isnull().all(dim="time")]
+            else:
+                dout = ds_basin_time[var]
+
+            dout.isel(basin_id=0).to_netcdf(
                 Path(directory)
                 / f"{basin_id}_{start_time_name}_{end_time_name}_{var}.nc"
             )
@@ -235,14 +268,22 @@ class CaravanForcing(DefaultForcing):
             directory=Path(directory),
             start_time=start_time,
             end_time=end_time,
-            shape=Path(shape),
+            shape=Path(shape) if shape is not None else None,
             filenames={
                 var: f"{basin_id}_{start_time_name}_{end_time_name}_{var}.nc"
-                for var in variables
+                for var in variable_names
             },
         )
         forcing.save()
         return forcing
+
+    def to_xarray(self) -> xr.Dataset:
+        """Return this Forcing object as an xarray Dataset."""
+        if len(self.filenames) == 0:
+            msg = "There are no variables stored in this Forcing object."
+            raise ValueError(msg)
+        fpaths = [self.directory / filename for _, filename in self.filenames.items()]
+        return xr.merge([xr.open_dataset(fpath, chunks="auto") for fpath in fpaths])
 
 
 def get_shapefiles(directory: Path, basin_id: str) -> Path:
@@ -319,3 +360,48 @@ def crop_ds(ds: xr.Dataset, start_time: str, end_time: str) -> xr.Dataset:
     return ds.isel(
         time=(ds["time"].to_numpy() >= start) & (ds["time"].to_numpy() <= end)
     )
+
+
+def get_camels_data(ds: xr.Dataset, data_source: bytes) -> xr.Dataset:
+    """Grab the right source of input data for the camels (USA) dataset.
+
+    The way the dataset on OPENDAP is structured is not optimal, see the
+    discussion at:
+    https://github.com/eWaterCycle/ewatercycle/pull/433/
+
+    This function will select and rename the right variables.
+    """
+    if data_source == b"era5_land":
+        ds_era5 = ds.sel(data_source=b"era5_land")
+        ds_era5 = ds_era5.drop_vars("data_source")
+        ds_era5 = ds_era5[[*PROPERTY_VARS, *ERA5_VARS, "streamflow"]]
+        return ds_era5.rename(RENAME_ERA5)
+
+    ds_common = ds.sel(data_source=b"era5_land")
+    ds_common = ds_common.drop_vars("data_source")
+    ds_common = ds_common[[*PROPERTY_VARS, "streamflow"]]
+    ds_common = ds_common.rename({"streamflow": "Q"})
+
+    ds_camels = ds.sel(data_source=data_source)
+    ds_camels = ds_camels.drop_vars("data_source")
+    ds_camels = ds_camels[CAMELS_VARS]
+
+    return xr.merge((ds_common, ds_camels))
+
+
+def convert_units(ds: xr.Dataset) -> xr.Dataset:
+    """Caravan uses degrees C, mm/d. We need Kelvin and km/m2/s."""
+    # convert units to Kelvin for compatibility with CMOR MIP table units
+    for temp in ["tas", "tasmin", "tasmax"]:
+        if ds[temp].attrs["unit"] in ["°C", "degC"]:
+            ds[temp].values = ds[temp].to_numpy() + 273.15
+            ds[temp].attrs["unit"] = "K"
+        ds[temp].attrs.update({"height": "2m"})
+
+    for var in ["evspsblpot", "pr"]:
+        if ds[var].attrs["unit"] in ["mm", "mm/d"]:
+            # mm/day --> kg m-2 s-1
+            ds[var].values = ds[var].to_numpy() / (86400)
+            ds[var].attrs["unit"] = "kg m-2 s-1"
+
+    return ds
