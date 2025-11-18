@@ -8,6 +8,7 @@ how to add a new model as a plugin.
 
 Each plugin has its own documentation. Below is a list of all known plugins:
 
+* `HBV <https://github.com/eWaterCycle/ewatercycle-hbv>`_
 * `Hype <https://github.com/eWaterCycle/ewatercycle-hype>`_
 * `LISFLOOD <https://github.com/eWaterCycle/ewatercycle-lisflood>`_
 * `MARRMoT <https://github.com/eWaterCycle/ewatercycle-marrmot>`_
