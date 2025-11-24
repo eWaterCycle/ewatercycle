@@ -9,7 +9,6 @@ from ewatercycle.analysis import hydrograph
     baseline_images=["hydrograph"],
     extensions=["png"],
     savefig_kwarg={"bbox_inches": "tight"},
-    generate_dir="tests/baseline",
 )
 
 def test_hydrograph():
