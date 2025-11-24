@@ -5,11 +5,11 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import xarray as xr
 from hydrostats import metrics
 from matplotlib.axes import Axes
 from matplotlib.dates import DateFormatter
 from matplotlib.figure import Figure
-import xarray as xr
 
 
 def _downsample(df, nrows=100, agg="mean"):
@@ -33,7 +33,8 @@ def _to_pandas(df):
         return df.to_frame()
     if isinstance(df, xr.Dataset):
         return df.to_dataframe()
-    
+    msg = f"Unsupported data type: {type(df)}"
+    raise TypeError(msg)
 
 
 def hydrograph(
