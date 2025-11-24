@@ -9,6 +9,7 @@ from hydrostats import metrics
 from matplotlib.axes import Axes
 from matplotlib.dates import DateFormatter
 from matplotlib.figure import Figure
+import xarray as xr
 
 
 def _downsample(df, nrows=100, agg="mean"):
@@ -23,6 +24,16 @@ def _downsample(df, nrows=100, agg="mean"):
     new_period = (df.index[-1] - df.index[0]) / nrows
 
     return new_df, new_period
+
+def _to_pandas(df):
+    """Convert input to pandas DataFrame if it is not already."""
+    if isinstance(df, pd.DataFrame):
+        return df
+    if isinstance(df, pd.Series):
+        return df.to_frame()
+    if isinstance(df, xr.Dataset):
+        return df.to_dataframe()
+    
 
 
 def hydrograph(
