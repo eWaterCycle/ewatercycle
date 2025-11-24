@@ -27,12 +27,29 @@ def _downsample(df, nrows=100, agg="mean"):
 
 def _to_pandas(df):
     """Convert input to pandas DataFrame if it is not already."""
+    # already a DataFrame
     if isinstance(df, pd.DataFrame):
         return df
+
+    #Single series
     if isinstance(df, pd.Series):
-        return df.to_frame()
+        msg = "A panda series contains only a single timeseries, please provide a pandas DataFrame or xr.Dataset."  # noqa: E501
+        raise TypeError(msg)
+
+    # xarray Dataset
     if isinstance(df, xr.Dataset):
-        return df.to_dataframe()
+        return df.to_pandas()
+
+    #xarray DataArray
+    if isinstance(df, xr.DataArray):
+        if df.ndim == 1:
+            msg = "A DataArray with a single timeseries is not supported, please provide a DataFrame."  # noqa: E501
+            raise TypeError(msg)
+        else:  # noqa: RET506
+            msg = "DataArray with more than one dimension is not supported, please provide a DataFrame."  # noqa: E501
+            raise TypeError(msg)
+
+    # unsupported type
     msg = f"Unsupported data type: {type(df)}"
     raise TypeError(msg)
 
@@ -79,6 +96,9 @@ def hydrograph(
     Returns:
         First tuple member is a matplotlib figure, the second is a tuple of axes.
     """
+    discharge = _to_pandas(discharge)
+    if precipitation is not None:
+        precipitation = _to_pandas(precipitation)
     discharge_cols = discharge.columns.drop(reference)
     y_obs = discharge[reference]
     y_sim = discharge[discharge_cols]
