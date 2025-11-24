@@ -55,10 +55,10 @@ def _to_pandas(df):
 
 
 def hydrograph(
-    discharge: pd.DataFrame,
+    discharge: pd.DataFrame | pd.Series | xr.DataArray | xr.Dataset,
     *,
     reference: str,
-    precipitation: pd.DataFrame | None = None,
+    precipitation: pd.DataFrame | pd.Series | xr.DataArray | xr.Dataset | None = None,
     dpi: int | None = None,
     title: str = "Hydrograph",
     discharge_units: str = "m$^3$ s$^{-1}$",
