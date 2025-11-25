@@ -7,5 +7,5 @@ __all__ = ["hydrograph"]
 # - yearly stats
 # - cumulative stats
 # - various hydrological stats, see written down notes
-# - long term stats - climate changg analysis
+# - long term stats - climate change analysis
 # - extreme value analysis
