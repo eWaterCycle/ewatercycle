@@ -114,8 +114,8 @@ def hydrograph(
     ax.set_title(title)
     ax.set_ylabel(f"Discharge ({discharge_units})")
 
-    y_sim.plot(ax=ax, **kwargs)
-    y_obs.plot(ax=ax, **kwargs)
+    y_sim.plot(ax=ax, **kwargs, alpha=0.7, linestyle="--")
+    y_obs.plot(ax=ax, **kwargs, linewidth = 2)
 
     handles, labels = ax.get_legend_handles_labels()
 
@@ -190,4 +190,5 @@ def hydrograph(
 
     return fig, (ax, ax_tbl)
 
+#TODO plot only selected year/years
 
