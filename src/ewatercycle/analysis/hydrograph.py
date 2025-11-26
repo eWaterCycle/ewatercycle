@@ -43,10 +43,10 @@ def _to_pandas(df):
     #xarray DataArray
     if isinstance(df, xr.DataArray):
         if df.ndim == 1:
-            msg = "A DataArray with a single timeseries is not supported, please provide a DataFrame."  # noqa: E501
+            msg = "A DataArray with a single timeseries is not supported, please provide a DataFrame or xr.Dataset."  # noqa: E501
             raise TypeError(msg)
         else:  # noqa: RET506
-            msg = "DataArray with more than one dimension is not supported, please provide a DataFrame."  # noqa: E501
+            msg = "DataArray with more than one dimension is not supported, please provide a DataFrame or xr.Dataset."  # noqa: E501
             raise TypeError(msg)
 
     # unsupported type
@@ -114,8 +114,21 @@ def hydrograph(
     ax.set_title(title)
     ax.set_ylabel(f"Discharge ({discharge_units})")
 
-    y_sim.plot(ax=ax, **kwargs, alpha=0.7, linestyle="--")
-    y_obs.plot(ax=ax, **kwargs, linewidth = 2)
+    ax.grid(True)
+
+    # plot reference and compared timeseries, with different styles if
+    # multiple simulations are present
+    if hasattr(y_sim, "shape") and y_sim.shape[1] > 1:
+        y_obs.plot(ax=ax, **kwargs, linewidth=2.5, zorder=10)
+        y_sim.plot(ax=ax, **kwargs, alpha=0.7, linewidth=1.25)
+
+    else:
+        y_obs.plot(ax=ax, **kwargs, zorder=10)
+        y_sim.plot(ax=ax, **kwargs) #, linewidth=2.5, zorder=10)
+
+    #add grid
+    ax.grid(True)
+
 
     handles, labels = ax.get_legend_handles_labels()
 
