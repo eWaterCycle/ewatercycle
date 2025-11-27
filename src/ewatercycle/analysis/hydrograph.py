@@ -191,10 +191,10 @@ def hydrograph(
 
     metrs = pd.DataFrame(
         {
-            "nse": calc_metric(metrics.nse),
-            "kge_2009": calc_metric(metrics.kge_2009),
-            "sa": calc_metric(metrics.sa),
-            "me": calc_metric(metrics.me),
+            metrics.nse.abbr: calc_metric(metrics.nse),
+            metrics.kge_2009.abbr: calc_metric(metrics.kge_2009),
+            metrics.sa.abbr: calc_metric(metrics.sa),
+            metrics.me.abbr: calc_metric(metrics.me)
         }
     )
 
