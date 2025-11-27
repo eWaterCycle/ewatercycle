@@ -60,7 +60,7 @@ def hydrograph(
     reference: str,
     precipitation: pd.DataFrame | pd.Series | xr.DataArray | xr.Dataset | None = None,
     dpi: int | None = None,
-    title: str = "Hydrograph",
+    title: str | None = None,
     discharge_units: str = "m$^3$ s$^{-1}$",
     precipitation_units: str = "mm day$^{-1}$",
     figsize: tuple[float, float] = (10, 10),
@@ -71,14 +71,14 @@ def hydrograph(
     """Plot a hydrograph.
 
     This utility function makes it convenient to create a hydrograph from
-    a set of discharge data from a `pandas.DataFrame`. A column must be marked
-    as the reference, so that the agreement metrics can be calculated.
+    a set of discharge data from a `pandas.DataFrame` or 'xarray.Dataset'. A column must
+     be marked as the reference, so that the agreement metrics can be calculated.
 
     Optionally, the corresponding precipitation data can be plotted for
     comparison.
 
     Args:
-        discharge: Dataframe containing time series of discharge data to be plotted.
+        discharge: Data containing time series of discharge data to be plotted.
         reference: Name of the reference data, must correspond to a column
             in the discharge dataframe. Metrics are calculated between
             the reference column and each of the other columns.
@@ -110,6 +110,10 @@ def hydrograph(
         figsize=figsize,
         gridspec_kw={"height_ratios": [3, 1]},
     )
+
+    # set title
+    if title is None:
+        title = f"Hydrograph with Metrics\nReference: {reference}"
 
     ax.set_title(title)
     ax.set_ylabel(f"Discharge ({discharge_units})")
