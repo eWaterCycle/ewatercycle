@@ -50,7 +50,7 @@ def _to_pandas(df):
             raise TypeError(msg)
 
     # unsupported type
-    msg = f"Unsupported data type: {type(df)}"
+    msg = f"Unsupported data type: {type(df)}, please provide a DataFrame or xr.Dataset"
     raise TypeError(msg)
 
 
@@ -119,12 +119,22 @@ def hydrograph(
     # plot reference and compared timeseries, with different styles if
     # multiple simulations are present
     if hasattr(y_sim, "shape") and y_sim.shape[1] > 1:
-        y_obs.plot(ax=ax, **kwargs, linewidth=2.5, zorder=10)
-        y_sim.plot(ax=ax, **kwargs, alpha=0.7, linewidth=1.25)
+        y_obs.plot(
+            ax=ax,
+            **kwargs,
+            linewidth=2.5,
+            zorder=10
+        )
+        y_sim.plot(
+            ax=ax,
+            **kwargs,
+            alpha=0.7,
+            linewidth=1.25
+        )
 
     else:
         y_obs.plot(ax=ax, **kwargs, zorder=10)
-        y_sim.plot(ax=ax, **kwargs) #, linewidth=2.5, zorder=10)
+        y_sim.plot(ax=ax, **kwargs)
 
     #add grid
     ax.grid(True)
