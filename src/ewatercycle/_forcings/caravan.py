@@ -121,10 +121,9 @@ class CaravanForcing(DefaultForcing):
         return xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
 
     @classmethod
-    def get_dataset_fallback(cls: type["CaravanForcing"],
-                             dataset: str,
-                             basin_id: str,
-                             fallback_dir: str) -> xr.Dataset:
+    def get_dataset_fallback(
+        cls: type["CaravanForcing"], dataset: str, basin_id: str, fallback_dir: str
+    ) -> xr.Dataset:
         """Opens specified dataset from data.4tu.nl OPeNDAP server.
 
         Args:
@@ -139,8 +138,9 @@ class CaravanForcing(DefaultForcing):
             basin_id (str): name of the camel/basin id.
             fallback_dir (str): directory to fallback to when 4TU throws errors.
         """
-        caravan_dataset_path = (f"{fallback_dir}/timeseries/netcdf/"
-                                f"{dataset}/{basin_id}.nc")
+        caravan_dataset_path = (
+            f"{fallback_dir}/timeseries/netcdf/{dataset}/{basin_id}.nc"
+        )
         return xr.open_dataset(caravan_dataset_path)
 
     @classmethod
@@ -312,6 +312,7 @@ def get_shapefiles(directory: Path, basin_id: str) -> Path:
 
     return shape_path
 
+
 def get_shapefiles_fallback(directory: Path, basin_id: str, fallback_dir: str) -> Path:
     """Retrieve shapefiles from a fallback stored caravan dataset ."""
     shape_path = directory / f"{basin_id}.shp"
@@ -321,6 +322,7 @@ def get_shapefiles_fallback(directory: Path, basin_id: str, fallback_dir: str) -
         extract_basin_shapefile(basin_id, combined_shapefile_path, shape_path)
 
     return shape_path
+
 
 def extract_basin_shapefile(
     basin_id: str,
@@ -373,6 +375,7 @@ def crop_ds(ds: xr.Dataset, start_time: str, end_time: str) -> xr.Dataset:
         time=(ds["time"].to_numpy() >= start) & (ds["time"].to_numpy() <= end)
     )
 
+
 def crop_ds_fallback(ds: xr.Dataset, start_time: str, end_time: str) -> xr.Dataset:
     """Crops dataset based on time, supporting both 'time' and 'date' coordinates."""
     start = pd.Timestamp(get_time(start_time)).tz_convert(None)
@@ -385,6 +388,7 @@ def crop_ds_fallback(ds: xr.Dataset, start_time: str, end_time: str) -> xr.Datas
     if "date" in ds.coords:
         t = pd.to_datetime(ds["date"].to_numpy())
         return ds.isel(date=(t >= start) & (t <= end))
-    key_error_msg = (f"Dataset has no 'time' or 'date' coordinate. "
-                     f"Found coords: {list(ds.coords)}")
+    key_error_msg = (
+        f"Dataset has no 'time' or 'date' coordinate. Found coords: {list(ds.coords)}"
+    )
     raise KeyError(key_error_msg)
