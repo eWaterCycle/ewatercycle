@@ -121,7 +121,10 @@ class CaravanForcing(DefaultForcing):
         return xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
 
     @classmethod
-    def get_dataset_fallback(cls: type["CaravanForcing"], dataset: str, basin_id: str, fallback_dir: str) -> xr.Dataset:
+    def get_dataset_fallback(cls: type["CaravanForcing"],
+                             dataset: str,
+                             basin_id: str,
+                             fallback_dir: str) -> xr.Dataset:
         """Opens specified dataset from data.4tu.nl OPeNDAP server.
 
         Args:
@@ -133,8 +136,12 @@ class CaravanForcing(DefaultForcing):
                 'camelsgb',
                 'hysets',
                 'lamah'
+            basin_id (str): name of the camel/basin id.
+            fallback_dir (str): directory to fallback to when 4TU throws errors.
         """
-        return xr.open_dataset(f"{fallback_dir}/timeseries/netcdf/{dataset}/{basin_id}.nc")
+        caravan_dataset_path = (f"{fallback_dir}/timeseries/netcdf/"
+                                f"{dataset}/{basin_id}.nc")
+        return xr.open_dataset(caravan_dataset_path)
 
     @classmethod
     def get_basin_id(cls: type["CaravanForcing"], dataset: str) -> list[str]:
@@ -160,6 +167,7 @@ class CaravanForcing(DefaultForcing):
         """
         return [val.decode() for val in cls.get_dataset(dataset).basin_id.to_numpy()]
 
+    # ruff: noqa: C901
     @classmethod
     def generate(  # type: ignore[override]
         cls: type["CaravanForcing"],
@@ -169,7 +177,7 @@ class CaravanForcing(DefaultForcing):
         variables: tuple[str, ...] = (),
         shape: str | Path | None = None,
         fall_back_data: bool = False,
-        FALLBACK_DATA_PATH: str = "/data/shared/climate-data/caravan_data",
+        fallback_data_path: str = "/data/shared/climate-data/caravan_data",
         **kwargs,
     ) -> "CaravanForcing":
         """Retrieve caravan for a model.
@@ -184,6 +192,11 @@ class CaravanForcing(DefaultForcing):
                 if not specified will default to all.
             shape: (Optional) Path to a shape file.
                 If none is specified, will be downloaded automatically.
+            fall_back_data: (Optional) Boolean to select fallback forcing.
+                Defaults to False. If 4TU is down set this to True.
+            fallback_data_path: Path to fallback forcing.
+                Defaults to "/data/shared/climate-data/caravan_data".
+                This works for SRC machines.
             kwargs: Additional keyword arguments.
                 basin_id: The ID of the desired basin. Data sets can be explored using
                 `CaravanForcing.get_dataset(dataset_name)` or
@@ -207,7 +220,7 @@ class CaravanForcing(DefaultForcing):
             ds_basin = ds.sel(basin_id=basin_id.encode())
             ds_basin_time = crop_ds(ds_basin, start_time, end_time)
         else:
-            ds = cls.get_dataset_fallback(dataset, basin_id, FALLBACK_DATA_PATH)
+            ds = cls.get_dataset_fallback(dataset, basin_id, fallback_data_path)
             ds_basin = ds.sel(basin_id=basin_id.encode())
             ds_basin_time = crop_ds_fallback(ds_basin, start_time, end_time)
 
@@ -369,8 +382,9 @@ def crop_ds_fallback(ds: xr.Dataset, start_time: str, end_time: str) -> xr.Datas
     if "time" in ds.coords:
         t = ds["time"].to_numpy()
         return ds.isel(time=(t >= start) & (t <= end))
-    elif "date" in ds.coords:
+    if "date" in ds.coords:
         t = pd.to_datetime(ds["date"].to_numpy())
         return ds.isel(date=(t >= start) & (t <= end))
-    else:
-        raise KeyError(f"Dataset has no 'time' or 'date' coordinate. Found coords: {list(ds.coords)}")
+    key_error_msg = (f"Dataset has no 'time' or 'date' coordinate. "
+                     f"Found coords: {list(ds.coords)}")
+    raise KeyError(key_error_msg)
