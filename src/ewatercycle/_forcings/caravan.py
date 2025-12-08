@@ -121,6 +121,22 @@ class CaravanForcing(DefaultForcing):
         return xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
 
     @classmethod
+    def get_dataset_fallback(cls: type["CaravanForcing"], dataset: str, basin_id: str, fallback_dir: str) -> xr.Dataset:
+        """Opens specified dataset from data.4tu.nl OPeNDAP server.
+
+        Args:
+            dataset (str): name of dataset, choose from:
+                'camels',
+                'camelsaus',
+                'camelsbr',
+                'camelscl',
+                'camelsgb',
+                'hysets',
+                'lamah'
+        """
+        return xr.open_dataset(f"{fallback_dir}/timeseries/netcdf/{dataset}/{basin_id}.nc")
+
+    @classmethod
     def get_basin_id(cls: type["CaravanForcing"], dataset: str) -> list[str]:
         """Gets a list of all the basin ids in provided dataset.
 
@@ -152,6 +168,8 @@ class CaravanForcing(DefaultForcing):
         directory: str,
         variables: tuple[str, ...] = (),
         shape: str | Path | None = None,
+        fall_back_data: bool = False,
+        FALLBACK_DATA_PATH: str = "/data/shared/climate-data/caravan_data",
         **kwargs,
     ) -> "CaravanForcing":
         """Retrieve caravan for a model.
@@ -184,9 +202,14 @@ class CaravanForcing(DefaultForcing):
         basin_id = str(kwargs["basin_id"])
 
         dataset: str = basin_id.split("_")[0]
-        ds = cls.get_dataset(dataset)
-        ds_basin = ds.sel(basin_id=basin_id.encode())
-        ds_basin_time = crop_ds(ds_basin, start_time, end_time)
+        if not fall_back_data:
+            ds = cls.get_dataset(dataset)
+            ds_basin = ds.sel(basin_id=basin_id.encode())
+            ds_basin_time = crop_ds(ds_basin, start_time, end_time)
+        else:
+            ds = cls.get_dataset_fallback(dataset, basin_id, FALLBACK_DATA_PATH)
+            ds_basin = ds.sel(basin_id=basin_id.encode())
+            ds_basin_time = crop_ds_fallback(ds_basin, start_time, end_time)
 
         if shape is None:
             shape = get_shapefiles(Path(directory), basin_id)
@@ -209,15 +232,23 @@ class CaravanForcing(DefaultForcing):
 
         # convert units to Kelvin for compatibility with CMOR MIP table units
         for temp in ["tas", "tasmin", "tasmax"]:
+            if temp not in ds_basin_time:
+                continue
+
             ds_basin_time[temp].attrs.update({"height": "2m"})
-            if (ds_basin_time[temp].attrs["unit"]) == "°C":
+
+            unit = ds_basin_time[temp].attrs.get("unit", None)
+            if unit == "°C":
                 ds_basin_time[temp].values = ds_basin_time[temp].to_numpy() + 273.15
                 ds_basin_time[temp].attrs["unit"] = "K"
 
         for var in ["evspsblpot", "pr"]:
-            if (ds_basin_time[var].attrs["unit"]) == "mm":
-                # mm/day --> kg m-2 s-1
-                ds_basin_time[var].values = ds_basin_time[var].to_numpy() / (86400)
+            if var not in ds_basin_time:
+                continue
+
+            unit = ds_basin_time[var].attrs.get("unit", None)
+            if unit == "mm":
+                ds_basin_time[var].values = ds_basin_time[var].to_numpy() / 86400
                 ds_basin_time[var].attrs["unit"] = "kg m-2 s-1"
 
         start_time_name = start_time[:10]
@@ -268,6 +299,15 @@ def get_shapefiles(directory: Path, basin_id: str) -> Path:
 
     return shape_path
 
+def get_shapefiles_fallback(directory: Path, basin_id: str, fallback_dir: str) -> Path:
+    """Retrieve shapefiles from a fallback stored caravan dataset ."""
+    shape_path = directory / f"{basin_id}.shp"
+    combined_shapefile_path = Path(f"{fallback_dir}/shapefiles/combined.shp")
+
+    if not shape_path.is_file():
+        extract_basin_shapefile(basin_id, combined_shapefile_path, shape_path)
+
+    return shape_path
 
 def extract_basin_shapefile(
     basin_id: str,
@@ -319,3 +359,18 @@ def crop_ds(ds: xr.Dataset, start_time: str, end_time: str) -> xr.Dataset:
     return ds.isel(
         time=(ds["time"].to_numpy() >= start) & (ds["time"].to_numpy() <= end)
     )
+
+def crop_ds_fallback(ds: xr.Dataset, start_time: str, end_time: str) -> xr.Dataset:
+    """Crops dataset based on time, supporting both 'time' and 'date' coordinates."""
+    start = pd.Timestamp(get_time(start_time)).tz_convert(None)
+    end = pd.Timestamp(get_time(end_time)).tz_convert(None)
+
+    # Determine which time dimension exists
+    if "time" in ds.coords:
+        t = ds["time"].to_numpy()
+        return ds.isel(time=(t >= start) & (t <= end))
+    elif "date" in ds.coords:
+        t = pd.to_datetime(ds["date"].to_numpy())
+        return ds.isel(date=(t >= start) & (t <= end))
+    else:
+        raise KeyError(f"Dataset has no 'time' or 'date' coordinate. Found coords: {list(ds.coords)}")
