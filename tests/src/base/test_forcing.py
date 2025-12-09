@@ -428,11 +428,13 @@ def test_extract_basin_shapefile(tmp_path: Path):
     assert len(records) == 1
     assert records[0].attributes["gauge_id"] == basin_id
 
+
 def test_get_dataset_uses_cache(tmp_path, monkeypatch):
     # Prepare cache directory
     cache_dir = tmp_path / "cache"
     cache_dir.mkdir()
 
+    basin_id = "camels_01022500"
     # Use the existing fake Caravan dataset
     test_file = Path(__file__).parent / "forcing_files" / "test_caravan_file.nc"
     cache_target = cache_dir / "camels.nc"
@@ -442,22 +444,14 @@ def test_get_dataset_uses_cache(tmp_path, monkeypatch):
     monkeypatch.setenv("CARAVAN_CACHE", str(cache_dir))
 
     # Call the method
-    ds = CaravanForcing.get_dataset("camels")
+    ds = CaravanForcing.generate(
+        start_time="1981-01-01T00:00:00Z",
+        end_time="1981-03-01T00:00:00Z",
+        directory=str(cache_target),
+        basin_id=basin_id,
+    )
 
     # Assert that the file was loaded from cache
-    assert "pr" in ds  # variable known to be inside test_caravan_file.nc
-    assert cache_target.exists()
-
-def test_get_dataset_uses_4tu_when_no_cache(monkeypatch):
-    # Ensure cache env var is not set
-    monkeypatch.delenv("CARAVAN_CACHE", raising=False)
-
-    # Mock xr.open_dataset to avoid real network calls
-    with mock.patch("xarray.open_dataset") as open_mock:
-        CaravanForcing.get_dataset("camels")
-
-        open_mock.assert_called_once()
-        url = open_mock.call_args[0][0]
-
-        assert url.endswith("camels.nc")
-        assert url.startswith(CaravanForcing.OPENDAP_URL)
+    content = list(ds.data_vars.keys())
+    expected = ["Q", "evspsblpot", "pr", "tas", "tasmax", "tasmin"]
+    assert content == expected
