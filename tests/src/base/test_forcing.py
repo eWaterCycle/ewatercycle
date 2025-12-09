@@ -453,7 +453,7 @@ def test_get_dataset_uses_cache(tmp_path, monkeypatch):
         end_time="1981-03-01T00:00:00Z",
         directory=str(tmp_camels_dir),
         basin_id=basin_id,
-    )
+    ).to_xarray()
 
     # Assert that the file was loaded from cache
     content = list(ds.data_vars.keys())
