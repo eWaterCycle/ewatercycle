@@ -441,9 +441,15 @@ def test_get_dataset_using_cache(tmp_path, monkeypatch):
     cache_target = cache_dir / "camels.nc"
     cache_target.write_bytes(test_file.read_bytes())
 
+    # Copy shapefiles into the cache so Fiona can find them
+    shapefiles_dir = test_files_dir / "shapefiles"
+    cache_shapefiles_dir = cache_dir / "shapefiles"
+    copytree(shapefiles_dir, cache_shapefiles_dir)
+
     # Point CARAVAN_CACHE to this directory
     monkeypatch.setenv("CARAVAN_CACHE", str(cache_dir))
 
+    # Copy other forcing files to tmp_camels_dir
     tmp_camels_dir = tmp_path / "camels"
     copytree(test_files_dir, tmp_camels_dir)
 
