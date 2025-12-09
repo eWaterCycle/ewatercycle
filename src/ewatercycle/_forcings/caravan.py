@@ -107,7 +107,12 @@ class CaravanForcing(DefaultForcing):
 
     @classmethod
     def get_dataset(cls: type["CaravanForcing"], dataset: str) -> xr.Dataset:
-        """Opens specified dataset from data.4tu.nl OPeNDAP server.
+        """Opens specified dataset from data.4tu.nl OPeNDAP server/specified path.
+
+        By default, it will open the dataset from data.4tu.nl OPeNDAP server
+        This can be overridden by having an environmental variable: CARAVAN_CACHE.
+        Pointing to /path/to/camels.nc etc.
+
 
         Args:
             dataset (str): name of dataset, choose from:
