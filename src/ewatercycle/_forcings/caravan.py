@@ -1,3 +1,4 @@
+import os
 import shutil
 import zipfile
 from pathlib import Path
@@ -7,7 +8,6 @@ import pandas as pd
 import urllib3
 import xarray as xr
 from cartopy.io import shapereader
-import os
 
 from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.util import get_time
@@ -124,8 +124,7 @@ class CaravanForcing(DefaultForcing):
         if cache_dir:
             cache_dir = cache_dir.rstrip("/")  # ensure no trailing slash issues
             return xr.open_dataset(f"{cache_dir}/{dataset}.nc")
-        else:
-            return xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
+        return xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
 
     @classmethod
     def get_basin_id(cls: type["CaravanForcing"], dataset: str) -> list[str]:
@@ -274,6 +273,7 @@ def get_shapefiles(directory: Path, basin_id: str) -> Path:
         extract_basin_shapefile(basin_id, combined_shapefile_path, shape_path)
 
     return shape_path
+
 
 def extract_basin_shapefile(
     basin_id: str,
