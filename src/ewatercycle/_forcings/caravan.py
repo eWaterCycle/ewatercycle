@@ -107,11 +107,11 @@ class CaravanForcing(DefaultForcing):
 
     @classmethod
     def get_dataset(cls: type["CaravanForcing"], dataset: str) -> xr.Dataset:
-        """Opens specified dataset from data.4tu.nl OPeNDAP server, or cache if available.
+        """Opens dataset from data.4tu.nl OPeNDAP server, or cache if available.
 
         By default, it will open the dataset from data.4tu.nl OPeNDAP server
         This can be overridden by having an environmental variable: CARAVAN_CACHE.
-        This variable should be set to the path of the directory containing the netCDF files.
+        Set this variable to the directory containing the netCDF files.
 
 
         Args:
