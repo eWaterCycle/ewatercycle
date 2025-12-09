@@ -447,8 +447,6 @@ def test_get_dataset_using_cache(tmp_path, monkeypatch):
     tmp_camels_dir = tmp_path / "camels"
     copytree(test_files_dir, tmp_camels_dir)
 
-    copytree(test_files_dir / "shapefiles", tmp_camels_dir / "shapefiles")
-
     # Call the method
     ds = CaravanForcing.generate(
         start_time="1981-01-01T00:00:00Z",
