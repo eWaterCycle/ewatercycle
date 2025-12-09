@@ -465,28 +465,45 @@ def test_get_dataset_using_cache(tmp_path, monkeypatch):
 def test_get_shapefiles_using_cache(tmp_path: Path, monkeypatch):
     basin_id = "camels_01022500"
 
+    # Prepare temporary dataset directory
     test_files_dir = Path(__file__).parent / "forcing_files"
     tmp_camels_dir = tmp_path / "camels"
     copytree(test_files_dir, tmp_camels_dir)
 
-    # Create fake cache structure
+    # Prepare fake cache structure
     cache_dir = tmp_path / "cache"
     shapefiles_dir = cache_dir / "shapefiles"
     shapefiles_dir.mkdir(parents=True)
     combined_shapefile = shapefiles_dir / "combined.shp"
-    combined_shapefile.write_text("FAKE SHAPE")  # just placeholder
 
-    # Patch environment variable to point to our fake cache
+    # Copy a valid minimal shapefile from test data (instead of writing fake text)
+    valid_shp = test_files_dir / "valid_shapefile.shp"
+    copytree(valid_shp.parent, shapefiles_dir, dirs_exist_ok=True)
+
+    # Patch environment variable
     monkeypatch.setenv("CARAVAN_CACHE", str(cache_dir))
 
     # Patch extract_basin_shapefile to monitor calls
     with mock.patch(
         "ewatercycle._forcings.caravan.extract_basin_shapefile"
     ) as mock_extract:
+        # Call get_shapefiles, should use cache
         shape_path = get_shapefiles(tmp_camels_dir, basin_id)
 
-        # Check that the shapefile path is correct
-        assert shape_path == tmp_camels_dir / f"{basin_id}.shp"
+        # Check returned path
+        expected_path = tmp_camels_dir / f"{basin_id}.shp"
+        assert shape_path == expected_path
 
-        # Since the file doesn't exist yet, extract_basin_shapefile should be called
-        mock_extract.assert_called_once_with(basin_id, combined_shapefile, shape_path)
+        # Should call extract_basin_shapefile with combined shapefile from cache
+        mock_extract.assert_called_once_with(
+            basin_id, combined_shapefile, expected_path
+        )
+
+    # Optionally, simulate that file exists now and check it doesn't call extract again
+    expected_path.touch()
+    with mock.patch(
+        "ewatercycle._forcings.caravan.extract_basin_shapefile"
+    ) as mock_extract2:
+        returned_path = get_shapefiles(tmp_camels_dir, basin_id)
+        assert returned_path == expected_path
+        mock_extract2.assert_not_called()
