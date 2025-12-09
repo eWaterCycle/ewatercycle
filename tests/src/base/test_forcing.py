@@ -11,7 +11,6 @@ from matplotlib import pyplot as plt
 from ewatercycle._forcings.caravan import (
     CaravanForcing,
     extract_basin_shapefile,
-    get_shapefiles,
 )
 from ewatercycle._forcings.makkink import (
     DistributedMakkinkForcing,
