@@ -107,11 +107,11 @@ class CaravanForcing(DefaultForcing):
 
     @classmethod
     def get_dataset(cls: type["CaravanForcing"], dataset: str) -> xr.Dataset:
-        """Opens specified dataset from data.4tu.nl OPeNDAP server/specified path.
+        """Opens specified dataset from data.4tu.nl OPeNDAP server, or cache if available.
 
         By default, it will open the dataset from data.4tu.nl OPeNDAP server
         This can be overridden by having an environmental variable: CARAVAN_CACHE.
-        Pointing to /path/to/camels.nc etc.
+        This variable should be set to the path of the directory containing the netCDF files.
 
 
         Args:
@@ -257,12 +257,12 @@ class CaravanForcing(DefaultForcing):
 
 
 def get_shapefiles(directory: Path, basin_id: str) -> Path:
-    """Retrieve shapefiles from data 4TU.nl/specified path."""
+    """Retrieve shapefiles from data 4TU.nl or cache."""
     cache_dir = os.environ.get("CARAVAN_CACHE")
     # Check if we want to load from 4TU or dCache
     if cache_dir:
         shape_path = directory / f"{basin_id}.shp"
-        combined_shapefile_path = Path(f"{cache_dir}/shapefiles/combined.shp")
+        combined_shapefile_path = Path(cache_dir) / "shapefiles" / "combined.shp"
 
         if not shape_path.is_file():
             extract_basin_shapefile(basin_id, combined_shapefile_path, shape_path)
