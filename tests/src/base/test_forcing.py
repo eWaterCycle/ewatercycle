@@ -470,19 +470,16 @@ def test_get_shapefiles_using_cache(tmp_path: Path, monkeypatch):
     tmp_camels_dir = tmp_path / "camels"
     copytree(test_files_dir, tmp_camels_dir)
 
-    # Prepare fake cache structure with a valid shapefile
+    # Prepare fake cache structure with the real shapefiles
     cache_dir = tmp_path / "cache"
     shapefiles_dir = cache_dir / "shapefiles"
     shapefiles_dir.mkdir(parents=True)
 
-    # Copy a real shapefile from test data
-    valid_shp_dir = test_files_dir
-    copytree(valid_shp_dir, shapefiles_dir, dirs_exist_ok=True)
-    combined_shapefile = shapefiles_dir / "combined.shp"
+    # Copy all shapefile components into the cache directory
+    copytree(test_files_dir, shapefiles_dir, dirs_exist_ok=True)
 
-    # Copy a valid minimal shapefile from test data (instead of writing fake text)
-    valid_shp = test_files_dir / "valid_shapefile.shp"
-    copytree(valid_shp.parent, shapefiles_dir, dirs_exist_ok=True)
+    combined_shapefile = shapefiles_dir / "combined.shp"
+    assert combined_shapefile.exists()  # sanity check
 
     # Patch environment variable
     monkeypatch.setenv("CARAVAN_CACHE", str(cache_dir))
@@ -503,7 +500,7 @@ def test_get_shapefiles_using_cache(tmp_path: Path, monkeypatch):
             basin_id, combined_shapefile, expected_path
         )
 
-    # Optionally, simulate that file exists now and check it doesn't call extract again
+    # Simulate that the extracted shapefile now exists
     expected_path.touch()
     with mock.patch(
         "ewatercycle._forcings.caravan.extract_basin_shapefile"

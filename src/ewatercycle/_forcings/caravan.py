@@ -13,7 +13,7 @@ from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.util import get_time
 
 COMMON_URL = "ca13056c-c347-4a27-b320-930c2a4dd207"
-OPENDAP_URL = f"https://opendap.4tu.nl/thredds/dodsC/data2/djht/{COMMON_URL}/1/"
+OPENDAP_URL = f"https://opendap.4tu.nl/thredds/dodsC/data2/djht/{COMMON_URL}/2/"
 SHAPEFILE_URL = (
     f"https://data.4tu.nl/file/{COMMON_URL}/bbe94526-cf1a-4b96-8155-244f20094719"
 )
