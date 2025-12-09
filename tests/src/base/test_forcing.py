@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 from ewatercycle._forcings.caravan import (
     CaravanForcing,
     extract_basin_shapefile,
+    get_shapefiles,
 )
 from ewatercycle._forcings.makkink import (
     DistributedMakkinkForcing,
@@ -429,7 +430,7 @@ def test_extract_basin_shapefile(tmp_path: Path):
     assert records[0].attributes["gauge_id"] == basin_id
 
 
-def test_get_dataset_uses_cache(tmp_path, monkeypatch):
+def test_get_dataset_using_cache(tmp_path, monkeypatch):
     # Prepare cache directory
     cache_dir = tmp_path / "cache"
     cache_dir.mkdir()
@@ -459,3 +460,33 @@ def test_get_dataset_uses_cache(tmp_path, monkeypatch):
     content = list(ds.data_vars.keys())
     expected = ["Q", "evspsblpot", "pr", "tas", "tasmax", "tasmin"]
     assert content == expected
+
+
+def test_get_shapefiles_using_cache(tmp_path: Path, monkeypatch):
+    basin_id = "camels_01022500"
+
+    test_files_dir = Path(__file__).parent / "forcing_files"
+    tmp_camels_dir = tmp_path / "camels"
+    copytree(test_files_dir, tmp_camels_dir)
+
+    # Create fake cache structure
+    cache_dir = tmp_path / "cache"
+    shapefiles_dir = cache_dir / "shapefiles"
+    shapefiles_dir.mkdir(parents=True)
+    combined_shapefile = shapefiles_dir / "combined.shp"
+    combined_shapefile.write_text("FAKE SHAPE")  # just placeholder
+
+    # Patch environment variable to point to our fake cache
+    monkeypatch.setenv("CARAVAN_CACHE", str(cache_dir))
+
+    # Patch extract_basin_shapefile to monitor calls
+    with mock.patch(
+        "ewatercycle._forcings.caravan.extract_basin_shapefile"
+    ) as mock_extract:
+        shape_path = get_shapefiles(tmp_camels_dir, basin_id)
+
+        # Check that the shapefile path is correct
+        assert shape_path == tmp_camels_dir / f"{basin_id}.shp"
+
+        # Since the file doesn't exist yet, extract_basin_shapefile should be called
+        mock_extract.assert_called_once_with(basin_id, combined_shapefile, shape_path)
