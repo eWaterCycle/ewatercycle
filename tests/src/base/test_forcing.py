@@ -436,18 +436,22 @@ def test_get_dataset_uses_cache(tmp_path, monkeypatch):
 
     basin_id = "camels_01022500"
     # Use the existing fake Caravan dataset
-    test_file = Path(__file__).parent / "forcing_files" / "test_caravan_file.nc"
+    test_files_dir = Path(__file__).parent / "forcing_files"
+    test_file = test_files_dir / "test_caravan_file.nc"
     cache_target = cache_dir / "camels.nc"
     cache_target.write_bytes(test_file.read_bytes())
 
     # Point CARAVAN_CACHE to this directory
     monkeypatch.setenv("CARAVAN_CACHE", str(cache_dir))
 
+    tmp_camels_dir = tmp_path / "camels"
+    copytree(test_files_dir, tmp_camels_dir)
+
     # Call the method
     ds = CaravanForcing.generate(
         start_time="1981-01-01T00:00:00Z",
         end_time="1981-03-01T00:00:00Z",
-        directory=str(cache_target),
+        directory=str(tmp_camels_dir),
         basin_id=basin_id,
     )
 
