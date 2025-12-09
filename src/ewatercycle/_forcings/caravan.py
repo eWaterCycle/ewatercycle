@@ -257,7 +257,18 @@ class CaravanForcing(DefaultForcing):
 
 
 def get_shapefiles(directory: Path, basin_id: str) -> Path:
-    """Retrieve shapefiles from data 4TU.nl ."""
+    """Retrieve shapefiles from data 4TU.nl/specified path."""
+    cache_dir = os.environ.get("CARAVAN_CACHE")
+    # Check if we want to load from 4TU or dCache
+    if cache_dir:
+        shape_path = directory / f"{basin_id}.shp"
+        combined_shapefile_path = Path(f"{cache_dir}/shapefiles/combined.shp")
+
+        if not shape_path.is_file():
+            extract_basin_shapefile(basin_id, combined_shapefile_path, shape_path)
+
+        return shape_path
+
     zip_path = directory / "shapefiles.zip"
     output_path = directory / "shapefiles"
     shape_path = directory / f"{basin_id}.shp"
