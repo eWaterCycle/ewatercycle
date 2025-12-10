@@ -77,7 +77,6 @@ def test_hydrograph_xarray():
     """Test hydrograph with xarray Dataset input."""
     df_q, df_pr = _create_data()
     ds_q = xr.Dataset.from_dataframe(df_q)
-    ds_pr = xr.Dataset.from_dataframe(df_pr)
 
     fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference", metrics_list = ["kge_2009","nse_mod","male"])
 
@@ -91,7 +90,7 @@ def test_hydrograph_xarray_single_year():
     """Test hydrograph with xarray Dataset input and selecting a single year."""
     df_q, df_pr = _create_data()
     ds_q = xr.Dataset.from_dataframe(df_q)
-    ds_pr = xr.Dataset.from_dataframe(df_pr)
+
 
     fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference", selected_year=2020)
 
@@ -99,6 +98,21 @@ def test_hydrograph_xarray_single_year():
 
     #
     assert len(ax.lines) == 4  # 3 discharge + 1 reference
+    assert ax_tbl.tables
+
+def test_hydrograph_xarray_single_hydrograph():
+    """Test hydrograph with xarray Dataset input and only one discharge to commpare."""
+    df_q, df_pr = _create_data()
+    ds_q = xr.Dataset.from_dataframe(df_q)
+    ds_q = ds_q.drop_vars(["discharge_b", "discharge_c"])
+
+
+    fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference", selected_year=2020)
+
+    _save_figure(fig, "hydrograph_xarray_single_year.png")
+
+    #
+    assert len(ax.lines) == 2  # 3 discharge + 1 reference
     assert ax_tbl.tables
 
 def test_hydrograph_series_error():
