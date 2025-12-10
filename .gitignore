@@ -35,10 +35,4 @@ __pycache__
 .vscode/settings.json
 
 
-# testing hydrograph
-example_hydrograph.ipynb
-hydrograph_old.py
-hydrograph_original.py
-test_statistics.ipynb
-testoutput.png
-hydrograph_*.png
+
