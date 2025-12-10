@@ -79,7 +79,7 @@ def test_hydrograph_xarray():
     ds_q = xr.Dataset.from_dataframe(df_q)
     ds_pr = xr.Dataset.from_dataframe(df_pr)
 
-    fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference")
+    fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference", metrics_list = ["kge_2009","nse_mod","male"])
 
     _save_figure(fig, "hydrograph_xarray.png")
 
