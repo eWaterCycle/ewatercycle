@@ -14,10 +14,11 @@ from matplotlib.figure import Figure
 
 # metrics from https://hydroerr.readthedocs.io/en/stable/list_of_metrics.html callable
 
-metric_map = {func.name: func for func in function_list}       # full names
-metric_map.update({func.abbr: func for func in function_list}) # abbreviations
-metric_map.update({func.__name__: func for func in function_list}) # function names
+metric_map = {func.name: func for func in function_list}  # full names
+metric_map.update({func.abbr: func for func in function_list})  # abbreviations
+metric_map.update({func.__name__: func for func in function_list})  # function names
 metric_map.update({k.lower(): v for k, v in metric_map.items()})  # lowercase
+
 
 def _downsample(df, nrows=100, agg="mean"):
     """Resample dataframe with datetimeindex to a fixed number of rows."""
@@ -31,6 +32,7 @@ def _downsample(df, nrows=100, agg="mean"):
     new_period = (df.index[-1] - df.index[0]) / nrows
 
     return new_df, new_period
+
 
 def _to_pandas(data_in):
     """Convert input to pandas DataFrame if it is not already.
@@ -70,7 +72,8 @@ def _to_pandas(data_in):
     msg = f"Unsupported data type: {type(data_in)}, please provide a DataFrame or xr.Dataset"  # noqa: E501
     raise TypeError(msg)
 
-def _prepare_discharge(discharge, reference: str, selected_year = None):
+
+def _prepare_discharge(discharge, reference: str, selected_year=None):
     """Prepare discharge data for hydrograph."""
     discharge = _to_pandas(discharge)
 
@@ -84,7 +87,8 @@ def _prepare_discharge(discharge, reference: str, selected_year = None):
     y_sim = discharge.drop(columns=[reference])
     return y_obs, y_sim
 
-def _prepare_precipitation(precipitation, nbars=None, selected_year = None):
+
+def _prepare_precipitation(precipitation, nbars=None, selected_year=None):
     if precipitation is None:
         return None, None
     precipitation = _to_pandas(precipitation)
@@ -101,6 +105,7 @@ def _prepare_precipitation(precipitation, nbars=None, selected_year = None):
 
     return precipitation, barwidth
 
+
 def _plot_discharge(ax, y_obs, y_sim, **kwargs):
     if hasattr(y_sim, "shape") and y_sim.shape[1] > 1:
         y_obs.plot(ax=ax, linewidth=2.5, zorder=10, **kwargs)
@@ -110,6 +115,7 @@ def _plot_discharge(ax, y_obs, y_sim, **kwargs):
         y_sim.plot(ax=ax, **kwargs)
     ax.grid(True)
     return ax
+
 
 def _plot_precipitation(ax, precipitation, barwidth, precipitation_units):
     ax_pr = ax.twinx()
@@ -122,13 +128,14 @@ def _plot_precipitation(ax, precipitation, barwidth, precipitation_units):
             pr_timeseries.values,
             width=barwidth,
             alpha=0.4,
-            label=pr_label
+            label=pr_label,
         )
 
     # adjust ylim
-    ax_pr.set_ylim(ax_pr.get_ylim()[0] * (7/2), 0)
-    ax.set_ylim(0, ax.get_ylim()[1] * (7/5))
+    ax_pr.set_ylim(ax_pr.get_ylim()[0] * (7 / 2), 0)
+    ax.set_ylim(0, ax.get_ylim()[1] * (7 / 5))
     return ax_pr
+
 
 def _calculate_metrics(y_obs, y_sim, metrics_list=None):
     if metrics_list is None:
@@ -152,8 +159,9 @@ def _calculate_metrics(y_obs, y_sim, metrics_list=None):
 
     df_metrics = pd.DataFrame(
         {metric.name: calc_metric(metric) for metric in metrics_objs}
-        )
+    )
     return df_metrics, metrics_objs
+
 
 def _create_metrics_table(ax_tbl, df_metrics, metrics_objs):
     col_labels = [f"{metric.name}\n({metric.abbr})" for metric in metrics_objs]
@@ -164,21 +172,22 @@ def _create_metrics_table(ax_tbl, df_metrics, metrics_objs):
         rowLabels=metrs_rounded.index,
         colLabels=col_labels,
         loc="center",
-        fontsize=15
+        fontsize=15,
     )
     ax_tbl.set_axis_off()
     for (i, j), cell in table.get_celld().items():
-        if i == 0:                                  # headers
+        if i == 0:  # headers
             cell.set_fontsize(12)
             cell.set_text_props(weight="bold")
             cell.set_height(0.15)
-        elif j == -1:                               # row labels
+        elif j == -1:  # row labels
             cell.set_fontsize(11)
             cell.set_text_props(weight="bold")
-        else:                                       # table values
+        else:  # table values
             cell.set_fontsize(10)
     table.scale(1, 1.5)
     return table
+
 
 def hydrograph(
     discharge: pd.DataFrame | pd.Series | xr.DataArray | xr.Dataset,
@@ -195,7 +204,7 @@ def hydrograph(
     metrics_list: list[object] | None = None,
     selected_year: int | None = None,
     **kwargs,
-)-> tuple[Figure, tuple[Axes, Axes]]:
+) -> tuple[Figure, tuple[Axes, Axes]]:
     """Plot a hydrograph.
 
     This utility function makes it convenient to create a hydrograph from
@@ -228,16 +237,22 @@ def hydrograph(
         First tuple member is a matplotlib figure, the second is a tuple of axes.
     """
     y_obs, y_sim = _prepare_discharge(discharge, reference, selected_year)
-    precipitation, barwidth = _prepare_precipitation(precipitation, nbars, selected_year)  # noqa: E501
+    precipitation, barwidth = _prepare_precipitation(
+        precipitation, nbars, selected_year
+    )  # noqa: E501
 
-    fig, (ax, ax_tbl) = plt.subplots(nrows=2, ncols=1, dpi=dpi, figsize=figsize,
-                                     gridspec_kw={"height_ratios": [3,1]})
+    fig, (ax, ax_tbl) = plt.subplots(
+        nrows=2,
+        ncols=1,
+        dpi=dpi,
+        figsize=figsize,
+        gridspec_kw={"height_ratios": [3, 1]},
+    )
     fig.subplots_adjust(bottom=0.05, top=0.95, hspace=0.3)
 
     ax.set_title(
-        title or
-        f"$\\mathbf{{Hydrograph\\ with\\ Metrics}}$\nReference: {reference}"
-        )
+        title or f"$\\mathbf{{Hydrograph\\ with\\ Metrics}}$\nReference: {reference}"
+    )
 
     ax.set_ylabel(f"Discharge ({discharge_units})")
 
@@ -249,14 +264,13 @@ def hydrograph(
     else:
         handles, labels = ax.get_legend_handles_labels()
 
-    ax.legend(handles, labels, bbox_to_anchor=(1.10,1), loc="upper left")
+    ax.legend(handles, labels, bbox_to_anchor=(1.10, 1), loc="upper left")
 
     locator = AutoDateLocator(minticks=5, maxticks=12)  # adjust min/max ticks
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(DateFormatter("%Y-%m"))
     ax.tick_params(axis="x", rotation=30)
     ax.set_xlabel(None)  # no xlabel, ticks make it clear
-
 
     df_metrics, metrics_objs = _calculate_metrics(y_obs, y_sim, metrics_list)
     _create_metrics_table(ax_tbl, df_metrics, metrics_objs)
