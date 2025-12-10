@@ -18,13 +18,6 @@ def _create_data():
 
 
 
-    discharge = {
-        "discharge_a": pd.Series(np.linspace(0, 2, ntime), index=dti),
-        "discharge_b": pd.Series(3 * np.random.random(ntime) ** 2, index=dti),
-        "discharge_c": pd.Series(2 * np.random.random(ntime) ** 2, index=dti),
-        "reference": pd.Series(np.random.random(ntime) ** 2, index=dti),
-    }
-
     discharge_wave = {
         "discharge_a": pd.Series(
             1 + np.sin(2 * np.pi * (t-60) / 365),  # sinus wave 0-2 centered at 1
@@ -44,7 +37,6 @@ def _create_data():
         ),
     }
 
-    df_q = pd.DataFrame(discharge)
     df_q_wave = pd.DataFrame(discharge_wave)
 
     precipitation = {
@@ -75,7 +67,7 @@ def test_hydrograph():
 
 def test_hydrograph_xarray():
     """Test hydrograph with xarray Dataset input."""
-    df_q, df_pr = _create_data()
+    df_q = _create_data()[0]
     ds_q = xr.Dataset.from_dataframe(df_q)
 
     fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference", metrics_list = ["kge_2009","nse_mod","male"])
@@ -88,7 +80,7 @@ def test_hydrograph_xarray():
 
 def test_hydrograph_xarray_single_year():
     """Test hydrograph with xarray Dataset input and selecting a single year."""
-    df_q, df_pr = _create_data()
+    df_q = _create_data()[0]
     ds_q = xr.Dataset.from_dataframe(df_q)
 
 
@@ -102,7 +94,7 @@ def test_hydrograph_xarray_single_year():
 
 def test_hydrograph_xarray_single_hydrograph():
     """Test hydrograph with xarray Dataset input and only one discharge to commpare."""
-    df_q, df_pr = _create_data()
+    df_q = _create_data()[0]
     ds_q = xr.Dataset.from_dataframe(df_q)
     ds_q = ds_q.drop_vars(["discharge_b", "discharge_c"])
 

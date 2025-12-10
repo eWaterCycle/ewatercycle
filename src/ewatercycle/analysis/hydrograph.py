@@ -16,7 +16,7 @@ from matplotlib.figure import Figure
 
 metric_map = {func.name: func for func in function_list}       # full names
 metric_map.update({func.abbr: func for func in function_list}) # abbreviations
-metric_map.update({func.__name__: func for func in function_list}) # attribute names
+metric_map.update({func.__name__: func for func in function_list}) # function names
 metric_map.update({k.lower(): v for k, v in metric_map.items()})  # lowercase
 
 def _downsample(df, nrows=100, agg="mean"):
@@ -199,7 +199,7 @@ def hydrograph(
     """Plot a hydrograph.
 
     This utility function makes it convenient to create a hydrograph from
-    a set of discharge data from a `pandas.DataFrame` or 'xarray.Dataset'. A column must
+    a set of discharge data from a `pandas.DataFrame` or `xarray.Dataset`. A column must
      be marked as the reference, so that the agreement metrics can be calculated.
 
     Optionally, the corresponding precipitation data can be plotted for
@@ -221,7 +221,7 @@ def hydrograph(
         nbars: Number of bars to use for downsampling precipitation.
         metrics_list: List of metrics to calculate and display in the table below
             the hydrograph. If not specified, a default set of metrics is used.
-        selected_year: Slice a single year from the data
+        selected_year: Slices a single year from the data
         **kwargs: Options to pass to the matplotlib plotting function
 
     Returns:
