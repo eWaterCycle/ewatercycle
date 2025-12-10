@@ -12,7 +12,7 @@ from matplotlib.axes import Axes
 from matplotlib.dates import AutoDateLocator, DateFormatter
 from matplotlib.figure import Figure
 
-#metrics from https://hydroerr.readthedocs.io/en/stable/list_of_metrics.html callable
+# metrics from https://hydroerr.readthedocs.io/en/stable/list_of_metrics.html callable
 
 metric_map = {func.name: func for func in function_list}       # full names
 metric_map.update({func.abbr: func for func in function_list}) # abbreviations
@@ -48,7 +48,7 @@ def _to_pandas(data_in):
     if isinstance(data_in, pd.DataFrame):
         return data_in
 
-    #Single series
+    # Single series
     if isinstance(data_in, pd.Series):
         msg = "A panda series contains only a single timeseries, please provide a pandas DataFrame or xr.Dataset."  # noqa: E501
         raise TypeError(msg)
@@ -57,7 +57,7 @@ def _to_pandas(data_in):
     if isinstance(data_in, xr.Dataset):
         return data_in.to_pandas()
 
-    #xarray DataArray
+    # xarray DataArray
     if isinstance(data_in, xr.DataArray):
         if data_in.ndim == 1:
             msg = "A DataArray with a single timeseries is not supported, please provide a DataFrame or xr.Dataset."  # noqa: E501
@@ -168,14 +168,14 @@ def _create_metrics_table(ax_tbl, df_metrics, metrics_objs):
     )
     ax_tbl.set_axis_off()
     for (i, j), cell in table.get_celld().items():
-        if i == 0:                                  #headers
+        if i == 0:                                  # headers
             cell.set_fontsize(12)
             cell.set_text_props(weight="bold")
             cell.set_height(0.15)
-        elif j == -1:                               #row labels
+        elif j == -1:                               # row labels
             cell.set_fontsize(11)
             cell.set_text_props(weight="bold")
-        else:                                       #table values
+        else:                                       # table values
             cell.set_fontsize(10)
     table.scale(1, 1.5)
     return table
