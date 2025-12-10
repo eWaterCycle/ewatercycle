@@ -107,9 +107,9 @@ def test_hydrograph_xarray_single_hydrograph():
     ds_q = ds_q.drop_vars(["discharge_b", "discharge_c"])
 
 
-    fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference", selected_year=2020)
+    fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference")
 
-    _save_figure(fig, "hydrograph_xarray_single_year.png")
+    _save_figure(fig, "hydrograph_xarray_single_comparison.png")
 
     #
     assert len(ax.lines) == 2  # 3 discharge + 1 reference
