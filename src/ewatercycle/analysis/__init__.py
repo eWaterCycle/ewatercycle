@@ -1,5 +1,5 @@
 """ewatercycle analysis module."""
-from .hydrograph import hydrograph
+from . import hydrograph
 
 __all__ = ["hydrograph"]
 
