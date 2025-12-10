@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from ewatercycle.analysis import hydrograph
+from ewatercycle.analysis.hydrograph import hydrograph
 
 
 def _create_data():
@@ -14,6 +14,9 @@ def _create_data():
     dti = pd.date_range("2018-01-01", periods=ntime, freq="d")
 
     np.random.seed(20210416)
+    t = np.arange(ntime)
+
+
 
     discharge = {
         "discharge_a": pd.Series(np.linspace(0, 2, ntime), index=dti),
@@ -22,7 +25,27 @@ def _create_data():
         "reference": pd.Series(np.random.random(ntime) ** 2, index=dti),
     }
 
+    discharge_wave = {
+        "discharge_a": pd.Series(
+            1 + np.sin(2 * np.pi * (t-60) / 365),  # sinus wave 0-2 centered at 1
+            index=dti
+        ),
+        "discharge_b": pd.Series(
+            1.1 + np.sin(2 * np.pi * t /365),  # sinus wave offset ~2 months
+            index=dti
+        ),
+        "discharge_c": pd.Series(
+            1 + np.cos(2 * np.pi * t / 365),  # cosine wave
+            index=dti
+        ),
+        "reference": pd.Series(
+            1 + np.sin(2 * np.pi * t / 365) + 0.03 * np.random.randn(ntime),  # sinus + noise
+            index=dti
+        ),
+    }
+
     df_q = pd.DataFrame(discharge)
+    df_q_wave = pd.DataFrame(discharge_wave)
 
     precipitation = {
         "precipitation_a": pd.Series(np.random.random(ntime) / 20, index=dti),
@@ -30,7 +53,7 @@ def _create_data():
     }
 
     df_pr = pd.DataFrame(precipitation)
-    return df_q, df_pr
+    return df_q_wave, df_pr
 
 
 def _save_figure(fig, fname):
@@ -56,9 +79,23 @@ def test_hydrograph_xarray():
     ds_q = xr.Dataset.from_dataframe(df_q)
     ds_pr = xr.Dataset.from_dataframe(df_pr)
 
-    fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference", precipitation=ds_pr, nbars=100)
+    fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference")
 
     _save_figure(fig, "hydrograph_xarray.png")
+
+    #
+    assert len(ax.lines) == 4  # 3 discharge + 1 reference
+    assert ax_tbl.tables
+
+def test_hydrograph_xarray_single_year():
+    """Test hydrograph with xarray Dataset input and selecting a single year."""
+    df_q, df_pr = _create_data()
+    ds_q = xr.Dataset.from_dataframe(df_q)
+    ds_pr = xr.Dataset.from_dataframe(df_pr)
+
+    fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference", selected_year=2020)
+
+    _save_figure(fig, "hydrograph_xarray_single_year.png")
 
     #
     assert len(ax.lines) == 4  # 3 discharge + 1 reference
