@@ -12,6 +12,8 @@ from matplotlib.axes import Axes
 from matplotlib.dates import AutoDateLocator, DateFormatter
 from matplotlib.figure import Figure
 
+#metrics from https://hydroerr.readthedocs.io/en/stable/list_of_metrics.html callable
+
 metric_map = {func.name: func for func in function_list}       # full names
 metric_map.update({func.abbr: func for func in function_list}) # abbreviations
 metric_map.update({func.__name__: func for func in function_list}) # attribute names
@@ -69,18 +71,7 @@ def _to_pandas(data_in):
     raise TypeError(msg)
 
 def _prepare_discharge(discharge, reference: str, selected_year = None):
-    """Prepare discharge data for hydrograph.
-
-    Converts input to pandas, splits reference and simulation columns,
-    and optionally slices to a selected year.
-
-    :param discharge: Input discharge data
-    :type discharge: pd.DataFrame | xr.Dataset
-    :param reference: Name of reference column
-    :type reference: str
-    :param selected_year: Year to slice the data to (optional)
-    :type selected_year: int | None
-    """
+    """Prepare discharge data for hydrograph."""
     discharge = _to_pandas(discharge)
 
     # Slice by selected_year if provided
