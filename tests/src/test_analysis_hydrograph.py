@@ -16,24 +16,24 @@ def _create_data():
     np.random.seed(20210416)
     t = np.arange(ntime)
 
-
-
     discharge_wave = {
         "discharge_a": pd.Series(
-            1 + np.sin(2 * np.pi * (t-60) / 365),  # sinus wave 0-2 centered at 1
-            index=dti
+            1 + np.sin(2 * np.pi * (t - 60) / 365),  # sinus wave 0-2 centered at 1
+            index=dti,
         ),
         "discharge_b": pd.Series(
-            1.1 + np.sin(2 * np.pi * t /365),  # sinus wave offset ~2 months
-            index=dti
+            1.1 + np.sin(2 * np.pi * t / 365),  # sinus wave offset ~2 months
+            index=dti,
         ),
         "discharge_c": pd.Series(
             1 + np.cos(2 * np.pi * t / 365),  # cosine wave
-            index=dti
+            index=dti,
         ),
         "reference": pd.Series(
-            1 + np.sin(2 * np.pi * t / 365) + 0.03 * np.random.randn(ntime),  # sinus + noise
-            index=dti
+            1
+            + np.sin(2 * np.pi * t / 365)
+            + 0.03 * np.random.randn(ntime),  # sinus + noise
+            index=dti,
         ),
     }
 
@@ -54,10 +54,13 @@ def _save_figure(fig, fname):
     fig_path = Path(baseline_dir) / fname
     fig.savefig(fig_path, bbox_inches="tight")
 
+
 def test_hydrograph():
     """Test hydrograph with pandas DataFrame input."""
     df_q, df_pr = _create_data()
-    fig, (ax, ax_tbl) = hydrograph(df_q, reference="reference", precipitation=df_pr, nbars=100)
+    fig, (ax, ax_tbl) = hydrograph(
+        df_q, reference="reference", precipitation=df_pr, nbars=100
+    )
 
     _save_figure(fig, "hydrograph_DataFrame.png")
 
@@ -65,12 +68,15 @@ def test_hydrograph():
     assert len(ax.lines) == 4  # 3 discharge + 1 reference
     assert ax_tbl.tables
 
+
 def test_hydrograph_xarray():
     """Test hydrograph with xarray Dataset input."""
     df_q = _create_data()[0]
     ds_q = xr.Dataset.from_dataframe(df_q)
 
-    fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference", metrics_list = ["kge_2009","nse_mod","male"])
+    fig, (ax, ax_tbl) = hydrograph(
+        ds_q, reference="reference", metrics_list=["kge_2009", "nse_mod", "male"]
+    )
 
     _save_figure(fig, "hydrograph_xarray.png")
 
@@ -78,11 +84,11 @@ def test_hydrograph_xarray():
     assert len(ax.lines) == 4  # 3 discharge + 1 reference
     assert ax_tbl.tables
 
+
 def test_hydrograph_xarray_single_year():
     """Test hydrograph with xarray Dataset input and selecting a single year."""
     df_q = _create_data()[0]
     ds_q = xr.Dataset.from_dataframe(df_q)
-
 
     fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference", selected_year=2020)
 
@@ -92,12 +98,12 @@ def test_hydrograph_xarray_single_year():
     assert len(ax.lines) == 4  # 3 discharge + 1 reference
     assert ax_tbl.tables
 
+
 def test_hydrograph_xarray_single_hydrograph():
     """Test hydrograph with xarray Dataset input and only one discharge to commpare."""
     df_q = _create_data()[0]
     ds_q = xr.Dataset.from_dataframe(df_q)
     ds_q = ds_q.drop_vars(["discharge_b", "discharge_c"])
-
 
     fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference")
 
@@ -107,6 +113,7 @@ def test_hydrograph_xarray_single_hydrograph():
     assert len(ax.lines) == 2  # 3 discharge + 1 reference
     assert ax_tbl.tables
 
+
 def test_hydrograph_series_error():
     """Test hydrograph raises error with pandas Series input."""
     df_q, df_pr = _create_data()
@@ -115,7 +122,10 @@ def test_hydrograph_series_error():
     try:
         hydrograph(ser_q, reference="discharge_a", precipitation=df_pr, nbars=100)
     except TypeError as e:
-        assert str(e) == "A panda series contains only a single timeseries, please provide a pandas DataFrame or xr.Dataset."
+        assert (
+            str(e)
+            == "A panda series contains only a single timeseries, please provide a pandas DataFrame or xr.Dataset."
+        )
     else:
         msg = "TypeError not raised"
         raise AssertionError(msg)
