@@ -239,7 +239,7 @@ def hydrograph(
     y_obs, y_sim = _prepare_discharge(discharge, reference, selected_year)
     precipitation, barwidth = _prepare_precipitation(
         precipitation, nbars, selected_year
-    )  # noqa: E501
+    )
 
     fig, (ax, ax_tbl) = plt.subplots(
         nrows=2,
