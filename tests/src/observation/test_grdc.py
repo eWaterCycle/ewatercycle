@@ -7,7 +7,7 @@ import xarray as xr
 from xarray.testing import assert_allclose
 
 from ewatercycle import CFG
-from ewatercycle.observation.grdc import get_grdc_data
+from ewatercycle.observation.grdc import get_grdc_data, get_grdc_data_monthly
 
 
 @pytest.fixture()
@@ -321,3 +321,198 @@ def test_get_grdc_data_from_nc_missing_and_no_txtfile(tmp_path, sample_nc_file):
             "2000-02-01T00:00Z",
             data_home=str(tmp_path),
         )
+
+
+## - GRDC Monthly tests
+
+def sample_grdc_monthly_file(tmp_path):
+    fn = tmp_path / "30303030_Q_Month.txt"
+    # Sample with fictive data, but with same structure as real file
+    body = """# Title:                 GRDC STATION DATA FILE
+#                        --------------
+# Format:                DOS-ASCII
+# Field delimiter:       ;
+# missing values are indicated by -999.000
+#
+# file generation date:  2000-02-02
+#
+# GRDC-No.:              30303030
+# River:                 SOME RIVER
+# Station:               SOME
+# Country:               NA
+# Latitude (DD):       52.356154
+# Longitude (DD):      4.955153
+# Catchment area (km²):      3030.0
+# Altitude (m ASL):        8.0
+# Next downstream station:      42424243
+# Remarks:
+# Owner of original data: SOME PROJECT
+#************************************************************
+#
+# Data Set Content:      MEAN MONTHLY DISCHARGE (MQ)
+#                        --------------------
+# Unit of measure:                   m³/s
+# Time series:           2000 - 2000
+# No. of years:          1
+# Last update:           2000-02-01
+#
+# Table Header:
+#     YYYY-MM-DD - Date (DD=00)
+#     hh:mm      - Time
+#     Original   - original (provided) data
+#     Calculated - GRDC calculated from daily data
+#     Flag       - percentage of valid values used for calculation from daily data
+#************************************************************
+#
+# Data lines: 3
+# DATA
+YYYY-MM-DD;hh:mm; Original; Calculated; Flag
+2000-01-01;--:--;      3.000;   -999.000;   0
+2000-02-01;--:--;      5.000;   -999.000;   0
+2000-03-01;--:--;      8.000;   -999.000;   0"""
+    with fn.open("w", encoding="cp1252") as f:
+        f.write(body)
+    return fn
+
+def expected_results_monthly():
+    return xr.Dataset.from_dict(
+        {
+            "coords": {
+                "time": {
+                    "dims": ("time",),
+                    "attrs": {"long_name": "time"},
+                    "data": [
+                        datetime(2000, 1, 1),
+                        datetime(2000, 2, 1),
+                        datetime(2000, 3, 1),
+                    ],
+                },
+                "id": {
+                    "dims": (),
+                    "attrs": {"long_name": "grdc number"},
+                    "data": 30303030,
+                },
+            },
+            "dims": {"time": 3},
+            "attrs": {
+                "title": "MEAN MONTHLY DISCHARGE (MQ)",
+                "Conventions": "CF-1.7",
+                "references": "grdc.bafg.de",
+                "institution": "GRDC",
+                "history": (
+                    "Converted from 30303030_Q_Month.txt "
+                    "of 2000-02-02 to netcdf by eWaterCycle Python package"
+                ),
+                "missing_value": "-999.000",
+            },
+            "data_vars": {
+                "Original discharge": {
+                    "dims": ("time",),
+                    "attrs": {
+                        "units": "m3/s",
+                        "long_name": "Mean monthly discharge (Q)",
+                    },
+                    "data": [3.0, 5.0, 8.0],
+                },
+                "Calculated discharge": {
+                    "dims": ("time",),
+                    "attrs": {
+                        "units": "m3/s",
+                        "long_name": "Mean monthly discharge (Q)",
+                    },
+                    "data": [np.nan, np.nan, np.nan],
+                },
+                "Flag": {
+                    "dims": ("time",),
+                    "attrs": {
+                    "units": "%",
+                    "long_name": "percentage of valid daily values used for calculation"
+                    },
+                    "data": [0, 0, 0],
+                },
+                "area": {
+                    "dims": (),
+                    "attrs": {
+                        "units": "km2",
+                        "long_name": "catchment area",
+                    },
+                    "data": 3030.0,
+                },
+                "country": {
+                    "dims": (),
+                    "attrs": {
+                        "long_name": "country name",
+                        "iso2": (
+                            "ISO 3166-1 alpha-2 - two-letter country code"
+                        ),
+                    },
+                    "data": "NA",
+                },
+                "geo_x": {
+                    "dims": (),
+                    "attrs": {
+                        "units": "degree_east",
+                        "long_name": "station longitude (WGS84)",
+                    },
+                    "data": 4.955153,
+                },
+                "geo_y": {
+                    "dims": (),
+                    "attrs": {
+                        "units": "degree_north",
+                        "long_name": "station latitude (WGS84)",
+                    },
+                    "data": 52.356154,
+                },
+                "geo_z": {
+                    "dims": (),
+                    "attrs": {
+                        "units": "m",
+                        "long_name": "station altitude (m above sea level)",
+                    },
+                    "data": 8.0,
+                },
+                "owneroforiginaldata": {
+                    "dims": (),
+                    "attrs": {"long_name": "Owner of original data"},
+                    "data": "SOME PROJECT",
+                },
+                "river_name": {
+                    "dims": (),
+                    "attrs": {"long_name": "river name"},
+                    "data": "SOME RIVER",
+                },
+                "station_name": {
+                    "dims": (),
+                    "attrs": {"long_name": "station name"},
+                    "data": "SOME",
+                },
+                "timezone": {
+                    "dims": (),
+                    "attrs": {
+                        "units": "00:00",
+                        "long_name": (
+                            "utc offset, in relation to the national capital"
+                        ),
+                    },
+                    "data": np.nan,
+                },
+            },
+        }
+    )
+
+
+
+def test_get_grdc_monthly_data_with_datahome(tmp_path):
+
+    sample_grdc_monthly_file(tmp_path)
+
+    result_data_monthly = get_grdc_data_monthly(
+        "30303030",
+        "2000-01-01T00:00Z",
+        "2000-03-01T00:00Z",
+        data_home=str(tmp_path),
+    )
+
+
+    assert_allclose(result_data_monthly, expected_results_monthly())
