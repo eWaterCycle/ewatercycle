@@ -395,6 +395,10 @@ def get_grdc_data_monthly(
     Returns:
         grdc data in a xarray dataset.
             Shaped like a filtered version of the GRDC daily NetCDF file.
+        Data description:
+            Original   - original (provided) data
+            Calculated - GRDC calculated from daily data
+            Flag       - percentage of valid values used for calculation from daily data
 
     Raises:
         ValueError: If no data for the requested station id
