@@ -364,12 +364,44 @@ def get_grdc_data_monthly(
     column2: str = "calculated streamflow",
     column3: str = "flag",
 ) -> xr.Dataset:
-    """Placeholder multiline docstring.
+    """Load monthly GRDC discharge data for a specific station.
 
-    some more text
+    This function is similar to `get_grdc_data` but specifically for **monthly data**.
+    It returns a Dataset with three time series columns:
+      - column1: original streamflow (default: "original streamflow")
+      - column2: calculated streamflow (default: "calculated streamflow")
+      - column3: flag (default: "flag")
+
+    Currently, this function only reads GRDC `.txt` files.
+        NetCDF support (.nc) is not implemented.
+
+    Args:
+        station_id : str
+            GRDC station identifier.
+        start_time : str
+            Start of the period to extract, in ISO format (e.g., "YYYY-MM-DDTHH:MMZ").
+        end_time : str
+            End of the period to extract, in ISO format (e.g., "YYYY-MM-DDTHH:MMZ").
+        data_home : str | None, optional
+            Path to the directory containing the GRDC files. Defaults to None.
+            If None, falls back to `CFG.grdc_location`.
+        column1 : str, optional
+            Name for the first data column (original streamflow).
+        column2 : str, optional
+            Name for the second data column (calculated streamflow).
+        column3 : str, optional
+            Name for the third data column (flag).
+
+    Returns:
+        grdc data in a xarray dataset.
+            Shaped like a filtered version of the GRDC daily NetCDF file.
+
+    Raises:
+        ValueError: If no data for the requested station id
+            and period could not be found.
+    NotImplementedError
+        If a NetCDF (.nc) file is found (support not implemented).
     """
-    # Begeleidende tekst
-    # ##
     if data_home:
         data_path = to_absolute_path(data_home)
     elif CFG.grdc_location:
