@@ -362,7 +362,7 @@ def get_grdc_data_monthly(
     data_home: str | None = None,
     column1: str = "original streamflow",
     column2: str = "calculated streamflow",
-    column3: str = "flag"
+    column3: str = "flag",
 ) -> xr.Dataset:
     """Placeholder multiline docstring.
 
@@ -391,7 +391,6 @@ def get_grdc_data_monthly(
         msg = ".nc support not implemented at this point"
         raise NotImplementedError(msg)
 
-
     # Read the text data
     raw_file = data_path / f"{station_id}_Q_Month.txt"
     if not raw_file.exists():
@@ -408,7 +407,7 @@ def get_grdc_data_monthly(
         end=get_time(end_time).date(),
         column1=column1,
         column2=column2,
-        column3=column3
+        column3=column3,
     )
 
     return xr.Dataset.from_dict(
@@ -439,17 +438,26 @@ def get_grdc_data_monthly(
             "data_vars": {
                 "Original discharge": {
                     "dims": ("time",),
-                    "attrs": {"units": "m3/s", "long_name": "Mean monthly discharge (MQ)"},  # noqa: E501
+                    "attrs": {
+                        "units": "m3/s",
+                        "long_name": "Mean monthly discharge (MQ)",
+                    },
                     "data": df[column1].to_numpy(),
                 },
                 "Calculated discharge": {
                     "dims": ("time",),
-                    "attrs": {"units": "m3/s", "long_name": "Mean monthly discharge (MQ)"},  # noqa: E501
+                    "attrs": {
+                        "units": "m3/s",
+                        "long_name": "Mean monthly discharge (MQ)",
+                    },
                     "data": df[column2].to_numpy(),
                 },
-                  "Flag": {
+                "Flag": {
                     "dims": ("time",),
-                    "attrs": {"units": "%", "long_name": "percentage of valid daily values used for calculation"},  # noqa: E501
+                    "attrs": {
+                        "units": "%",
+                        "long_name": "percentage of valid daily values used for calculation",  # noqa: E501
+                    },
                     "data": df[column3].to_numpy(),
                 },
                 "area": {
@@ -516,6 +524,7 @@ def get_grdc_data_monthly(
         }
     )
 
+
 def _grdc_read_monthly(grdc_station_path, start, end, column1, column2, column3):
     """Private helper function for reading monthly grdc data."""
     with grdc_station_path.open("r", encoding="cp1252", errors="ignore") as file:
@@ -543,9 +552,9 @@ def _grdc_read_monthly(grdc_station_path, start, end, column1, column2, column3)
         {
             column1: grdc_data[" Original"].array,
             column2: grdc_data[" Calculated"].array,
-            column3: grdc_data[" Flag"].array
+            column3: grdc_data[" Flag"].array,
         },
-        index = grdc_data["YYYY-MM-DD"].array,
+        index=grdc_data["YYYY-MM-DD"].array,
     )
     grdc_station_df.index.rename("time", inplace=True)  # noqa: PD002
 
@@ -553,4 +562,3 @@ def _grdc_read_monthly(grdc_station_path, start, end, column1, column2, column3)
     grdc_station_select = grdc_station_df.loc[start:end]
 
     return metadata, grdc_station_select
-

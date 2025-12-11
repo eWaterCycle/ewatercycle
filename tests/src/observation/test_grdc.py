@@ -325,6 +325,7 @@ def test_get_grdc_data_from_nc_missing_and_no_txtfile(tmp_path, sample_nc_file):
 
 ## - GRDC Monthly tests
 
+
 def sample_grdc_monthly_file(tmp_path):
     fn = tmp_path / "30303030_Q_Month.txt"
     # Sample with fictive data, but with same structure as real file
@@ -373,6 +374,7 @@ YYYY-MM-DD;hh:mm; Original; Calculated; Flag
     with fn.open("w", encoding="cp1252") as f:
         f.write(body)
     return fn
+
 
 def expected_results_monthly():
     return xr.Dataset.from_dict(
@@ -425,8 +427,8 @@ def expected_results_monthly():
                 "Flag": {
                     "dims": ("time",),
                     "attrs": {
-                    "units": "%",
-                    "long_name": "percentage of valid daily values used for calculation"
+                        "units": "%",
+                        "long_name": "percentage of valid daily values used for calculation",
                     },
                     "data": [0, 0, 0],
                 },
@@ -442,9 +444,7 @@ def expected_results_monthly():
                     "dims": (),
                     "attrs": {
                         "long_name": "country name",
-                        "iso2": (
-                            "ISO 3166-1 alpha-2 - two-letter country code"
-                        ),
+                        "iso2": ("ISO 3166-1 alpha-2 - two-letter country code"),
                     },
                     "data": "NA",
                 },
@@ -502,9 +502,7 @@ def expected_results_monthly():
     )
 
 
-
 def test_get_grdc_monthly_data_with_datahome(tmp_path):
-
     sample_grdc_monthly_file(tmp_path)
 
     result_data_monthly = get_grdc_data_monthly(
@@ -513,6 +511,5 @@ def test_get_grdc_monthly_data_with_datahome(tmp_path):
         "2000-03-01T00:00Z",
         data_home=str(tmp_path),
     )
-
 
     assert_allclose(result_data_monthly, expected_results_monthly())
