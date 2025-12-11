@@ -517,6 +517,7 @@ def get_grdc_data_monthly(
     )
 
 def _grdc_read_monthly(grdc_station_path, start, end, column1, column2, column3):
+    """Private helper function for reading monthly grdc data."""
     with grdc_station_path.open("r", encoding="cp1252", errors="ignore") as file:
         data = file.read()
 
