@@ -127,7 +127,6 @@ class CaravanForcing(DefaultForcing):
         cache_dir = os.environ.get("CARAVAN_CACHE")
         # Check if we want to load from 4TU or dCache
         if cache_dir:
-            cache_dir = cache_dir.rstrip("/")  # ensure no trailing slash issues
             return xr.open_dataset(Path(cache_dir) / f"{dataset}.nc")
         return xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
 
