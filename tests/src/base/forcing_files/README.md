@@ -4,6 +4,6 @@ The data only includes a year of forcing for one catchment.
 
 For own use, please download from the original source and cite correctly. The Caravan dataset itself is also a combination of data from seperate sources.
 
-The Carvan dataset is originanly obtained from https://zenodo.org/records/7944025 and is explained in a paper by Kratzert, F. :'Caravan - A global community dataset for large-sample hydrology' found here: https://doi-org.tudelft.idm.oclc.org/10.1038/s41597-023-01975-w
+The Caravan dataset is originally obtained from https://zenodo.org/records/7944025 and is explained in a paper by Kratzert, F. :'Caravan - A global community dataset for large-sample hydrology' found here: https://doi-org.tudelft.idm.oclc.org/10.1038/s41597-023-01975-w
 
 Distributed under Creative Commons Attribution 4.0 International.

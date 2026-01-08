@@ -1,3 +1,4 @@
+import os
 import shutil
 import zipfile
 from pathlib import Path
@@ -12,7 +13,7 @@ from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.util import get_time
 
 COMMON_URL = "ca13056c-c347-4a27-b320-930c2a4dd207"
-OPENDAP_URL = f"https://opendap.4tu.nl/thredds/dodsC/data2/djht/{COMMON_URL}/1/"
+OPENDAP_URL = f"https://opendap.4tu.nl/thredds/dodsC/data2/djht/{COMMON_URL}/2/"
 SHAPEFILE_URL = (
     f"https://data.4tu.nl/file/{COMMON_URL}/bbe94526-cf1a-4b96-8155-244f20094719"
 )
@@ -106,7 +107,12 @@ class CaravanForcing(DefaultForcing):
 
     @classmethod
     def get_dataset(cls: type["CaravanForcing"], dataset: str) -> xr.Dataset:
-        """Opens specified dataset from data.4tu.nl OPeNDAP server.
+        """Opens dataset from data.4tu.nl OPeNDAP server, or cache if available.
+
+        By default, it will open the dataset from data.4tu.nl OPeNDAP server
+        This can be overridden by having an environmental variable: CARAVAN_CACHE.
+        Set this variable to the directory containing the netCDF files.
+
 
         Args:
             dataset (str): name of dataset, choose from:
@@ -118,6 +124,10 @@ class CaravanForcing(DefaultForcing):
                 'hysets',
                 'lamah'
         """
+        cache_dir = os.environ.get("CARAVAN_CACHE")
+        # Check if we want to load from 4TU or dCache
+        if cache_dir:
+            return xr.open_dataset(Path(cache_dir) / f"{dataset}.nc")
         return xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
 
     @classmethod
@@ -246,7 +256,18 @@ class CaravanForcing(DefaultForcing):
 
 
 def get_shapefiles(directory: Path, basin_id: str) -> Path:
-    """Retrieve shapefiles from data 4TU.nl ."""
+    """Retrieve shapefiles from data 4TU.nl or cache."""
+    cache_dir = os.environ.get("CARAVAN_CACHE")
+    # Check if we want to load from 4TU or dCache
+    if cache_dir:
+        shape_path = directory / f"{basin_id}.shp"
+        combined_shapefile_path = Path(cache_dir) / "shapefiles" / "combined.shp"
+
+        if not shape_path.is_file():
+            extract_basin_shapefile(basin_id, combined_shapefile_path, shape_path)
+
+        return shape_path
+
     zip_path = directory / "shapefiles.zip"
     output_path = directory / "shapefiles"
     shape_path = directory / f"{basin_id}.shp"

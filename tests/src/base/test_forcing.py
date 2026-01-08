@@ -427,3 +427,41 @@ def test_extract_basin_shapefile(tmp_path: Path):
 
     assert len(records) == 1
     assert records[0].attributes["gauge_id"] == basin_id
+
+
+def test_get_dataset_using_cache(tmp_path, monkeypatch):
+    # Prepare cache directory
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+
+    basin_id = "camels_01022500"
+    # Use the existing fake Caravan dataset
+    test_files_dir = Path(__file__).parent / "forcing_files"
+    test_file = test_files_dir / "test_caravan_file.nc"
+    cache_target = cache_dir / "camels.nc"
+    cache_target.write_bytes(test_file.read_bytes())
+
+    # Copy shapefiles into the cache so Fiona can find them
+    shapefiles_dir = test_files_dir / "shapefiles"
+    cache_shapefiles_dir = cache_dir / "shapefiles"
+    copytree(shapefiles_dir, cache_shapefiles_dir)
+
+    # Point CARAVAN_CACHE to this directory
+    monkeypatch.setenv("CARAVAN_CACHE", str(cache_dir))
+
+    # Copy other forcing files to tmp_camels_dir
+    tmp_camels_dir = tmp_path / "camels"
+    copytree(test_files_dir, tmp_camels_dir)
+
+    # Call the method
+    ds = CaravanForcing.generate(
+        start_time="1981-01-01T00:00:00Z",
+        end_time="1981-03-01T00:00:00Z",
+        directory=str(tmp_camels_dir),
+        basin_id=basin_id,
+    ).to_xarray()
+
+    # Assert that the file was loaded from cache
+    content = list(ds.data_vars.keys())
+    expected = ["Q", "evspsblpot", "pr", "tas", "tasmax", "tasmin"]
+    assert content == expected
