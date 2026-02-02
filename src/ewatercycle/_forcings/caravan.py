@@ -114,8 +114,8 @@ class CaravanForcing(DefaultForcing):
         Set this variable to the directory containing the netCDF files.
         On an eWaterCycle machine this path is: /data/shared/climate-data/caravan.
         On other machines it depends on how you mount the dcache folder.
-        For example you mount /climate-data/caravan to home/caravan_data.
-        cli: export CARAVAN_CACHE=/some/dcache/path/caravan_data
+        For example you mount /climate-data/caravan to /path/to/caravan_data.
+        cli: export CARAVAN_CACHE=/path/to/caravan_data
 
         Args:
             dataset (str): name of dataset, choose from:
