@@ -112,6 +112,10 @@ class CaravanForcing(DefaultForcing):
         By default, it will open the dataset from data.4tu.nl OPeNDAP server
         This can be overridden by having an environmental variable: CARAVAN_CACHE.
         Set this variable to the directory containing the netCDF files.
+        On an eWaterCycle machine this path is: /data/shared/climate-data/caravan_data.
+        On other machines it depends on how you mount the dcache folder.
+        It should end with /caravan_data
+        
 
 
         Args:
