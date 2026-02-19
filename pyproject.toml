@@ -206,6 +206,8 @@ ignore = [
     "PLC0414",
     # Misidentifies xarrary.DataArray as pandas.DataFrame
     "PD003",
+    # Conflicts with typing
+    "PCL0207",
 ]
 
 [tool.ruff.lint.per-file-ignores]
