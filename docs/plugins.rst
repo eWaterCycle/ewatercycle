@@ -14,6 +14,7 @@ Each plugin has its own documentation. Below is a list of all known plugins:
 * `MARRMoT <https://github.com/eWaterCycle/ewatercycle-marrmot>`_
 * `PCRGlobWB <https://github.com/eWaterCycle/ewatercycle-pcrglobwb>`_
 * `Wflow <https://github.com/eWaterCycle/ewatercycle-wflow>`_
+* `WflowJl <https://github.com/eWaterCycle/ewatercycle-wflowjl>`_
 * `LeakyBucket <https://github.com/eWaterCycle/ewatercycle-leakybucket>`_
 * `SWMM <https://github.com/eWaterCycle/ewatercycle-swmm>`_
 
