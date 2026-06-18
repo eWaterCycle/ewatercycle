@@ -15,6 +15,7 @@ Each plugin has its own documentation. Below is a list of all known plugins:
 * `PCRGlobWB <https://github.com/eWaterCycle/ewatercycle-pcrglobwb>`_
 * `Wflow <https://github.com/eWaterCycle/ewatercycle-wflow>`_
 * `LeakyBucket <https://github.com/eWaterCycle/ewatercycle-leakybucket>`_
+* `SWMM <https://github.com/eWaterCycle/ewatercycle-swmm>`_
 
 .. note::
 
