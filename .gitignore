@@ -32,3 +32,4 @@ __pycache__
 
 .ruff-cache
 .venv
+.vscode/settings.json
