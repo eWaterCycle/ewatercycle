@@ -90,7 +90,7 @@ def get_grdc_data(
                 institution:    GRDC
                 history:        Download from GRDC Database, 21/06/2024
                 missing_value:  -999.000
-    """  # noqa: D214,D410,D411
+    """
     if data_home:
         data_path = to_absolute_path(data_home)
     elif CFG.grdc_location:
