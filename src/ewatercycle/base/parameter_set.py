@@ -40,7 +40,7 @@ def download_github_repo(
     """
     zip_url = f"https://github.com/{org}/{repo}/archive/refs/heads/{branch}.zip"
 
-    https_response = urlopen(zip_url)
+    https_response = urlopen(zip_url)  # noqa: S310
     if https_response.status != 200:
         msg = (
             f"HTTP error {https_response.status}\n"
