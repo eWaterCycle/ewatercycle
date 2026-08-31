@@ -354,7 +354,6 @@ def _extract_metadata(lines, key, cast=str, default="NA"):
     return default
 
 
-##------- Monthly GRDC data ----------
 def get_grdc_data_monthly(
     station_id: str,
     start_time: str,

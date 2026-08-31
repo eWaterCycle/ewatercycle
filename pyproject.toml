@@ -53,6 +53,7 @@ dependencies = [
     "xarray",
     "fsspec",
     "cartopy",
+    "HydroErr==2.0.0",
     # Pin pyopenssl (conda installs old version) https://github.com/conda/conda/issues/13619
     "pyopenssl>=24.0.0",
 ]

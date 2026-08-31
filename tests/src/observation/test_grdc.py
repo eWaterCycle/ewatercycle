@@ -323,9 +323,7 @@ def test_get_grdc_data_from_nc_missing_and_no_txtfile(tmp_path, sample_nc_file):
         )
 
 
-## - GRDC Monthly tests
-
-
+@pytest.fixture()
 def sample_grdc_monthly_file(tmp_path):
     fn = tmp_path / "30303030_Q_Month.txt"
     # Sample with fictive data, but with same structure as real file
@@ -376,6 +374,7 @@ YYYY-MM-DD;hh:mm; Original; Calculated; Flag
     return fn
 
 
+@pytest.fixture()
 def expected_results_monthly():
     return xr.Dataset.from_dict(
         {
