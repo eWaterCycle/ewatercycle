@@ -171,9 +171,7 @@ def test_hydrograph_precipitation_selected_year_without_datetimeindex_error():
     df_pr = df_pr.reset_index(drop=True)
 
     with pytest.raises(ValueError, match="Precipitation index must be a DatetimeIndex"):
-        hydrograph(
-            df_q, reference="reference", precipitation=df_pr, selected_year=2020
-        )
+        hydrograph(df_q, reference="reference", precipitation=df_pr, selected_year=2020)
 
 
 def test_hydrograph_precipitation_selected_year():
@@ -200,7 +198,7 @@ def test_hydrograph_nbars_larger_than_data():
     )
 
     # both precipitation series are plotted with all their original values
-    ax_pr = [child for child in fig.axes if child not in (ax, ax_tbl)][0]
+    ax_pr = next(child for child in fig.axes if child not in (ax, ax_tbl))
     assert len(ax_pr.containers) == 2
     assert len(ax_pr.containers[0]) == len(df_pr)
     plt.close(fig)
