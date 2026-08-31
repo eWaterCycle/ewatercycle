@@ -501,9 +501,9 @@ def expected_results_monthly():
     )
 
 
-def test_get_grdc_monthly_data_with_datahome(tmp_path):
-    sample_grdc_monthly_file(tmp_path)
-
+def test_get_grdc_monthly_data_with_datahome(
+    tmp_path, expected_results_monthly: xr.Dataset, sample_grdc_monthly_file
+):
     result_data_monthly = get_grdc_data_monthly(
         "30303030",
         "2000-01-01T00:00Z",
@@ -511,11 +511,12 @@ def test_get_grdc_monthly_data_with_datahome(tmp_path):
         data_home=str(tmp_path),
     )
 
-    assert_allclose(result_data_monthly, expected_results_monthly())
+    assert_allclose(result_data_monthly, expected_results_monthly)
 
 
-def test_get_grdc_monthly_data_with_cfg(tmp_path):
-    sample_grdc_monthly_file(tmp_path)
+def test_get_grdc_monthly_data_with_cfg(
+    tmp_path, expected_results_monthly: xr.Dataset, sample_grdc_monthly_file
+):
     CFG.grdc_location = tmp_path
 
     result_data_monthly = get_grdc_data_monthly(
@@ -524,7 +525,7 @@ def test_get_grdc_monthly_data_with_cfg(tmp_path):
         "2000-03-01T00:00Z",
     )
 
-    assert_allclose(result_data_monthly, expected_results_monthly())
+    assert_allclose(result_data_monthly, expected_results_monthly)
 
 
 def test_get_grdc_monthly_data_without_datahome_and_cfg(monkeypatch):
@@ -563,8 +564,9 @@ def test_get_grdc_monthly_data_without_file(tmp_path):
         )
 
 
-def test_get_grdc_monthly_data_from_nc_not_implemented(tmp_path):
-    sample_grdc_monthly_file(tmp_path)
+def test_get_grdc_monthly_data_from_nc_not_implemented(
+    tmp_path, sample_grdc_monthly_file
+):
     # content is irrelevant, only the presence of the file is checked
     (tmp_path / "GRDC-Monthly.nc").touch()
 
@@ -577,9 +579,9 @@ def test_get_grdc_monthly_data_from_nc_not_implemented(tmp_path):
         )
 
 
-def test_get_grdc_monthly_data_custom_column_names(tmp_path):
-    sample_grdc_monthly_file(tmp_path)
-
+def test_get_grdc_monthly_data_custom_column_names(
+    tmp_path, expected_results_monthly: xr.Dataset, sample_grdc_monthly_file
+):
     result_data_monthly = get_grdc_data_monthly(
         "30303030",
         "2000-01-01T00:00Z",
@@ -592,12 +594,12 @@ def test_get_grdc_monthly_data_custom_column_names(tmp_path):
 
     # column names only rename the intermediate dataframe columns,
     # the resulting dataset variables are unaffected
-    assert_allclose(result_data_monthly, expected_results_monthly())
+    assert_allclose(result_data_monthly, expected_results_monthly)
 
 
-def test_get_grdc_monthly_data_partial_period(tmp_path):
-    sample_grdc_monthly_file(tmp_path)
-
+def test_get_grdc_monthly_data_partial_period(
+    tmp_path, expected_results_monthly: xr.Dataset, sample_grdc_monthly_file
+):
     result_data_monthly = get_grdc_data_monthly(
         "30303030",
         "2000-02-01T00:00Z",
@@ -605,6 +607,6 @@ def test_get_grdc_monthly_data_partial_period(tmp_path):
         data_home=str(tmp_path),
     )
 
-    expected = expected_results_monthly().isel(time=slice(1, None))
+    expected = expected_results_monthly.isel(time=slice(1, None))
 
     assert_allclose(result_data_monthly, expected)
