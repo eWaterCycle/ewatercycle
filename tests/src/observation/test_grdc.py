@@ -513,3 +513,99 @@ def test_get_grdc_monthly_data_with_datahome(tmp_path):
     )
 
     assert_allclose(result_data_monthly, expected_results_monthly())
+
+
+def test_get_grdc_monthly_data_with_cfg(tmp_path):
+    sample_grdc_monthly_file(tmp_path)
+    CFG.grdc_location = tmp_path
+
+    result_data_monthly = get_grdc_data_monthly(
+        "30303030",
+        "2000-01-01T00:00Z",
+        "2000-03-01T00:00Z",
+    )
+
+    assert_allclose(result_data_monthly, expected_results_monthly())
+
+
+def test_get_grdc_monthly_data_without_datahome_and_cfg(monkeypatch):
+    class NoLocationConfig:
+        grdc_location = None
+
+    monkeypatch.setattr("ewatercycle.observation.grdc.CFG", NoLocationConfig())
+
+    with pytest.raises(ValueError, match=r"Provide the grdc path"):
+        get_grdc_data_monthly(
+            "30303030",
+            "2000-01-01T00:00Z",
+            "2000-03-01T00:00Z",
+        )
+
+
+def test_get_grdc_monthly_data_with_missing_datahome(tmp_path):
+    missing_dir = tmp_path / "does_not_exist"
+
+    with pytest.raises(ValueError, match=r"The grdc directory .* does not exist!"):
+        get_grdc_data_monthly(
+            "30303030",
+            "2000-01-01T00:00Z",
+            "2000-03-01T00:00Z",
+            data_home=str(missing_dir),
+        )
+
+
+def test_get_grdc_monthly_data_without_file(tmp_path):
+    with pytest.raises(ValueError, match=r"The grdc file .* does not exist!"):
+        get_grdc_data_monthly(
+            "30303031",
+            "2000-01-01T00:00Z",
+            "2000-03-01T00:00Z",
+            data_home=str(tmp_path),
+        )
+
+
+def test_get_grdc_monthly_data_from_nc_not_implemented(tmp_path):
+    sample_grdc_monthly_file(tmp_path)
+    # content is irrelevant, only the presence of the file is checked
+    (tmp_path / "GRDC-Monthly.nc").touch()
+
+    with pytest.raises(NotImplementedError, match=r".nc support not implemented"):
+        get_grdc_data_monthly(
+            "30303030",
+            "2000-01-01T00:00Z",
+            "2000-03-01T00:00Z",
+            data_home=str(tmp_path),
+        )
+
+
+def test_get_grdc_monthly_data_custom_column_names(tmp_path):
+    sample_grdc_monthly_file(tmp_path)
+
+    result_data_monthly = get_grdc_data_monthly(
+        "30303030",
+        "2000-01-01T00:00Z",
+        "2000-03-01T00:00Z",
+        data_home=str(tmp_path),
+        column1="observation",
+        column2="derived",
+        column3="quality",
+    )
+
+    # column names only rename the intermediate dataframe columns,
+    # the resulting dataset variables are unaffected
+    assert_allclose(result_data_monthly, expected_results_monthly())
+
+
+def test_get_grdc_monthly_data_partial_period(tmp_path):
+    sample_grdc_monthly_file(tmp_path)
+
+    result_data_monthly = get_grdc_data_monthly(
+        "30303030",
+        "2000-02-01T00:00Z",
+        "2000-03-01T00:00Z",
+        data_home=str(tmp_path),
+    )
+
+    expected = expected_results_monthly().isel(time=slice(1, None))
+
+    assert_allclose(result_data_monthly, expected)
