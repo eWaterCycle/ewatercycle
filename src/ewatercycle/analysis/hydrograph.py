@@ -1,6 +1,7 @@
 """Analysis methods for eWaterCycle."""
 
 import os
+from typing import Any, Protocol, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,11 +13,32 @@ from matplotlib.axes import Axes
 from matplotlib.dates import AutoDateLocator, DateFormatter
 from matplotlib.figure import Figure
 
+
+class Metric(Protocol):
+    """A HydroErr metric function.
+
+    HydroErr attaches the full name and the abbreviation of each metric to its
+    function object at import time, so they are invisible to type checkers.
+    """
+
+    __name__: str
+    name: str
+    abbr: str
+
+    def __call__(
+        self, simulated_array: Any, observed_array: Any, **kwargs: Any
+    ) -> float:
+        """Compute the metric for a simulated and an observed timeseries."""
+        ...
+
+
 # metrics from https://hydroerr.readthedocs.io/en/stable/list_of_metrics.html callable
 
-metric_map = {func.name: func for func in function_list}  # full names
-metric_map.update({func.abbr: func for func in function_list})  # abbreviations
-metric_map.update({func.__name__: func for func in function_list})  # function names
+metric_functions = cast("list[Metric]", function_list)
+
+metric_map = {func.name: func for func in metric_functions}  # full names
+metric_map.update({func.abbr: func for func in metric_functions})  # abbreviations
+metric_map.update({func.__name__: func for func in metric_functions})  # function names
 metric_map.update({k.lower(): v for k, v in metric_map.items()})  # lowercase
 
 
