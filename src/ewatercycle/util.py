@@ -339,7 +339,7 @@ def extract_package_name(value: str) -> str:
     E.g. "ewatercycle_HBV.model:HBV" will return
     "ewatercycle_HBV".
     """
-    source = value.split(":")[0]
+    source = value.split(":", maxsplit=1)[0]
     return source.split(".")[0]
 
 

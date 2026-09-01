@@ -17,6 +17,13 @@ DATASETS = {
         type="reanaly",
         version=1,
     ),
+    "ERA5-Land": Dataset(
+        dataset="ERA5-Land",
+        project="OBS6",
+        tier=3,
+        type="reanaly",
+        version=1,
+    ),
 }
 """Dictionary of predefined forcing datasets.
 
@@ -28,7 +35,7 @@ value is an `ESMValTool dataset section
 
     >> from ewatercycle.forcing import DATASETS
     >> list(DATASETS.keys())
-    ['ERA5', 'ERA-Interim']
+    ['ERA5', 'ERA-Interim', 'ERA5-Land']
 
 """
 

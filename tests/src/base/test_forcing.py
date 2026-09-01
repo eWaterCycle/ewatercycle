@@ -369,7 +369,7 @@ def test_retrieve_caravan_forcing(tmp_path: Path, mock_retrieve: mock.MagicMock)
     content = list(ds.data_vars.keys())
     expected = ["Q", "evspsblpot", "pr", "tas", "tasmax", "tasmin"]
     assert content == expected
-    mock_retrieve.assert_called_once_with(basin_id.split("_")[0])
+    mock_retrieve.assert_called_once_with(basin_id.split("_", maxsplit=1)[0])
 
     assert caravan_forcing.to_xarray()["evspsblpot"].attrs["unit"] == "kg m-2 s-1"
     assert caravan_forcing.to_xarray()["pr"].attrs["unit"] == "kg m-2 s-1"
@@ -394,7 +394,7 @@ def test_retrieve_caravan_forcing_empty_vars(
     content = list(ds.data_vars.keys())
     expected = ["Q", "evspsblpot", "pr", "tas", "tasmax", "tasmin"]
     assert content == expected
-    mock_retrieve.assert_called_once_with(basin_id.split("_")[0])
+    mock_retrieve.assert_called_once_with(basin_id.split("_", maxsplit=1)[0])
 
 
 def test_retrieve_caravan_forcing_no_basin_id(

@@ -199,7 +199,7 @@ class CaravanForcing(DefaultForcing):
             raise ValueError(msg)
         basin_id = str(kwargs["basin_id"])
 
-        dataset: str = basin_id.split("_")[0]
+        dataset: str = basin_id.split("_", maxsplit=1)[0]
         ds = cls.get_dataset(dataset)
         ds_basin = ds.sel(basin_id=basin_id.encode())
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)

@@ -290,8 +290,8 @@ class RecipeBuilder:
         units: str | None = None,
         stats: ClimateStatistics | None = None,
         short_name: str | None = None,
-        start_year: int | None | Literal[False] = None,
-        end_year: int | None | Literal[False] = None,
+        start_year: int | Literal[False] | None = None,
+        end_year: int | Literal[False] | None = None,
     ):
         """Add a variable to the recipe.
 
