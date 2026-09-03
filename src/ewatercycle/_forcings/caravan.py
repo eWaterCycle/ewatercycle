@@ -117,6 +117,9 @@ class CaravanForcing(DefaultForcing):
         If you have created a locally available copy of the data: /path/to/caravan_data,
         use the following command in your terminal;
             export CARAVAN_CACHE=/path/to/caravan_data
+        or in a notebook;
+        import os
+        os.environ["CARAVAN_CACHE"] = "/path/to/caravan_data"
         To always have this environment variable set, add this to .bashrc or
         ask your system administrator.
 
@@ -201,7 +204,11 @@ class CaravanForcing(DefaultForcing):
 
         dataset: str = basin_id.split("_", maxsplit=1)[0]
         ds = cls.get_dataset(dataset)
-        ds_basin = ds.sel(basin_id=basin_id.encode())
+        cache_dir = os.environ.get("CARAVAN_CACHE")
+        if cache_dir:
+            ds_basin = ds.sel(basin_id=basin_id)
+        else:
+            ds_basin = ds.sel(basin_id=basin_id.encode())
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
         if shape is None:
