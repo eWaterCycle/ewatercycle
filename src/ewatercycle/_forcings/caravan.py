@@ -35,11 +35,29 @@ PROPERTY_VARS = [
     "high_prec_dur",
     "low_prec_freq",
     "low_prec_dur",
+    "pet_mean_ERA5_LAND",  # was pet_mean, can also do pet_mean_FAO_PM
+    "aridity_ERA5_LAND",  # was aridity, can also do aridity_FAO_PM
+    "moisture_index_ERA5_LAND",  # was moisture_index, can also do moisture_index_FAO_PM
+    "seasonality_ERA5_LAND",  # was seasonality, can also do seasonality_FAO_PM
+    "pet_mean_FAO_PM",  # was pet_mean, can also do pet_mean_FAO_PM
+    "aridity_FAO_PM",  # was aridity, can also do aridity_FAO_PM
+    "moisture_index_FAO_PM",  # was moisture_index, can also do moisture_index_FAO_PM
+    "seasonality_FAO_PM",  # was seasonality, can also do seasonality_FAO_PM
 ]
 
-RENAME_ERA5 = {
+RENAME_ERA5_v1 = {
     "total_precipitation_sum": "pr",
     "potential_evaporation_sum": "evspsblpot",
+    "temperature_2m_mean": "tas",
+    "temperature_2m_min": "tasmin",
+    "temperature_2m_max": "tasmax",
+    "streamflow": "Q",
+}
+
+RENAME_ERA5_v1_6 = {
+    "total_precipitation_sum": "pr",
+    "potential_evaporation_sum_ERA5_LAND": "evspsblpot",
+    "potential_evaporation_sum_FAO_PENMAN_MONTEITH": "evspsblpot_FAO",
     "temperature_2m_mean": "tas",
     "temperature_2m_min": "tasmin",
     "temperature_2m_max": "tasmax",
@@ -117,6 +135,9 @@ class CaravanForcing(DefaultForcing):
         If you have created a locally available copy of the data: /path/to/caravan_data,
         use the following command in your terminal;
             export CARAVAN_CACHE=/path/to/caravan_data
+        or in a notebook;
+        import os
+        os.environ["CARAVAN_CACHE"] = "/path/to/caravan_data"
         To always have this environment variable set, add this to .bashrc or
         ask your system administrator.
 
@@ -201,7 +222,13 @@ class CaravanForcing(DefaultForcing):
 
         dataset: str = basin_id.split("_", maxsplit=1)[0]
         ds = cls.get_dataset(dataset)
-        ds_basin = ds.sel(basin_id=basin_id.encode())
+        cache_dir = os.environ.get("CARAVAN_CACHE")
+        if cache_dir:
+            ds_basin = ds.sel(basin_id=basin_id)
+            RENAME_ERA5 = RENAME_ERA5_v1_6
+        else:
+            ds_basin = ds.sel(basin_id=basin_id.encode())
+            RENAME_ERA5 = RENAME_ERA5_v1
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
         if shape is None:
