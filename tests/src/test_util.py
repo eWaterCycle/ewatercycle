@@ -285,6 +285,7 @@ def test_plot_catchment():
         color="black",
     )
 
+
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
