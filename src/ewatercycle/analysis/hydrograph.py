@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from HydroErr.HydroErr import function_list
-from hydrostats import metrics  # noqa: F401
 from matplotlib.axes import Axes
 from matplotlib.dates import AutoDateLocator, DateFormatter
 from matplotlib.figure import Figure

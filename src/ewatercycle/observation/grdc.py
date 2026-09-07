@@ -560,6 +560,17 @@ def get_grdc_data_monthly(
     )
 
 
+def _parse_monthly_dates(dates: pd.Series) -> pd.DatetimeIndex:
+    """Private helper to parse the date column of a monthly GRDC file.
+
+    Monthly GRDC files use a day of "00", which pandas cannot parse. Their header
+    documents the column as "YYYY-MM-DD - Date (DD=00)". Those dates are mapped
+    onto the first day of the month.
+    """
+    normalized = dates.astype(str).str.strip().str.replace(r"-00$", "-01", regex=True)
+    return pd.DatetimeIndex(pd.to_datetime(normalized, format="%Y-%m-%d"))
+
+
 def _grdc_read_monthly(grdc_station_path, start, end, column1, column2, column3):
     """Private helper function for reading monthly grdc data."""
     with grdc_station_path.open("r", encoding="cp1252", errors="ignore") as file:
@@ -580,7 +591,6 @@ def _grdc_read_monthly(grdc_station_path, start, end, column1, column2, column3)
         encoding="cp1252",
         skiprows=header,
         delimiter=";",
-        parse_dates=["YYYY-MM-DD"],
         na_values="-999",
     )
     grdc_station_df = pd.DataFrame(
@@ -589,7 +599,7 @@ def _grdc_read_monthly(grdc_station_path, start, end, column1, column2, column3)
             column2: grdc_data[" Calculated"].array,
             column3: grdc_data[" Flag"].array,
         },
-        index=grdc_data["YYYY-MM-DD"].array,
+        index=_parse_monthly_dates(grdc_data["YYYY-MM-DD"]),
     )
     grdc_station_df.index.rename("time", inplace=True)  # noqa: PD002
 

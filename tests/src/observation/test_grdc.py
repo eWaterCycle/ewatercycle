@@ -323,8 +323,11 @@ def test_get_grdc_data_from_nc_missing_and_no_txtfile(tmp_path, sample_nc_file):
         )
 
 
-@pytest.fixture()
-def sample_grdc_monthly_file(tmp_path):
+@pytest.fixture(params=["00", "01"], ids=["day_00", "day_01"])
+def sample_grdc_monthly_file(tmp_path, request):
+    # Real monthly files use a day of "00" (see the "DD=00" table header below).
+    # Files with a real day number are accepted too.
+    day = request.param
     fn = tmp_path / "30303030_Q_Month.txt"
     # Sample with fictive data, but with same structure as real file
     body = """# Title:                 GRDC STATION DATA FILE
@@ -366,9 +369,9 @@ def sample_grdc_monthly_file(tmp_path):
 # Data lines: 3
 # DATA
 YYYY-MM-DD;hh:mm; Original; Calculated; Flag
-2000-01-01;--:--;      3.000;   -999.000;   0
-2000-02-01;--:--;      5.000;   -999.000;   0
-2000-03-01;--:--;      8.000;   -999.000;   0"""
+2000-01-{day};--:--;      3.000;   -999.000;   0
+2000-02-{day};--:--;      5.000;   -999.000;   0
+2000-03-{day};--:--;      8.000;   -999.000;   0""".replace("{day}", day)
     with fn.open("w", encoding="cp1252") as f:
         f.write(body)
     return fn

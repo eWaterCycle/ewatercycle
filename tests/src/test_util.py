@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import cartopy.crs
@@ -24,7 +24,7 @@ from ewatercycle.util import (
 
 def test_get_time_with_utc():
     dt = get_time("1989-01-02T00:00:00Z")
-    assert dt == datetime(1989, 1, 2, tzinfo=timezone.utc)
+    assert dt == datetime(1989, 1, 2, tzinfo=UTC)
 
 
 def test_get_time_with_cet():

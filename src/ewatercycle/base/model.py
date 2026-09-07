@@ -6,7 +6,6 @@ import inspect
 import logging
 from collections.abc import ItemsView, Iterable
 from contextlib import suppress
-from datetime import timezone
 from pathlib import Path
 from typing import Annotated, Any, Literal, cast
 
@@ -126,7 +125,7 @@ class eWaterCycleModel(BaseModel, abc.ABC):  # noqa: N801
         if cfg_dir is not None:
             cfg_path = to_absolute_path(cfg_dir)
         else:
-            tz = timezone.utc
+            tz = datetime.UTC
             timestamp = datetime.datetime.now(tz).strftime("%Y%m%d_%H%M%S")
             folder_prefix = self.__class__.__name__.lower()
             cfg_path = to_absolute_path(

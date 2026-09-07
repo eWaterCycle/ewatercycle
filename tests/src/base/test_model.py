@@ -298,6 +298,33 @@ class TestLocalModel:
         assert isinstance(model.bmi.origin, DummyModelWith2DRectilinearGrid)
 
 
+class FakeContainerBmi:
+    """Stand-in for a grpc4bmi/remotebmi container client, which has logs."""
+
+    def __init__(self, logs: str = "a log line"):
+        self._logs = logs
+
+    def logs(self) -> str:
+        return self._logs
+
+    def finalize(self) -> None:
+        pass
+
+
+class FakeBmiWrapper:
+    """Stand-in for the wrappers (such as OptionalDestBmi) around a client.
+
+    Deliberately a plain class: a Mock would answer `hasattr(bmi, "origin")`
+    forever, and the unwrapping in `ContainerizedModel.logs` would never end.
+    """
+
+    def __init__(self, origin):
+        self.origin = origin
+
+    def finalize(self) -> None:
+        pass
+
+
 class TestContainerizedModel:
     def test_version(self):
         model = ContainerizedModel(bmi_image="ewatercycle/ewatercycle_dummy:latest")
@@ -371,6 +398,53 @@ class TestContainerizedModel:
             ],
             timeout=300,
         )
+
+    def test_logs_before_setup(self):
+        model = ContainerizedModel(bmi_image="ewatercycle/ewatercycle_dummy:latest")
+
+        with pytest.raises(ValueError, match="The model has no BMI attached"):
+            model.logs  # noqa: B018
+
+    @patch("ewatercycle.base.model.start_container")
+    def test_logs(self, mocked_start_container, tmp_path: Path):
+        mocked_start_container.return_value = FakeBmiWrapper(
+            FakeContainerBmi(logs="something went wrong")
+        )
+        model = ContainerizedModel(bmi_image="ewatercycle/ewatercycle_dummy:latest")
+        model.setup(cfg_dir=str(tmp_path))
+
+        assert model.logs == "something went wrong"
+
+    @patch("ewatercycle.base.model.start_container")
+    def test_logs_unwraps_nested_origins(self, mocked_start_container, tmp_path: Path):
+        mocked_start_container.return_value = FakeBmiWrapper(
+            FakeBmiWrapper(FakeContainerBmi(logs="deeply nested"))
+        )
+        model = ContainerizedModel(bmi_image="ewatercycle/ewatercycle_dummy:latest")
+        model.setup(cfg_dir=str(tmp_path))
+
+        assert model.logs == "deeply nested"
+
+    @patch("ewatercycle.base.model.start_container")
+    def test_logs_without_logs_method(self, mocked_start_container, tmp_path: Path):
+        mocked_start_container.return_value = FakeBmiWrapper(
+            DummyModelWith2DRectilinearGrid()
+        )
+        model = ContainerizedModel(bmi_image="ewatercycle/ewatercycle_dummy:latest")
+        model.setup(cfg_dir=str(tmp_path))
+
+        with pytest.raises(ValueError, match="No logs detected"):
+            model.logs  # noqa: B018
+
+    @patch("ewatercycle.base.model.start_container")
+    def test_logs_after_finalize(self, mocked_start_container, tmp_path: Path):
+        mocked_start_container.return_value = FakeBmiWrapper(FakeContainerBmi())
+        model = ContainerizedModel(bmi_image="ewatercycle/ewatercycle_dummy:latest")
+        model.setup(cfg_dir=str(tmp_path))
+        model.finalize()
+
+        with pytest.raises(ValueError, match="The model has no BMI attached"):
+            model.logs  # noqa: B018
 
 
 class VersionedMockModel(MockModel):
