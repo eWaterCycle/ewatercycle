@@ -33,7 +33,7 @@ import warnings
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, TypeVar
+from typing import Annotated, TypeAlias, TypeVar
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
@@ -69,7 +69,7 @@ def _to_absolute_path(v: str | Path):
 # Needed so subclass.generate() can return type of subclass instead of base class.
 AnyForcing = TypeVar("AnyForcing", bound="DefaultForcing")
 """TypeVar for forcing classes."""
-type Postprocessor = Callable[[dict[str, str]], tuple[str, ...]]
+Postprocessor: TypeAlias = Callable[[dict[str, str]], tuple[str, ...]]
 
 
 class DefaultForcing(BaseModel):
