@@ -43,7 +43,9 @@ dependencies = [
     "grpc4bmi>=0.4.0",
     "remotebmi",
     "matplotlib>=3.5.0",
-    "numpy",
+    # esmvalcore (installed with conda-lock) does not support numpy 2 yet.
+    # Until it does, numpy must stay on 1.x, which also caps Python at 3.12.
+    "numpy<2",
     "pandas",
     "pydantic>=2",
     "pyoos",
