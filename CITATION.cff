@@ -72,6 +72,11 @@ authors:
     given-names: Mark
     orcid: "https://orcid.org/0009-0005-2727-660X"
     email: "markmelotto@tudelft.nl"
+  - given-names: Andre
+    family-names: Van der Veen
+    affiliation: Delft University of Technology
+    orcid: 'https://orcid.org/0009-0009-5611-8888'
+    email: "A.B.vanderVeen-1@student.tudelft.nl"
 cff-version: "1.2.0"
 keywords:
   - hydrology
