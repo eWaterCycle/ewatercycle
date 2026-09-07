@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import cartopy.crs
+import cartopy.io.shapereader
 import pytest
 import xarray as xr
 from matplotlib import pyplot as plt
@@ -284,6 +285,35 @@ def test_plot_catchment():
         figsize=(5, 5),
         color="black",
     )
+
+
+def test_plot_catchment_on_axis_without_bounds():
+    """Bounds are left untouched when plotting into a user provided axis."""
+    _ = plt.figure()
+    ax = plt.axes(projection=cartopy.crs.PlateCarree())
+    xlim, ylim = ax.get_xlim(), ax.get_ylim()
+
+    assert plot_catchment(rhine_shape(), axis=ax) is None
+
+    assert ax.get_xlim() == xlim
+    assert ax.get_ylim() == ylim
+
+
+def test_plot_catchment_undefined_geometry(monkeypatch):
+    class MockRecord:
+        geometry = None
+
+    class MockReader:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def records(self):
+            yield MockRecord()
+
+    monkeypatch.setattr(cartopy.io.shapereader, "Reader", MockReader)
+
+    with pytest.raises(ValueError, match="geometry is undefined"):
+        plot_catchment(rhine_shape())
 
 
 @pytest.mark.parametrize(

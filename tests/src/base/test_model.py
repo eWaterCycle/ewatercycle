@@ -1,3 +1,4 @@
+import re
 from collections.abc import ItemsView
 from datetime import datetime
 from pathlib import Path
@@ -45,6 +46,16 @@ def test_version(mocked_model: eWaterCycleModel):
 
 def test_parameters(mocked_model: eWaterCycleModel):
     assert mocked_model.parameters == {}.items()
+
+
+def test_setup_without_cfg_dir(mocked_model: eWaterCycleModel, tmp_path: Path):
+    """Without a cfg_dir a timestamped dir is made in CFG.output_dir."""
+    _, cfg_dir = mocked_model.setup()
+
+    cfg_path = Path(cfg_dir)
+    assert cfg_path.is_dir()
+    assert cfg_path.parent == tmp_path
+    assert re.fullmatch(r"mockmodel_\d{8}_\d{6}", cfg_path.name)
 
 
 class TestWithSetup:
