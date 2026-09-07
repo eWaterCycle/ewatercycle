@@ -1,11 +1,14 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
+import cartopy.crs
 import pytest
 import xarray as xr
+from matplotlib import pyplot as plt
 from numpy.testing import assert_array_equal
 
 import ewatercycle
+from ewatercycle.testing.fixtures import rhine_shape
 from ewatercycle.util import (
     extract_package_name,
     find_closest_point,
@@ -13,6 +16,7 @@ from ewatercycle.util import (
     get_package_versions,
     get_time,
     merge_esvmaltool_datasets,
+    plot_catchment,
     reindex,
     to_absolute_path,
 )
@@ -262,6 +266,25 @@ def test_version_getter():
     assert "remotebmi" in versions
 
 
+def test_plot_catchment():
+    shp = rhine_shape()
+    _ = plot_catchment(shp)
+
+    _, ax = plt.subplots()
+    with pytest.raises(ValueError, match="Axis is missing a CRS"):
+        plot_catchment(shp, axis=ax)
+
+    _ = plt.figure()
+    ax = plt.axes(projection=cartopy.crs.PlateCarree())
+    plot_catchment(
+        shp,
+        axis=ax,
+        lat_bounds=(40.0, 60.0),
+        lon_bounds=(0.0, 20.0),
+        figsize=(5, 5),
+        color="black",
+    )
+    
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
