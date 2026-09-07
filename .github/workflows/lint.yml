@@ -26,4 +26,4 @@ jobs:
       - name: Ruff Lint
         run: ruff check --output-format=github .
       - name: Check format
-        run: ruff format --check
+        run: ruff format --check --diff

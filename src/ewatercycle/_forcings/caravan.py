@@ -1,3 +1,4 @@
+import os
 import shutil
 import zipfile
 from pathlib import Path
@@ -12,7 +13,7 @@ from ewatercycle.base.forcing import DefaultForcing
 from ewatercycle.util import get_time
 
 COMMON_URL = "ca13056c-c347-4a27-b320-930c2a4dd207"
-OPENDAP_URL = f"https://opendap.4tu.nl/thredds/dodsC/data2/djht/{COMMON_URL}/1/"
+OPENDAP_URL = f"https://opendap.4tu.nl/thredds/dodsC/data2/djht/{COMMON_URL}/2/"
 SHAPEFILE_URL = (
     f"https://data.4tu.nl/file/{COMMON_URL}/bbe94526-cf1a-4b96-8155-244f20094719"
 )
@@ -34,11 +35,29 @@ PROPERTY_VARS = [
     "high_prec_dur",
     "low_prec_freq",
     "low_prec_dur",
+    "pet_mean_ERA5_LAND",  # was pet_mean, can also do pet_mean_FAO_PM
+    "aridity_ERA5_LAND",  # was aridity, can also do aridity_FAO_PM
+    "moisture_index_ERA5_LAND",  # was moisture_index, can also do moisture_index_FAO_PM
+    "seasonality_ERA5_LAND",  # was seasonality, can also do seasonality_FAO_PM
+    "pet_mean_FAO_PM",  # was pet_mean, can also do pet_mean_FAO_PM
+    "aridity_FAO_PM",  # was aridity, can also do aridity_FAO_PM
+    "moisture_index_FAO_PM",  # was moisture_index, can also do moisture_index_FAO_PM
+    "seasonality_FAO_PM",  # was seasonality, can also do seasonality_FAO_PM
 ]
 
-RENAME_ERA5 = {
+RENAME_ERA5_v1 = {
     "total_precipitation_sum": "pr",
     "potential_evaporation_sum": "evspsblpot",
+    "temperature_2m_mean": "tas",
+    "temperature_2m_min": "tasmin",
+    "temperature_2m_max": "tasmax",
+    "streamflow": "Q",
+}
+
+RENAME_ERA5_v1_6 = {
+    "total_precipitation_sum": "pr",
+    "potential_evaporation_sum_ERA5_LAND": "evspsblpot",
+    "potential_evaporation_sum_FAO_PENMAN_MONTEITH": "evspsblpot_FAO",
     "temperature_2m_mean": "tas",
     "temperature_2m_min": "tasmin",
     "temperature_2m_max": "tasmax",
@@ -106,7 +125,21 @@ class CaravanForcing(DefaultForcing):
 
     @classmethod
     def get_dataset(cls: type["CaravanForcing"], dataset: str) -> xr.Dataset:
-        """Opens specified dataset from data.4tu.nl OPeNDAP server.
+        """Opens dataset from data.4tu.nl OPeNDAP server, or cache if available.
+
+        By default, it will open the dataset from data.4tu.nl OPeNDAP server
+        This can be overridden by having an environmental variable: CARAVAN_CACHE.
+        Set this variable to the directory containing the netCDF files.
+        On an eWaterCycle machine this path is: /data/shared/climate-data/caravan.
+        On other machines it depends on where the data is located.
+        If you have created a locally available copy of the data: /path/to/caravan_data,
+        use the following command in your terminal;
+            export CARAVAN_CACHE=/path/to/caravan_data
+        or in a notebook;
+        import os
+        os.environ["CARAVAN_CACHE"] = "/path/to/caravan_data"
+        To always have this environment variable set, add this to .bashrc or
+        ask your system administrator.
 
         Args:
             dataset (str): name of dataset, choose from:
@@ -118,6 +151,10 @@ class CaravanForcing(DefaultForcing):
                 'hysets',
                 'lamah'
         """
+        cache_dir = os.environ.get("CARAVAN_CACHE")
+        # Check if we want to load from 4TU or dCache
+        if cache_dir:
+            return xr.open_dataset(Path(cache_dir) / f"{dataset}.nc")
         return xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
 
     @classmethod
@@ -183,9 +220,15 @@ class CaravanForcing(DefaultForcing):
             raise ValueError(msg)
         basin_id = str(kwargs["basin_id"])
 
-        dataset: str = basin_id.split("_")[0]
+        dataset: str = basin_id.split("_", maxsplit=1)[0]
         ds = cls.get_dataset(dataset)
-        ds_basin = ds.sel(basin_id=basin_id.encode())
+        cache_dir = os.environ.get("CARAVAN_CACHE")
+        if cache_dir:
+            ds_basin = ds.sel(basin_id=basin_id)
+            RENAME_ERA5 = RENAME_ERA5_v1_6
+        else:
+            ds_basin = ds.sel(basin_id=basin_id.encode())
+            RENAME_ERA5 = RENAME_ERA5_v1
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
         if shape is None:
@@ -246,7 +289,18 @@ class CaravanForcing(DefaultForcing):
 
 
 def get_shapefiles(directory: Path, basin_id: str) -> Path:
-    """Retrieve shapefiles from data 4TU.nl ."""
+    """Retrieve shapefiles from data 4TU.nl or cache."""
+    cache_dir = os.environ.get("CARAVAN_CACHE")
+    # Check if we want to load from 4TU or dCache
+    if cache_dir:
+        shape_path = directory / f"{basin_id}.shp"
+        combined_shapefile_path = Path(cache_dir) / "shapefiles" / "combined.shp"
+
+        if not shape_path.is_file():
+            extract_basin_shapefile(basin_id, combined_shapefile_path, shape_path)
+
+        return shape_path
+
     zip_path = directory / "shapefiles.zip"
     output_path = directory / "shapefiles"
     shape_path = directory / f"{basin_id}.shp"

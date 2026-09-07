@@ -10,6 +10,7 @@ from numpy.testing import assert_array_equal
 import ewatercycle
 from ewatercycle.testing.fixtures import rhine_shape
 from ewatercycle.util import (
+    extract_package_name,
     find_closest_point,
     fit_extents_to_grid,
     get_package_versions,
@@ -283,3 +284,16 @@ def test_plot_catchment():
         figsize=(5, 5),
         color="black",
     )
+    
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("ewatercycle_HBV.model:HBV", "ewatercycle_HBV"),
+        ("ewatercycle_HBV", "ewatercycle_HBV"),
+        ("ewatercycle_HBV.model", "ewatercycle_HBV"),
+        # only the first colon separates the module from the object
+        ("ewatercycle_HBV.model:HBV:extra", "ewatercycle_HBV"),
+    ],
+)
+def test_extract_package_name(value, expected):
+    assert extract_package_name(value) == expected

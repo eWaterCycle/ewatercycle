@@ -74,13 +74,13 @@ and produce a hydrograph.
 In condensed code:
 
 ```python
-forcing = ewatercycle.forcing.sources['MarrmotForcing'].generate(...)
-model = ewatercycle.models.sources['MarrmotM14'](forcing)
+forcing = ewatercycle.forcing.sources["MarrmotForcing"].generate(...)
+model = ewatercycle.models.sources["MarrmotM14"](forcing)
 model.setup(...)
 model.initialize()
-while (model.time < model.end_time):
+while model.time < model.end_time:
     model.update()
-    value = model.get_value_as_xarray('flux_out_Q')
+    value = model.get_value_as_xarray("flux_out_Q")
 model.finalize()
 ewatercycle.analysis.hydrograph(...)
 ```
@@ -98,14 +98,14 @@ from ewatercycle.testing.fixtures import rhine_shape
 import shapefile
 import xarray as xr
 
-forcing = ewatercycle.forcing.sources['MarrmotForcing'].generate(
-    dataset='ERA5',
-    start_time='2010-01-01T00:00:00Z',
-    end_time='2010-12-31T00:00:00Z',
-    shape=rhine_shape()
+forcing = ewatercycle.forcing.sources["MarrmotForcing"].generate(
+    dataset="ERA5",
+    start_time="2010-01-01T00:00:00Z",
+    end_time="2010-12-31T00:00:00Z",
+    shape=rhine_shape(),
 )
 
-model = ewatercycle.models.sources['MarrmotM14'](version='2020.11', forcing=forcing)
+model = ewatercycle.models.sources["MarrmotM14"](version="2020.11", forcing=forcing)
 
 cfg_file, cfg_dir = model.setup(
     threshold_flow_generation_evap_change=0.1,
@@ -115,31 +115,29 @@ model.initialize(cfg_file)
 
 # flux_out_Q unit conversion factor from mm/day to m3/s
 sf = shapefile.Reader(rhine_shape())
-area = sf.record(0)['SUB_AREA'] * 1e6 # from shapefile in m2
+area = sf.record(0)["SUB_AREA"] * 1e6  # from shapefile in m2
 conversion_mmday2m3s = 1 / (1000 * 24 * 60 * 60)
 conversion = conversion_mmday2m3s * area
 
 simulated_discharge = []
-while (model.time < model.end_time):
+while model.time < model.end_time:
     model.update()
-    simulated_discharge.append(
-        model.get_value_as_xarray('flux_out_Q')
-    )
+    simulated_discharge.append(model.get_value_as_xarray("flux_out_Q"))
 
 observations_ds = ewatercycle.observation.grdc.get_grdc_data(
     station_id=6335020,  # Rees, Germany
     start_time=model.start_time_as_isostr,
     end_time=model.end_time_as_isostr,
-    column='observation',
+    column="observation",
 )
 
 # Combine the simulated discharge with the observations
-sim_da = xr.concat(simulated_discharge, dim='time') * conversion
-sim_da.name = 'simulated'
+sim_da = xr.concat(simulated_discharge, dim="time") * conversion
+sim_da.name = "simulated"
 discharge = xr.merge([sim_da, observations_ds["observation"]]).to_dataframe()
 discharge = discharge[["observation", "simulated"]].dropna()
 
-ewatercycle.analysis.hydrograph(discharge, reference='observation')
+ewatercycle.analysis.hydrograph(discharge, reference="observation")
 
 model.finalize()
 ```

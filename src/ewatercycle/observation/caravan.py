@@ -60,7 +60,7 @@ def get_caravan_data(
             NCO:            netCDF Operators version 5.0.6 (Homepage = http://nco.sf....
             _NCProperties:  version=2,netcdf=4.8.1,hdf5=1.10.7
     """  # noqa: D214,D410,D411
-    dataset: str = basin_id.split("_")[0]
+    dataset: str = basin_id.split("_", maxsplit=1)[0]
     ds = CaravanForcing.get_dataset(dataset)
     ds_basin = ds.sel(basin_id=basin_id.encode())
     ds_basin_time = crop_ds(ds_basin, start_time, end_time)
