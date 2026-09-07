@@ -42,7 +42,6 @@ dependencies = [
     "Fiona",
     "grpc4bmi>=0.4.0",
     "remotebmi",
-    "hydrostats",
     "matplotlib>=3.5.0",
     "numpy",
     "pandas",
