@@ -6,10 +6,43 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## Unreleased
 
-## Added
+## [2.5.0] (2026-09-08)
+
+### Added
 
 - `model.logs` property to inspect the logs of a containerized model ([#470](https://github.com/eWaterCycle/ewatercycle/pull/470)).
-- mention remotebmi in docs ([#471](https://github.com/eWaterCycle/ewatercycle/issues/471))
+- `ewatercycle.util.plot_catchment()` to plot a catchment shapefile, either as a new figure or onto an existing cartopy `GeoAxes` ([#485](https://github.com/eWaterCycle/ewatercycle/pull/485)).
+- `ewatercycle.observation.grdc.get_grdc_data_monthly()` for reading monthly GRDC station files (`.txt` only; NetCDF is not supported). Returns original streamflow, GRDC-calculated streamflow and the validity flag ([#494](https://github.com/eWaterCycle/ewatercycle/pull/494)).
+- `hydrograph()` now accepts `xarray.Dataset` and `xarray.DataArray` in addition to `pandas.DataFrame` ([#493](https://github.com/eWaterCycle/ewatercycle/pull/493)).
+- `metrics_list` argument to `hydrograph()`, to choose which goodness-of-fit metrics are shown. Metrics can be given by full name, abbreviation or function name (any [HydroErr metric](https://hydroerr.readthedocs.io/en/stable/list_of_metrics.html)), or as a callable ([#493](https://github.com/eWaterCycle/ewatercycle/pull/493)).
+- `selected_year` argument to `hydrograph()`, to plot a single year from a longer time series ([#493](https://github.com/eWaterCycle/ewatercycle/pull/493)).
+- `ERA5-Land` to the predefined forcing datasets (`ewatercycle.forcing.DATASETS`) ([#499](https://github.com/eWaterCycle/ewatercycle/pull/499)).
+- `CARAVAN_CACHE` environment variable. When set to a directory containing the Caravan NetCDF files and a `shapefiles/combined.shp`, `CaravanForcing` reads from that local copy instead of the 4TU OPeNDAP server. On eWaterCycle machines Caravan v1 is at `/data/shared/climate-data/caravan` and Caravan v1.6 at `/data/shared/climate-data/caravan1_6` ([#492](https://github.com/eWaterCycle/ewatercycle/pull/492), [#495](https://github.com/eWaterCycle/ewatercycle/pull/495)).
+- Support for Caravan v1.6 in `CaravanForcing`. The version in use is detected from the dataset itself rather than from where it was loaded, so either version can be given via `CARAVAN_CACHE`. Caravan v1.6 provides potential evaporation from both ERA5-Land (`evspsblpot`) and FAO Penman-Monteith (`evspsblpot_FAO`), and the FAO Penman-Monteith catchment properties `pet_mean_FAO_PM`, `aridity_FAO_PM`, `moisture_index_FAO_PM` and `seasonality_FAO_PM` ([#500](https://github.com/eWaterCycle/ewatercycle/pull/500)).
+- Support for PCR-GLOBWB 2.0, released separately as [ewatercycle-pcrglobwb](https://github.com/eWaterCycle/ewatercycle-pcrglobwb) v0.2.1. The plugin now runs the `ghcr.io/ewatercycle/pcrglobwb-grpc4bmi:v0.2.1` image instead of `ewatercycle/pcrg-grpc4bmi:setters`, so the model version string changes from `"setters"` to `"v0.2.1"` ([ewatercycle-pcrglobwb#10](https://github.com/eWaterCycle/ewatercycle-pcrglobwb/pull/10)).
+- Documentation for [remotebmi](https://github.com/eWaterCycle/remotebmi) as an alternative to grpc4bmi ([#471](https://github.com/eWaterCycle/ewatercycle/issues/471)).
+- The HBV, WflowJl and SWMM plugins are now listed in the plugin documentation and the user guide ([#489](https://github.com/eWaterCycle/ewatercycle/pull/489), [#490](https://github.com/eWaterCycle/ewatercycle/pull/490), [#497](https://github.com/eWaterCycle/ewatercycle/pull/497)).
+
+### Changed
+
+- The minimum supported Python version is now 3.11, and Python 3.13 and 3.14 have been added to the classifiers ([#500](https://github.com/eWaterCycle/ewatercycle/pull/500)).
+- `hydrograph` moved from `ewatercycle.analysis` into its own module, `ewatercycle.analysis.hydrograph`. It is still re-exported, so `from ewatercycle.analysis import hydrograph` keeps working ([#493](https://github.com/eWaterCycle/ewatercycle/pull/493)).
+- Goodness-of-fit metrics in `hydrograph()` are now computed with [HydroErr](https://hydroerr.readthedocs.io/) instead of hydrostats. The default set is NSE, KGE (2009), SA and ME, rendered in a table below the plot with full metric names ([#493](https://github.com/eWaterCycle/ewatercycle/pull/493)).
+- `hydrograph()` plot styling: automatic date tick placement, rotated `%Y-%m` labels, legend moved outside the axes, and a default title derived from the reference series ([#493](https://github.com/eWaterCycle/ewatercycle/pull/493)).
+- GRDC station metadata is parsed by header key instead of by fixed line number, so files with a different header layout no longer produce silently missing metadata ([#481](https://github.com/eWaterCycle/ewatercycle/pull/481)).
+- `CITATION.cff` updated ([#476](https://github.com/eWaterCycle/ewatercycle/pull/476)).
+
+### Fixed
+
+- Makkink forcing generation now works with any climate model dataset. CF decoding is deferred until after loading (keeping Dask happy), `time_bnds` is loaded into memory before merging, and the half-day time offset uses `pandas.Timedelta` instead of `numpy.timedelta64` ([#487](https://github.com/eWaterCycle/ewatercycle/pull/487)).
+- The half-day offset in `merge_esvmaltool_datasets()` uses the `"12h"` frequency alias instead of the deprecated `"12H"`, which raises a `FutureWarning` on pandas 2.2 and is removed in pandas 3.0 ([#500](https://github.com/eWaterCycle/ewatercycle/pull/500)).
+- Monthly GRDC files could not be read, because they use a day of `00` that pandas cannot parse. These dates are now mapped onto the first day of the month ([#500](https://github.com/eWaterCycle/ewatercycle/pull/500)).
+- Selecting a Caravan basin now works whether the basin IDs are stored as bytes or as strings ([#500](https://github.com/eWaterCycle/ewatercycle/pull/500)).
+- Broken user guide link in the README ([#474](https://github.com/eWaterCycle/ewatercycle/pull/474)).
+
+### Dependencies
+
+- Added `HydroErr`.
 
 ## [2.4.0] (2024-12-04)
 

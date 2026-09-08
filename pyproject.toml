@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ewatercycle"
-version = "2.4.0"
+version = "2.5.0"
 description = "A Python package for running and validating a hydrology model"
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [
     { name = "Stefan Verhoeven", email = "s.verhoeven@esciencecenter.nl" },
 ]
@@ -25,9 +25,10 @@ classifiers = [
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: GIS",
     "Topic :: Scientific/Engineering :: Hydrology",
@@ -41,7 +42,6 @@ dependencies = [
     "Fiona",
     "grpc4bmi>=0.4.0",
     "remotebmi",
-    "hydrostats",
     "matplotlib>=3.5.0",
     "numpy",
     "pandas",
@@ -53,7 +53,7 @@ dependencies = [
     "xarray",
     "fsspec",
     "cartopy",
-    "HydroErr==2.0.0",
+    "HydroErr",
     # Pin pyopenssl (conda installs old version) https://github.com/conda/conda/issues/13619
     "pyopenssl>=24.0.0",
 ]
@@ -137,7 +137,8 @@ check_untyped_defs = true
 files = ["src"]
 
 [tool.ruff]
-target-version = "py310"
+# Match requires-python (>=3.11) so ruff does not suggest 3.12+ only syntax.
+target-version = "py311"
 extend-include = ["*.ipynb"]
 
 # Add this to ignore shapefiles

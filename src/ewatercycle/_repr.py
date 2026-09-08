@@ -43,7 +43,7 @@ class Representation:
 
     def __pretty__(
         self, fmt: typing.Callable[[Any], Any], **kwargs: Any
-    ) -> typing.Generator[Any, None, None]:
+    ) -> typing.Generator[Any]:
         """Formatter for devtools.
 
         Used by devtools (https://python-devtools.helpmanual.io/) to

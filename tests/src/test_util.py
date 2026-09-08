@@ -1,11 +1,15 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
+import cartopy.crs
+import cartopy.io.shapereader
 import pytest
 import xarray as xr
+from matplotlib import pyplot as plt
 from numpy.testing import assert_array_equal
 
 import ewatercycle
+from ewatercycle.testing.fixtures import rhine_shape
 from ewatercycle.util import (
     extract_package_name,
     find_closest_point,
@@ -13,6 +17,7 @@ from ewatercycle.util import (
     get_package_versions,
     get_time,
     merge_esvmaltool_datasets,
+    plot_catchment,
     reindex,
     to_absolute_path,
 )
@@ -20,7 +25,7 @@ from ewatercycle.util import (
 
 def test_get_time_with_utc():
     dt = get_time("1989-01-02T00:00:00Z")
-    assert dt == datetime(1989, 1, 2, tzinfo=timezone.utc)
+    assert dt == datetime(1989, 1, 2, tzinfo=UTC)
 
 
 def test_get_time_with_cet():
@@ -260,6 +265,55 @@ def test_version_getter():
     assert versions["ewatercycle"] == ewatercycle.__version__
     assert "grpc4bmi" in versions
     assert "remotebmi" in versions
+
+
+def test_plot_catchment():
+    shp = rhine_shape()
+    _ = plot_catchment(shp)
+
+    _, ax = plt.subplots()
+    with pytest.raises(ValueError, match="Axis is missing a CRS"):
+        plot_catchment(shp, axis=ax)
+
+    _ = plt.figure()
+    ax = plt.axes(projection=cartopy.crs.PlateCarree())
+    plot_catchment(
+        shp,
+        axis=ax,
+        lat_bounds=(40.0, 60.0),
+        lon_bounds=(0.0, 20.0),
+        figsize=(5, 5),
+        color="black",
+    )
+
+
+def test_plot_catchment_on_axis_without_bounds():
+    """Bounds are left untouched when plotting into a user provided axis."""
+    _ = plt.figure()
+    ax = plt.axes(projection=cartopy.crs.PlateCarree())
+    xlim, ylim = ax.get_xlim(), ax.get_ylim()
+
+    assert plot_catchment(rhine_shape(), axis=ax) is None
+
+    assert ax.get_xlim() == xlim
+    assert ax.get_ylim() == ylim
+
+
+def test_plot_catchment_undefined_geometry(monkeypatch):
+    class MockRecord:
+        geometry = None
+
+    class MockReader:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def records(self):
+            yield MockRecord()
+
+    monkeypatch.setattr(cartopy.io.shapereader, "Reader", MockReader)
+
+    with pytest.raises(ValueError, match="geometry is undefined"):
+        plot_catchment(rhine_shape())
 
 
 @pytest.mark.parametrize(

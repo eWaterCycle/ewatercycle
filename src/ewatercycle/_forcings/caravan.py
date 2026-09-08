@@ -35,11 +35,29 @@ PROPERTY_VARS = [
     "high_prec_dur",
     "low_prec_freq",
     "low_prec_dur",
+    "pet_mean_ERA5_LAND",  # was pet_mean, can also do pet_mean_FAO_PM
+    "aridity_ERA5_LAND",  # was aridity, can also do aridity_FAO_PM
+    "moisture_index_ERA5_LAND",  # was moisture_index, can also do moisture_index_FAO_PM
+    "seasonality_ERA5_LAND",  # was seasonality, can also do seasonality_FAO_PM
+    "pet_mean_FAO_PM",  # was pet_mean, can also do pet_mean_FAO_PM
+    "aridity_FAO_PM",  # was aridity, can also do aridity_FAO_PM
+    "moisture_index_FAO_PM",  # was moisture_index, can also do moisture_index_FAO_PM
+    "seasonality_FAO_PM",  # was seasonality, can also do seasonality_FAO_PM
 ]
 
-RENAME_ERA5 = {
+RENAME_ERA5_v1 = {
     "total_precipitation_sum": "pr",
     "potential_evaporation_sum": "evspsblpot",
+    "temperature_2m_mean": "tas",
+    "temperature_2m_min": "tasmin",
+    "temperature_2m_max": "tasmax",
+    "streamflow": "Q",
+}
+
+RENAME_ERA5_v1_6 = {
+    "total_precipitation_sum": "pr",
+    "potential_evaporation_sum_ERA5_LAND": "evspsblpot",
+    "potential_evaporation_sum_FAO_PENMAN_MONTEITH": "evspsblpot_FAO",
     "temperature_2m_mean": "tas",
     "temperature_2m_min": "tasmin",
     "temperature_2m_max": "tasmax",
@@ -112,11 +130,16 @@ class CaravanForcing(DefaultForcing):
         By default, it will open the dataset from data.4tu.nl OPeNDAP server
         This can be overridden by having an environmental variable: CARAVAN_CACHE.
         Set this variable to the directory containing the netCDF files.
-        On an eWaterCycle machine this path is: /data/shared/climate-data/caravan.
+        On an eWaterCycle machine Caravan v1 is at
+        /data/shared/climate-data/caravan and Caravan v1.6 at
+        /data/shared/climate-data/caravan1_6; either version can be used.
         On other machines it depends on where the data is located.
         If you have created a locally available copy of the data: /path/to/caravan_data,
         use the following command in your terminal;
             export CARAVAN_CACHE=/path/to/caravan_data
+        or in a notebook;
+        import os
+        os.environ["CARAVAN_CACHE"] = "/path/to/caravan_data"
         To always have this environment variable set, add this to .bashrc or
         ask your system administrator.
 
@@ -135,6 +158,52 @@ class CaravanForcing(DefaultForcing):
         if cache_dir:
             return xr.open_dataset(Path(cache_dir) / f"{dataset}.nc")
         return xr.open_dataset(f"{OPENDAP_URL}{dataset}.nc")
+
+    @classmethod
+    def select_basin_and_renaming(
+        cls: type["CaravanForcing"],
+        ds: xr.Dataset,
+        basin_id: str,
+    ) -> tuple[xr.Dataset, dict[str, str]]:
+        """Select a single basin, along with the renaming for that Caravan version.
+
+        Both Caravan versions can be encountered, and they differ in ways that
+        matter here:
+
+        * v1 (the 4TU OPeNDAP server, and caches such as
+          ``/data/shared/climate-data/caravan``) has potential evaporation from
+          ERA5-Land only, in ``potential_evaporation_sum``.
+        * v1.6 (caches such as ``/data/shared/climate-data/caravan1_6``) has
+          potential evaporation from both ERA5-Land and FAO Penman-Monteith, in
+          two separate variables.
+
+        Which one is in use is determined from the dataset itself rather than
+        from where it was loaded, since ``CARAVAN_CACHE`` (see
+        :meth:`get_dataset`) can point at a copy of either version. The same
+        holds for the basin IDs, which are stored as bytes in some copies of the
+        data and as strings in others.
+
+        Args:
+            ds: Caravan dataset, as returned by :meth:`get_dataset`.
+            basin_id: ID of the desired basin, for example ``"camels_03439000"``.
+
+        Returns:
+            The dataset subset to the requested basin, and the mapping from the
+            Caravan variable names to the CMOR-style names used by eWaterCycle.
+        """
+        renaming = (
+            RENAME_ERA5_v1_6
+            if "potential_evaporation_sum_ERA5_LAND" in ds.data_vars
+            else RENAME_ERA5_v1
+        )
+
+        stored_ids = ds["basin_id"].to_numpy()
+        stores_bytes = stored_ids.dtype.kind == "S" or (
+            stored_ids.size > 0 and isinstance(stored_ids.flat[0], bytes)
+        )
+        key = basin_id.encode() if stores_bytes else basin_id
+
+        return ds.sel(basin_id=key), renaming
 
     @classmethod
     def get_basin_id(cls: type["CaravanForcing"], dataset: str) -> list[str]:
@@ -201,7 +270,7 @@ class CaravanForcing(DefaultForcing):
 
         dataset: str = basin_id.split("_", maxsplit=1)[0]
         ds = cls.get_dataset(dataset)
-        ds_basin = ds.sel(basin_id=basin_id.encode())
+        ds_basin, rename_era5 = cls.select_basin_and_renaming(ds, basin_id)
         ds_basin_time = crop_ds(ds_basin, start_time, end_time)
 
         if shape is None:
@@ -214,14 +283,14 @@ class CaravanForcing(DefaultForcing):
         properties = set(variables).intersection(PROPERTY_VARS)
         non_property_vars = set(variables) - properties
         variable_names = non_property_vars.intersection(
-            RENAME_ERA5.keys()
+            rename_era5.keys()
         )  # only take the vars also in Rename dict
 
         for prop in properties:
             ds_basin_time.coords.update({prop: ds_basin_time[prop].to_numpy()})
 
-        ds_basin_time = ds_basin_time.rename(RENAME_ERA5)
-        variables = tuple([RENAME_ERA5[var] for var in variable_names])
+        ds_basin_time = ds_basin_time.rename(rename_era5)
+        variables = tuple([rename_era5[var] for var in variable_names])
 
         # convert units to Kelvin for compatibility with CMOR MIP table units
         for temp in ["tas", "tasmin", "tasmax"]:
