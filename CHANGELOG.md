@@ -6,7 +6,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## Unreleased
 
-## [2.5.0] (2026-09-07)
+## [2.5.0] (2026-09-08)
 
 ### Added
 
@@ -42,7 +42,7 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ### Dependencies
 
-- Added `HydroErr==2.0.0`.
+- Added `HydroErr`.
 
 ## [2.4.0] (2024-12-04)
 
