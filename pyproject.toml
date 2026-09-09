@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ewatercycle"
-version = "2.5.0"
+version = "2.6.0"
 description = "A Python package for running and validating a hydrology model"
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 authors = [
     { name = "Stefan Verhoeven", email = "s.verhoeven@esciencecenter.nl" },
 ]
@@ -25,10 +25,8 @@ classifiers = [
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: GIS",
     "Topic :: Scientific/Engineering :: Hydrology",
@@ -105,7 +103,8 @@ platforms = [
 ]
 
 [tool.conda-lock.dependencies]
-esmvaltool-python = ">=2.11"
+python = "3.12.*"
+esmvaltool-python = "2.15.*"
 # grpc4bmi is not available on conda-forge, so we use the pypi version
 # The grpc4bmi dependencies are not locked
 # As workaround grpc4bmi deps are listed here as conda deps
@@ -137,8 +136,7 @@ check_untyped_defs = true
 files = ["src"]
 
 [tool.ruff]
-# Match requires-python (>=3.11) so ruff does not suggest 3.12+ only syntax.
-target-version = "py311"
+target-version = "py312"
 extend-include = ["*.ipynb"]
 
 # Add this to ignore shapefiles
