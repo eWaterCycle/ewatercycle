@@ -51,9 +51,8 @@ def test_parse_recipe_output_with_no_files():
 
 
 def test_parse_recipe_output_with_no_diagnostic():
-    recipe_output = RecipeOutput({},
-                                 session=None, 
-                                 info=RecipeInfo({"diagnostics": {}}, "script")
-                                )
+    recipe_output = RecipeOutput(
+        {}, session=None, info=RecipeInfo({"diagnostics": {}}, "script")
+    )
     with pytest.raises(IndexError):
         _parse_recipe_output(recipe_output)
