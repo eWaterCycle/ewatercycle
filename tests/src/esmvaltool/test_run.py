@@ -13,6 +13,7 @@ def test_parse_recipe_output_with_nc_files(tmp_path: Path):
     pr_ds.to_netcdf(pr_fn)
     recipe_output = RecipeOutput(
         {"diagnostic/script": {pr_fn: {}}},
+        session=None,
         info=RecipeInfo({"diagnostics": {"diagnostic": {}}}, "script"),
     )
     expected = {
@@ -28,6 +29,7 @@ def test_parse_recipe_output_with_txt_files(tmp_path: Path):
     pr_fn = tmp_path / "pr.txt"
     recipe_output = RecipeOutput(
         {"diagnostic/script": {str(pr_fn): {}}},
+        session=None,
         info=RecipeInfo({"diagnostics": {"diagnostic": {}}}, "script"),
     )
     expected = {
@@ -41,6 +43,7 @@ def test_parse_recipe_output_with_txt_files(tmp_path: Path):
 def test_parse_recipe_output_with_no_files():
     recipe_output = RecipeOutput(
         {"diagnostic/script": {}},
+        session=None,
         info=RecipeInfo({"diagnostics": {"diagnostic": {}}}, "script"),
     )
     with pytest.raises(ValueError):
@@ -48,6 +51,9 @@ def test_parse_recipe_output_with_no_files():
 
 
 def test_parse_recipe_output_with_no_diagnostic():
-    recipe_output = RecipeOutput({}, info=RecipeInfo({"diagnostics": {}}, "script"))
+    recipe_output = RecipeOutput({},
+                                 session=None, 
+                                 info=RecipeInfo({"diagnostics": {}}, "script")
+                                )
     with pytest.raises(IndexError):
         _parse_recipe_output(recipe_output)
