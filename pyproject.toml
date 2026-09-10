@@ -104,7 +104,7 @@ platforms = [
 
 [tool.conda-lock.dependencies]
 python = "3.12.*"
-esmvaltool-python = "2.15.*"
+esmvaltool-python = ">=2.15"
 # grpc4bmi is not available on conda-forge, so we use the pypi version
 # The grpc4bmi dependencies are not locked
 # As workaround grpc4bmi deps are listed here as conda deps
