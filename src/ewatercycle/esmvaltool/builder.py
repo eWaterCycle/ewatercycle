@@ -38,7 +38,7 @@ class RecipeBuilder:
 
         .. code-block:: python
 
-            >>> from ewatercycle.testing.fixtures import rhine_shape
+            >>> from ewatercycle.testing import rhine_shape
             >>> from ewatercycle.forcing import RecipeBuilder
             >>> recipe = (
             ...     RecipeBuilder()

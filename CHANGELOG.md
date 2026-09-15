@@ -6,6 +6,22 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ## Unreleased
 
+### Changed
+
+- ESMValTool/ESMValCore updated from 2.11 to 2.15. The locked environment now ships `esmvalcore` 2.15.0 and `esmvaltool-python` 2.15.0 (previously 2.11.1 and 2.11.0), and the conda dependency constraint is now `esmvaltool-python >=2.15`.
+- The minimum supported Python version is now 3.12; Python 3.11 has been dropped. ESMValCore 2.15 requires `python >=3.12`, whereas 2.11.1 allowed `>=3.10,<3.13`, so 3.11 can no longer be supported. The locked conda environment is pinned to Python 3.12, and the 3.11 and 3.14 classifiers have been removed.
+- `esmvalcore.experimental.recipe_output.RecipeOutput` now takes a required `session` argument. The eWaterCycle API is unaffected, but code that constructs `RecipeOutput` directly has to pass it.
+- The half-day `time_bnds` offset in `ewatercycle.util.merge_esvmaltool_datasets()` uses `numpy.timedelta64` again instead of `pandas.Timedelta`, reversing the change made in 2.5.0 ([#487](https://github.com/eWaterCycle/ewatercycle/pull/487)).
+- `rhine_shape()` moved up to `ewatercycle.testing`, so use `from ewatercycle.testing import rhine_shape`. Nothing under `src/` imports pytest any more, so the package no longer needs a test framework installed to be imported.
+
+### Fixed
+
+- `CaravanForcing.generate()` now reports its variables in a stable order. The names were derived from a `set`, so the order varied between interpreter runs and ended up in the generated forcing, making results non-reproducible. They are now sorted.
+
+### Removed
+
+- `ewatercycle.testing.fixtures` and `ewatercycle.testing.data`. The `sample_shape` and `mocked_config` pytest fixtures were the only code under `src/` importing `pytest`, which is not a runtime dependency, so importing them on a plain install failed. They now live in this repository's `tests/src/conftest.py`.
+
 ## [2.5.0] (2026-09-08)
 
 ### Added
