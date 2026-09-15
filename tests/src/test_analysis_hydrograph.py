@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -50,13 +48,6 @@ def _create_data():
     return df_q_wave, df_pr
 
 
-def _save_figure(fig, fname):
-    """Save figure to baseline directory."""
-    baseline_dir = "tests/src/baseline_images/test_analysis"
-    fig_path = Path(baseline_dir) / fname
-    fig.savefig(fig_path, bbox_inches="tight")
-
-
 def test_hydrograph():
     """Test hydrograph with pandas DataFrame input."""
     df_q, df_pr = _create_data()
@@ -64,11 +55,9 @@ def test_hydrograph():
         df_q, reference="reference", precipitation=df_pr, nbars=100
     )
 
-    _save_figure(fig, "hydrograph_DataFrame.png")
-
-    #
     assert len(ax.lines) == 4  # 3 discharge + 1 reference
     assert ax_tbl.tables
+    plt.close(fig)
 
 
 def test_hydrograph_xarray():
@@ -80,11 +69,9 @@ def test_hydrograph_xarray():
         ds_q, reference="reference", metrics_list=["kge_2009", "nse_mod", "male"]
     )
 
-    _save_figure(fig, "hydrograph_xarray.png")
-
-    #
     assert len(ax.lines) == 4  # 3 discharge + 1 reference
     assert ax_tbl.tables
+    plt.close(fig)
 
 
 def test_hydrograph_xarray_single_year():
@@ -94,11 +81,9 @@ def test_hydrograph_xarray_single_year():
 
     fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference", selected_year=2020)
 
-    _save_figure(fig, "hydrograph_xarray_single_year.png")
-
-    #
     assert len(ax.lines) == 4  # 3 discharge + 1 reference
     assert ax_tbl.tables
+    plt.close(fig)
 
 
 def test_hydrograph_xarray_single_hydrograph():
@@ -109,11 +94,9 @@ def test_hydrograph_xarray_single_hydrograph():
 
     fig, (ax, ax_tbl) = hydrograph(ds_q, reference="reference")
 
-    _save_figure(fig, "hydrograph_xarray_single_comparison.png")
-
-    #
     assert len(ax.lines) == 2  # 3 discharge + 1 reference
     assert ax_tbl.tables
+    plt.close(fig)
 
 
 def test_hydrograph_series_error():
