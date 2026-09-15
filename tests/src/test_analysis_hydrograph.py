@@ -151,6 +151,16 @@ def test_hydrograph_dataarray_multidimensional_error():
         hydrograph(da_q, reference="reference")
 
 
+def test_hydrograph_dataset_multidimensional_error():
+    """Test hydrograph raises error with a multi dimensional xarray Dataset."""
+    df_q = _create_data()[0]
+    ds_q = xr.Dataset.from_dataframe(df_q)
+    ds_q["extra"] = [1.0, 2.0, 3.0]  # a bare list creates a second dimension
+
+    with pytest.raises(TypeError, match="single time dimension"):
+        hydrograph(ds_q, reference="reference")
+
+
 def test_hydrograph_unsupported_type_error():
     """Test hydrograph raises error with an unsupported input type."""
     with pytest.raises(TypeError, match="Unsupported data type"):

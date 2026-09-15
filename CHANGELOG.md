@@ -16,6 +16,8 @@ Formatted as described on [https://keepachangelog.com](https://keepachangelog.co
 
 ### Fixed
 
+- `hydrograph()` now raises a clear `TypeError` when given an `xarray.Dataset` that does not have exactly one dimension. Previously an `xarray` error about `to_pandas()` surfaced instead, whose advice to use `Dataset.to_dataframe()` does not work either, because that yields a MultiIndex the hydrograph code cannot use.
+- The user guide built the combined discharge by assigning a plain list to an `xarray.Dataset`, which created a second dimension instead of a column, and made the hydrograph call fail. It also fetched GRDC observations for a different year than the model run, and passed the station metadata through as if it were simulated discharge. The model loop now records a timestamp per sample and the two series are joined on their dates, so the comparison no longer depends on the two having the same length.
 - `CaravanForcing.generate()` now reports its variables in a stable order. The names were derived from a `set`, so the order varied between interpreter runs and ended up in the generated forcing, making results non-reproducible. They are now sorted.
 
 ### Removed
