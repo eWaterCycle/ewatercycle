@@ -1,6 +1,30 @@
-from ewatercycle.testing.fixtures import (
-    mocked_config as mocked_config,
-)
-from ewatercycle.testing.fixtures import (
-    sample_shape as sample_shape,
-)
+from pathlib import Path
+
+import pytest
+
+from ewatercycle import CFG
+from ewatercycle.config import Configuration
+from ewatercycle.testing import rhine_shape
+
+
+@pytest.fixture
+def sample_shape():
+    """Return the path to a sample shape."""
+    return str(rhine_shape())
+
+
+@pytest.fixture
+def mocked_config(tmp_path: Path):
+    """Create a mocked configuration."""
+    parameterset_dir = tmp_path / "psr"
+    parameterset_dir.mkdir()
+    config = Configuration(
+        output_dir=tmp_path,
+        grdc_location=tmp_path,
+        container_engine="apptainer",
+        apptainer_dir=tmp_path,
+        parameterset_dir=parameterset_dir,
+        parameter_sets={},
+        ewatercycle_config=None,
+    )
+    CFG.overwrite(config)

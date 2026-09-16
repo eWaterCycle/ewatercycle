@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 from numpy.testing import assert_array_equal
 
 import ewatercycle
-from ewatercycle.testing.fixtures import rhine_shape
+from ewatercycle.testing import rhine_shape
 from ewatercycle.util import (
     extract_package_name,
     find_closest_point,

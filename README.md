@@ -94,7 +94,7 @@ import ewatercycle.analysis
 import ewatercycle.forcing
 import ewatercycle.models
 import ewatercycle.observation.grdc
-from ewatercycle.testing.fixtures import rhine_shape
+from ewatercycle.testing import rhine_shape
 import shapefile
 import xarray as xr
 

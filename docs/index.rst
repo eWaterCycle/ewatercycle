@@ -21,7 +21,10 @@ enables interactively running a model from a Python environment like so:
        discharge = model.get_value_at_coords("RiverRunoff", lat=[52.3], lon=[5.2])
        output.append(discharge)
 
-To learn how to use the package, see the `User guide <user_guide/00_intro.html>`_
+New to eWaterCycle? Start with the `Getting started guide
+<https://www.ewatercycle.org/getting-started/main/intro.html>`_, which walks you
+through your first model run. For a reference-style tour of this package, see the
+`User guide <user_guide/00_intro.html>`_.
 
 Typically the eWaterCycle platform is deployed on a system that can be accessed
 through the browser via JupyterHub, and comes preconfigured with readily
@@ -49,6 +52,12 @@ that are commonly used throughout this documentation.
 - **Model Parameters**: fixed parameters (depth of river, land use, irrigation channels, dams). Considered constant during a model run.
 - **Parameter Set**: File based collection of parameters for a certain model, resolution, and possibly area.
 - **Model instance**: single running instance of a model, including all data required, and with a current state.
+
+.. toctree::
+   :caption: Getting Started
+   :hidden:
+
+   Getting started with eWaterCycle <https://www.ewatercycle.org/getting-started/main/intro.html>
 
 .. toctree::
    :caption: User Guide

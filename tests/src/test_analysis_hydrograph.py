@@ -52,9 +52,9 @@ def _create_data():
 
 def _save_figure(fig, fname):
     """Save figure to baseline directory."""
-    baseline_dir = "tests/src/baseline_images/test_analysis"
-    fig_path = Path(baseline_dir) / fname
-    fig.savefig(fig_path, bbox_inches="tight")
+    baseline_dir = Path(__file__).parent / "baseline_images" / "test_analysis"
+    baseline_dir.mkdir(parents=True, exist_ok=True)
+    fig.savefig(baseline_dir / fname, bbox_inches="tight")
 
 
 def test_hydrograph():
@@ -66,9 +66,9 @@ def test_hydrograph():
 
     _save_figure(fig, "hydrograph_DataFrame.png")
 
-    #
     assert len(ax.lines) == 4  # 3 discharge + 1 reference
     assert ax_tbl.tables
+    plt.close(fig)
 
 
 def test_hydrograph_xarray():
@@ -82,9 +82,9 @@ def test_hydrograph_xarray():
 
     _save_figure(fig, "hydrograph_xarray.png")
 
-    #
     assert len(ax.lines) == 4  # 3 discharge + 1 reference
     assert ax_tbl.tables
+    plt.close(fig)
 
 
 def test_hydrograph_xarray_single_year():
@@ -96,9 +96,9 @@ def test_hydrograph_xarray_single_year():
 
     _save_figure(fig, "hydrograph_xarray_single_year.png")
 
-    #
     assert len(ax.lines) == 4  # 3 discharge + 1 reference
     assert ax_tbl.tables
+    plt.close(fig)
 
 
 def test_hydrograph_xarray_single_hydrograph():
@@ -111,9 +111,9 @@ def test_hydrograph_xarray_single_hydrograph():
 
     _save_figure(fig, "hydrograph_xarray_single_comparison.png")
 
-    #
     assert len(ax.lines) == 2  # 3 discharge + 1 reference
     assert ax_tbl.tables
+    plt.close(fig)
 
 
 def test_hydrograph_series_error():
@@ -149,6 +149,16 @@ def test_hydrograph_dataarray_multidimensional_error():
 
     with pytest.raises(TypeError, match="DataArray with more than one dimension"):
         hydrograph(da_q, reference="reference")
+
+
+def test_hydrograph_dataset_multidimensional_error():
+    """Test hydrograph raises error with a multi dimensional xarray Dataset."""
+    df_q = _create_data()[0]
+    ds_q = xr.Dataset.from_dataframe(df_q)
+    ds_q["extra"] = [1.0, 2.0, 3.0]  # a bare list creates a second dimension
+
+    with pytest.raises(TypeError, match="single time dimension"):
+        hydrograph(ds_q, reference="reference")
 
 
 def test_hydrograph_unsupported_type_error():

@@ -65,7 +65,7 @@ def _to_pandas(data_in):
         pd.Dataframe
 
     Raises:
-        Typerror if the input is not supported
+        TypeError if the input is not supported
     """
     # already a DataFrame
     if isinstance(data_in, pd.DataFrame):
@@ -78,6 +78,9 @@ def _to_pandas(data_in):
 
     # xarray Dataset
     if isinstance(data_in, xr.Dataset):
+        if len(data_in.dims) != 1:
+            msg = f"Only a Dataset with a single time dimension is supported, please provide a DataFrame or xr.Dataset. Got dimensions: {list(data_in.dims)}"  # noqa: E501
+            raise TypeError(msg)
         return data_in.to_pandas()
 
     # xarray DataArray

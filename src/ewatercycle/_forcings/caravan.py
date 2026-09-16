@@ -282,15 +282,13 @@ class CaravanForcing(DefaultForcing):
         # only return the properties which are also in property vars
         properties = set(variables).intersection(PROPERTY_VARS)
         non_property_vars = set(variables) - properties
-        variable_names = non_property_vars.intersection(
-            rename_era5.keys()
-        )  # only take the vars also in Rename dict
+        variable_names = sorted(non_property_vars.intersection(rename_era5.keys()))
 
         for prop in properties:
             ds_basin_time.coords.update({prop: ds_basin_time[prop].to_numpy()})
 
         ds_basin_time = ds_basin_time.rename(rename_era5)
-        variables = tuple([rename_era5[var] for var in variable_names])
+        variables = tuple(sorted(rename_era5[var] for var in variable_names))
 
         # convert units to Kelvin for compatibility with CMOR MIP table units
         for temp in ["tas", "tasmin", "tasmax"]:

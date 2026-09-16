@@ -33,3 +33,6 @@ __pycache__
 .ruff-cache
 .venv
 .vscode/settings.json
+
+# figures written by tests/src/test_analysis_hydrograph.py
+tests/src/baseline_images/

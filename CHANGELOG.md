@@ -4,7 +4,25 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 Formatted as described on [https://keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## [2.6.0] (2026-09-16)
+
+### Changed
+
+- ESMValTool/ESMValCore updated from 2.11 to 2.15. The locked environment now ships `esmvalcore` 2.15.0 and `esmvaltool-python` 2.15.0 (previously 2.11.1 and 2.11.0), and the conda dependency constraint is now `esmvaltool-python >=2.15`.
+- The minimum supported Python version is now 3.12; Python 3.11 has been dropped. ESMValCore 2.15 requires `python >=3.12`, whereas 2.11.1 allowed `>=3.10,<3.13`, so 3.11 can no longer be supported. The locked conda environment is pinned to Python 3.12, and the 3.11 and 3.14 classifiers have been removed.
+- `esmvalcore.experimental.recipe_output.RecipeOutput` now takes a required `session` argument. The eWaterCycle API is unaffected, but code that constructs `RecipeOutput` directly has to pass it.
+- The half-day `time_bnds` offset in `ewatercycle.util.merge_esvmaltool_datasets()` uses `numpy.timedelta64` again instead of `pandas.Timedelta`, reversing the change made in 2.5.0 ([#487](https://github.com/eWaterCycle/ewatercycle/pull/487)).
+- `rhine_shape()` moved up to `ewatercycle.testing`, so use `from ewatercycle.testing import rhine_shape`. Nothing under `src/` imports pytest any more, so the package no longer needs a test framework installed to be imported.
+
+### Fixed
+
+- `hydrograph()` now raises a clear `TypeError` when given an `xarray.Dataset` that does not have exactly one dimension. Previously an `xarray` error about `to_pandas()` surfaced instead, whose advice to use `Dataset.to_dataframe()` does not work either, because that yields a MultiIndex the hydrograph code cannot use.
+- The user guide built the combined discharge by assigning a plain list to an `xarray.Dataset`, which created a second dimension instead of a column, and made the hydrograph call fail. It also fetched GRDC observations for a different year than the model run, and passed the station metadata through as if it were simulated discharge. The model loop now records a timestamp per sample and the two series are joined on their dates, so the comparison no longer depends on the two having the same length.
+- `CaravanForcing.generate()` now reports its variables in a stable order. The names were derived from a `set`, so the order varied between interpreter runs and ended up in the generated forcing, making results non-reproducible. They are now sorted.
+
+### Removed
+
+- `ewatercycle.testing.fixtures` and `ewatercycle.testing.data`. The `sample_shape` and `mocked_config` pytest fixtures were the only code under `src/` importing `pytest`, which is not a runtime dependency, so importing them on a plain install failed. They now live in this repository's `tests/src/conftest.py`.
 
 ## [2.5.0] (2026-09-08)
 
